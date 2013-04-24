@@ -1,0 +1,32 @@
+{
+  gSystem->Load("libGeom");
+  gSystem->Load("libEve");
+  gSystem->Load("libMinuit.so");
+  gSystem->Load("../WCSim/libWCSimRoot.so");
+  gSystem->Load("lib/libWCSimAnalysis.so");
+
+
+  // Load Data
+  // =========
+  //  WCSimInterface::LoadData("/lbne/software2010/WCSim/wcsim.test.beam.root");
+  WCSimInterface::LoadData("/home/ajperch/MINOS/waterCherenkov/mcSamples/piZero.root");//numi_numu_NC_100kT_10pC_Leigh.root");
+
+
+  // create viewer: must be called 'viewer'
+  // =====================================
+  WCSimDisplayViewer* viewer = new WCSimDisplayViewer();
+ 
+  // for EVE display
+  // ===============
+  viewer->UseDisplay("EVE"); 
+
+  // configuration
+  // =============
+  // viewer->DisplayRecoClusters();  // display clusters
+
+  // not implemented:
+  // ================
+  // viewer->DisplayRecoVertex(); // display vertex
+  // viewer->DisplayTrueEvent();  // display truth
+
+}
