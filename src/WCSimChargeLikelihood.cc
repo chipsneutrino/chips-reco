@@ -20,7 +20,7 @@ WCSimChargeLikelihood::WCSimChargeLikelihood(WCSimLikelihoodDigitArray * myDigit
 }
 
 ///////////////////////////////////////////////////////////////////////////
-// Set starting values.  Eventually WCSimLikelihoodTuner will be used
+// Set starting values. TODO: Eventually WCSimLikelihoodTuner will be used
 // to work these out, but for now they're hardcoded
 ///////////////////////////////////////////////////////////////////////////
 void WCSimChargeLikelihood::Initialize( WCSimLikelihoodDigitArray * myDigitArray, WCSimLikelihoodTrack * myTrack )
@@ -116,7 +116,7 @@ double WCSimChargeLikelihood::ChargeExpectation()
       muIndir = this->GetMuIndirect(); 
     }
     else std::cout << "Error: did not get track parameters first" << std::endl; 
-  return 0;
+  return 0; //TODO: return muDir + muIndir; ?? /mp
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -181,7 +181,7 @@ double WCSimChargeLikelihood::GetMuIndirect()
 double WCSimChargeLikelihood::GetLightFlux()
 {
   std::cout << "*** WCSimChargeLikelihood::GetLightFlux() *** Getting the light flux as a function of the track KE" << std::endl; 
-  return 3.0*fEnergy;   // Return 3 PE per MeV.  This isn't right, sort it later.
+  return 3.0*fEnergy;   // Return 3 PE per MeV. TODO: This isn't right, sort it later.
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -199,6 +199,7 @@ double WCSimChargeLikelihood::LookupChIntegrals(int i)
       return 0; 
    }
    
+    //TODO: maybe (trilinear) interpolation? /mp
     int energyBin;
     if( fmod(fEnergy/fEnergyInterval,1) > 0.5 ) energyBin = (int)ceil(fEnergy/fEnergyInterval);
     else energyBin = (int)floor(fEnergy/fEnergyInterval);
@@ -229,6 +230,7 @@ double WCSimChargeLikelihood::LookupIndIntegrals(int i)
    }
    
     int energyBin;
+    //TODO: maybe interpolation? /mp
     if( fmod(fEnergy/fEnergyInterval,1) > 0.5 ) energyBin = (int)ceil(fEnergy/fEnergyInterval);
     else energyBin = (int)floor(fEnergy/fEnergyInterval);
     std::cout << "Energy bin = " << energyBin << std::endl;
