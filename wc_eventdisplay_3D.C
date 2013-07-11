@@ -9,7 +9,7 @@
   // Load Data
   // =========
   //  WCSimInterface::LoadData("/lbne/software2010/WCSim/wcsim.test.beam.root");
-  WCSimInterface::LoadData("/home/ajperch/MINOS/waterCherenkov/mcSamples/piZero.root");//numi_numu_NC_100kT_10pC_Leigh.root");
+  WCSimInterface::LoadData("/unix/fnu/ajperch/sampleEvents/WCSimOutput/nue_chips_me_1000_rightVtx.root");//../mcSamples/muonZ.root");//numi_numu_NC_100kT_10pC_Leigh.root");
 
 
   // create viewer: must be called 'viewer'

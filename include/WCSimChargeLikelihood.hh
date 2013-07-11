@@ -6,6 +6,7 @@
 #include "WCSimLikelihoodDigit.hh"
 #include "WCSimLikelihoodDigitArray.hh"
 #include "WCSimLikelihoodTrack.hh"
+#include "WCSimLikelihoodTuner.hh"
 #include "WCSimRecoEvent.hh"
 #include "TMath.h"
 
@@ -18,16 +19,17 @@ class WCSimChargeLikelihood
 
         Double_t Calc2LnL();
         Double_t ChargeExpectation();
-        Double_t ChargeExpectation( WCSimLikelihoodDigit * myDigit );
         Double_t GetLightFlux();
-        Double_t GetMuIndirect( WCSimLikelihoodDigit * myDigit );
         Double_t GetMuIndirect();
-        Double_t GetMuDirect( WCSimLikelihoodDigit * myDigit );
         Double_t GetMuDirect();
         Double_t LookupChIntegrals(int i); 
         Double_t LookupIndIntegrals(int i); 
         Double_t ScatteringTable();
-        void GetTrackParameters(WCSimLikelihoodDigit * myDigit);
+        void GetTrackParameters();
+        Double_t CalculateExactLikelihood();
+        Double_t GetR0Interval();
+        Double_t GetCosTheta0Interval();
+
     protected:
     private:
         std::vector<Double_t> fCoeffsCh;
@@ -62,11 +64,17 @@ class WCSimChargeLikelihood
       // The track and event parameters for which we calculate the likelihood
         WCSimLikelihoodTrack * fTrack;
         WCSimLikelihoodDigitArray * fDigitArray;
+        WCSimLikelihoodDigit * fDigit;
+        WCSimLikelihoodTuner * fTuner;
 
       // The fitted functions are defined using various variables that relate the track to the 
       // PMT hit in question.  I calculate these in GetTrackParameters() and set a flag when
       // this has been done
       Bool_t fGotTrackParameters;
+
+      // Do we want to calculate or look up the integrals for the likelihood?
+      // Calculating is fine for drawing/testing, but look them up when we do the fit
+      Bool_t fCalculateIntegrals;
 
 };
 

@@ -1,3 +1,4 @@
+#include "WCSimChargeLikelihood.hh"
 #include "WCSimGeometry.hh"
 #include "WCSimInterface.hh"
 #include "WCSimLikelihoodDigitArray.hh"
@@ -5,6 +6,8 @@
 #include "WCSimRecoDigit.hh"
 #include "WCSimRootEvent.hh"
 #include "WCSimRootGeom.hh"
+#include "WCSimTimeLikelihood.hh"
+
 #include "TClonesArray.h"
 #include "TCollection.h"
 #include "TMath.h"
@@ -14,7 +17,7 @@ WCSimLikelihoodFitter::WCSimLikelihoodFitter(WCSimRootEvent * myRootEvent)
     fRootEvent = myRootEvent;
     fLikelihoodDigitArray = new WCSimLikelihoodDigitArray(fRootEvent);
 //    fRecoDigitList = *(myRecoEvent->GetDigitList());
-    std::cout << "Calculated LnL()" << std::endl;
+    //std::cout << "Calculated LnL()" << std::endl;
     //ctor
 }
 
@@ -25,7 +28,7 @@ WCSimLikelihoodFitter::~WCSimLikelihoodFitter()
 void WCSimLikelihoodFitter::Minimize2LnL()
 {
     this->Calc2LnL();
-    //TODO: Then minimize it
+    // Then minimize it
     return ;
 }
 
@@ -34,20 +37,36 @@ double WCSimLikelihoodFitter::Calc2LnL()
     return (this->Charge2LnL() + this->Time2LnL());
 }
 
+double WCSimLikelihoodFitter::Calc2LnL(WCSimLikelihoodTrack * myTrack)
+{
+  return (this->Charge2LnL( myTrack ) + this->Time2LnL());
+}
+
+double WCSimLikelihoodFitter::Charge2LnL( WCSimLikelihoodTrack * myTrack )
+{
+  fTrack = myTrack;
+  return (this->Charge2LnL());
+}
+
+
 double WCSimLikelihoodFitter::Charge2LnL( )
 {
-    
+    if(fTrack == NULL)
+    {
+      std::cerr << "WCSimLikelihoodFitter::Charge2LnL() - Error: fTrack = NULL" << std::endl;
+      exit(EXIT_FAILURE);
+    }
     double Charge2LnL = 1.0;
 
-    fTrack = new WCSimLikelihoodTrack(1,1,1,1,1,1,1);
-    std::cout << "Calculating charge LnL" << std::endl;
+    //std::cout << "Calculating charge LnL" << std::endl;
     WCSimChargeLikelihood * myChargeLikelihood = new WCSimChargeLikelihood( fLikelihoodDigitArray, fTrack );
     Charge2LnL = myChargeLikelihood->Calc2LnL();
   //        double myProb = TMath::Poisson( Q, mu );
   //        ChargeLnL += TMath::Log( myProb );
       //}
    // }
-    std::cout << "Returning  -2 * charge LnL" << std::endl;
+    //std::cout << "Returning  -2 * charge LnL" << std::endl;
+    std::cout << "-2 * ChargeLnL = " << Charge2LnL << std::endl;
     return Charge2LnL;
 }
 
@@ -65,6 +84,7 @@ double WCSimLikelihoodFitter::CalcMuIndirect()
 
 double WCSimLikelihoodFitter::Time2LnL( )
 {
-    std::cout << "Returning time LnL" << std::endl;
+    WCSimTimeLikelihood * myTimeLikelihood = new WCSimTimeLikelihood( fLikelihoodDigitArray, fTrack );
+    //std::cout << "Returning time LnL" << std::endl;
     return 1.0;
 }

@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 
-void wc_truthntuple(std::string fPath = "/home/ajperch/MINOS/waterCherenkov/mcSamples/numu.root", std::string oPath = "../recoNtp/numu_TRUTH.root", int nEvt = 2000){
+void wc_truthntuple(std::string fPath = "/unix/fnu/ajperch/sampleEvents/WCSimOutput/tauTest.root", std::string oPath = "../recoNtp/nutau_test_TRUTH.root", int nEvt = 2000){
 // ../mcSamples/numi_numu_NC_100kT_10pC_1000events_PEperMeV.root"
 
 	// Load the WC Library
@@ -42,16 +42,16 @@ void wc_truthntuple(std::string fPath = "/home/ajperch/MINOS/waterCherenkov/mcSa
 	double trueVtxX, trueVtxY, trueVtxZ;
 	double trueDirX, trueDirY, trueDirZ;
 	int nDaughters;
-	int trueDaughterPDG[250] = {0};
-	int trueDaughterID[250] = {0};
-	double trueDaughterE[250] = {0};
-	double trueDaughterVtxX[250] = {0.0};
-	double trueDaughterVtxY[250] = {0.0};
-	double trueDaughterVtxZ[250] = {0.0};
-	double trueDaughterDirX[250] = {0.0};
-	double trueDaughterDirY[250] = {0.0};
-	double trueDaughterDirZ[250] = {0.0};
-	int trueDaughterParentPDG[250] = {0};
+	int trueDaughterPDG[2500] = {0};
+	int trueDaughterID[2500] = {0};
+	double trueDaughterE[2500] = {0};
+	double trueDaughterVtxX[2500] = {0.0};
+	double trueDaughterVtxY[2500] = {0.0};
+	double trueDaughterVtxZ[2500] = {0.0};
+	double trueDaughterDirX[2500] = {0.0};
+	double trueDaughterDirY[2500] = {0.0};
+	double trueDaughterDirZ[2500] = {0.0};
+	int trueDaughterParentPDG[2500] = {0};
 
 	int nHits;
 	int nHitsUp; // NHits in -z
@@ -213,12 +213,18 @@ void wc_truthntuple(std::string fPath = "/home/ajperch/MINOS/waterCherenkov/mcSa
 			// trig = (WCSimRootTrigger *) evt->GetTrigger(j+1); // Trigger 0 is the neutrino
 //			std::cout << "     "  << trig << "   done!   " << std::endl;
 			track = (WCSimRootTrack *) (trig->GetTracks()->At(j));
-/*			std::cout << track->GetFlag() << " = flag" << std::endl;
-			std::cout << track->GetParenttype() << " = parenttype" << std::endl;
-			std::cout << track->GetId() << " = ID" << std::endl;
-			std::cout << track->GetIpnu() << " = Ipnu" << std::endl;
-			std::cout << track->GetE() << " = E" << std::endl;
-*/			trueDaughterPDG[j] = track->GetIpnu();
+			if(track->GetIpnu()==13 || track->GetIpnu() == 15)
+            {
+                if(track->GetIpnu()==13) std::cout << "It's a muon" << std::endl;
+                else if(track->GetIpnu()==15) std::cout << "It's a tau" << std::endl;
+                std::cout << track->GetFlag() << " = flag" << std::endl;
+			    std::cout << track->GetParenttype() << " = parenttype" << std::endl;
+			    std::cout << track->GetId() << " = ID" << std::endl;
+			    std::cout << track->GetIpnu() << " = Ipnu" << std::endl;
+			    std::cout << track->GetE() << " = E" << std::endl;
+			    printf("Starts at (%f,%f,%f) and stops at (%f,%f,%f)\n\n", track->GetStart(0), track->GetStart(1), track->GetStart(2), track->GetStop(0), track->GetStop(1), track->GetStop(2));
+            }
+            trueDaughterPDG[j] = track->GetIpnu();
 			trueDaughterParentPDG[j] = track->GetParenttype();
 			trueDaughterID[j] = track->GetId();
 			trueDaughterE[j] = track->GetE();

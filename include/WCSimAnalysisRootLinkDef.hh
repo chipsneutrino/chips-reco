@@ -56,6 +56,8 @@
 #pragma link C++ class WCSimLikelihoodDigit+;
 #pragma link C++ class WCSimLikelihoodDigitArray+;
 #pragma link C++ class WCSimLikelihoodTrack+;
+#pragma link C++ enum WCSimLikelihoodTrack::TrackType;
+#pragma link C++ class WCSimTimeLikelihood+;
 
 #endif
 

@@ -8,7 +8,7 @@
   // Load Data
   // =========
   //  WCSimInterface::LoadData("../mcSamples/numi_numu_1_100kT_10pC.root");
-  WCSimInterface::LoadData("../mcSamples/numu.root");
+  WCSimInterface::LoadData("../mcSamples/muonZ.root");
 
   // create viewer: must be called 'viewer'
   // =====================================
@@ -23,7 +23,7 @@
   // configuration
   // =============
   // viewer->DisplayRecoClusters();  // display clusters
-  viewer->DisplayRecoEvent();        // display vertex
+  //viewer->DisplayRecoEvent();        // display vertex
   viewer->DisplayTrueEvent();        // display truth
 
   // display configuration
@@ -34,8 +34,8 @@
 
   // configuration
   // =============
-   WCSimRingFinder::Instance()->SetUsingTSpectrum2();
- //  WCSimVertexFinder::UseTrueVertex();	 // suppress vertex finder
- //  WCSimRingFinder::UseRecoVertex();   // suppress ring finder
+ //  WCSimRingFinder::Instance()->SetUsingTSpectrum2();
+   WCSimVertexFinder::UseTrueVertex();	 // suppress vertex finder
+   WCSimRingFinder::UseRecoVertex();   // suppress ring finder
   
 }

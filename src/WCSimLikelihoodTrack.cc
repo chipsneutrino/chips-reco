@@ -1,4 +1,7 @@
 #include "WCSimLikelihoodTrack.hh"
+#include "TMath.h"
+#include "TVector3.h"
+#include <string>
 
 #ifndef REFLEX_DICTIONARY
 ClassImp(WCSimLikelihoodTrack)
@@ -16,10 +19,11 @@ WCSimLikelihoodTrack::WCSimLikelihoodTrack()
 	fTheta0 = 0;
 	fPhi0 = 0;
 	fE0 = 0;	
+    fType = WCSimLikelihoodTrack::Unknown;
 	return;
 }
 
-WCSimLikelihoodTrack::WCSimLikelihoodTrack( double x, double y, double z, double t, double theta, double phi, double E )
+WCSimLikelihoodTrack::WCSimLikelihoodTrack( double x, double y, double z, double t, double theta, double phi, double E, WCSimLikelihoodTrack::TrackType myType )
 {   
 	fVtx[0] = x;
 	fVtx[1] = y;
@@ -28,6 +32,7 @@ WCSimLikelihoodTrack::WCSimLikelihoodTrack( double x, double y, double z, double
 	fTheta0 = theta;
 	fPhi0 = phi;
 	fE0 = E;	
+  fType = myType;
 	return;
 }
 
@@ -48,11 +53,16 @@ void WCSimLikelihoodTrack::SetE(double E){ fE0 = E; }
 const double WCSimLikelihoodTrack::GetX(){return fVtx[0]; }
 const double WCSimLikelihoodTrack::GetY(){return fVtx[1]; }
 const double WCSimLikelihoodTrack::GetZ(){return fVtx[2]; }
+const TVector3 WCSimLikelihoodTrack::GetVtx(){ return TVector3(fVtx[0], fVtx[1], fVtx[2]); }
 const double WCSimLikelihoodTrack::GetT(){return fT0; }
 const double WCSimLikelihoodTrack::GetTheta(){return fTheta0; }
 const double WCSimLikelihoodTrack::GetPhi(){return fPhi0; }
 const double WCSimLikelihoodTrack::GetE(){return fE0; }
-
+const double WCSimLikelihoodTrack::GetDirX(){ return TMath::Sin(fTheta0) * TMath::Sin(fPhi0); }
+const double WCSimLikelihoodTrack::GetDirY(){ return TMath::Sin(fTheta0) * TMath::Cos(fPhi0); }
+const double WCSimLikelihoodTrack::GetDirZ(){ return TMath::Cos(fTheta0); }
+const TVector3 WCSimLikelihoodTrack::GetDir(){ return TVector3( this->GetDirX(), this->GetDirY(), this->GetDirZ()); } 
+const WCSimLikelihoodTrack::TrackType WCSimLikelihoodTrack::GetType(){ return fType;}
 
 ///////////////////////////////////////////////////////////////////////////
 // Destructor
@@ -61,3 +71,23 @@ WCSimLikelihoodTrack::~WCSimLikelihoodTrack()
 {
 }
 
+////////////////////////////////////////
+// Output strings of our tracktype enums
+// /////////////////////////////////////
+std::string WCSimLikelihoodTrack::TrackTypeToString( WCSimLikelihoodTrack::TrackType myType )
+{
+  std::string type;
+
+
+  switch(myType)
+  {
+    case ElectronLike:
+      type = "electron";
+    case MuonLike:
+      type = "muon";
+    default:
+      type = "UNKOWN";
+  }
+  return type;
+ 
+}
