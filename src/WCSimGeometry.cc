@@ -387,7 +387,7 @@ void WCSimGeometry::SetGeometry(WCSimRootGeom* myGeometry)
 
   // Determine Detector Configuration
   // ================================
-  std::cout << "   determing detector configuration " << std::endl;
+  std::cout << "   determining detector configuration " << std::endl;
   
   Double_t kton = 0.5+1.0e-9*fDetectorFiducialVolume;
   Int_t kton_rounded = (Int_t)(10.0*(Int_t)(0.1*kton));

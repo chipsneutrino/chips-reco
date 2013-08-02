@@ -5,7 +5,10 @@
 #include "WCSimLikelihoodDigitArray.hh"
 #include "WCSimRecoDigit.hh"
 #include "WCSimLikelihoodTrack.hh"
+#include "WCSimChargeLikelihood.hh"
 #include <vector>
+
+//class WCSimChargeLikelihood;
 
 class WCSimLikelihoodFitter
 {
@@ -22,6 +25,7 @@ class WCSimLikelihoodFitter
         double Time2LnL();
     protected:
     private:
+        WCSimChargeLikelihood *myLikelihood;
         WCSimRootEvent * fRootEvent;
         WCSimLikelihoodTrack * fTrack;
         std::vector<WCSimRecoDigit* > fRecoDigitList;

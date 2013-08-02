@@ -32,7 +32,7 @@ WCSimLikelihoodTrack::WCSimLikelihoodTrack( double x, double y, double z, double
 	fTheta0 = theta;
 	fPhi0 = phi;
 	fE0 = E;	
-  fType = myType;
+    fType = myType;
 	return;
 }
 
@@ -58,8 +58,8 @@ const double WCSimLikelihoodTrack::GetT(){return fT0; }
 const double WCSimLikelihoodTrack::GetTheta(){return fTheta0; }
 const double WCSimLikelihoodTrack::GetPhi(){return fPhi0; }
 const double WCSimLikelihoodTrack::GetE(){return fE0; }
-const double WCSimLikelihoodTrack::GetDirX(){ return TMath::Sin(fTheta0) * TMath::Sin(fPhi0); }
-const double WCSimLikelihoodTrack::GetDirY(){ return TMath::Sin(fTheta0) * TMath::Cos(fPhi0); }
+const double WCSimLikelihoodTrack::GetDirX(){ return TMath::Sin(fTheta0) * TMath::Cos(fPhi0); }
+const double WCSimLikelihoodTrack::GetDirY(){ return TMath::Sin(fTheta0) * TMath::Sin(fPhi0); }
 const double WCSimLikelihoodTrack::GetDirZ(){ return TMath::Cos(fTheta0); }
 const TVector3 WCSimLikelihoodTrack::GetDir(){ return TVector3( this->GetDirX(), this->GetDirY(), this->GetDirZ()); } 
 const WCSimLikelihoodTrack::TrackType WCSimLikelihoodTrack::GetType(){ return fType;}
@@ -81,9 +81,9 @@ std::string WCSimLikelihoodTrack::TrackTypeToString( WCSimLikelihoodTrack::Track
 
   switch(myType)
   {
-    case ElectronLike:
+    case WCSimLikelihoodTrack::ElectronLike:
       type = "electron";
-    case MuonLike:
+    case WCSimLikelihoodTrack::MuonLike:
       type = "muon";
     default:
       type = "UNKOWN";

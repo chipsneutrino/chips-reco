@@ -58,7 +58,7 @@ double WCSimLikelihoodFitter::Charge2LnL( )
     }
     double Charge2LnL = 1.0;
 
-    //std::cout << "Calculating charge LnL" << std::endl;
+    std::cout << "WCSimLikelihoodFitter::Charge2LnL() - Calculating charge LnL" << std::endl;
     WCSimChargeLikelihood * myChargeLikelihood = new WCSimChargeLikelihood( fLikelihoodDigitArray, fTrack );
     Charge2LnL = myChargeLikelihood->Calc2LnL();
   //        double myProb = TMath::Poisson( Q, mu );
@@ -84,7 +84,7 @@ double WCSimLikelihoodFitter::CalcMuIndirect()
 
 double WCSimLikelihoodFitter::Time2LnL( )
 {
-    WCSimTimeLikelihood * myTimeLikelihood = new WCSimTimeLikelihood( fLikelihoodDigitArray, fTrack );
+    // WCSimTimeLikelihood * myTimeLikelihood = new WCSimTimeLikelihood( fLikelihoodDigitArray, fTrack );
     //std::cout << "Returning time LnL" << std::endl;
     return 1.0;
 }

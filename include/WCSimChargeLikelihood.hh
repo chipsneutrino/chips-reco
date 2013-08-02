@@ -29,6 +29,12 @@ class WCSimChargeLikelihood
         Double_t CalculateExactLikelihood();
         Double_t GetR0Interval();
         Double_t GetCosTheta0Interval();
+        
+        Double_t DigitizerLikelihood(Double_t myUndigiHit, Double_t myDigiHit);
+        Double_t DigitizePickerLikelihood( Double_t myUndigiHit, Double_t myDigiHit );
+        Double_t DigitizeGausExpoLikelihood( Double_t myUndigiHit, Double_t myDigiHit );
+        Double_t DigitizeGausLikelihood( Double_t myUndigiHit, Double_t myDigiHit );
+        Double_t DigitizerExpectation( Double_t myUndigiHit );
 
     protected:
     private:
@@ -75,6 +81,11 @@ class WCSimChargeLikelihood
       // Do we want to calculate or look up the integrals for the likelihood?
       // Calculating is fine for drawing/testing, but look them up when we do the fit
       Bool_t fCalculateIntegrals;
+
+	  // The digitizer samples the 1pe distribution repeatedly, then applies a threshold function,
+	  // then multiplies by an efficiency term
+	  Double_t fEfficiency;
+	  
 
 };
 
