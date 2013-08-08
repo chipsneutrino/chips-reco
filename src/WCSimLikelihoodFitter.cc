@@ -1,4 +1,3 @@
-#include "WCSimChargeLikelihood.hh"
 #include "WCSimGeometry.hh"
 #include "WCSimInterface.hh"
 #include "WCSimLikelihoodDigitArray.hh"
@@ -6,8 +5,8 @@
 #include "WCSimRecoDigit.hh"
 #include "WCSimRootEvent.hh"
 #include "WCSimRootGeom.hh"
+#include "WCSimChargeLikelihood.hh"
 #include "WCSimTimeLikelihood.hh"
-
 #include "TClonesArray.h"
 #include "TCollection.h"
 #include "TMath.h"
@@ -27,6 +26,7 @@ WCSimLikelihoodFitter::~WCSimLikelihoodFitter()
 
 void WCSimLikelihoodFitter::Minimize2LnL()
 {
+    //TODO: should set up some WCSimLikelihoodTrack!
     this->Calc2LnL();
     // Then minimize it
     return ;
@@ -34,7 +34,9 @@ void WCSimLikelihoodFitter::Minimize2LnL()
 
 double WCSimLikelihoodFitter::Calc2LnL()  
 {
-    return (this->Charge2LnL() + this->Time2LnL());
+  //TODO: check if there is a defined track?  //mp
+  //  like: if(!fTrack) ShoutOnUser();
+  return (this->Charge2LnL() + this->Time2LnL());
 }
 
 double WCSimLikelihoodFitter::Calc2LnL(WCSimLikelihoodTrack * myTrack)
@@ -58,9 +60,11 @@ double WCSimLikelihoodFitter::Charge2LnL( )
     }
     double Charge2LnL = 1.0;
 
-    std::cout << "WCSimLikelihoodFitter::Charge2LnL() - Calculating charge LnL" << std::endl;
+    //std::cout << "Calculating charge LnL" << std::endl;
+
     WCSimChargeLikelihood * myChargeLikelihood = new WCSimChargeLikelihood( fLikelihoodDigitArray, fTrack );
     Charge2LnL = myChargeLikelihood->Calc2LnL();
+    delete myChargeLikelihood;
   //        double myProb = TMath::Poisson( Q, mu );
   //        ChargeLnL += TMath::Log( myProb );
       //}
@@ -84,7 +88,13 @@ double WCSimLikelihoodFitter::CalcMuIndirect()
 
 double WCSimLikelihoodFitter::Time2LnL( )
 {
-    // WCSimTimeLikelihood * myTimeLikelihood = new WCSimTimeLikelihood( fLikelihoodDigitArray, fTrack );
-    //std::cout << "Returning time LnL" << std::endl;
-    return 1.0;
+    WCSimChargeLikelihood * myChargeLikelihood = new WCSimChargeLikelihood( fLikelihoodDigitArray, fTrack );
+    WCSimTimeLikelihood * myTimeLikelihood = new WCSimTimeLikelihood( fLikelihoodDigitArray, fTrack, myChargeLikelihood );
+    Double_t time2LnL = myTimeLikelihood->Calc2LnL();
+    delete myTimeLikelihood;
+    delete myChargeLikelihood;
+
+    //std::cout << "Returning -2* time LnL" << std::endl;
+    std::cout << "-2 * Time2LnL = " << time2LnL << std::endl;
+    return time2LnL;
 }
