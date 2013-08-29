@@ -1,3 +1,9 @@
+#include <iostream>
+#include <cmath>
+#include <sstream>
+#include <string>
+#include <exception>
+
 #include "WCSimChargeLikelihood.hh"
 #include "WCSimRecoDigit.hh"
 #include "WCSimLikelihoodDigit.hh"
@@ -5,15 +11,17 @@
 #include "WCSimLikelihoodTrack.hh"
 #include "WCSimLikelihoodTuner.hh"
 
+#include "TAxis.h"
 #include "TCollection.h"
+#include "TDirectory.h"
 #include "TF1.h"
 #include "TFile.h"
 #include "TH1D.h"
+#include "TH2D.h"
 #include "TMath.h"
+#include "TROOT.h"
 #include "TTree.h"
 
-#include <iostream>
-#include <cmath>
 
 ///////////////////////////////////////////////////////////////////////////
 // Constructor
@@ -30,7 +38,7 @@ WCSimChargeLikelihood::WCSimChargeLikelihood(WCSimLikelihoodDigitArray * myDigit
 ///////////////////////////////////////////////////////////////////////////
 void WCSimChargeLikelihood::Initialize( WCSimLikelihoodDigitArray * myDigitArray, WCSimLikelihoodTrack * myTrack )
 {
-    //std::cout << "*** WCSimChargeLikelihood::Initialize() *** Initializing charge likelihood with tuned values" << std::endl; 
+//    std::cout << "*** WCSimChargeLikelihood::Initialize() *** Initializing charge likelihood with tuned values" << std::endl; 
     fCalculateIntegrals = true;    // Setting true will calculate integrals numerically instead of looking them up
 
     fCoeffsCh.push_back(1);
@@ -44,9 +52,8 @@ void WCSimChargeLikelihood::Initialize( WCSimLikelihoodDigitArray * myDigitArray
     fTrack = myTrack;
     fGotTrackParameters = false;
     fDigitArray = myDigitArray;
-    fEnergyInterval = 500;     // MeV steps by which to increment variables 
-    fR0Interval = 10;           // cm in the lookup table from one bin
-    fCosTheta0Interval = 0.05; // to the next
+    
+    
 
     fEnergy = fTrack->GetE();
     
@@ -55,9 +62,15 @@ void WCSimChargeLikelihood::Initialize( WCSimLikelihoodDigitArray * myDigitArray
 
     fTuner = new WCSimLikelihoodTuner(fDigitArray->GetExtent(0),
                                       fDigitArray->GetExtent(1),
-                                      fDigitArray->GetExtent(2));
+                                      fDigitArray->GetExtent(2),
+                                      fCalculateIntegrals);
 
-
+	
+    TFile * f = new TFile("./config/pePDFs.root","READ");
+    fDigiPDF = (TH2D*)(f->Get("digiPDF"));
+    fDigiPDF->SetDirectory(gROOT);
+    delete f;
+  
     return;
 }   
 
@@ -66,6 +79,8 @@ void WCSimChargeLikelihood::Initialize( WCSimLikelihoodDigitArray * myDigitArray
 ///////////////////////////////////////////////////////////////////////////
 WCSimChargeLikelihood::~WCSimChargeLikelihood()
 {
+	delete fTuner;   
+  delete fDigiPDF; 
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -75,13 +90,16 @@ WCSimChargeLikelihood::~WCSimChargeLikelihood()
 ///////////////////////////////////////////////////////////////////////////
 double WCSimChargeLikelihood::Calc2LnL()
 {
+
+//  std::cout << "fDigiPDF = " << fDigiPDF << "   " << fCoeffsCh.at(2) << std::endl;
+//  fDigiPDF->Draw("COLZ");
   //std::cout << "*** WCSimChargeLikelihood::Calc2LnL() *** Calculating the charge log likelihood" << std::endl; 
   Double_t Charge2LnL=0.0;
 
   Double_t X, Y, Z, Qobs, Qpred;
-  TString * str = new TString("likelihoodDoubleBins.root");
+  std::string str("likelihoodDoubleBins.root");
 //  str->Form("likelihood_%f_%f.root", fEnergy, fTrack->GetZ());
-  TFile * file = new TFile(str->Data(),"RECREATE");
+  TFile * file = new TFile(str.c_str(),"RECREATE");
   TTree * t = new TTree("likelihood","likelihood");
   t->Branch("X",&X,"X/D");
   t->Branch("Y",&Y,"Y/D");
@@ -110,11 +128,11 @@ double WCSimChargeLikelihood::Calc2LnL()
   //    likelihood *= TMath::Poisson( chargeObserved, this->ChargeExpectation());
       Double_t chargeExpected = this->ChargeExpectation();
       
-      Double_t likelihood = this->DigitizerLikelihood( chargeExpected, chargeObserved);
-
-      Charge2LnL += -2.0 * TMath::Log(likelihood);
-
-      if((iDigit % 100) == 0){ std::cout << "iDigit  = " << iDigit << "/" << fDigitArray->GetNDigits() << "  Observed charge = " << chargeObserved << "   Expected charge = " << chargeExpected << "    ... So -2lnL now = " << Charge2LnL << std::endl;  }
+      
+//  		Double_t likelihood = TMath::Poisson(chargeExpected, chargeObserved);
+      Charge2LnL += this->DigitizerMinus2LnL( chargeExpected, chargeObserved);
+    
+//      if((iDigit % 1) == 0){ std::cout << "iDigit  = " << iDigit << "/" << fDigitArray->GetNDigits() << "  Observed charge = " << chargeObserved << "   Expected charge = " << chargeExpected << "    ... So -2lnL now = " << Charge2LnL << std::endl;  }
       X = fDigit->GetX();
       Y = fDigit->GetY();
       Z = fDigit->GetZ();
@@ -122,10 +140,11 @@ double WCSimChargeLikelihood::Calc2LnL()
       Qpred = chargeExpected;//Sthis->DigitizerExpectation(chargeExpected);
       t->Fill();
 	 }
-     std::cout << "Writing file to " << str->Data() << std::endl; 
+     std::cout << "Writing file to " << str.c_str() << std::endl; 
      file->cd();
      t->Write();
      file->Close();
+     if(file) delete file;
   return Charge2LnL;
 }
 
@@ -179,24 +198,27 @@ double WCSimChargeLikelihood::GetMuDirect( )
     //std::cout << " **** CALCULATING COEFFICIENTS ***** " << std::endl;
     fTuner->CalculateCoefficients(fTrack, fDigit);
 
-    double i0, i1, i2;
+    std::vector<Double_t> integrals;
     if(!fCalculateIntegrals)
     {
-        i0 = this->LookupChIntegrals(0);
-        i1 = this->LookupChIntegrals(1);
-        i2 = this->LookupChIntegrals(2);
+        integrals = fTuner->LookupChIntegrals(fTrack, fDigit);
     }
     else
     {
-        i0 = fTuner->CalculateChIntegrals(0, fTrack, fDigit);
-        i1 = fTuner->CalculateChIntegrals(1, fTrack, fDigit);
-        i2 = fTuner->CalculateChIntegrals(2, fTrack, fDigit);
+        integrals = fTuner->CalculateChIntegrals(fTrack, fDigit);
     }
 
     //std::cout << "i0 = " << i0 << "  i1 = " << i1 << "   i2 = " << i2 << std::endl
     //          << "fCoeffsCh = " << fCoeffsCh[0] << "," << fCoeffsCh[1] << "," << fCoeffsCh[2] << std::endl;
     
-    muDirect = lightFlux * ( i0 * fCoeffsCh[0] + i1 * fCoeffsCh[1] + i2 * fCoeffsCh[2] );
+    muDirect = lightFlux * ( integrals[0] * fCoeffsCh[0] + integrals[1] * fCoeffsCh[1] + integrals[2] * fCoeffsCh[2] );
+    if(muDirect < 0)
+    {
+        std::cout << "muDir is NEGATIVE! " << "  i0 = " << integrals[0] << "   i1 = " << integrals[1] << "   i2 = " << integrals[2] << "    fCoeffsInd = " << fCoeffsInd[0] << "," << fCoeffsInd[1] << "," << fCoeffsInd[2] << std::endl;
+        muDirect = 0;        
+    }
+
+  
   }
   else std::cout << "Error: did not get track parameters first, returning 0" << std::endl; 
     //std::cout << "muDirect = " << muDirect << std::endl;
@@ -217,22 +239,19 @@ double WCSimChargeLikelihood::GetMuIndirect()
   if(fGotTrackParameters)
   { 
     double lightFlux = this->GetLightFlux();
-    double i1;
-    double i2;
+	std::vector<Double_t> integrals;
     if(!fCalculateIntegrals)
     {
-        i1 = this->LookupIndIntegrals(1);
-        i2 = this->LookupIndIntegrals(2);
+		integrals = fTuner->LookupIndIntegrals(fTrack);
     }
     else
     {   
-        i1 = fTuner->CalculateIndIntegrals(1, fTrack);
-        i2 = fTuner->CalculateIndIntegrals(2, fTrack);
+		integrals = fTuner->CalculateIndIntegrals(fTrack);
     }
-    muIndirect = lightFlux * ( 1.0 * fCoeffsInd[0] + i1 * fCoeffsInd[1] + i2 * fCoeffsInd[2] );
+    muIndirect = lightFlux * ( integrals[0] * fCoeffsInd[0] + integrals[1] * fCoeffsInd[1] + integrals[2] * fCoeffsInd[2] );
     if(muIndirect < 0)
     {
-        std::cout << "IT'S NEGATIVE! " << "  i1 = " << i1 << "   i2 = " << i2 << "    fCoeffsInd = " << fCoeffsInd[0] << "," << fCoeffsInd[1] << "," << fCoeffsInd[2] << std::endl;
+        std::cout << "IT'S NEGATIVE! " << "  i0 = " << integrals[0] << "   i1 = " << integrals[1] << "   i2 = " << integrals[2] << "    fCoeffsInd = " << fCoeffsInd[0] << "," << fCoeffsInd[1] << "," << fCoeffsInd[2] << std::endl;
         muIndirect = 0;        
     }
 //    std::cout << "Mu indirect = " << muIndirect << std::endl;
@@ -258,8 +277,9 @@ double WCSimChargeLikelihood::GetLightFlux()
   // I've absorbed this into SolidAngle now
 
    // Double_t nPhotons = 341.726*fEnergy;  
-   Double_t nPhotons = 36.9427*fEnergy - 3356.71;
-   if(nPhotons < 0) return 0;  
+//   Double_t nPhotons = 36.9427*fEnergy - 3356.71;
+  Double_t nPhotons = 17.91 + 39.61*fEnergy;
+  if(nPhotons < 0) return 0;  
   // From a linear fit to nPhotons as a function of energy (it's very linear)
   // 
   // Calculating these is a waste of time because they're so simple, but this is where the factors come from
@@ -267,58 +287,8 @@ double WCSimChargeLikelihood::GetLightFlux()
   return factorFromG * factorFromSolidAngle * nPhotons;
 }
 
-///////////////////////////////////////////////////////////////////////////
-// We decouple the direct part into a source factor (flux x profile) and 
-// an acceptance factor (solid angle x transmittance x PMT acceptance)
-// This tabulates integrals for the acceptance part
-///////////////////////////////////////////////////////////////////////////
-double WCSimChargeLikelihood::LookupChIntegrals(int i)
-{
-  //std::cout << "*** WCSimChargeLikelihood::LookupChIntegrals() *** Looking up the tabulated integrals for direct Cherenkov light" << std::endl; 
- 
-  if( i < 0 || i > 2 )
-   {
-      //std::cout << "Error: integral to look up is out of range,   i = " << i << " (should be 0,1,2)" << std::endl;
-      return 0; 
-   }
-   
-    int energyBin;
-    if( fmod(fEnergy/fEnergyInterval,1) > 0.5 ) energyBin = (int)ceil(fEnergy/fEnergyInterval);
-    else energyBin = (int)floor(fEnergy/fEnergyInterval);
 
-    int r0Bin;
-    if( fmod(fR0/fR0Interval,1) > 0.5 ) r0Bin = (int)ceil(fR0/fR0Interval);
-    else r0Bin = (int)floor(fR0/fR0Interval);
 
-    int cosTheta0Bin;
-    if( fmod(fCosTheta0/fCosTheta0Interval,1) > 0.5 ) cosTheta0Bin = (int)ceil(fCosTheta0/fCosTheta0Interval);
-    else cosTheta0Bin = (int)floor(fCosTheta0/fCosTheta0Interval);
-    //std::cout << "Energy bin = " << energyBin << "    CosThetaBin = " << cosTheta0Bin << "     r0Bin = " << r0Bin << std::endl;
-    return 1;
-    return fChIntegral[energyBin][r0Bin][cosTheta0Bin];
-}
-
-///////////////////////////////////////////////////////////////////////////
-// We decouple the indirect part into a source factor (flux x profile) and 
-// an acceptance factor.  This tabulates integrals for the acceptance part
-///////////////////////////////////////////////////////////////////////////
-double WCSimChargeLikelihood::LookupIndIntegrals(int i)
-{
-   //std::cout << "*** WCSimChargeLikelihood::LookupIndIntegrals() *** Looking up the tabulated integrals for indirect light" << std::endl; 
-   if( i < 1 || i > 2 )
-   {
-      //std::cout << "Error: integral to look up is out of range,   i = " << i << " (should be 1,2)" << std::endl;
-      return 0; 
-   }
-   
-    int energyBin;
-    if( fmod(fEnergy/fEnergyInterval,1) > 0.5 ) energyBin = (int)ceil(fEnergy/fEnergyInterval);
-    else energyBin = (int)floor(fEnergy/fEnergyInterval);
-    //std::cout << "Energy bin = " << energyBin << std::endl;
-    
-    return fIndIntegral[energyBin];
-
-}
 
 ///////////////////////////////////////////////////////////////////////////
 // Instead of working out another set of integrals for scattered light, we
@@ -369,15 +339,6 @@ Double_t WCSimChargeLikelihood::CalculateExactLikelihood()
 
 }
 
-Double_t WCSimChargeLikelihood::GetR0Interval()
-{
-  return fR0Interval;
-}
-
-Double_t WCSimChargeLikelihood::GetCosTheta0Interval()
-{
-  return fCosTheta0Interval;
-}
 
 // Depending on the value of the undigitized charge, we will mimic the WCSim digitizer in 3 separate ways
 // For low (<10pe) charges we repeatedly sample the built-in 1pe distribution from WCSim.  This is essentially
@@ -385,7 +346,39 @@ Double_t WCSimChargeLikelihood::GetCosTheta0Interval()
 // For mid-range (10-200pe) charges, this becomes time consuming.  The probability distribution has not yet washed
 // out to a Gaussian very well, so we use a Gauss(x)Expo function, with fitted coefficients
 // And above 200pe a pure Gaussian works well enough
- Double_t WCSimChargeLikelihood::DigitizerLikelihood(Double_t myUndigiHit, Double_t myDigiHit)
+Double_t WCSimChargeLikelihood::DigitizerMinus2LnL( const Double_t &myUndigiHit, const Double_t &myDigiHit )
+{
+  Double_t likelihood = this->DigitizerLikelihood(myUndigiHit, myDigiHit);
+  Double_t lnL = 0.0;
+
+  // Some of our PDFs are read out of a histogram, so it can only handle probabilities above 
+  // roughly 1 / nEntries, or else it will return 0.  If that happens, we'll assume a Poisson-like
+  // tail and take the log of that, as we can use a functional form for its log:
+  if(likelihood == 0)
+  {
+//    std::cout << "Oh no! Likelihood = 0!" << myDigiHit << "   " << myUndigiHit << std::endl;
+    lnL = (myDigiHit * TMath::Log(myUndigiHit) - myUndigiHit) - TMath::LnGamma(myDigiHit+1);
+  }
+  else lnL = TMath::Log( likelihood );
+   
+  // WCSim applies a threshold function: it picks a random uniform number from 0 to 1 and compares this
+  // to a polynomial function of the digitized charge (if it is < 1.1pe).  If the function is lower than
+  // the random number it throws away the hit.  Hence the probability of the hit surviving is equal to its value
+  // The unpleasantly-nested function comes directly from WCSim so it has to look like this, unfortunately
+  lnL += (myDigiHit > 1.1) ? 1.0 : TMath::Log(1.0-(-0.06374+myDigiHit*(3.748+myDigiHit*(-63.23+myDigiHit*(452.0+myDigiHit*(-1449.0+myDigiHit*(2513.0+myDigiHit*(-2529.+myDigiHit*(1472.0+myDigiHit*(-452.2+myDigiHit*(51.34+myDigiHit*2.370)))))))))));
+//  if(-2.0*lnL < 0) std::cout << "Oh no!  -2.0 LnL = " << -2.0*lnL << "    myDigiHit = " << myDigiHit << "   myUndigiHit =  " << myUndigiHit << std::endl;
+//  if(myUndigiHit > 100) std::cout << myUndigiHit << "   " << myDigiHit << "   " << likelihood << "   " << lnL << std::endl;
+  return -2.0 * lnL;  
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+// Wrapper to work out the likelihood associated with digitization using different methods
+// depending on the predicted charge.  Note that WCSim applies a threshold function after having
+// calculated this number.  That threshold is not applied here, but in DigitizerMinus2LnL, which
+// is the function called by Calc2LnL
+////////////////////////////////////////////////////////////////////////////////////////////////
+ Double_t WCSimChargeLikelihood::DigitizerLikelihood( const Double_t &myUndigiHit, const Double_t &myDigiHit )
  {
  	Double_t digitizerLikelihood = 0.0;
  		
@@ -395,24 +388,18 @@ Double_t WCSimChargeLikelihood::GetCosTheta0Interval()
  	// this as the final result.  To get the likelihood, we therefore need the probability
  	// that the sampler gives (measured value/0.985) * the probability (measured value/0.985)
  	// passes the threshold.
- 	myDigiHit /= fEfficiency; 						
+ 	Double_t myDigiHitEff = myDigiHit/fEfficiency; 						
  	
- 	if(myUndigiHit == 0.0 && myDigiHit == 0.0) digitizerLikelihood = 1.0;
+// 	if(myUndigiHit == 0.0 && myDigiHit == 0.0) digitizerLikelihood = 1.0;
  	
  	// Get the likelihood of an undigitized hit resulting in a given digitized one
  	if( myUndigiHit < 0) digitizerLikelihood = 0.;
- 	else if(myUndigiHit == 0.0 && myDigiHit == 0.0) digitizerLikelihood = 1;
- 	else if(myUndigiHit == 0.0 && myDigiHit != 0.0) std::cerr << "Error: measured a charge when predicted charge was 0 - we can't take a likelihood of this" << std::endl;
- 	else if( myUndigiHit < 10.0 ) digitizerLikelihood = this->DigitizePickerLikelihood(myUndigiHit, myDigiHit);
- 	else if( myUndigiHit < 200. ) digitizerLikelihood = this->DigitizeGausExpoLikelihood(myUndigiHit, myDigiHit);
- 	else digitizerLikelihood = this->DigitizeGausLikelihood(myUndigiHit, myDigiHit);
+ 	else if(myUndigiHit == 0.0 && myDigiHitEff == 0.0) digitizerLikelihood = 1;
+ 	else if(myUndigiHit == 0.0 && myDigiHitEff != 0.0) std::cerr << "Error: measured a charge when predicted charge was 0 - we can't take a likelihood of this" << std::endl;
+ 	else if( myUndigiHit < 10.0 ) digitizerLikelihood = this->DigitizePickerLikelihood(myUndigiHit, myDigiHitEff);
+ 	else if( myUndigiHit < 200. ) digitizerLikelihood = this->DigitizeGausExpoLikelihood(myUndigiHit, myDigiHitEff);
+ 	else digitizerLikelihood = this->DigitizeGausLikelihood(myUndigiHit, myDigiHitEff);
  	
- 	// WCSim applies a threshold function: it picks a random uniform number from 0 to 1 and compares this
- 	// to a polynomial function of the digitized charge (if it is < 1.1pe).  If the function is lower than
-	// the random number it throws away the hit.  Hence the probability of the hit surviving is equal to its value
- 	digitizerLikelihood *= (myDigiHit > 1.1) ? 1.0 : 1.0-(-0.06374+myDigiHit*(3.748+myDigiHit*(-63.23+myDigiHit*(452.0+myDigiHit*(-1449.0+myDigiHit*(2513.0+myDigiHit*(-2529.+myDigiHit*(1472.0+myDigiHit*(-452.2+myDigiHit*(51.34+myDigiHit*2.370))))))))));
- 	// The unpleasantly-nested function comes directly from WCSim so it has to look like this, unfortunately
-
  	if(digitizerLikelihood < 0.0) digitizerLikelihood = 0.0;
 	// This is just a safeguard
 	
@@ -421,28 +408,34 @@ Double_t WCSimChargeLikelihood::GetCosTheta0Interval()
  	// function gives 1.0 + 0.06374 so we have to force the likelihood to 1.  When hitQ gets above
  	// threshold, the function will be below 1 and the threshold probability will take effect properly
  
+ 
  	// std::cout << digitizerLikelihood << std::endl;
  	return digitizerLikelihood;
  }
- 
- Double_t WCSimChargeLikelihood::DigitizePickerLikelihood( Double_t myUndigiHit, Double_t myDigiHit)
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+// For charges predicted charges below 10pe we read the likelihood from histograms. These are 
+// created by repeatedly sampling the 1pe PDF coded into WCSim.  For expected charges below 1pe 
+// we first sample a Poisson distribution with the expected charge as its mean to work out how
+// many photons arrive at the PMT.  The WCSim simulation is a bit ropey, so this is subject
+// to change (ie. to include effects like saturation and nonlinearity)
+///////////////////////////////////////////////////////////////////////////////////////////////
+ Double_t WCSimChargeLikelihood::DigitizePickerLikelihood( const Double_t &myUndigiHit, const Double_t &myDigiHit )
  {	
-// 	std::cout << " *** WCSimChargeLikelihood::DigitizePickerLikelihood *** " << std::endl
-//			  << "Undigitized hit = " << myUndigiHit <<"    Digitized hit = " << myDigiHit << std::endl; 
+  // 	std::cout << " *** WCSimChargeLikelihood::DigitizePickerLikelihood *** " << std::endl
+  //			      << "Undigitized hit = " << myUndigiHit <<"    Digitized hit = " << myDigiHit << std::endl; 
  	Double_t maxQ = 10.0;
  	if( myUndigiHit >= maxQ) return this->DigitizeGausExpoLikelihood(myUndigiHit, myDigiHit);
- 	if( myUndigiHit < 0.5 ) return (myDigiHit==0.0);
 
-	TFile f("./config/pePDFs.root","READ");
- 	TH1D * digiPDF = (TH1D*)((TObjArray*)f.Get("peArray"))->At((Int_t)round(myUndigiHit)-1);
  	
 //	std::cout << "Likelihood = " << digiPDF->GetBinContent(digiPDF->FindBin(myDigiHit)) << std::endl;	
-   	Double_t likelihood = digiPDF->GetBinContent(digiPDF->FindBin(myDigiHit));	
- 	f.Close();
+  Int_t whichXBin = ((TAxis*)fDigiPDF->GetXaxis())->FindBin(myDigiHit);
+  Int_t whichYBin = ((TAxis*)fDigiPDF->GetYaxis())->FindBin(myUndigiHit);
+  Double_t likelihood = fDigiPDF->GetBinContent(whichXBin, whichYBin);	
  	return likelihood;
  }
  
- Double_t WCSimChargeLikelihood::DigitizeGausExpoLikelihood( Double_t myUndigiHit, Double_t myDigiHit)
+ Double_t WCSimChargeLikelihood::DigitizeGausExpoLikelihood( const Double_t &myUndigiHit, const Double_t &myDigiHit)
  {	
  	Double_t minQ = 10.0, maxQ = 200.0;
  	if(myUndigiHit < minQ) return this->DigitizePickerLikelihood(myUndigiHit, myDigiHit);
@@ -453,19 +446,16 @@ Double_t WCSimChargeLikelihood::GetCosTheta0Interval()
 
 
  	TF1 fGausExpo("fGausExpo","[0]*TMath::Exp((pow(([2]/[3]),2)/2)-((x-[1])/[3]))*TMath::Erfc((1/TMath::Sqrt(2))*(([2]/[3])-((x-[1])/[2])))",0.0, 200.0);
- 	Double_t norm = 1.055e-2 + 4.091e-4 * myUndigiHit + 5.269e-6 * myUndigiHit * myUndigiHit - 7.559e-8 * TMath::Power(myUndigiHit, 3)
- 			- 3.988e-10 * TMath::Power(myUndigiHit, 4) -7.437e-13 * TMath::Power(myUndigiHit, 5); 
+ 	Double_t norm = 1.055e-2 + 4.091e-4 * myUndigiHit + 5.269e-6 * myUndigiHit * myUndigiHit - 7.559e-8 * TMath::Power(myUndigiHit, 3) - 3.988e-10 * TMath::Power(myUndigiHit, 4) -7.437e-13 * TMath::Power(myUndigiHit, 5); 
  	Double_t gausMean = -3.087 + 0.9785* myUndigiHit;
- 	Double_t gausSigma = 0.6997 + 0.1167 * myUndigiHit -6.255e-4 * myUndigiHit * myUndigiHit + 2.605e-6 * TMath::Power(myUndigiHit, 3)
- 			     - 5.363e9 * TMath::Power(myUndigiHit, 4) + 3.447e-12 * TMath::Power(myUndigiHit, 5);
- 	Double_t expDec = 0.7293 + 0.2400 * myUndigiHit - 5.969e-3 * myUndigiHit * myUndigiHit + 8.371e-5 * TMath::Power(myUndigiHit, 3)
- 			  - 6.275e-7 * TMath::Power(myUndigiHit, 4) + 2.370e-9 * TMath::Power(myUndigiHit, 5) - 3.538e-12 * TMath::Power(myUndigiHit,6);
+ 	Double_t gausSigma = 0.6997 + 0.1167 * myUndigiHit -6.255e-4 * myUndigiHit * myUndigiHit + 2.605e-6 * TMath::Power(myUndigiHit, 3) - 5.363e-9 * TMath::Power(myUndigiHit, 4) + 3.447e-12 * TMath::Power(myUndigiHit, 5);
+ 	Double_t expDec = 0.7293 + 0.2400 * myUndigiHit - 5.969e-3 * myUndigiHit * myUndigiHit + 8.371e-5 * TMath::Power(myUndigiHit, 3) - 6.275e-7 * TMath::Power(myUndigiHit, 4) + 2.370e-9 * TMath::Power(myUndigiHit, 5) - 3.538e-12 * TMath::Power(myUndigiHit,6);
  	fGausExpo.SetParameters(norm, gausMean, gausSigma, expDec); 
-//	std::cout << "Likelihood = " << fGausExpo.Eval(myDigiHit) << std::endl;	
+//	std::cout << "Likelihood = " << fGausExpo.Eval(myDigiHit) << "   myUndigiHit = " << myUndigiHit << "    myDigiHit = " << myDigiHit << std::endl;	
  	return fGausExpo.Eval(myDigiHit);
  }
  
- Double_t WCSimChargeLikelihood::DigitizeGausLikelihood( Double_t myUndigiHit, Double_t myDigiHit )
+ Double_t WCSimChargeLikelihood::DigitizeGausLikelihood( const Double_t &myUndigiHit, const Double_t &myDigiHit )
  {	
  	Double_t minQ = 200.0;
  	if( myUndigiHit < minQ ) return this->DigitizeGausExpoLikelihood(myUndigiHit, myDigiHit);
@@ -480,7 +470,7 @@ Double_t WCSimChargeLikelihood::GetCosTheta0Interval()
  	return fGaus.Eval(myDigiHit);
  }
  
- Double_t WCSimChargeLikelihood::DigitizerExpectation( Double_t myUndigiHit )
+ Double_t WCSimChargeLikelihood::DigitizerExpectation( const Double_t &myUndigiHit )
  {
  	Double_t predictedCharge = 0.0;
  	if( myUndigiHit < 0.5 ) predictedCharge = 0.0;
@@ -504,6 +494,7 @@ Double_t WCSimChargeLikelihood::GetCosTheta0Interval()
  		Double_t expDec = 0.7293 + 0.2400 * myUndigiHit - 5.969e-3 * myUndigiHit * myUndigiHit + 8.371e-5 * TMath::Power(myUndigiHit, 3) - 6.275e-7 * TMath::Power(myUndigiHit, 4) + 2.370e-9 * TMath::Power(myUndigiHit, 5) - 3.538e-12 * TMath::Power(myUndigiHit,6);
  		fGausExpo->SetParameters(norm, gausMean, gausSigma, expDec); 
  		predictedCharge =  fGausExpo->Mean(0.0, 200.0);
+    delete fGausExpo;
 //		std::cout << "    predicted charge = " << predictedCharge << std::endl;
 	}
 	else

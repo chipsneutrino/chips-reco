@@ -59,3 +59,19 @@ double WCSimLikelihoodDigit::GetZ(){ return fPos[2]; }
 double WCSimLikelihoodDigit::GetFaceX(){ return fFace[0]; }
 double WCSimLikelihoodDigit::GetFaceY(){ return fFace[1]; }
 double WCSimLikelihoodDigit::GetFaceZ(){ return fFace[2]; }
+
+void WCSimLikelihoodDigit::Print()
+{
+	Int_t fTubeId;
+	Double_t fQ;
+	Double_t fT;
+	Double_t fPos[3];
+	Double_t fFace[3];
+	std::cout << "WCSimLikelihoodDigit::Print()" << std::endl
+			  << "     fTubeId = " << fTubeId << std::endl
+			  << "     fQ      = " << fQ << std::endl
+			  << "     fT      = " << fT << std::endl
+			  << "     fPos    = " << "(" << fPos[0] << ", " << fPos[1] << ", " << fPos[2] << ")" << std::endl
+			  << "     fFace   = " << "(" << fFace[0] << ", " << fFace[1] << ", " << fFace[2] << ")" << std::endl << std::endl;
+			
+}

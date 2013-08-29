@@ -8,7 +8,11 @@
 #include "WCSimLikelihoodTrack.hh"
 #include "WCSimLikelihoodTuner.hh"
 #include "WCSimRecoEvent.hh"
+
+#include "TFile.h"
+#include "TH2D.h"
 #include "TMath.h"
+#include "TTree.h"
 
 class WCSimChargeLikelihood
 {
@@ -22,19 +26,16 @@ class WCSimChargeLikelihood
         Double_t GetLightFlux();
         Double_t GetMuIndirect();
         Double_t GetMuDirect();
-        Double_t LookupChIntegrals(int i); 
-        Double_t LookupIndIntegrals(int i); 
         Double_t ScatteringTable();
         void GetTrackParameters();
         Double_t CalculateExactLikelihood();
-        Double_t GetR0Interval();
-        Double_t GetCosTheta0Interval();
         
-        Double_t DigitizerLikelihood(Double_t myUndigiHit, Double_t myDigiHit);
-        Double_t DigitizePickerLikelihood( Double_t myUndigiHit, Double_t myDigiHit );
-        Double_t DigitizeGausExpoLikelihood( Double_t myUndigiHit, Double_t myDigiHit );
-        Double_t DigitizeGausLikelihood( Double_t myUndigiHit, Double_t myDigiHit );
-        Double_t DigitizerExpectation( Double_t myUndigiHit );
+        Double_t DigitizerMinus2LnL( const Double_t &myUndigiHit, const Double_t &myDigiHit );
+        Double_t DigitizerLikelihood( const Double_t &myUndigiHit, const Double_t &myDigiHit );
+        Double_t DigitizePickerLikelihood( const Double_t &myUndigiHit, const Double_t &myDigiHit );
+        Double_t DigitizeGausExpoLikelihood( const Double_t &myUndigiHit, const Double_t &myDigiHit );
+        Double_t DigitizeGausLikelihood( const Double_t &myUndigiHit, const Double_t &myDigiHit );
+        Double_t DigitizerExpectation( const Double_t & myUndigiHit );
 
     protected:
     private:
@@ -53,12 +54,6 @@ class WCSimChargeLikelihood
         Double_t fR0;     // vertex to PMT distance
         Double_t fCosTheta0; // angle to PMT as viewed from vertex
         Double_t fEta;    // angle of incidence of emitted light at the PMT
-
-        Double_t fEnergyInterval; // steps to increment variables by
-        Double_t fR0Interval;             // from one bin of the lookup table
-        Double_t fCosTheta0Interval;      // to the next
-        Double_t fChIntegral[100][1000][100];
-        Double_t fIndIntegral[100];
 
       // Use these for the scattering table, ie. to relate the strength of scattered to direct light
         Double_t fRadius;   // Distance from centre of tank to the source
@@ -82,10 +77,13 @@ class WCSimChargeLikelihood
       // Calculating is fine for drawing/testing, but look them up when we do the fit
       Bool_t fCalculateIntegrals;
 
-	  // The digitizer samples the 1pe distribution repeatedly, then applies a threshold function,
-	  // then multiplies by an efficiency term
-	  Double_t fEfficiency;
-	  
+	    // The digitizer samples the 1pe distribution repeatedly, then applies a threshold function,
+	    // then multiplies by an efficiency term
+	    Double_t fEfficiency;
+	    
+      // For < 10 predicted photons, we look up the digitizer probability from a 2D histogram;
+      TH2D * fDigiPDF; 
+
 
 };
 

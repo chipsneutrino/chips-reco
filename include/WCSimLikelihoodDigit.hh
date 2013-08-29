@@ -22,6 +22,7 @@ class WCSimLikelihoodDigit : public TObject
       double GetFaceX();
       double GetFaceY();
       double GetFaceZ();
+      void Print();
  
   protected:
   private:
