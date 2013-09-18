@@ -39,7 +39,7 @@ WCSimChargeLikelihood::WCSimChargeLikelihood(WCSimLikelihoodDigitArray * myDigit
 void WCSimChargeLikelihood::Initialize( WCSimLikelihoodDigitArray * myDigitArray, WCSimLikelihoodTrack * myTrack )
 {
 //    std::cout << "*** WCSimChargeLikelihood::Initialize() *** Initializing charge likelihood with tuned values" << std::endl; 
-    fCalculateIntegrals = true;    // Setting true will calculate integrals numerically instead of looking them up
+    fCalculateIntegrals = false;    // Setting true will calculate integrals numerically instead of looking them up
 
     fCoeffsCh.push_back(1);
     fCoeffsCh.push_back(2);

@@ -137,6 +137,8 @@ WCSimLikelihoodTuner::~WCSimLikelihoodTuner()
     if(fRhoIntegralTree) delete fRhoIntegralTree;
     if(fRhoGIntegralFile) delete fRhoGIntegralFile;
 	  if(fRhoIntegralFile) delete fRhoIntegralFile;
+    if(fRhoGIntegrals) delete fRhoGIntegrals;
+    if(fRhoIntegrals) delete fRhoIntegrals;
 
 }
 
@@ -657,8 +659,8 @@ void WCSimLikelihoodTuner::LoadTabulatedIntegrals( WCSimLikelihoodTrack * myTrac
 			break;
 	  	case WCSimLikelihoodTrack::ElectronLike:
 	//  		std::cout << "Is it tripping the electronlike flag too?" << WCSimLikelihoodTrack::ElectronLike << std::endl;
-	  		fRhoGIntegralFile->Open("config/integralsElectronRhoG.root");
-			fRhoIntegralFile->Open("config/integralsElectronRho.root");
+	  		fRhoGIntegralFile = new TFile("config/integralsElectronRhoG.root");
+			fRhoIntegralFile = new TFile("config/integralsElectronRho.root");
 			break;
 		case WCSimLikelihoodTrack::Unknown:
 	//		std::cout << "Or is it?" << "   " << myType << std::endl;
