@@ -19,7 +19,7 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( )
 WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myEvent )
 {
   // Check the number of PMTs and create a TClonesArray with one entry per PMT
-  Int_t numPMT = ((WCSimGeometry::Instance())->GetNumPMTs()) - 1;	// WCSimGeometry adds 1 to the true number to prevent overflow errors 
+  Int_t numPMT = ((WCSimGeometry::Instance())->GetNumPMTs())-1;	// WCSimGeometry adds 1 to the true number to prevent overflow errors 
   WCSimGeometry::PrintGeometry();
   std::cout << "There are " << numPMT << " PMTs" << std::endl;
 	fLikelihoodDigitArray = new TClonesArray("WCSimLikelihoodDigit",numPMT);
@@ -94,7 +94,7 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myEvent )
 WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myRootEvent, Bool_t useUndigitized)
 {
 	// Check the number of PMTs and create a TClonesArray with one entry per PMT
-    Int_t numPMT = ((WCSimGeometry::Instance())->GetNumPMTs()) - 1;  // WCSimGeometry adds 1 to the true number to prevent overflow errors
+    Int_t numPMT = ((WCSimGeometry::Instance())->GetNumPMTs())+1;  // WCSimGeometry adds 1 to the true number to prevent overflow errors
   	WCSimGeometry::PrintGeometry();
   	std::cout << "There are " << numPMT << " PMTs" << std::endl;
 	fLikelihoodDigitArray = new TClonesArray("WCSimLikelihoodDigit",numPMT);

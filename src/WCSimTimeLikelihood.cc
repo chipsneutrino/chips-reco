@@ -293,7 +293,7 @@ Double_t WCSimTimeLikelihood::GetPredictedCharge()
   return registeredCharge;
 
   //TODO: this is how it should look like!
-  double predictedCharge = fChargeLikelihood->ChargeExpectation();
+  double predictedCharge = fChargeLikelihood->ChargeExpectation(fTrack);
   return predictedCharge;
 }
 

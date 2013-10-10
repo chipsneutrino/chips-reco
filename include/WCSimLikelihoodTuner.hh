@@ -20,8 +20,8 @@ class WCSimLikelihoodTuner
         WCSimLikelihoodTuner(Bool_t calculateIntegrals);
         WCSimLikelihoodTuner(Double_t xMax, Double_t yMax, Double_t zMax, Bool_t calculateIntegrals);
         void Initialize();
-
         virtual ~WCSimLikelihoodTuner();
+        void UpdateDigitArray(WCSimLikelihoodDigitArray * myDigitArray);
    
         void LoadEmissionProfiles(WCSimLikelihoodTrack::TrackType myType);
         void LoadEmissionProfiles(WCSimLikelihoodTrack * myTracK); 
@@ -66,7 +66,12 @@ class WCSimLikelihoodTuner
 		    Double_t fAverageQE;
 
         Bool_t fConstrainExtent;
+
+        // Work out where to cut off integrals, and cache the last one
+        WCSimLikelihoodTrack * fLastCutoff;
         Double_t fCutoffIntegral;
+
+        // Read in from the emission profile files
         TString * fProfileLocation;
         TFile * fProfiles;
         WCSimLikelihoodTrack::TrackType fIsOpen;
@@ -86,16 +91,36 @@ class WCSimLikelihoodTuner
 	  	TTree * fRhoGIntegralTree;
       Int_t fIntegralEnergyBin;
       Double_t fIntegralSMax;
-		  Int_t fNR0Bins;
+      
+      
+      // The binning scheme for the table of indirect integrals      
+      UInt_t fNBinsRho;
+      Int_t fNSBinsRho;
+      Int_t fNEBinsRho;
+      Double_t fSMinRho;
+      Double_t fSMaxRho;
+      Double_t fEMinRho;
+      Double_t fEMaxRho;
+
+
+      // The binning scheme for the table of direct integrals
+      UInt_t fNBinsRhoG;
+      Int_t fNR0Bins;
 		  Int_t fNCosTheta0Bins;
 		  Int_t fNSBins;
 		  Int_t fNEBins;
+      Double_t fR0Min;
 		  Double_t fR0Max;
 		  Double_t fEMin;
 		  Double_t fEMax;
+      Double_t fSMin;
 		  Double_t fSMax;
-		  std::vector<Double_t> *fRhoIntegrals;
-		  std::vector<Double_t> *fRhoGIntegrals;
+      Double_t fCosTheta0Min;
+      Double_t fCosTheta0Max;
+      
+      // The table of integrals
+		  Double_t * fRhoIntegrals;
+		  Double_t * fRhoGIntegrals;
 
 	  	WCSimLikelihoodTrack::TrackType fIntegralParticleType;
 	  
