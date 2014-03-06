@@ -17,7 +17,7 @@ class WCSimLikelihoodFitter
     public:
         WCSimLikelihoodFitter( WCSimRootEvent*);
         virtual ~WCSimLikelihoodFitter();
-        void Minimize2LnL(Int_t nTracks);
+        Int_t Minimize2LnL(Int_t nTracks);
         Int_t GetNPars(Int_t nTracks);
         Double_t WrapFunc(const Double_t * x);
         Double_t GetMinimum();

@@ -87,7 +87,7 @@ void WCSimChargeLikelihood::SetTracks( std::vector<WCSimLikelihoodTrack*> myTrac
 {
   // std::cout << " *** WCSimChargeLikelihood::SetTracks() *** " << std::endl;
   fTracks = myTracks;
-  fTracks.at(0)->Print();
+  // fTracks.at(0)->Print();
   fGotTrackParameters = false;
 }
 
@@ -169,7 +169,7 @@ double WCSimChargeLikelihood::Calc2LnL()
     Double_t chargeObserved = fDigit->GetQ();
     Double_t minus2LnL = fDigitizer->GetMinus2LnL( predictedCharges[jDigit], chargeObserved);
     Charge2LnL += minus2LnL;
-    //if((jDigit % 1) == 0){ std::cout << "jDigit  = " << jDigit << "/" << fDigitArray->GetNDigits() << "  Observed charge = " << chargeObserved << "   Expected charge = " << predictedCharges[jDigit] << "    ... So -2lnL now = " << Charge2LnL << std::endl;  }
+    // if((jDigit % 1) == 0){ std::cout << "jDigit  = " << jDigit << "/" << fDigitArray->GetNDigits() << "  Observed charge = " << chargeObserved << "   Expected charge = " << predictedCharges[jDigit] << "    ... So -2lnL now = " << Charge2LnL << std::endl;  }
     X = fDigit->GetX();
     Y = fDigit->GetY();
     Z = fDigit->GetZ();
@@ -268,7 +268,7 @@ double WCSimChargeLikelihood::GetMuIndirect(WCSimLikelihoodTrack * myTrack)
 {
 
   //std::cout << "*** WCSimChargeLikelihood::GetMuIndirect() *** Calculating the indirect light contribution to the expected charge" << std::endl;
-  double muIndirect = 0.0;
+  double muIndirect = 0.01;
   if(!fGotTrackParameters) this->GetTrackParameters(myTrack);
   if(fGotTrackParameters)
   {
@@ -276,15 +276,19 @@ double WCSimChargeLikelihood::GetMuIndirect(WCSimLikelihoodTrack * myTrack)
   	std::vector<Double_t> integrals;
 		integrals = fTuner->GetIndIntegrals(myTrack);
     
-    muIndirect = lightFlux * ( integrals[0] * fCoeffsInd[0] + integrals[1] * fCoeffsInd[1] + integrals[2] * fCoeffsInd[2] );
+    muIndirect += lightFlux * ( integrals[0] * fCoeffsInd[0] + integrals[1] * fCoeffsInd[1] + integrals[2] * fCoeffsInd[2] );
     if(muIndirect < 0)
     {
         //std::cout << "IT'S NEGATIVE! " << "  i0 = " << integrals[0] << "   i1 = " << integrals[1] << "   i2 = " << integrals[2] << "    fCoeffsInd = " << fCoeffsInd[0] << "," << fCoeffsInd[1] << "," << fCoeffsInd[2] << std::endl;
-        muIndirect = 0;
+        muIndirect = 0.01;
     }
 //    std::cout << "Mu indirect = " << muIndirect << std::endl;
   }
-  else std::cout << "Error: did not get track parameters first, returning 0" << std::endl;
+  else
+  {
+    return 0;
+    std::cout << "Error: did not get track parameters first, returning 0" << std::endl;
+  }
   return muIndirect;
 }
 
@@ -312,7 +316,7 @@ double WCSimChargeLikelihood::GetLightFlux(WCSimLikelihoodTrack * myTrack)
   //
   // Calculating these is a waste of time because they're so simple, but this is where the factors come from
 
-  return factorFromG * factorFromSolidAngle * nPhotons;
+  return factorFromG * factorFromSolidAngle * nPhotons * 1.1;
 }
 
 

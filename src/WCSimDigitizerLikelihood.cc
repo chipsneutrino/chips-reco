@@ -43,19 +43,6 @@ WCSimDigitizerLikelihood::WCSimDigitizerLikelihood() : fType(kUnknown), fPDFs(NU
   fType = this->StringToDigiType(WCSimAnalysisConfig::Instance()->GetDigiType());
   if( fType == WCSimDigitizerLikelihood::kWCSim ) { this->OpenPDFs(); }
   std::cout << "Using the digitizer type " << fType << std::endl;
-  std::cout << "Using the digitizer type " << fType << std::endl;
-  std::cout << "Using the digitizer type " << fType << std::endl;
-  std::cout << "Using the digitizer type " << fType << std::endl;
-  std::cout << "Using the digitizer type " << fType << std::endl;
-  std::cout << "Using the digitizer type " << fType << std::endl;
-  std::cout << "Using the digitizer type " << fType << std::endl;
-  std::cout << "Using the digitizer type " << fType << std::endl;
-  std::cout << "Using the digitizer type " << fType << std::endl;
-  std::cout << "Using the digitizer type " << fType << std::endl;
-  std::cout << "Using the digitizer type " << fType << std::endl;
-  std::cout << "Using the digitizer type " << fType << std::endl;
-  std::cout << "Using the digitizer type " << fType << std::endl;
-  std::cout << "Using the digitizer type " << fType << std::endl;
 }
 
 /////////////////////////////////////////////////////
@@ -364,7 +351,7 @@ Double_t WCSimDigitizerLikelihood::GetSimpleMinus2LnL( const Double_t &undigi, c
 {
   Double_t prob = this->GetSimpleLikelihood( undigi, digi );
   if(prob > 1e-40) return -2.0 * TMath::Log(prob);
-  else return -(digi * TMath::Log(undigi) - undigi - TMath::LnGamma(digi+1));
+  else return -2*(digi * TMath::Log(undigi) - undigi - TMath::LnGamma(digi+1));
 }
 
 Double_t WCSimDigitizerLikelihood::GetSimpleExpectation( const Double_t &undigi )

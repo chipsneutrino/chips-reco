@@ -250,8 +250,6 @@ void WCSimLikelihoodTuner::LoadEmissionProfiles( WCSimLikelihoodTrack::TrackType
 /////////////////////////////////////////////////////////////////////////////////////////
 Double_t WCSimLikelihoodTuner::TransmissionFunction(Double_t s, WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit)
 {
-  return 1;
-	
 	if( s== 0) return 1;
     // First we need the distance from the photon emission to the PMT 
     TVector3 pmtPos      = myDigit->GetPos();
@@ -273,7 +271,6 @@ Double_t WCSimLikelihoodTuner::TransmissionFunction(Double_t s, WCSimLikelihoodT
 ///////////////////////////////////////////////////////////////////////////////////////
 Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit)
 {
-	return 1;
     // We need the angle of incidence at the PMT
     TVector3 pmtPos      = myDigit->GetPos();
     TVector3 emissionPos = myTrack->GetPropagatedPos(s);
@@ -603,11 +600,11 @@ void WCSimLikelihoodTuner::CalculateCutoff( WCSimLikelihoodTrack * myTrack )
     TVector3 dir = myTrack->GetDir();
     Double_t sMax[3] = {0., 0.,0.};
 
-    std::cout << "Vertex is " << std::endl;
-    vtx.Print();
+    // std::cout << "Vertex is " << std::endl;
+    // vtx.Print();
 
-    std::cout << "Direction is " << std::endl;
-    dir.Print();
+    // std::cout << "Direction is " << std::endl;
+    // dir.Print();
 
     if( fGeomType == WCSimLikelihoodDigitArray::kCylinder )
     {
@@ -647,18 +644,18 @@ Double_t WCSimLikelihoodTuner::CalculateCylinderCutoff(const TVector3 &vtx, cons
   else if( s2 > 0) sMax[0] = s2;
 
   sMax[1] = sMax[0];
-  std::cout << "It's a cylinder, sR = " << sMax[0] <<std::endl;
+  // std::cout << "It's a cylinder, sR = " << sMax[0] <<std::endl;
 
   // The z coordinate
   if( dir(2) > 1e-6 )
   {
       sMax[2] = (  fExtent[2] - vtx(2) ) / ( dir(2) );
-      std::cout << "Direction " << 2 << " cutoff is " << sMax[2] << std::endl;
+      // std::cout << "Direction " << 2 << " cutoff is " << sMax[2] << std::endl;
   }
   else if( dir(2) < -1e-6 )
   {
       sMax[2] = ( -fExtent[2] - vtx(2) ) / ( dir(2) );
-      std::cout << "Direction " << 2 << " (negative) cutoff is " << sMax[2] << std::endl;
+      // std::cout << "Direction " << 2 << " (negative) cutoff is " << sMax[2] << std::endl;
   }
   else sMax[2] = cutoff;
   std::cout << sMax[2] << std::endl;
@@ -874,7 +871,7 @@ double WCSimLikelihoodTuner::GetChIntegrals(WCSimLikelihoodTrack * myTrack, WCSi
     }
     else 
     {
-      std::cout << "Looking up the Cherenkov integrals" << std::endl;
+      // std::cout << "Looking up the Cherenkov integrals" << std::endl;
       return this->LookupChIntegrals(myTrack, myDigit, sPower);
     }
 }
@@ -889,7 +886,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::GetChIntegrals(WCSimLikelihoodTrack 
     }
     else
     {
-      std::cout << "Looking up the Cherenkov integrals" << std::endl;
+      // std::cout << "Looking up the Cherenkov integrals" << std::endl;
       return this->LookupChIntegrals(myTrack, myDigit);
     }
 }

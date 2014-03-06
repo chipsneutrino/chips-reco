@@ -61,8 +61,11 @@ Int_t WCSimLikelihoodFitter::GetNPars(Int_t nTracks)
   return nPars;
 }
 
-
-void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
+/** Perform the minimization.
+ * @input nTracks Number of tracks to allow in the fitter
+ * @return Whether minimizer converged (0 if it did)
+ **/
+Int_t WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
 {
   // Set up the minimizer
    // ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "GSLSimAn");
@@ -258,6 +261,8 @@ void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
 //
   // Perform the minimization
   min->Minimize();
+  Int_t minStatus = min->Status();
+  // std::cout << "Manual status is " << minStatus << std::endl;
   fMinimum = min->MinValue();
   // Get and print the fit results
   const Double_t * outPar = min->X();
@@ -276,7 +281,7 @@ void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
   const Double_t * outPar2 = min->X();
   const Double_t * err    = min->Errors();
   std::cout << "Best fit track: " << std::endl;
-  RescaleParams(outPar2[1],  outPar2[2],  outPar2[3],  outPar2[4],  outPar2[5],  outPar2[6],  outPar2[7], fType).Print();
+  // RescaleParams(outPar2[1],  outPar2[2],  outPar2[3],  outPar2[4],  outPar2[5],  outPar2[6],  outPar2[7], fType).Print();
 
   fBestFit.clear();
   switch(nTracks)
@@ -295,7 +300,8 @@ void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
     default:
       break;
   }
-  return;
+  // std::cout << "Manual status is now " << minStatus << std::endl;
+  return minStatus;
 }
 
 ////////////////////////////////////////////////////////////
@@ -330,10 +336,10 @@ Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
   {
     std::cout << "Tracks used for first call:" << std::endl;
     std::vector<WCSimLikelihoodTrack>::iterator itr = trackVec.begin();
-    for( ; itr < trackVec.end(); ++itr)
-    {
-      (*itr).Print();
-    }
+    // for( ; itr < trackVec.end(); ++itr)
+    // {
+    //   (*itr).Print();
+    // }
     fIsFirstCall = false;
   }
   std::cout << " ...  Done" << std::endl;
@@ -379,8 +385,6 @@ void WCSimLikelihoodFitter::SeedParams( WCSimReco * myReco )
    if(recoDirY != 0) fSeedPhi = TMath::ATan2(recoDirY,recoDirX); // range -pi to pi
    else fSeedPhi = (recoDirX < 0.0)? 0.5*TMath::Pi() : -0.5*TMath::Pi();
 
-   fSeedTheta = 0.5*TMath::Pi();
-   fSeedPhi = 0.25*TMath::Pi();
 
   // std::cout << "Seed dir = (vx, vy, vz) = ( " << recoDirX << "," << recoDirY << "," << recoDirZ << ")" << std::endl
   std::cout << "-> theta = " << fSeedTheta << "    phi = " << fSeedPhi << std::endl
