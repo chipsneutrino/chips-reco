@@ -1,0 +1,11 @@
+*.swp
+*.swn
+*.swl
+*.orig
+*.png
+*.pdf
+*.d
+*___*
+.*
+./*.root
+*_.cxx
