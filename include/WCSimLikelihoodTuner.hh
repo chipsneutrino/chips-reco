@@ -10,6 +10,7 @@
 #include "TTree.h"
 
 #include "WCSimLikelihoodTrack.hh"
+#include "WCSimLikelihoodDigitArray.hh"
 #include "WCSimRootGeom.hh"
 
 
@@ -17,8 +18,8 @@
 class WCSimLikelihoodTuner
 {
     public:
-        WCSimLikelihoodTuner(Bool_t calculateIntegrals);
-        WCSimLikelihoodTuner(Double_t xMax, Double_t yMax, Double_t zMax, Bool_t calculateIntegrals);
+        WCSimLikelihoodTuner();
+        WCSimLikelihoodTuner(WCSimLikelihoodDigitArray * myDigitArray);
         void Initialize();
         virtual ~WCSimLikelihoodTuner();
         void UpdateDigitArray(WCSimLikelihoodDigitArray * myDigitArray);
@@ -39,15 +40,34 @@ class WCSimLikelihoodTuner
         Int_t GetESBin(Double_t energy, Double_t sMax);
         Int_t GetIntegralBin(Double_t energy, Double_t s);
         Int_t GetIntegralBin(Double_t energy, Double_t R0, Double_t cosTheta0, Double_t s);
+       
+        // DEBUGGING:
+        // By default the tuner will use a config file to determine whether to calculate or lookup the integrals
+        // This funtion can be used to override it
+        void SetCalculateIntegrals(Bool_t calc);
+        Bool_t GetCalculateIntegrals() const;
+
+        // Wrappers to get the integrals.  
+        // Will either look them up or calculate them depending on what how the tuner is configured 
+        Double_t GetChIntegrals(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit, int sPower); 
+        std::vector<Double_t> GetChIntegrals(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit); 
+        Double_t GetIndIntegrals(WCSimLikelihoodTrack * myTrack, Int_t sPower); 
+        std::vector<Double_t> GetIndIntegrals(WCSimLikelihoodTrack * myTrack); 
+        
+        // Get the integrals using a lookup table
         Double_t LookupChIntegrals(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit, int sPower); 
         std::vector<Double_t> LookupChIntegrals(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit); 
         Double_t LookupIndIntegrals(WCSimLikelihoodTrack * myTrack, Int_t sPower); 
         std::vector<Double_t> LookupIndIntegrals(WCSimLikelihoodTrack * myTrack); 
 
-        Double_t CalculateIndIntegrals(WCSimLikelihoodTrack * myTrack, int i);
-        std::vector<Double_t> CalculateIndIntegrals(WCSimLikelihoodTrack * myTrack);
+        // Get the integrals numerically by calculating them
         Double_t CalculateChIntegrals(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit, int i);
         std::vector<Double_t> CalculateChIntegrals(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit);
+        Double_t CalculateIndIntegrals(WCSimLikelihoodTrack * myTrack, int i);
+        std::vector<Double_t> CalculateIndIntegrals(WCSimLikelihoodTrack * myTrack);
+
+
+
 
         void CalculateCoefficients(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit);
         std::vector<Double_t> CalculateCoefficientsVector(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit);
@@ -94,7 +114,7 @@ class WCSimLikelihoodTuner
       
       
       // The binning scheme for the table of indirect integrals      
-      UInt_t fNBinsRho;
+      Int_t fNBinsRho;
       Int_t fNSBinsRho;
       Int_t fNEBinsRho;
       Double_t fSMinRho;
@@ -104,7 +124,7 @@ class WCSimLikelihoodTuner
 
 
       // The binning scheme for the table of direct integrals
-      UInt_t fNBinsRhoG;
+      Int_t fNBinsRhoG;
       Int_t fNR0Bins;
 		  Int_t fNCosTheta0Bins;
 		  Int_t fNSBins;

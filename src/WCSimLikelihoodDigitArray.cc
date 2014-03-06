@@ -122,7 +122,7 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myRootEve
   	fExtent[2] = 0.;
   	if( this->IsCylinder() ) 
   	{
-  	  	fExtent[0] = WCSimGeometry::Instance()->GetCylRadius();
+  	  fExtent[0] = WCSimGeometry::Instance()->GetCylRadius();
     	fExtent[1] = fExtent[0];
     	fExtent[2] = 0.5 * WCSimGeometry::Instance()->GetCylLength();
   	}

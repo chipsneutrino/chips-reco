@@ -1,29 +1,35 @@
 #ifndef WCSIMDIGITIZERLIKELIHOOD_H
 #define WCSIMDIGITIZERLIKELIHOOD_H
 #include "Rtypes.h"
+#include <string>
+#include <map>
 
 class TFile;
 class TH2D;
+
 
 class WCSimDigitizerLikelihood
 {
     public:
 
-      enum DigiType
+      enum DigiType_t
       {
         kSimple,
-        kWCSim
+        kWCSim,
+        kUnknown
       };
 
-      WCSimDigitizerLikelihood( DigiType type = kWCSim);
+      WCSimDigitizerLikelihood();
       virtual ~WCSimDigitizerLikelihood();
 
-      void SetDigiType( WCSimDigitizerLikelihood::DigiType type );
+      DigiType_t StringToDigiType( const std::string &str ) const;
+
+      void SetDigiType( WCSimDigitizerLikelihood::DigiType_t type );
       void OpenPDFs();
       Double_t GetMinus2LnL( const Double_t &undigi, const Double_t &digi );
       Double_t GetLikelihood( const Double_t &undigi, const Double_t &digi );
       Double_t GetExpectation( const Double_t & undigi );
-
+      DigiType_t StrToDigiType(std::string str);
     protected:
     
     private:
@@ -48,8 +54,10 @@ class WCSimDigitizerLikelihood
       
       // Do we use the WCSim-style digitizer, or a simple Poisson
       // Can add something based on real PMT tests later
-      DigiType fType;
-	
+      DigiType_t fType;
+
+      // For converting strings to their corresponding DigiType_t
+      std::map<std::string, DigiType_t> fDigiTypeNames; 
       
       // WCSim repeatedly samples a 1pe distribution.  For hits < 10pe I've
       // already done this to build a PDF histogram which these variables 

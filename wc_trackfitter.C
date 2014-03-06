@@ -29,13 +29,9 @@ void wc_trackfitter(Double_t energy)
       myTrackArray.push_back(myTrack);
       myTrackArray.push_back(myTrack2);
       
-      WCSimChargeLikelihood * myChargeLikelihood = new WCSimChargeLikelihood(myLikelihoodDigitArray, true);
+      WCSimChargeLikelihood * myChargeLikelihood = new WCSimChargeLikelihood(myLikelihoodDigitArray);
       myChargeLikelihood->SetTracks(myTrackArray);
-      WCSimLikelihoodTuner * myTuner = new WCSimLikelihoodTuner( myLikelihoodDigitArray->GetExtent(0),
-                                                                 myLikelihoodDigitArray->GetExtent(1),
-                                                                 myLikelihoodDigitArray->GetExtent(2),
-                                                                 kFALSE);
-      Double_t minus2LnL = myChargeLikelihood->Calc2LnL();
+//      Double_t minus2LnL = myChargeLikelihood->Calc2LnL();
       
       
       

@@ -15,7 +15,7 @@ ClassImp(WCSimTotalLikelihood)
 // Constructor
 ///////////////////////////////////////////////////////////////////////////
 WCSimTotalLikelihood::WCSimTotalLikelihood( WCSimLikelihoodDigitArray * myLikelihoodDigitArray ) : 
-  fLikelihoodDigitArray(myLikelihoodDigitArray), fChargeLikelihood(myLikelihoodDigitArray, true)
+  fLikelihoodDigitArray(myLikelihoodDigitArray), fChargeLikelihood(myLikelihoodDigitArray)
 {  
   // Put this in the initialization list when the time part is ready 
   //fTimeLikelihood( myLikelihoodDigitArray, fChargeLikelihood ); 

@@ -27,24 +27,23 @@
 ///////////////////////////////////////////////////////////////////////////
 // Constructor
 ///////////////////////////////////////////////////////////////////////////
-WCSimChargeLikelihood::WCSimChargeLikelihood(WCSimLikelihoodDigitArray * myDigitArray, Bool_t calculateIntegrals)
+WCSimChargeLikelihood::WCSimChargeLikelihood(WCSimLikelihoodDigitArray * myDigitArray)
 {
     // std::cout << "*** WCSimChargeLikelihood::WCSimChargeLikelihood() *** Created charge likelihood object" << std::endl;
     fTuner = NULL;
     fDigitArray = NULL;
     fDigit = NULL;
     fDigitizer = NULL;
-    this->Initialize( myDigitArray, calculateIntegrals );
+    this->Initialize( myDigitArray );
 }
 
 ///////////////////////////////////////////////////////////////////////////
 // Set starting values.  Eventually WCSimLikelihoodTuner will be used
 // to work these out, but for now they're hardcoded
 ///////////////////////////////////////////////////////////////////////////
-void WCSimChargeLikelihood::Initialize( WCSimLikelihoodDigitArray * myDigitArray, Bool_t calculateIntegrals)
+void WCSimChargeLikelihood::Initialize( WCSimLikelihoodDigitArray * myDigitArray)
 {
     // std::cout << "*** WCSimChargeLikelihood::Initialize() *** Initializing charge likelihood with tuned values" << std::endl;
-    fCalculateIntegrals = calculateIntegrals;    // Setting true will calculate integrals numerically instead of looking them up
 
     fCoeffsCh.push_back(1);
     fCoeffsCh.push_back(2);
@@ -57,12 +56,9 @@ void WCSimChargeLikelihood::Initialize( WCSimLikelihoodDigitArray * myDigitArray
     fGotTrackParameters = false;
     fDigitArray = myDigitArray;
 
-    fTuner = new WCSimLikelihoodTuner(fDigitArray->GetExtent(0),
-                                      fDigitArray->GetExtent(1),
-                                      fDigitArray->GetExtent(2),
-                                      fCalculateIntegrals);
+    fTuner = new WCSimLikelihoodTuner(fDigitArray);
     
-    fDigitizer = new WCSimDigitizerLikelihood(WCSimDigitizerLikelihood::kSimple);
+    fDigitizer = new WCSimDigitizerLikelihood();
 
     return;
 }
@@ -239,14 +235,7 @@ double WCSimChargeLikelihood::GetMuDirect(WCSimLikelihoodTrack * myTrack )
     fTuner->CalculateCoefficients(myTrack, fDigit);
 
     std::vector<Double_t> integrals;
-    if(!fCalculateIntegrals)
-    {
-        integrals = fTuner->LookupChIntegrals(myTrack, fDigit);
-    }
-    else
-    {
-        integrals = fTuner->CalculateChIntegrals(myTrack, fDigit);
-    }
+    integrals = fTuner->GetChIntegrals(myTrack, fDigit);
 
     //std::cout << "i0 = " << i0 << "  i1 = " << i1 << "   i2 = " << i2 << std::endl
     //          << "fCoeffsCh = " << fCoeffsCh[0] << "," << fCoeffsCh[1] << "," << fCoeffsCh[2] << std::endl;
@@ -279,15 +268,9 @@ double WCSimChargeLikelihood::GetMuIndirect(WCSimLikelihoodTrack * myTrack)
   if(fGotTrackParameters)
   {
     double lightFlux = this->GetLightFlux(myTrack);
-	std::vector<Double_t> integrals;
-    if(!fCalculateIntegrals)
-    {
-		integrals = fTuner->LookupIndIntegrals(myTrack);
-    }
-    else
-    {
-		integrals = fTuner->CalculateIndIntegrals(myTrack);
-    }
+  	std::vector<Double_t> integrals;
+		integrals = fTuner->GetIndIntegrals(myTrack);
+    
     muIndirect = lightFlux * ( integrals[0] * fCoeffsInd[0] + integrals[1] * fCoeffsInd[1] + integrals[2] * fCoeffsInd[2] );
     if(muIndirect < 0)
     {
@@ -351,16 +334,17 @@ void WCSimChargeLikelihood::GetTrackParameters(WCSimLikelihoodTrack * myTrack)
 }
 
 //////////////////////////////////////////////////////////////////////////////
+// DEBUGGING:
 // Calculate the likelihood for a given PMT hit Q and a known track, using the
 // values of the individual functions rather than tabulated integrals.
 // We won't use this in the fit, but it's useful for validation
 //////////////////////////////////////////////////////////////////////////////
 Double_t WCSimChargeLikelihood::CalculateExactLikelihood()
 {
-    Bool_t tempFlag = fCalculateIntegrals;
-    fCalculateIntegrals = true;
-    this->Calc2LnL();
+    Bool_t tempFlag = fTuner->GetCalculateIntegrals();
+    fTuner->SetCalculateIntegrals(true);
+    Double_t likelihood = this->Calc2LnL();
+    fTuner->SetCalculateIntegrals(tempFlag);
     // Charge expectation = integral (flux * rho * solid angle * transmission * acceptance * angular emission * ds)
-    fCalculateIntegrals = tempFlag;
-    return 0;
+    return likelihood;
 }

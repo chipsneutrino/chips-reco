@@ -293,15 +293,15 @@ void WCSimHoughTransformArray::FitTSpectrum3( std::vector<Double_t> &houghDirX, 
 
 	// Convert fHoughArrayMaxAngle into the right form to pass to TSpectrum2
 	std::cout << "Converting to triple pointer" << std::endl;
-	Double_t *** source = new Double_t **[fHoughX];
-	Double_t *** dest = new Double_t **[fHoughX];     
+	float *** source = new float **[fHoughX];
+	float *** dest = new float **[fHoughX];     
 
 	for(int xbin = 0; xbin < fHoughX; xbin++ ){
-		source[xbin] = new Double_t * [fHoughY];
-		dest[xbin] = new Double_t * [fHoughY];
+		source[xbin] = new float * [fHoughY];
+		dest[xbin] = new float * [fHoughY];
 		for(int ybin=0; ybin < fHoughY; ybin++ ){
-	  	source[xbin][ybin]=new Double_t [fConeAngleBins];
-	  	dest[xbin][ybin]=new Double_t [fConeAngleBins];
+	  	source[xbin][ybin]=new float [fConeAngleBins];
+	  	dest[xbin][ybin]=new float [fConeAngleBins];
 		}
 	}          
 	std::cout << "Initializing TSpectrum2" << std::endl;	
@@ -319,16 +319,16 @@ void WCSimHoughTransformArray::FitTSpectrum3( std::vector<Double_t> &houghDirX, 
 
 	// Now deconvolve and find the peaks
 	Int_t nfound;
-	const Double_t *** source2 = (const Double_t ***) source;
+	const float *** source2 = (const float ***) source;
 	std::cout << "Running peak finder" << std::endl;
   nfound = search->SearchHighRes(source2, dest, fHoughX, fHoughY, fConeAngleBins, 3, 35, kTRUE, 2, kFALSE, 5);   
 	if(nfound > 0)
 	{
 		std::cout << "Found " << nfound << " peaks" << std::endl;
 	
-	  Double_t *PosX = new Double_t[nfound];        
-	  Double_t *PosY = new Double_t[nfound];
-		Double_t *PosAngle = new Double_t[nfound];
+	  Float_t *PosX = new Float_t[nfound];        
+	  Float_t *PosY = new Float_t[nfound];
+		Float_t *PosAngle = new Float_t[nfound];
 		PosX = search->GetPositionX();
 		PosY = search->GetPositionY();
 		PosAngle = search->GetPositionZ();
@@ -383,12 +383,12 @@ void WCSimHoughTransformArray::FitTSpectrum2( std::vector<Double_t> &houghDirX, 
  
 	// Convert fHoughArrayMaxAngle into the right form to pass to TSpectrum2
 	std::cout << "Converting to double pointer" << std::endl;
-	Double_t ** source = new Double_t *[fHoughX];
-	Double_t ** dest = new Double_t *[fHoughX];     
+	float ** source = new float *[fHoughX];
+	float ** dest = new float *[fHoughX];     
 
 	for(int xbin=0; xbin < fHoughX; xbin++ ){
-	   source[xbin]=new Double_t [fHoughY];
-	   dest[xbin]=new Double_t [fHoughY];
+	   source[xbin]=new float [fHoughY];
+	   dest[xbin]=new float [fHoughY];
 	}          
 	std::cout << "Initializing TSpectrum2" << std::endl;	
 	TSpectrum2 *search = new TSpectrum2();
@@ -408,8 +408,8 @@ void WCSimHoughTransformArray::FitTSpectrum2( std::vector<Double_t> &houghDirX, 
 	{
 		std::cout << "Found " << nfound << " peaks" << std::endl;
 	
-	  Double_t *PosX = new Double_t[nfound];        
-	  Double_t *PosY = new Double_t[nfound];
+	  Float_t *PosX = new Float_t[nfound];        
+	  Float_t *PosY = new Float_t[nfound];
 		PosX = search->GetPositionX();
 		PosY = search->GetPositionY();
 	

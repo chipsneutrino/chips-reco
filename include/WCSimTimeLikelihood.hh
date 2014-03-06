@@ -13,7 +13,7 @@
 #include "TFile.h"
 #include "TH1.h"
 
-class WCSimTimeLikelihood
+class WCSimTimeLikelihood : public TObject
 {
   public:
     WCSimTimeLikelihood( WCSimLikelihoodDigitArray * myDigitArray, WCSimLikelihoodTrack * myTrack, WCSimChargeLikelihood *myChargeLikelihood);
@@ -73,6 +73,7 @@ class WCSimTimeLikelihood
     //TODO: do I really need this and the GetTrackParameters function?
     Bool_t fGotTrackParameters;
 
+    ClassDef(WCSimTimeLikelihood,0)
 };
 
 #endif // WCSIMTIMELIKELIHOOD_H

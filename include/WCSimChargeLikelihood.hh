@@ -19,9 +19,9 @@
 class WCSimChargeLikelihood
 {
     public:
-        WCSimChargeLikelihood( WCSimLikelihoodDigitArray * myDigitArray, Bool_t calculateIntegrals = false);
+        WCSimChargeLikelihood( WCSimLikelihoodDigitArray * myDigitArray);
         virtual ~WCSimChargeLikelihood();
-        void Initialize( WCSimLikelihoodDigitArray * myDigitArray, Bool_t calculateIntegrals = false );
+        void Initialize( WCSimLikelihoodDigitArray * myDigitArray);
         void AddTrack( WCSimLikelihoodTrack * myTrack);
         void SetTracks( std::vector<WCSimLikelihoodTrack*> myTrack );
         void ClearTracks();
@@ -72,10 +72,6 @@ class WCSimChargeLikelihood
       // PMT hit in question.  I calculate these in GetTrackParameters() and set a flag when
       // this has been done
       Bool_t fGotTrackParameters;
-
-      // Do we want to calculate or look up the integrals for the likelihood?
-      // Calculating is fine for drawing/testing, but look them up when we do the fit
-      Bool_t fCalculateIntegrals;
 
 
 

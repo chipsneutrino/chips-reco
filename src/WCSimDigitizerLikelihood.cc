@@ -1,4 +1,5 @@
 #include "WCSimDigitizerLikelihood.hh"
+#include "WCSimAnalysisConfig.hh"
 
 #include "TF1.h"
 #include "TFile.h"
@@ -28,17 +29,54 @@ ClassImp(WCSimDigitizerLikelihood)
 //   return fgWCSDigitizer;
 // }
 
-WCSimDigitizerLikelihood::WCSimDigitizerLikelihood(WCSimDigitizerLikelihood::DigiType type) : fPDFs(NULL), fType(type)
+
+/////////////////////////////////////////////////////////////////////
+// Constructor - need to initialize the DigiType_t to string map here
+/////////////////////////////////////////////////////////////////////
+WCSimDigitizerLikelihood::WCSimDigitizerLikelihood() : fType(kUnknown), fPDFs(NULL)
 {
+
+  fDigiTypeNames["kSimple"]  = kSimple;
+  fDigiTypeNames["kWCSim"]   = kWCSim;
+  fDigiTypeNames["kUnknown"] = kUnknown;
+
+  fType = this->StringToDigiType(WCSimAnalysisConfig::Instance()->GetDigiType());
   if( fType == WCSimDigitizerLikelihood::kWCSim ) { this->OpenPDFs(); }
+  std::cout << "Using the digitizer type " << fType << std::endl;
+  std::cout << "Using the digitizer type " << fType << std::endl;
+  std::cout << "Using the digitizer type " << fType << std::endl;
+  std::cout << "Using the digitizer type " << fType << std::endl;
+  std::cout << "Using the digitizer type " << fType << std::endl;
+  std::cout << "Using the digitizer type " << fType << std::endl;
+  std::cout << "Using the digitizer type " << fType << std::endl;
+  std::cout << "Using the digitizer type " << fType << std::endl;
+  std::cout << "Using the digitizer type " << fType << std::endl;
+  std::cout << "Using the digitizer type " << fType << std::endl;
+  std::cout << "Using the digitizer type " << fType << std::endl;
+  std::cout << "Using the digitizer type " << fType << std::endl;
+  std::cout << "Using the digitizer type " << fType << std::endl;
+  std::cout << "Using the digitizer type " << fType << std::endl;
 }
 
+/////////////////////////////////////////////////////
+//  Destructor
+/////////////////////////////////////////////////////
 WCSimDigitizerLikelihood::~WCSimDigitizerLikelihood()
 {
   if(fPDFs != NULL){ delete fPDFs; }
 }
 
-void WCSimDigitizerLikelihood::SetDigiType( WCSimDigitizerLikelihood::DigiType type )
+////////////////////////////////////////////////////
+// Parse a string into a DigiType_t
+///////////////////////////////////////////////////
+WCSimDigitizerLikelihood::DigiType_t WCSimDigitizerLikelihood::StringToDigiType( const std::string &str ) const
+{
+  std::map< std::string, DigiType_t>::const_iterator mapItr = fDigiTypeNames.find(str); 
+  if( mapItr == fDigiTypeNames.end() ) return kUnknown;
+  else return (*mapItr).second;
+}
+
+void WCSimDigitizerLikelihood::SetDigiType( WCSimDigitizerLikelihood::DigiType_t type )
 {
   if( fType != type )
   {
@@ -68,6 +106,11 @@ Double_t WCSimDigitizerLikelihood::GetMinus2LnL( const Double_t &undigi, const D
     case WCSimDigitizerLikelihood::kWCSim:
     {
       return this->GetWCSimMinus2LnL( undigi, digi );
+      break;
+    }
+    case WCSimDigitizerLikelihood::kUnknown:
+    {
+      assert(fType != WCSimDigitizerLikelihood::kUnknown);
       break;
     }
     default:
