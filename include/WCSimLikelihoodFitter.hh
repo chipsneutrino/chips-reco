@@ -3,10 +3,12 @@
 
 #include "WCSimRootEvent.hh"
 #include "WCSimLikelihoodDigitArray.hh"
+#include "WCSimReco.hh"
 #include "WCSimRecoDigit.hh"
 #include "WCSimLikelihoodTrack.hh"
-#include "WCSimChargeLikelihood.hh"
+#include "WCSimTotalLikelihood.hh"
 #include <vector>
+#include <map>
 
 //class WCSimChargeLikelihood;
 
@@ -15,21 +17,34 @@ class WCSimLikelihoodFitter
     public:
         WCSimLikelihoodFitter( WCSimRootEvent*);
         virtual ~WCSimLikelihoodFitter();
-        void Minimize2LnL();
-        double Calc2LnL();
-        double Calc2LnL(WCSimLikelihoodTrack * myTrack);
-        double Charge2LnL();
-        double Charge2LnL(WCSimLikelihoodTrack * myTrack);
-        double CalcMuDirect();
-        double CalcMuIndirect();
-        double Time2LnL();
+        void Minimize2LnL(Int_t nTracks);
+        Int_t GetNPars(Int_t nTracks);
+        Double_t WrapFunc(const Double_t * x);
+        Double_t GetMinimum();
+        void SeedParams( WCSimReco * myReco );
+        std::vector<WCSimLikelihoodTrack> GetBestFit();
+        WCSimLikelihoodTrack GetSeedParams();
+
     protected:
     private:
-        WCSimChargeLikelihood *myLikelihood;
+        WCSimTotalLikelihood * fTotalLikelihood;
         WCSimRootEvent * fRootEvent;
-        WCSimLikelihoodTrack * fTrack;
         std::vector<WCSimRecoDigit* > fRecoDigitList;
         WCSimLikelihoodDigitArray * fLikelihoodDigitArray;
+        WCSimLikelihoodTrack::TrackType fType;
+        std::map<Int_t, Int_t> fParMap;
+        std::vector<WCSimLikelihoodTrack> fBestFit;
+        
+
+        Double_t fMinimum;
+        Double_t fSeedVtxX;
+        Double_t fSeedVtxY;
+        Double_t fSeedVtxZ;
+        Double_t fSeedTheta;
+        Double_t fSeedPhi;
+        Bool_t fIsFirstCall;
+	
+    ClassDef(WCSimLikelihoodFitter,1);
 };
 
 #endif // WCSIMLIKELIHOODFITTER_H

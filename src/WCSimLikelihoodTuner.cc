@@ -73,12 +73,12 @@ WCSimLikelihoodTuner::WCSimLikelihoodTuner(Double_t xMax, Double_t yMax, Double_
 void WCSimLikelihoodTuner::Initialize()
 {
   fIsOpen = WCSimLikelihoodTrack::Unknown;
-  fProfileLocation = new TString("./config/emissionProfilesMuon.root");
+  fProfileLocation = new TString("./config/emissionProfilesElectron.root");
   fProfiles = new TFile(fProfileLocation->Data());
   fHistArray = 0;
   fAngHistArray= 0;
   fFluxArray= 0;
-  fIsOpen = WCSimLikelihoodTrack::MuonLike;
+  fIsOpen = WCSimLikelihoodTrack::ElectronLike;
   fHistArray = (TObjArray *) fProfiles->Get("histArray");
   fHistArray->SetOwner(kTRUE);
   fAngHistArray = (TObjArray *) fProfiles->Get("angHistArray");
@@ -100,9 +100,9 @@ void WCSimLikelihoodTuner::Initialize()
   fRhoIntegrals = 0;
     
   // The binning scheme for the direct integral tables
-	fNR0Bins = 400;
-	fNCosTheta0Bins = 500;
-	fNSBins = 400;
+	fNR0Bins = 200;
+	fNCosTheta0Bins = 1000;
+	fNSBins = 500;
 	fNEBins = 1;
   fNBinsRhoG = fNR0Bins * fNCosTheta0Bins * fNSBins * fNEBins;
   fR0Min = 0.0;
@@ -204,12 +204,15 @@ void WCSimLikelihoodTuner::LoadEmissionProfiles( WCSimLikelihoodTrack::TrackType
   {
     case WCSimLikelihoodTrack::ElectronLike:
       fProfileLocation = new TString("./config/emissionProfilesElectron.root");
+      std::cerr << "Track type = " << myType << std::endl;
       break;
     case WCSimLikelihoodTrack::MuonLike:
       fProfileLocation = new TString("./config/emissionProfilesMuon.root");
+      std::cerr << "Track type = " << myType << std::endl;
       break;
     default:
       std::cerr << "Error: unkown track type in WCSimLikelihoodTuner::LoadEmissionProfiles" << std::endl;
+      std::cerr << "Track type = " << myType << std::endl;
       exit(EXIT_FAILURE);
   }
  
@@ -231,6 +234,7 @@ void WCSimLikelihoodTuner::LoadEmissionProfiles( WCSimLikelihoodTrack::TrackType
   fAngHistArray->SetOwner(kTRUE);
   fFluxArray = (TObjArray *) fProfiles->Get("fluxArray");
   fFluxArray->SetOwner(kTRUE);
+  fWhichHisto = (TH1D*) fProfiles->Get("hWhichHisto");
   return;
   
 
@@ -463,7 +467,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ( Double_t s, WCSimLikelih
 void WCSimLikelihoodTuner::CalculateCoefficients(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit )
 {
     
-//    std::cout << "*** WCSimLikelihoodTuner::CalculateCoefficients() *** Calculating the coefficients for the integrals from tuning info" << std::endl; 
+    // std::cout << "*** WCSimLikelihoodTuner::CalculateCoefficients() *** Calculating the coefficients for the integrals from tuning info" << std::endl; 
     for(int i = 0; i < 3; ++i)
     { 
         fDirCoeffs[i] = 0.0;    // Coefficients for direct (Cherenkov) light
@@ -476,15 +480,16 @@ void WCSimLikelihoodTuner::CalculateCoefficients(WCSimLikelihoodTrack * myTrack,
 //    std::cout << "Getting the histogram" << std::endl;
     this->LoadEmissionProfiles(myTrack);
  
-    Int_t whichBin = fWhichHisto->FindBin(myTrack->GetE()) - 1; // Histogram bins count from 1, arrays from 0
+    Int_t whichBin = fWhichHisto->GetXaxis()->FindBin(myTrack->GetE()) - 1; // Histogram bins count from 1, arrays from 0
+    // std::cout << "WhichBin = " << whichBin << "   energy = " << myTrack->GetE() << std::endl;
     if(whichBin < 0 || whichBin > fWhichHisto->GetNbinsX())
     {
         std::cerr << "Error: WCSimLikelihoodTuner::CalculateCoefficients() looking for a histogram bin that isn't in the array" << std::endl;
         exit(EXIT_FAILURE);
     }
 
-//    std::cout << "We want number " << whichBin << std::endl;
-//    std::cout << "fHistArray= " << fHistArray << std::endl;
+    // std::cout << "We want number " << whichBin << std::endl;
+    // std::cout << "fHistArray= " << fHistArray << std::endl;
     TH1D * hProfile = (TH1D*)(fHistArray->At(whichBin));
     // Calculate the 3 s values we care about: s=0, s where integral(rho(s') ds')_0^{s} = 0.75, and double that
     Double_t runningTotal=0.;
@@ -563,7 +568,7 @@ void WCSimLikelihoodTuner::CalculateCoefficients(WCSimLikelihoodTrack * myTrack,
 //      delete gr;
 //    }  
   
-  
+    // std::cout << "Done here" << std::endl;  
     return;
 }
 
@@ -685,17 +690,17 @@ void WCSimLikelihoodTuner::LoadTabulatedIntegrals( WCSimLikelihoodTrack * myTrac
 	switch(myType)
 	{
 		case WCSimLikelihoodTrack::MuonLike:
-	//		std::cout << "It's muon-like" << std::endl;
+			std::cout << "It's muon-like" << std::endl;
       integralFileRhoG.open("config/integralsMuonRhoG.dat",std::ios::in|std::ios::binary);
       integralFileRho.open("config/integralsMuonRho.dat",std::ios::in|std::ios::binary);
       break;
 	  	case WCSimLikelihoodTrack::ElectronLike:
-	//  		std::cout << "Is it tripping the electronlike flag too?" << WCSimLikelihoodTrack::ElectronLike << std::endl;
+	  		std::cout << "Is it tripping the electronlike flag too?" << WCSimLikelihoodTrack::ElectronLike << std::endl;
       integralFileRhoG.open("config/integralsElectronRhoG.dat",std::ios::in|std::ios::binary);
       integralFileRho.open("config/integralsElectronRho.dat",std::ios::in|std::ios::binary);
 	  	break;
 		case WCSimLikelihoodTrack::Unknown:
-	//		std::cout << "Or is it?" << "   " << myType << std::endl;
+  		std::cout << "Or is it?" << "   " << myType << std::endl;
 	  		std::cerr << "Error: could not identify particle type, exiting" << std::endl;	 			
         exit(EXIT_FAILURE);	
 			break;

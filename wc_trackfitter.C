@@ -10,7 +10,7 @@ void wc_trackfitter(Double_t energy)
     gSystem->Load("./lib/libWCSimAnalysis.so");
  
     // File to analyse
-    TString filename("/unix/fnu/ajperch/sampleEvents/WCSimOutput/singleEvent.root");
+    TString filename("/unix/fnu/ajperch/WCSim/pions.root");
 
     WCSimInterface * myInterface = WCSimInterface::Instance();
     myInterface->LoadData(filename.Data());
@@ -23,13 +23,13 @@ void wc_trackfitter(Double_t energy)
       WCSimRootEvent * myEvent = myInterface->GetWCSimEvent(iEvent);
       WCSimLikelihoodDigitArray * myLikelihoodDigitArray = new WCSimLikelihoodDigitArray(myEvent); // digitized
       
-      WCSimLikelihoodTrack * myTrack = new WCSimLikelihoodTrack(0.,0.,0.,0.,-0.5,0, energy, WCSimLikelihoodTrack::MuonLike);
-      WCSimLikelihoodTrack * myTrack2 = new WCSimLikelihoodTrack(0.,0.,0.,0.,0.5,0, energy, WCSimLikelihoodTrack::MuonLike);
+      WCSimLikelihoodTrack * myTrack = new WCSimLikelihoodTrack(0.,0.,0.,0.,0.1353125395,0, energy, WCSimLikelihoodTrack::ElectronLike);
+      WCSimLikelihoodTrack * myTrack2 = new WCSimLikelihoodTrack(0.,0.,0.,0.,-0.1353125395,0, energy, WCSimLikelihoodTrack::ElectronLike);
       std::vector<WCSimLikelihoodTrack*> myTrackArray;
-      myTrackArray.push_back(myTrack2);
       myTrackArray.push_back(myTrack);
+      myTrackArray.push_back(myTrack2);
       
-      WCSimChargeLikelihood * myChargeLikelihood = new WCSimChargeLikelihood(myLikelihoodDigitArray, false);
+      WCSimChargeLikelihood * myChargeLikelihood = new WCSimChargeLikelihood(myLikelihoodDigitArray, true);
       myChargeLikelihood->SetTracks(myTrackArray);
       WCSimLikelihoodTuner * myTuner = new WCSimLikelihoodTuner( myLikelihoodDigitArray->GetExtent(0),
                                                                  myLikelihoodDigitArray->GetExtent(1),

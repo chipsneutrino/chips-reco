@@ -22,6 +22,7 @@ class WCSimChargeLikelihood
         void Initialize( WCSimLikelihoodDigitArray * myDigitArray, Bool_t calculateIntegrals = false );
         void AddTrack( WCSimLikelihoodTrack * myTrack);
         void SetTracks( std::vector<WCSimLikelihoodTrack*> myTrack );
+        void ClearTracks();
         void UpdateDigitArray( WCSimLikelihoodDigitArray * myDigitArray);
 
         Double_t Calc2LnL();

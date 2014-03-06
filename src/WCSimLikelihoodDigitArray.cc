@@ -19,11 +19,14 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( )
 WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myEvent )
 {
   // Check the number of PMTs and create a TClonesArray with one entry per PMT
-  Int_t numPMT = ((WCSimGeometry::Instance())->GetNumPMTs())-1;	// WCSimGeometry adds 1 to the true number to prevent overflow errors 
+  Int_t numPMT = ((WCSimGeometry::Instance())->GetNumPMTs());	 
   WCSimGeometry::PrintGeometry();
   std::cout << "There are " << numPMT << " PMTs" << std::endl;
+  std::cout << "here 1" << std::endl;
 	fLikelihoodDigitArray = new TClonesArray("WCSimLikelihoodDigit",numPMT);
+  std::cout << "here 2" << std::endl;
   TClonesArray &digitArray = *fLikelihoodDigitArray;
+  std::cout << "here 3" << std::endl;
 
   // Get the geometry type and maximum x, y and z coordinates of the detector volume
   fGeomType = -1;
@@ -65,28 +68,34 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myEvent )
 	// Use this trigger to flag the tubes that were hit and fill the ClonesArray with
   // the corresponding WCSimLikelihoodDigit
   TClonesArray * fCherenkovDigiHits = myTrigger->GetCherenkovDigiHits();
+  std::cout << "here 4" << std::endl;
   TIter digiHitItr(fCherenkovDigiHits);
 	while( WCSimRootCherenkovDigiHit * myChDigiHit = (WCSimRootCherenkovDigiHit *) digiHitItr.Next())
   {	
 	  Int_t tubeID = myChDigiHit->GetTubeId();
-	  hitPMT[tubeID] = kTRUE; 
-	  new(digitArray[tubeID]) WCSimLikelihoodDigit(myChDigiHit);
+    Int_t arrayIndex = tubeID - 1;
+    
+    if(tubeID < 10) std::cout << tubeID << std::endl;
+	  hitPMT[arrayIndex] = kTRUE; 
+	  new(digitArray[arrayIndex]) WCSimLikelihoodDigit(myChDigiHit);
 	}
+  std::cout << "here 55" << std::endl;
 	
-
-     // Now fill all the unhit PMTs with an empty (q = 0) hit
-	for(int jPMT = 0; jPMT < numPMT; ++jPMT)
+  // Now fill all the unhit PMTs with an empty (q = 0) hit
+	for(int arrayIndex = 0; arrayIndex < numPMT; ++arrayIndex)
 	{
-		if(hitPMT[jPMT] == kFALSE)
+    if(arrayIndex < 10) std::cout << "arrayIndex = " << arrayIndex << std::endl;
+		if(hitPMT[arrayIndex] == kFALSE)
 		{
-			WCSimRootCherenkovDigiHit * emptyHit = new WCSimRootCherenkovDigiHit(0,0,jPMT);
-			new (digitArray[jPMT]) WCSimLikelihoodDigit(emptyHit);
+      Int_t tubeID = arrayIndex + 1;
+      WCSimRootCherenkovDigiHit * emptyHit = new WCSimRootCherenkovDigiHit(0.,0.,tubeID);
+			new (digitArray[arrayIndex]) WCSimLikelihoodDigit(emptyHit);
 			delete emptyHit;
     }
 	}
-
-    // Also save the array size 
-    fNLikelihoodDigits = numPMT;
+  
+  // Also save the array size 
+  fNLikelihoodDigits = numPMT;
 
 }
 
@@ -94,11 +103,13 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myEvent )
 WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myRootEvent, Bool_t useUndigitized)
 {
 	// Check the number of PMTs and create a TClonesArray with one entry per PMT
-    Int_t numPMT = ((WCSimGeometry::Instance())->GetNumPMTs())+1;  // WCSimGeometry adds 1 to the true number to prevent overflow errors
+    Int_t numPMT = ((WCSimGeometry::Instance())->GetNumPMTs());  // WCSimGeometry adds 1 to the true number to prevent overflow errors
   	WCSimGeometry::PrintGeometry();
   	std::cout << "There are " << numPMT << " PMTs" << std::endl;
 	fLikelihoodDigitArray = new TClonesArray("WCSimLikelihoodDigit",numPMT);
+  std::cout << "here 5" << std::endl;
   	TClonesArray &digitArray = *fLikelihoodDigitArray;
+  std::cout << "here 6" << std::endl;
 
   	// Get the geometry type and maximum x, y and z coordinates of the detector volume
   	fGeomType = -1;
@@ -136,6 +147,7 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myRootEve
 
   	// For now, find the trigger with the largest number of hits
   	WCSimRootTrigger * myTrigger = WCSimInterface::FilterTrigger( myRootEvent );
+    std::cout << "Got here" << std::endl;
 
 	// Use this trigger to flag the tubes that were hit and fill the ClonesArray with
   	// the corresponding WCSimLikelihoodDigit
@@ -146,33 +158,35 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myRootEve
 	while( WCSimRootCherenkovHit * myChHit = (WCSimRootCherenkovHit *) undigiHitItr.Next())
   	{	
 	  	Int_t tubeID = myChHit->GetTubeID();
+      Int_t arrayIndex = tubeID-1;
     	Double_t Q = myChHit->GetTotalPe(1);
     	if(Q <= 0) continue;
  
     	Float_t t = ((WCSimRootCherenkovHitTime *)fCherenkovHitTimes->At(myChHit->GetTotalPe(0)))->GetTruetime();	
 		
-		WCSimRootGeom * myGeom = (WCSimRootGeom*)(WCSimGeometry::Instance())->GetWCSimGeometry();
-    	WCSimRootPMT myPMT = myGeom->GetPMT(tubeID);
+		  WCSimRootGeom * myGeom = (WCSimRootGeom*)(WCSimGeometry::Instance())->GetWCSimGeometry();
+    	WCSimRootPMT myPMT = myGeom->GetPMTFromTubeID(tubeID);
     	Double_t posX = myPMT.GetPosition(0);
     	Double_t posY = myPMT.GetPosition(1);
     	Double_t posZ = myPMT.GetPosition(2);
     	Double_t faceX = myPMT.GetOrientation(0);
     	Double_t faceY = myPMT.GetOrientation(1);
     	Double_t faceZ = myPMT.GetOrientation(2);
-	  	hitPMT[tubeID] = kTRUE; 
-	  	new(digitArray[tubeID]) WCSimLikelihoodDigit( posX, posY, posZ, t, Q, tubeID, faceX, faceY, faceZ  );
+	  	hitPMT[arrayIndex] = kTRUE; 
+	  	new(digitArray[arrayIndex]) WCSimLikelihoodDigit( posX, posY, posZ, t, Q, tubeID, faceX, faceY, faceZ  );
 	}
 	
 
      // Now fill all the unhit PMTs with an empty (q = 0) hit
-	for(int jPMT = 0; jPMT < numPMT; ++jPMT)
+	for(int arrayIndex = 0; arrayIndex < numPMT; ++arrayIndex)
 	{
-		if(hitPMT[jPMT] == kFALSE)
+		if(hitPMT[arrayIndex] == kFALSE)
 		{
-			WCSimRootCherenkovDigiHit * emptyHit = new WCSimRootCherenkovDigiHit(0,0,jPMT);
-			new (digitArray[jPMT]) WCSimLikelihoodDigit(emptyHit);
+      Int_t tubeID = arrayIndex + 1;
+			WCSimRootCherenkovDigiHit * emptyHit = new WCSimRootCherenkovDigiHit(0,0,tubeID); // These index by tubeID so count from 1
+			new (digitArray[arrayIndex]) WCSimLikelihoodDigit(emptyHit); // But the array indices go from zero
 			delete emptyHit;
-    	}
+   	}
 	}
 
     // Also save the array size 

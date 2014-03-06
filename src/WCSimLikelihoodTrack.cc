@@ -2,6 +2,7 @@
 #include "TMath.h"
 #include "TVector3.h"
 #include <string>
+#include <iostream>
 
 #ifndef REFLEX_DICTIONARY
 ClassImp(WCSimLikelihoodTrack)
@@ -34,6 +35,19 @@ WCSimLikelihoodTrack::WCSimLikelihoodTrack( double x, double y, double z, double
 	fE0 = E;	
     fType = myType;
 	return;
+}
+
+void WCSimLikelihoodTrack::Print()
+{
+  std::cout << "WCSimLikelihoodTrack::Print():" << std::endl
+            << "fVtx[0] = " << fVtx[0] << std::endl
+            << "fVtx[1] = " << fVtx[1] << std::endl
+            << "fVtx[2] = " << fVtx[2] << std::endl
+            << "fT0     = " << fT0     << std::endl
+            << "fTheta0 = " << fTheta0 << std::endl
+            << "fPhi0   = " << fPhi0   << std::endl
+            << "fE0     = " << fE0     << std::endl
+            << "fType   = " << fType   << std::endl << std::endl;
 }
 
 ///////////////////////////////////////////////////////////////////////////

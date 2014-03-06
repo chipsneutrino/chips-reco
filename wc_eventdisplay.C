@@ -8,7 +8,7 @@
   // Load Data
   // =========
   //  WCSimInterface::LoadData("../mcSamples/numi_numu_1_100kT_10pC.root");
-  WCSimInterface::LoadData("../mcSamples/muonZ.root");
+  WCSimInterface::LoadData("/unix/fnu/ajperch/WCSim/pions.root");
 
   // create viewer: must be called 'viewer'
   // =====================================
@@ -28,7 +28,7 @@
 
   // display configuration
   // =====================
-  viewer->SetPulseHeightCut(0.0);
+  viewer->SetPulseHeightCut(2.0);
   viewer->PrintGIF();
   viewer->PrintEPS();
 

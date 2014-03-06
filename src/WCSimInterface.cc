@@ -356,7 +356,9 @@ void WCSimInterface::BuildTrueEvent(WCSimRootTrigger* myTrigger)
 
   // Get Array of Tracks
   // ===================
+  std::cout << "Interface" << std::endl;
   TClonesArray* fTrackArray = (TClonesArray*)(myTrigger->GetTracks());
+  std::cout << "Intefrace done" << std::endl;
 
   Int_t ipdg = 0;
   Int_t ipdgparent = 0;
@@ -579,13 +581,13 @@ void WCSimInterface::BuildTrueEvent(WCSimRootTrigger* myTrigger)
     }
 
     // print out track info
-    std::cout << "   [" << nTrack; if( new_track) std::cout << "*"; std::cout << "] iflag=" << iflag << " pdg=" << ipdg << ", p=" << trkP << " E=" << trkE << " K=" << trkK << std::endl;
-    std::cout << "     g4vtx=(" << g4vx << "," << g4vy << "," << g4vz << "), g4end=(" << g4ex << "," << g4ey << "," << g4ez << ") " << std::endl;
-    std::cout << "     g4dir=(" << px << "," << py << "," << pz << "), g4trk=(" << qx << "," << qy << "," << qz << ")" << std::endl;
-    std::cout << "     vtx=(" << vx << "," << vy << "," << vz << "), end=(" << ex << "," << ey << "," << ez << ") " << std::endl;
-    std::cout << "     ds=" << ds << " beta=" << beta << " fom=" << fom << " ";
-    if( new_track ) std::cout << " [TRACK] "; // PRINT: MAKE TRACK
-    std::cout << std::endl; // PRINT: NEW LINE
+//    std::cout << "   [" << nTrack; if( new_track) std::cout << "*"; std::cout << "] iflag=" << iflag << " pdg=" << ipdg << ", p=" << trkP << " E=" << trkE << " K=" << trkK << std::endl;
+//    std::cout << "     g4vtx=(" << g4vx << "," << g4vy << "," << g4vz << "), g4end=(" << g4ex << "," << g4ey << "," << g4ez << ") " << std::endl;
+//    std::cout << "     g4dir=(" << px << "," << py << "," << pz << "), g4trk=(" << qx << "," << qy << "," << qz << ")" << std::endl;
+//    std::cout << "     vtx=(" << vx << "," << vy << "," << vz << "), end=(" << ex << "," << ey << "," << ez << ") " << std::endl;
+//    std::cout << "     ds=" << ds << " beta=" << beta << " fom=" << fom << " ";
+//    if( new_track ) std::cout << " [TRACK] "; // PRINT: MAKE TRACK
+//    std::cout << std::endl; // PRINT: NEW LINE
 
     // print warning messages
     if( vtxReg<0 ){

@@ -28,7 +28,7 @@
 ///////////////////////////////////////////////////////////////////////////
 WCSimChargeLikelihood::WCSimChargeLikelihood(WCSimLikelihoodDigitArray * myDigitArray, Bool_t calculateIntegrals)
 {
-    //std::cout << "*** WCSimChargeLikelihood::WCSimChargeLikelihood() *** Created charge likelihood object" << std::endl;
+    // std::cout << "*** WCSimChargeLikelihood::WCSimChargeLikelihood() *** Created charge likelihood object" << std::endl;
     this->Initialize( myDigitArray, calculateIntegrals );
 }
 
@@ -38,7 +38,7 @@ WCSimChargeLikelihood::WCSimChargeLikelihood(WCSimLikelihoodDigitArray * myDigit
 ///////////////////////////////////////////////////////////////////////////
 void WCSimChargeLikelihood::Initialize( WCSimLikelihoodDigitArray * myDigitArray, Bool_t calculateIntegrals)
 {
-//    std::cout << "*** WCSimChargeLikelihood::Initialize() *** Initializing charge likelihood with tuned values" << std::endl;
+    // std::cout << "*** WCSimChargeLikelihood::Initialize() *** Initializing charge likelihood with tuned values" << std::endl;
     fCalculateIntegrals = calculateIntegrals;    // Setting true will calculate integrals numerically instead of looking them up
 
     fCoeffsCh.push_back(1);
@@ -82,13 +82,24 @@ WCSimChargeLikelihood::~WCSimChargeLikelihood()
   delete fDigiPDF;
 }
 
+void WCSimChargeLikelihood::ClearTracks()
+{
+  // std::cout << " *** WCSimChargeLikelihood::ClearTracks() *** " << std::endl;
+  // This erases the vector of track pointers.  It doesn't delete the tracks that are pointed to.
+  // This should be handled by the process that creates the tracks.
+  fTracks.clear();
+}
+
 void WCSimChargeLikelihood::SetTracks( std::vector<WCSimLikelihoodTrack*> myTracks )
 {
+  // std::cout << " *** WCSimChargeLikelihood::SetTracks() *** " << std::endl;
   fTracks = myTracks;
+  fGotTrackParameters = false;
 }
 
 void WCSimChargeLikelihood::AddTrack( WCSimLikelihoodTrack * myTrack )
 {
+  // std::cout << " *** WCSimChargeLikelihood::AddTrack() *** " << std::endl;
   fTracks.push_back(myTrack);
   fGotTrackParameters = false;
   return;
@@ -96,6 +107,7 @@ void WCSimChargeLikelihood::AddTrack( WCSimLikelihoodTrack * myTrack )
 
 void WCSimChargeLikelihood::UpdateDigitArray( WCSimLikelihoodDigitArray * myDigitArray)
 {
+  // std::cout << " *** WCSimChargeLikelihood::UpdateDigitArray() *** " << std::endl;
   fDigitArray = myDigitArray;
   fTuner->UpdateDigitArray(fDigitArray);
   return;
@@ -113,7 +125,7 @@ double WCSimChargeLikelihood::Calc2LnL()
 
 //  std::cout << "fDigiPDF = " << fDigiPDF << "   " << fCoeffsCh.at(2) << std::endl;
 //  fDigiPDF->Draw("COLZ");
-  //std::cout << "*** WCSimChargeLikelihood::Calc2LnL() *** Calculating the charge log likelihood" << std::endl;
+  // std::cout << "*** WCSimChargeLikelihood::Calc2LnL() *** Calculating the charge log likelihood" << std::endl;
   Double_t Charge2LnL=0.0;
   Int_t trackNum = 0;
 
@@ -160,7 +172,7 @@ double WCSimChargeLikelihood::Calc2LnL()
   {
     fDigit = (WCSimLikelihoodDigit *)fDigitArray->GetDigit(jDigit);
     Double_t chargeObserved = fDigit->GetQ();
-    if((jDigit % 100) == 0){ std::cout << "jDigit  = " << jDigit << "/" << fDigitArray->GetNDigits() << "  Observed charge = " << chargeObserved << "   Expected charge = " << predictedCharges[jDigit] << "    ... So -2lnL now = " << Charge2LnL << std::endl;  }
+    //if((jDigit % 100) == 0){ std::cout << "jDigit  = " << jDigit << "/" << fDigitArray->GetNDigits() << "  Observed charge = " << chargeObserved << "   Expected charge = " << predictedCharges[jDigit] << "    ... So -2lnL now = " << Charge2LnL << std::endl;  }
     Charge2LnL += this->DigitizerMinus2LnL( predictedCharges[jDigit], chargeObserved);
     X = fDigit->GetX();
     Y = fDigit->GetY();
@@ -170,9 +182,9 @@ double WCSimChargeLikelihood::Calc2LnL()
     t->Fill();
 
   }
+  std::cout << "Final -2LnL = " << Charge2LnL;
 
-
-  std::cout << "Writing file to " << str.c_str() << std::endl;
+  //std::cout << "Writing file to " << str.c_str() << std::endl;
   file->cd();
   t->Write();
   file->Close();
@@ -188,7 +200,7 @@ double WCSimChargeLikelihood::Calc2LnL()
 double WCSimChargeLikelihood::ChargeExpectation(WCSimLikelihoodTrack * myTrack)
 {
 
-    //std::cout << "*** WCSimChargeLikelihood::ChargeExpectation() *** Calculating the total expected mean charge at the PMT" << std::endl;
+    // std::cout << "*** WCSimChargeLikelihood::ChargeExpectation() *** Calculating the total expected mean charge at the PMT" << std::endl;
     double muDir=0, muIndir=0;
     if(fGotTrackParameters)
     {
@@ -246,7 +258,7 @@ double WCSimChargeLikelihood::GetMuDirect(WCSimLikelihoodTrack * myTrack )
     muDirect = lightFlux * ( integrals[0] * fCoeffsCh[0] + integrals[1] * fCoeffsCh[1] + integrals[2] * fCoeffsCh[2] );
     if(muDirect < 0)
     {
-        std::cout << "muDir is NEGATIVE! " << "  i0 = " << integrals[0] << "   i1 = " << integrals[1] << "   i2 = " << integrals[2] << "    fCoeffsInd = " << fCoeffsInd[0] << "," << fCoeffsInd[1] << "," << fCoeffsInd[2] << std::endl;
+        //std::cout << "muDir is NEGATIVE! " << "  i0 = " << integrals[0] << "   i1 = " << integrals[1] << "   i2 = " << integrals[2] << "    fCoeffsInd = " << fCoeffsInd[0] << "," << fCoeffsInd[1] << "," << fCoeffsInd[2] << std::endl;
         muDirect = 0;
     }
 
@@ -283,7 +295,7 @@ double WCSimChargeLikelihood::GetMuIndirect(WCSimLikelihoodTrack * myTrack)
     muIndirect = lightFlux * ( integrals[0] * fCoeffsInd[0] + integrals[1] * fCoeffsInd[1] + integrals[2] * fCoeffsInd[2] );
     if(muIndirect < 0)
     {
-        std::cout << "IT'S NEGATIVE! " << "  i0 = " << integrals[0] << "   i1 = " << integrals[1] << "   i2 = " << integrals[2] << "    fCoeffsInd = " << fCoeffsInd[0] << "," << fCoeffsInd[1] << "," << fCoeffsInd[2] << std::endl;
+        //std::cout << "IT'S NEGATIVE! " << "  i0 = " << integrals[0] << "   i1 = " << integrals[1] << "   i2 = " << integrals[2] << "    fCoeffsInd = " << fCoeffsInd[0] << "," << fCoeffsInd[1] << "," << fCoeffsInd[2] << std::endl;
         muIndirect = 0;
     }
 //    std::cout << "Mu indirect = " << muIndirect << std::endl;
@@ -425,7 +437,11 @@ Double_t WCSimChargeLikelihood::DigitizerMinus2LnL( const Double_t &myUndigiHit,
  	// Get the likelihood of an undigitized hit resulting in a given digitized one
  	if( myUndigiHit < 0) digitizerLikelihood = 0.;
  	else if(myUndigiHit == 0.0 && myDigiHitEff == 0.0) digitizerLikelihood = 1;
- 	else if(myUndigiHit == 0.0 && myDigiHitEff != 0.0) std::cerr << "Error: measured a charge when predicted charge was 0 - we can't take a likelihood of this" << std::endl;
+ 	else if(myUndigiHit == 0.0 && myDigiHitEff != 0.0)
+  {
+     // std::cerr << "Error: measured a charge when predicted charge was 0 - we can't take a likelihood of this" << std::endl;
+      digitizerLikelihood = 0.00000001;
+  }
  	else if( myUndigiHit < 10.0 ) digitizerLikelihood = this->DigitizePickerLikelihood(myUndigiHit, myDigiHitEff);
  	else if( myUndigiHit < 200. ) digitizerLikelihood = this->DigitizeGausExpoLikelihood(myUndigiHit, myDigiHitEff);
  	else digitizerLikelihood = this->DigitizeGausLikelihood(myUndigiHit, myDigiHitEff);

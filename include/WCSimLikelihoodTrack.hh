@@ -24,7 +24,9 @@ class WCSimLikelihoodTrack : public TObject
         WCSimLikelihoodTrack();
         WCSimLikelihoodTrack( double x, double y, double z, double t, double theta, double phi, double E, WCSimLikelihoodTrack::TrackType type );
         virtual ~WCSimLikelihoodTrack();
-		// Setters
+		    void Print();
+        
+    // Setters
 		void SetX(double x);
 		void SetY(double y);
 		void SetZ(double z);
@@ -32,7 +34,7 @@ class WCSimLikelihoodTrack : public TObject
 		void SetTheta(double th);
 		void SetPhi(double phi);
 		void SetE(double E);
-        void SetType(WCSimLikelihoodTrack::TrackType type);
+    void SetType(WCSimLikelihoodTrack::TrackType type);
 		
 		// Getters
 		const double GetX();
