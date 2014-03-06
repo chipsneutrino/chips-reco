@@ -64,5 +64,6 @@
 #pragma link C++ class vector<vector<WCSimLikelihoodTrack> >;
 #pragma link C++ class vector<WCSimLikelihoodTrack*>;
 
+#pragma link C++ class WCSimAnalysisConfig+;
 
 #endif

@@ -2,11 +2,12 @@
 
 void wc_trackminimizer()
 {
-    TFile fTree("fitTree.root","RECREATE");
+    TFile fTree("fitTree500.root","RECREATE");
     TTree fitTree("fitTree", "fitTree");
     Int_t event;
-    Double_t fitX, fitY, fitZ, minus2LnL, fitDistance;
+    Double_t fitX, fitY, fitZ, fitDistance;
     Double_t seedX, seedY, seedZ, seedDistance;
+    Double_t minus2LnL;
     
     fitTree.Branch("event",&event);
     fitTree.Branch("fitX",&fitX);
@@ -20,7 +21,6 @@ void wc_trackminimizer()
     fitTree.Branch("seedDistance",&seedDistance);
 
 
-
     // Load WCSim libraries
     gSystem->Load("libGeom");
     gSystem->Load("libEve");
@@ -29,7 +29,7 @@ void wc_trackminimizer()
     gSystem->Load("./lib/libWCSimAnalysis.so");
  
     // File to analyse
-    TString filename("/unix/fnu/ajperch/WCSim/localfile2.root");
+    TString filename("/unix/fnu/ajperch/WCSim/localfile500.root");
 
     // Resolution histograms
     TH1D hReso("hReso","Vertex resolution plot", 100, 0, 200);
@@ -43,7 +43,6 @@ void wc_trackminimizer()
     // Reconstruct Events
     // ==================
     int nEvts = myInterface->GetNumEvents();
-    // nEvts = 10;
     std::cout << nEvts << " = num events" << std::endl;
 
     // The best fit track results
@@ -53,7 +52,7 @@ void wc_trackminimizer()
     {
       // get first entry
       WCSimInterface::LoadEvent(iEvent);
-
+      std::cerr << "Processing event " << iEvent << "/" << nEvts - 1 << std::endl; 
       WCSimRecoEvent* recoEvent = WCSimInterface::RecoEvent();
       WCSimTrueEvent* trueEvent = WCSimInterface::TrueEvent();
 
@@ -78,6 +77,8 @@ void wc_trackminimizer()
       seedZ = seedTrack.GetZ();
       seedDistance = TMath::Sqrt(  (100. - seedX)*(100. - seedX) + (-200 - seedY)*(-200 - seedY) 
                                  + (320 - seedTrack.GetZ()) * (320 - seedTrack.GetZ()));
+
+
       fitTree.Fill();
       delete myFitter;
     }
