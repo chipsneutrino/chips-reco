@@ -10,6 +10,14 @@
 class WCSimLikelihoodDigitArray : public TObject
 {
     public:
+    
+        enum GeomType_t
+        {
+          kUnknown  = 0,
+          kCylinder = 1,
+          kMailBox  = 2
+        };
+    
         WCSimLikelihoodDigitArray();
         WCSimLikelihoodDigitArray(WCSimRootEvent * myRootEvent);
         WCSimLikelihoodDigitArray( WCSimRootEvent * myRootEvent, Bool_t useUndigitized);
@@ -19,13 +27,14 @@ class WCSimLikelihoodDigitArray : public TObject
         Int_t GetNDigits();
         Bool_t IsCylinder();
         Bool_t IsMailBox();
+        GeomType_t GetGeomType();
         Double_t GetExtent(Int_t i);
  
     protected:
     private:
 				TClonesArray * fLikelihoodDigitArray;
 				Int_t fNLikelihoodDigits;
-        Int_t fGeomType;  // Cylinder = 0, Mailbox = 1, Unkown = -1
+        GeomType_t fGeomType;  // Cylinder = 0, Mailbox = 1, Unkown = -1
         Double_t fExtent[3];  // Maximum x, y, and z in the detector
                               // uses volume, not fiducial volume
 

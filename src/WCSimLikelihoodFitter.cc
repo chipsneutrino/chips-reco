@@ -65,14 +65,14 @@ Int_t WCSimLikelihoodFitter::GetNPars(Int_t nTracks)
 void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
 {
   // Set up the minimizer
-  // ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "GSLSimAn");
-  ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Simplex");
-//   min->SetMaxFunctionCalls(9999999);
-//   min->SetMaxIterations(9);
-//   min->SetPrintLevel(3);
-//   min->SetTolerance(100);
-//   min->SetStrategy(2);
-//   std::cout << " Tolerance = " << min->Tolerance() << std::endl;
+   // ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "GSLSimAn");
+   ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Simplex");
+   min->SetMaxFunctionCalls(9999999);
+   min->SetMaxIterations(9);
+   min->SetPrintLevel(3);
+   min->SetTolerance(200);
+   min->SetStrategy(2);
+   std::cout << " Tolerance = " << min->Tolerance() << std::endl;
 
   // Convert nTracks into number of parameters
   const Int_t nPars = this->GetNPars(nTracks);
@@ -89,8 +89,10 @@ void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
   std::string * parName = new std::string[nPars];
 
   // Set parameter start values to the seed output
+  
   if(nTracks == 1 || nTracks ==2)
   {
+    
     // par[0] = 80.;    // x
     // par[1] = -200.;    // y
     // par[2] = 320.;    // z
@@ -99,6 +101,75 @@ void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
     // par[5] = 0.05*TMath::Pi();    // phi
     // par[6] = 1500;  // energy
 
+    par[0] = nTracks;    // x
+    par[1] = fSeedVtxX;    // x
+    par[2] = fSeedVtxY;    // y
+    par[3] = fSeedVtxZ;    // z
+    par[4] = 0.0;    // t
+    par[5] = fSeedTheta;    // theta
+    par[6] = fSeedPhi;    // phi
+    par[7] = 1500;  // energy
+
+    minVal[0] = nTracks;
+    minVal[1] = -1900.;
+    minVal[2] = -1900.;
+    minVal[3] = -940.;
+    minVal[4] = 0.;
+    minVal[5] = 0. * TMath::Pi();
+    minVal[6] = -1.0 * TMath::Pi();
+    minVal[7] = 1500;
+
+    maxVal[0] = nTracks;
+    maxVal[1] = 1900.;
+    maxVal[2] = 1900.;
+    maxVal[3] = 940.;
+    maxVal[4] = 0.;
+    maxVal[5] = TMath::Pi();
+    maxVal[6] = 1.0 * TMath::Pi();;
+    maxVal[7] = 1500;
+
+    stepSize[0] = 0.;
+    stepSize[1] = 50.;
+    stepSize[2] = 50.;
+    stepSize[3] = 50.;
+    stepSize[4] = 1.;
+    stepSize[5] = 0.02;
+    stepSize[6] = 0.02;
+    stepSize[7] = 1500;
+
+    parName[0] = "nTracks";
+    parName[1] = "vtxX";
+    parName[2] = "vtxY";
+    parName[3] = "vtxZ";
+    parName[4] = "vtxT";
+    parName[5] = "theta";
+    parName[6] = "phi";
+    parName[7] = "energy";
+  }
+  if(nTracks == 2)
+  {
+    par[8]  = 0.;    // second track theta
+    par[9]  = 0.;    // second track phi
+    par[10] = 1500;  // second track energy
+
+    minVal[8]  = 0.;
+    minVal[9]  = 0.;
+    minVal[10] = 1500.;
+
+    maxVal[8]  = TMath::Pi();
+    maxVal[9]  = 2.0 * TMath::Pi();;
+    maxVal[10] = 1500;
+
+    stepSize[8]  = 0.05;
+    stepSize[9]  = 0.05;
+    stepSize[10] = 1500;
+
+    parName[8]  = "theta_2";
+    parName[9]  = "phi_2";
+    parName[10] = "energy_2";
+  }
+
+ /* 
     par[0] = nTracks;    // x
     par[1] = fSeedVtxX;    // x
     par[2] = fSeedVtxY;    // y
@@ -166,6 +237,7 @@ void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
     parName[9]  = "phi_2";
     parName[10] = "energy_2";
   }
+  */
   for(UInt_t j = 0; j < nPars; ++j)
   {std::cout << j << "   " << parName[j] << "   " << par[j] << "   " << minVal[j] << "   " << maxVal[j] << std::endl;}
 
@@ -175,8 +247,8 @@ void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
   for(Int_t i = 0; i < nPars; ++i)
   {
     min->SetVariable(i,parName[i], par[i], stepSize[i]);
-    if((1 == i || 2 == i || 3 == i || 5 == i || 6 == i ) && (maxVal[i] != minVal[i])){ min->SetLimitedVariable(i,parName[i], par[i], stepSize[i], minVal[i], maxVal[i]);}
-    if(0 == i || 4 == i || 7 == i) min->SetFixedVariable(i, parName[i], par[i]);
+    if((1 == i || 2 == i || 3 == i ) && (maxVal[i] != minVal[i])){ min->SetLimitedVariable(i,parName[i], par[i], stepSize[i], minVal[i], maxVal[i]);}
+    if(0 == i || 4 == i || 5 == i || 6 == i || 7 == i) min->SetFixedVariable(i, parName[i], par[i]);
     std::cout << i << "   " << parName[i] << "   " << par[i] << "   " << minVal[i] << "   " << maxVal[i] << std::endl;
   }
 
@@ -291,25 +363,29 @@ double WCSimLikelihoodFitter::Time2LnL( )
 // Use the previous Hough transform-based reconstruction algorithm to seed the multi-track one
 void WCSimLikelihoodFitter::SeedParams( WCSimReco * myReco )
 {
-//   WCSimRecoEvent* recoEvent = WCSimInterface::RecoEvent();
-//   myReco->Run(recoEvent);
-//   fSeedVtxX = recoEvent->GetVtxX();
-//   fSeedVtxY = recoEvent->GetVtxY();
-//   fSeedVtxZ = recoEvent->GetVtxZ();
-//
-//   Double_t recoDirX = recoEvent->GetDirX();
-//   Double_t recoDirY = recoEvent->GetDirY();
-//   Double_t recoDirZ = recoEvent->GetDirZ();
-//  
-//
-//   fSeedTheta   = TMath::ACos(recoDirZ);
-//   if(recoDirY != 0) fSeedPhi = TMath::ATan2(recoDirY,recoDirX); // range -pi to pi
-//   else fSeedPhi = (recoDirX < 0.0)? 0.5*TMath::Pi() : -0.5*TMath::Pi();
-//
-//  // std::cout << "Seed dir = (vx, vy, vz) = ( " << recoDirX << "," << recoDirY << "," << recoDirZ << ")" << std::endl
-//  std::cout << "-> theta = " << fSeedTheta << "    phi = " << fSeedPhi << std::endl
-//            << "Seed position = (x,y,z) = ( " << fSeedVtxX << "," << fSeedVtxY << "," <<fSeedVtxZ << ")" << std::endl;
-//
+
+   WCSimRecoEvent* recoEvent = WCSimInterface::RecoEvent();
+   myReco->Run(recoEvent);
+   fSeedVtxX = recoEvent->GetVtxX();
+   fSeedVtxY = recoEvent->GetVtxY();
+   fSeedVtxZ = recoEvent->GetVtxZ();
+
+   Double_t recoDirX = recoEvent->GetDirX();
+   Double_t recoDirY = recoEvent->GetDirY();
+   Double_t recoDirZ = recoEvent->GetDirZ();
+  
+
+   fSeedTheta   = TMath::ACos(recoDirZ);
+   if(recoDirY != 0) fSeedPhi = TMath::ATan2(recoDirY,recoDirX); // range -pi to pi
+   else fSeedPhi = (recoDirX < 0.0)? 0.5*TMath::Pi() : -0.5*TMath::Pi();
+
+   fSeedTheta = 0.5*TMath::Pi();
+   fSeedPhi = 0.25*TMath::Pi();
+
+  // std::cout << "Seed dir = (vx, vy, vz) = ( " << recoDirX << "," << recoDirY << "," << recoDirZ << ")" << std::endl
+  std::cout << "-> theta = " << fSeedTheta << "    phi = " << fSeedPhi << std::endl
+            << "Seed position = (x,y,z) = ( " << fSeedVtxX << "," << fSeedVtxY << "," <<fSeedVtxZ << ")" << std::endl;
+
 }
 
 WCSimLikelihoodTrack WCSimLikelihoodFitter::GetSeedParams()
@@ -332,6 +408,7 @@ WCSimLikelihoodTrack WCSimLikelihoodFitter::RescaleParams(Double_t x, Double_t y
                                                           Double_t th, Double_t phi, Double_t E, 
                                                           WCSimLikelihoodTrack::TrackType type)
 {
+  return WCSimLikelihoodTrack(x,y,z,t,th,phi,E,type);
   double pi = TMath::Pi();
   double x2,y2,z2,t2,th2,phi2,E2;
 //   x2   = (1900.+x)/3800.;

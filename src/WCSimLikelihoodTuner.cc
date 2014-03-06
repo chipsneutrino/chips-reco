@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -41,6 +42,7 @@ WCSimLikelihoodTuner::WCSimLikelihoodTuner()
   	fExtent[0] = -1.0;
   	fExtent[1] = -1.0;
   	fExtent[2] = -1.0;
+    fGeomType  = WCSimLikelihoodDigitArray::kUnknown;
   
   
   	fCalculateIntegrals = WCSimAnalysisConfig::Instance()->GetCalculateIntegrals();
@@ -167,6 +169,7 @@ void WCSimLikelihoodTuner::UpdateDigitArray( WCSimLikelihoodDigitArray * myDigit
   fExtent[0] = myDigitArray->GetExtent(0);
   fExtent[1] = myDigitArray->GetExtent(1);
   fExtent[2] = myDigitArray->GetExtent(2);
+  fGeomType  = myDigitArray->GetGeomType();
   std::cout << "fConstrainExtent = " << fConstrainExtent << " and extent = (" 
             << fExtent[0] << "," << fExtent[1] << "," << fExtent[2] 
             << ")" << std::endl;
@@ -247,7 +250,7 @@ void WCSimLikelihoodTuner::LoadEmissionProfiles( WCSimLikelihoodTrack::TrackType
 /////////////////////////////////////////////////////////////////////////////////////////
 Double_t WCSimLikelihoodTuner::TransmissionFunction(Double_t s, WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit)
 {
-
+  return 1;
 	
 	if( s== 0) return 1;
     // First we need the distance from the photon emission to the PMT 
@@ -341,7 +344,8 @@ Double_t WCSimLikelihoodTuner::QuantumEfficiency(WCSimLikelihoodTrack * myTrack)
 Double_t WCSimLikelihoodTuner::SolidAngle(Double_t s, WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit)
 {
     // Now some physical parameters of the phototube
-	Double_t WCSimPMTRadius = 12.7;
+	Double_t WCSimPMTRadius = WCSimGeometry::Instance()->GetPMTRadius();
+
 	// Double_t WCSimPMTExposeHeight = WCSimPMTRadius - 1.0;
 
 	
@@ -534,7 +538,7 @@ void WCSimLikelihoodTuner::CalculateCoefficients(WCSimLikelihoodTrack * myTrack,
     fIndCoeffs[1] = (4.*JInd[1] - JInd[2] -3.*JInd[0]) / (2*s[1]);
     fIndCoeffs[2] = (JInd[0] + JInd[2] - 2.*JInd[1]) / (2 * s[1] * s[1]);
 
-    //    if((myDigit->GetTubeId() % 10000) == 0)
+    //    if((myDigit->GetZ() > 900))
     //    {
     //      TGraph * gr = new TGraph();
     //      for(int i = 0; i < hProfile->GetNbinsX(); ++i)
@@ -593,28 +597,28 @@ void WCSimLikelihoodTuner::CalculateCutoff( WCSimLikelihoodTrack * myTrack )
 
   if( fConstrainExtent )
   {
+    assert(fGeomType != WCSimLikelihoodDigitArray::kUnknown);
+
     TVector3 vtx = myTrack->GetVtx();
     TVector3 dir = myTrack->GetDir();
     Double_t sMax[3] = {0., 0.,0.};
 
-    for(int i = 0; i < 3; ++i)
+    std::cout << "Vertex is " << std::endl;
+    vtx.Print();
+
+    std::cout << "Direction is " << std::endl;
+    dir.Print();
+
+    if( fGeomType == WCSimLikelihoodDigitArray::kCylinder )
     {
-      if( dir(i) > 1e-6 )
-      {
-          sMax[i] = (  fExtent[i] - vtx(i) ) / ( dir(i) );
-      }
-      else if( dir(i) < -1e-6 )
-      {
-          sMax[i] = ( -fExtent[i] - vtx(i) ) / ( dir(i) );
-      }
-      else sMax[i] = cutoff;
-      std::cout << sMax[i] << std::endl;
+      cutoff = CalculateCylinderCutoff( vtx, dir );
     }
-  
-    // The world's laziest sorting algorithm:
-    if( sMax[0] < cutoff)  cutoff = sMax[0];
-    if( sMax[1] < cutoff ) cutoff = sMax[1];
-    if( sMax[2] < cutoff ) cutoff = sMax[2];
+    else if( fGeomType == WCSimLikelihoodDigitArray::kMailBox )
+    {
+      cutoff = CalculateMailBoxCutoff( vtx, dir );
+    }
+    else assert(false);
+
   }
   std::cout << "Cutoff = " << cutoff << ".... returning" << std::endl;
   fCutoffIntegral = cutoff;
@@ -622,6 +626,79 @@ void WCSimLikelihoodTuner::CalculateCutoff( WCSimLikelihoodTrack * myTrack )
   return;
 }
 
+/// Calculate where the integral should be cut off if the detector is a cylinder
+Double_t WCSimLikelihoodTuner::CalculateCylinderCutoff(const TVector3 &vtx, const TVector3 &dir)
+{
+  Double_t cutoff = fSMax;
+  Double_t sMax[3] = {0., 0.,0.};
+ 
+  TVector3 flatDir( dir(0), dir(1), 0);
+  TVector3 flatVtx( vtx(0), vtx(1), 0); 
+
+
+  // Escapes in r
+  Double_t xDotD = flatVtx.Dot(flatDir);
+  Double_t part1 = -1 * xDotD;
+  Double_t part2 = TMath::Sqrt( xDotD * xDotD  - flatDir.Mag2() * (flatVtx.Mag2() - fExtent[0]*fExtent[0])  );
+
+  Double_t s1 = (part1 + part2) / flatDir.Mag2();
+  Double_t s2 = (part1 - part2) / flatDir.Mag2();
+  if( s1 > 0) sMax[0] = s1;
+  else if( s2 > 0) sMax[0] = s2;
+
+  sMax[1] = sMax[0];
+  std::cout << "It's a cylinder, sR = " << sMax[0] <<std::endl;
+
+  // The z coordinate
+  if( dir(2) > 1e-6 )
+  {
+      sMax[2] = (  fExtent[2] - vtx(2) ) / ( dir(2) );
+      std::cout << "Direction " << 2 << " cutoff is " << sMax[2] << std::endl;
+  }
+  else if( dir(2) < -1e-6 )
+  {
+      sMax[2] = ( -fExtent[2] - vtx(2) ) / ( dir(2) );
+      std::cout << "Direction " << 2 << " (negative) cutoff is " << sMax[2] << std::endl;
+  }
+  else sMax[2] = cutoff;
+  std::cout << sMax[2] << std::endl;
+  
+  // The world's laziest sorting algorithm:
+  if( sMax[0] < cutoff)  cutoff = sMax[0];
+  if( sMax[2] < cutoff ) cutoff = sMax[2];
+
+  return cutoff;
+}
+
+/// Calculate where the integral should be cut off if the detector is a box
+Double_t WCSimLikelihoodTuner::CalculateMailBoxCutoff(const TVector3 &vtx, const TVector3 &dir)
+{
+  Double_t cutoff = fSMax;
+  Double_t sMax[3] = {0., 0.,0.};
+  
+  // Escapes in r
+  for(Int_t i = 0 ; i < 3; ++i )
+  {
+    if( dir(i) > 1e-6 )
+    {
+        sMax[i] = (  fExtent[i] - vtx(i) ) / ( dir(i) );
+        std::cout << "Direction " << i << " cutoff is " << sMax[i] << std::endl;
+    }
+    else if( dir(i) < -1e-6 )
+    {
+        sMax[i] = ( -fExtent[i] - vtx(i) ) / ( dir(i) );
+        std::cout << "Direction " << i << " (negative) cutoff is " << sMax[i] << std::endl;
+    }
+    else sMax[i] = cutoff;
+    std::cout << sMax[i] << std::endl;
+  }
+  // The world's laziest sorting algorithm:
+  if( sMax[0] < cutoff)  cutoff = sMax[0];
+  if( sMax[1] < cutoff)  cutoff = sMax[1];
+  if( sMax[2] < cutoff ) cutoff = sMax[2];
+
+  return cutoff;
+}
 ///////////////////////////////////////////////////////////////////////////
 //	Work out what array entry we need to query to look up the integrals
 //////////////////////////////////////////////////////////////////////////
@@ -980,9 +1057,9 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateChIntegrals(WCSimLikelihood
 
     // Now do the integrals. 
     // Need these to calculate theta; can declare them outside of the loop
-    TVector3 pmtPos(myDigit->GetX(), myDigit->GetY(), myDigit->GetZ());
-    TVector3 vtxPos(myTrack->GetVtx());
-    TVector3 vtxDir(myTrack->GetDir());
+    TVector3 pmtPos = myDigit->GetPos();
+    TVector3 vtxPos = myTrack->GetVtx();
+    TVector3 vtxDir = myTrack->GetDir();
     for(int iBin = 1; iBin < cutoffBin; ++iBin)
     {
         Double_t rho = 0.;
@@ -995,8 +1072,9 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateChIntegrals(WCSimLikelihood
         // {
         //   break;
         // }
-
-        Double_t cosTheta = TMath::Cos(vtxDir.Angle( pmtPos - (vtxPos + s * vtxDir)));
+        
+        TVector3 toPMT = pmtPos - myTrack->GetPropagatedPos(s);
+        Double_t cosTheta = TMath::Cos(vtxDir.Angle( toPMT ));
 //        Double_t cosThetaLow = TMath::Cos(vtxDir.Angle( pmtPos - (vtxPos + sLow * vtxDir) ));
 //        Double_t cosThetaHigh = TMath::Cos(vtxDir.Angle( pmtPos - (vtxPos + sHigh * vtxDir) ));
 
@@ -1059,7 +1137,8 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateChIntegrals(WCSimLikelihood
         Double_t rho = 0.;
         Double_t g = 0.; 
         Double_t s = hProfile->GetBinCenter(cutoffBin);
-        Double_t cosTheta = TMath::Cos(vtxDir.Angle( pmtPos - (vtxPos + s * vtxDir)));
+        TVector3 toPMT = pmtPos - myTrack->GetPropagatedPos(s);
+        Double_t cosTheta = TMath::Cos(vtxDir.Angle( toPMT ));
         rho = hProfile->GetBinContent(cutoffBin);
         g = hAngularProfile->GetBinContent( hAngularProfile->GetXaxis()->FindBin(cosTheta), cutoffBin );
         integrals[0] += cutoffFrac * rho * g * hProfile->GetBinWidth(cutoffBin);

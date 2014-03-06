@@ -364,7 +364,7 @@ Double_t WCSimDigitizerLikelihood::GetSimpleMinus2LnL( const Double_t &undigi, c
 {
   Double_t prob = this->GetSimpleLikelihood( undigi, digi );
   if(prob > 1e-40) return -2.0 * TMath::Log(prob);
-  else return 400;
+  else return -(digi * TMath::Log(undigi) - undigi - TMath::LnGamma(digi+1));
 }
 
 Double_t WCSimDigitizerLikelihood::GetSimpleExpectation( const Double_t &undigi )

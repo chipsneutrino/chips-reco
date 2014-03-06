@@ -32,6 +32,9 @@ class WCSimLikelihoodTuner
         Double_t SolidAngle(Double_t s, WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit);
         Double_t ScatteringTable(Double_t s);
         std::vector<Double_t> CalculateJ( Double_t s, WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit);
+        
+        Double_t CalculateCylinderCutoff(const TVector3 &vtx, const TVector3 &dir);
+        Double_t CalculateMailBoxCutoff(const TVector3 &vtx, const TVector3 &dir);
         void CalculateCutoff(WCSimLikelihoodTrack * myTrack);
 
 		    void LoadTabulatedIntegrals(WCSimLikelihoodTrack * myTrack);
@@ -85,10 +88,12 @@ class WCSimLikelihoodTuner
 
         Double_t fDirCoeffs[3];
         Double_t fIndCoeffs[3];
-        Double_t fExtent[3];
 		    Double_t fAverageQE;
 
+        Double_t fExtent[3];
         Bool_t fConstrainExtent;
+        WCSimLikelihoodDigitArray::GeomType_t fGeomType;
+
 
         // Work out where to cut off integrals, and cache the last one
         WCSimLikelihoodTrack * fLastCutoff;

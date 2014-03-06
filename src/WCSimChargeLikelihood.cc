@@ -123,7 +123,7 @@ double WCSimChargeLikelihood::Calc2LnL()
   Double_t Charge2LnL=0.0;
   Int_t trackNum = 0;
 
-  Double_t X, Y, Z, Qobs, Qpred;
+  Double_t X, Y, Z, Qobs, Qpred, Like;
   std::string str("likelihoodDoubleBins.root");
 //  str->Form("likelihood_%f_%f.root", fEnergy, fTrack->GetZ());
   TFile * file = new TFile(str.c_str(),"RECREATE");
@@ -133,6 +133,7 @@ double WCSimChargeLikelihood::Calc2LnL()
   t->Branch("Z",&Z,"Z/D");
   t->Branch("Qobs",&Qobs,"Qobs/D");
   t->Branch("Qpred",&Qpred,"Qpred/D");
+  t->Branch("minus2LnL",&Like,"Like/D");
   t->Branch("trackNum",&trackNum,"TrackNum/I");
 
 
@@ -166,13 +167,15 @@ double WCSimChargeLikelihood::Calc2LnL()
   {
     fDigit = (WCSimLikelihoodDigit *)fDigitArray->GetDigit(jDigit);
     Double_t chargeObserved = fDigit->GetQ();
-    Charge2LnL += fDigitizer->GetMinus2LnL( predictedCharges[jDigit], chargeObserved);
+    Double_t minus2LnL = fDigitizer->GetMinus2LnL( predictedCharges[jDigit], chargeObserved);
+    Charge2LnL += minus2LnL;
     //if((jDigit % 1) == 0){ std::cout << "jDigit  = " << jDigit << "/" << fDigitArray->GetNDigits() << "  Observed charge = " << chargeObserved << "   Expected charge = " << predictedCharges[jDigit] << "    ... So -2lnL now = " << Charge2LnL << std::endl;  }
     X = fDigit->GetX();
     Y = fDigit->GetY();
     Z = fDigit->GetZ();
     Qobs = fDigit->GetQ();
     Qpred = predictedCharges[jDigit];//this->DigitizerExpectation(chargeExpected);
+    Like = minus2LnL;
     t->Fill();
 
   }

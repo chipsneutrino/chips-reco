@@ -30,9 +30,9 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myEvent )
   std::cout << "here 3" << std::endl;
 
   // Get the geometry type and maximum x, y and z coordinates of the detector volume
-  fGeomType = -1;
-  if((WCSimGeometry::Instance())->IsCylinder()){ fGeomType = 0; }
-  else if((WCSimGeometry::Instance())->IsMailBox()){ fGeomType = 1;}
+  fGeomType = kUnknown;
+  if((WCSimGeometry::Instance())->IsCylinder()){ fGeomType = kCylinder; }
+  else if((WCSimGeometry::Instance())->IsMailBox()){ fGeomType = kMailBox;}
   
   fExtent[0] = 0.;
   fExtent[1] = 0.;
@@ -113,9 +113,9 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myRootEve
   std::cout << "here 6" << std::endl;
 
   	// Get the geometry type and maximum x, y and z coordinates of the detector volume
-  	fGeomType = -1;
-  	if((WCSimGeometry::Instance())->IsCylinder()){ fGeomType = 0; }
-  	else if((WCSimGeometry::Instance())->IsMailBox()){ fGeomType = 1;}
+  	fGeomType = kUnknown;
+  	if((WCSimGeometry::Instance())->IsCylinder()){ fGeomType = kCylinder; }
+  	else if((WCSimGeometry::Instance())->IsMailBox()){ fGeomType = kMailBox;}
   
   	fExtent[0] = 0.;
   	fExtent[1] = 0.;
@@ -218,8 +218,9 @@ WCSimLikelihoodDigit * WCSimLikelihoodDigitArray::GetDigit( int digit )
 
 Int_t WCSimLikelihoodDigitArray::GetNDigits(){ return fNLikelihoodDigits;}
 
-Bool_t WCSimLikelihoodDigitArray::IsCylinder(){ return fGeomType == 0;}
-Bool_t WCSimLikelihoodDigitArray::IsMailBox(){ return fGeomType == 1;}
+Bool_t WCSimLikelihoodDigitArray::IsCylinder(){ return fGeomType == kCylinder;}
+Bool_t WCSimLikelihoodDigitArray::IsMailBox(){ return fGeomType == kMailBox;}
+WCSimLikelihoodDigitArray::GeomType_t WCSimLikelihoodDigitArray::GetGeomType(){ return fGeomType; }
 
 Double_t WCSimLikelihoodDigitArray::GetExtent(Int_t i)
 {
