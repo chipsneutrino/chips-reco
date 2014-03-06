@@ -68,10 +68,11 @@ void WCSimChargeLikelihood::Initialize( WCSimLikelihoodDigitArray * myDigitArray
 ///////////////////////////////////////////////////////////////////////////
 WCSimChargeLikelihood::~WCSimChargeLikelihood()
 {
-    if(fDigit != NULL) delete fDigit;
-    if(fDigitArray != NULL) delete fDigitArray;
+    std::cout << "Delete fTuner" << std::endl;
     if(fTuner != NULL) delete fTuner;
+    std::cout << "Delete fDigitizer" << std::endl;
     if(fDigitizer != NULL) delete fDigitizer;
+    std::cout << "Done!" << std::endl;
 }
 
 void WCSimChargeLikelihood::ClearTracks()

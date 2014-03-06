@@ -795,7 +795,7 @@ double WCSimLikelihoodTuner::GetChIntegrals(WCSimLikelihoodTrack * myTrack, WCSi
     // Get the integral with a single power of s under the integral sign
     if(fCalculateIntegrals == true)
     {
-      std::cout << "Calculating the Cherenkov integrals" << std::endl;
+      // std::cout << "Calculating the Cherenkov integrals" << std::endl;
       return this->CalculateChIntegrals(myTrack, myDigit, sPower);
     }
     else 
@@ -810,7 +810,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::GetChIntegrals(WCSimLikelihoodTrack 
     // If we want all 3 powers it's quicker to get them all at once as it only involves one loop
     if(fCalculateIntegrals == true)
     {
-      std::cout << "Calculating the Cherenkov integrals" << std::endl;
+      // std::cout << "Calculating the Cherenkov integrals" << std::endl;
       return this->CalculateChIntegrals(myTrack, myDigit);
     }
     else
