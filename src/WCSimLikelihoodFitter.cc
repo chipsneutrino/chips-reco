@@ -38,11 +38,11 @@ WCSimLikelihoodFitter::WCSimLikelihoodFitter(WCSimRootEvent * myRootEvent)
     fParMap[1] = 8; // The number of fit parameters for n tracks, plus 1 for nTracks itself (fixed)
     fParMap[2] = 11;
     fMinimum  = 0;
-    fSeedVtxX = 0.6;
-    fSeedVtxY = 0.6;
-    fSeedVtxZ = 0.6;
-    fSeedTheta = 0.1;
-    fSeedPhi = 0.5;
+    fSeedVtxX = 0.0;
+    fSeedVtxY = 0.0;
+    fSeedVtxZ = 0.0;
+    fSeedTheta = 0.0;
+    fSeedPhi = 0.0;
     fIsFirstCall = true;
 }
 
