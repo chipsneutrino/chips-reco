@@ -254,7 +254,7 @@ Bool_t WCSimRecoEvent::FoundRings()
 
 void WCSimRecoEvent::PrintDigitList(const char* filename)
 {
-  ofstream output(filename);
+  std::ofstream output(filename);
 
   for( Int_t i=0; i<this->GetNDigits(); i++ ){
     WCSimRecoDigit* myDigit = (WCSimRecoDigit*)(this->GetDigit(i));
@@ -266,7 +266,7 @@ void WCSimRecoEvent::PrintDigitList(const char* filename)
 
 void WCSimRecoEvent::PrintFilterDigitList(const char* filename)
 {
-  ofstream output(filename);
+  std::ofstream output(filename);
 
   for( Int_t i=0; i<this->GetNFilterDigits(); i++ ){
     WCSimRecoDigit* myDigit = (WCSimRecoDigit*)(this->GetFilterDigit(i));

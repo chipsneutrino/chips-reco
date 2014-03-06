@@ -9,3 +9,4 @@
 .*
 ./*.root
 *_.cxx
+/nbproject/private/

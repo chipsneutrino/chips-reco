@@ -2,6 +2,8 @@
 #define WCSIMCHARGELIKELIHOOD_H
 
 #include <vector>
+
+#include "WCSimDigitizerLikelihood.hh"
 #include "WCSimRecoDigit.hh"
 #include "WCSimLikelihoodDigit.hh"
 #include "WCSimLikelihoodDigitArray.hh"
@@ -34,13 +36,6 @@ class WCSimChargeLikelihood
         Double_t ScatteringTable();
         void GetTrackParameters(WCSimLikelihoodTrack * myTrack);
 
-        Double_t DigitizerMinus2LnL( const Double_t &myUndigiHit, const Double_t &myDigiHit );
-        Double_t DigitizerLikelihood( const Double_t &myUndigiHit, const Double_t &myDigiHit );
-        Double_t DigitizePickerLikelihood( const Double_t &myUndigiHit, const Double_t &myDigiHit );
-        Double_t DigitizeGausExpoLikelihood( const Double_t &myUndigiHit, const Double_t &myDigiHit );
-        Double_t DigitizeGausLikelihood( const Double_t &myUndigiHit, const Double_t &myDigiHit );
-        Double_t DigitizerExpectation( const Double_t & myUndigiHit );
-
     protected:
     private:
         std::vector<Double_t> fCoeffsCh;
@@ -71,6 +66,7 @@ class WCSimChargeLikelihood
         WCSimLikelihoodDigitArray * fDigitArray;
         WCSimLikelihoodDigit * fDigit;
         WCSimLikelihoodTuner * fTuner;
+        WCSimDigitizerLikelihood * fDigitizer;
 
       // The fitted functions are defined using various variables that relate the track to the
       // PMT hit in question.  I calculate these in GetTrackParameters() and set a flag when
@@ -81,12 +77,6 @@ class WCSimChargeLikelihood
       // Calculating is fine for drawing/testing, but look them up when we do the fit
       Bool_t fCalculateIntegrals;
 
-	    // The digitizer samples the 1pe distribution repeatedly, then applies a threshold function,
-	    // then multiplies by an efficiency term
-	    Double_t fEfficiency;
-
-      // For < 10 predicted photons, we look up the digitizer probability from a 2D histogram;
-      TH2D * fDigiPDF;
 
 
 };

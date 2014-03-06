@@ -3,6 +3,7 @@
 #include "WCSimRecoEvent.hh"
 #include "WCSimInterface.hh"
 #include "TCollection.h"
+#include <cstdlib>
 
 #ifndef REFLEX_DICTIONARY
 ClassImp(WCSimLikelihoodDigitArray)

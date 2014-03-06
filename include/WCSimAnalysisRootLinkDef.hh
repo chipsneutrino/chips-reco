@@ -59,9 +59,10 @@
 #pragma link C++ class WCSimLikelihoodTrack+;
 #pragma link C++ enum WCSimLikelihoodTrack::TrackType;
 #pragma link C++ class WCSimTimeLikelihood+;
-
+#pragma link C++ class WCSimDigitizerLikelihood+;
 #pragma link C++ class vector<WCSimLikelihoodTrack>;
 #pragma link C++ class vector<vector<WCSimLikelihoodTrack> >;
 #pragma link C++ class vector<WCSimLikelihoodTrack*>;
+
 
 #endif

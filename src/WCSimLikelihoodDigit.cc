@@ -3,6 +3,7 @@
 #include "WCSimRootGeom.hh"
 #include <iostream>
 #include <cmath>
+#include <cstdlib>
 
 #ifndef REFLEX_DICTIONARY
 ClassImp(WCSimLikelihoodDigit)

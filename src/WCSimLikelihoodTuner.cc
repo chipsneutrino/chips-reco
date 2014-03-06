@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <math.h>
@@ -685,8 +686,8 @@ void WCSimLikelihoodTuner::LoadTabulatedIntegrals( WCSimLikelihoodTrack * myTrac
 		
   std::cout << "Looking up integrals" << std::endl;
   // Otherwise open up the right table file
-  ifstream integralFileRhoG;
-  ifstream integralFileRho;
+  std::ifstream integralFileRhoG;
+  std::ifstream integralFileRho;
 	switch(myType)
 	{
 		case WCSimLikelihoodTrack::MuonLike:
@@ -1090,7 +1091,7 @@ void WCSimLikelihoodTuner::TabulateIndirectIntegrals( WCSimLikelihoodTrack::Trac
     outFile.write(reinterpret_cast<char*>(&fSMinRho),sizeof(fSMinRho));
     outFile.write(reinterpret_cast<char*>(&fSMaxRho),sizeof(fSMaxRho));
     
-    ofstream checkWriting;
+    std::ofstream checkWriting;
     checkWriting.open("whatWeWroteRho.txt");    
   	for( int iEBin = 0; iEBin < fNEBinsRho; ++iEBin)
     {
@@ -1158,7 +1159,7 @@ void WCSimLikelihoodTuner::TabulateDirectIntegrals(WCSimLikelihoodTrack::TrackTy
     outFile.write(reinterpret_cast<char*>(&fSMin),sizeof(fSMin));
     outFile.write(reinterpret_cast<char*>(&fSMax),sizeof(fSMax));
            
-    ofstream checkWriting;
+    std::ofstream checkWriting;
     checkWriting.open("whatWeWroteRhoG.txt");       
     Int_t theCount = 0;                         
     for( int iEBin = 0; iEBin < fNEBins; ++iEBin)
