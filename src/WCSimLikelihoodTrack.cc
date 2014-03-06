@@ -75,7 +75,7 @@ const double WCSimLikelihoodTrack::GetE(){return fE0; }
 const double WCSimLikelihoodTrack::GetDirX(){ return TMath::Sin(fTheta0) * TMath::Cos(fPhi0); }
 const double WCSimLikelihoodTrack::GetDirY(){ return TMath::Sin(fTheta0) * TMath::Sin(fPhi0); }
 const double WCSimLikelihoodTrack::GetDirZ(){ return TMath::Cos(fTheta0); }
-const TVector3 WCSimLikelihoodTrack::GetDir(){ return TVector3( this->GetDirX(), this->GetDirY(), this->GetDirZ()); } 
+const TVector3 WCSimLikelihoodTrack::GetDir(){ return TVector3( this->GetDirX(), this->GetDirY(), this->GetDirZ()); }
 const WCSimLikelihoodTrack::TrackType WCSimLikelihoodTrack::GetType(){ return fType;}
 
 ///////////////////////////////////////////////////////////////////////////
@@ -85,9 +85,11 @@ WCSimLikelihoodTrack::~WCSimLikelihoodTrack()
 {
 }
 
-////////////////////////////////////////
-// Output strings of our tracktype enums
-// /////////////////////////////////////
+/**
+ * Output strings of our tracktype enums
+ * @param myType The particle type of the track
+ * @return A string corresponding the the particle type of the track
+ */
 std::string WCSimLikelihoodTrack::TrackTypeToString( WCSimLikelihoodTrack::TrackType myType )
 {
   std::string type;
@@ -104,4 +106,17 @@ std::string WCSimLikelihoodTrack::TrackTypeToString( WCSimLikelihoodTrack::Track
   }
   return type;
  
+
+}
+
+/**
+ * Function to calculate the position a distance s away from the track vertex in
+ * the direction of travel of the track
+ * @param s Distance to propagate from the vertex
+ * @return The position of the particle after it propagates a distance s from
+ *          the vertex
+ */
+const TVector3 WCSimLikelihoodTrack::GetPropagatedPos(Double_t s)
+{
+    return (this->GetVtx() + s * this->GetDir());
 }

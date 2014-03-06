@@ -5,6 +5,7 @@
 #include "WCSimRootEvent.hh"
 #include "TClonesArray.h"
 #include "TObject.h"
+#include "TVector3.h"
 
 class WCSimLikelihoodDigit : public TObject
 {
@@ -13,16 +14,21 @@ class WCSimLikelihoodDigit : public TObject
       WCSimLikelihoodDigit( WCSimRootCherenkovDigiHit * myDigiHit );
       virtual ~WCSimLikelihoodDigit();
 	
-      int GetTubeId();
-      double GetQ();
-      double GetT();
-      double GetX();
-      double GetY();
-      double GetZ();
-      double GetFaceX();
-      double GetFaceY();
-      double GetFaceZ();
-      void Print();
+      int GetTubeId() const;
+      double GetQ() const;
+      double GetT() const;
+
+      TVector3 GetPos() const;
+      double GetX() const;
+      double GetY() const;
+      double GetZ() const;
+
+      TVector3 GetFace() const;
+      double GetFaceX() const;
+      double GetFaceY() const;
+      double GetFaceZ() const;
+
+      void Print() const;
  
   protected:
   private:

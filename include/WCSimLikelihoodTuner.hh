@@ -80,6 +80,9 @@ class WCSimLikelihoodTuner
     
     protected:
     private:
+
+        Bool_t IsOutsideDetector(const TVector3 &pos);
+
         Double_t fDirCoeffs[3];
         Double_t fIndCoeffs[3];
         Double_t fExtent[3];

@@ -19,7 +19,8 @@ WCSimAnalysisConfig::WCSimAnalysisConfig()
     fCalculateIntegrals = false;
     fConstrainExtent = false;
     fDigiType = "";
-    this->SetConfigFile("default.cfg");
+    fConfName = "default.cfg";
+    this->SetConfigFile(fConfName);
     return;
 }
 

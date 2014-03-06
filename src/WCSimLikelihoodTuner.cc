@@ -27,14 +27,14 @@
 #include "WCSimGeometry.hh"
 #include "WCSimAnalysisConfig.hh"
 
-/////////////////////////////////////////////////////
-// Constructor - if the Tuner is created without
-// specifying the size of the detector then it 
-// assumes the PMTs are floating in space and will 
-// only prevent a PMT from seeing light if the track
-// is behind it, not if it's outside the tank on the 
-// opposite side.               
-////////////////////////////////////////////////////
+/**
+* Constructor - if the Tuner is created without
+* specifying the size of the detector then it
+* assumes the PMTs are floating in space and will
+* only prevent a PMT from seeing light if the track
+* is behind it, not if it's outside the tank on the
+* opposite side.
+*/
 WCSimLikelihoodTuner::WCSimLikelihoodTuner()
 {
   	fConstrainExtent = false;
@@ -48,11 +48,12 @@ WCSimLikelihoodTuner::WCSimLikelihoodTuner()
 
 }
 
-/////////////////////////////////////////////////////
-// Otherwise if the extent of the detector in x, y 
-// and z is given, the tuner will kill tracks as soon
-// as they go outside of this region
-/////////////////////////////////////////////////////
+/**
+ * Otherwise if the extent of the detector in x, y
+ * and z is given, the tuner will kill tracks as soon
+ * as they go outside of this region
+ * @param myDigitArray Array of PMT responses for the event to process
+ */
 WCSimLikelihoodTuner::WCSimLikelihoodTuner(WCSimLikelihoodDigitArray * myDigitArray)
 {
   	fCalculateIntegrals = WCSimAnalysisConfig::Instance()->GetCalculateIntegrals();
@@ -69,59 +70,59 @@ WCSimLikelihoodTuner::WCSimLikelihoodTuner(WCSimLikelihoodDigitArray * myDigitAr
 ///////////////////////////////////////////////////////////
 void WCSimLikelihoodTuner::Initialize()
 {
-  fIsOpen = WCSimLikelihoodTrack::Unknown;
+  fIsOpen          = WCSimLikelihoodTrack::Unknown;
   fProfileLocation = new TString("./config/emissionProfilesElectron.root");
-  fProfiles = new TFile(fProfileLocation->Data());
-  fHistArray = 0;
-  fAngHistArray= 0;
-  fFluxArray= 0;
-  fIsOpen = WCSimLikelihoodTrack::ElectronLike;
-  fHistArray = (TObjArray *) fProfiles->Get("histArray");
+  fProfiles        = new TFile(fProfileLocation->Data());
+  fHistArray       = 0;
+  fAngHistArray    = 0;
+  fFluxArray       = 0;
+  fIsOpen          = WCSimLikelihoodTrack::ElectronLike;
+  fHistArray       = (TObjArray *) fProfiles->Get("histArray");
   fHistArray->SetOwner(kTRUE);
-  fAngHistArray = (TObjArray *) fProfiles->Get("angHistArray");
+  fAngHistArray    = (TObjArray *) fProfiles->Get("angHistArray");
   fAngHistArray->SetOwner(kTRUE);
-  fFluxArray = (TObjArray *) fProfiles->Get("fluxArray");
+  fFluxArray       = (TObjArray *) fProfiles->Get("fluxArray");
   fFluxArray->SetOwner(kTRUE);
-  fWhichHisto = (TH1D *) fProfiles->Get("hWhichHisto");
-  fAverageQE = 1.0;
+  fWhichHisto      = (TH1D *) fProfiles->Get("hWhichHisto");
+  fAverageQE       = 1.0;
 
   // Pointer to the last track for which we calculated the cutoff, to prevent repetition
   fLastCutoff = 0;
   
   //  std::cout << "Setting up files " << std::endl;
   fRhoGIntegralFile = new TFile();
-	fRhoIntegralFile = new TFile();
-	fRhoGIntegralTree = 0;
-	fRhoIntegralTree = 0;
-  fRhoGIntegrals = 0;
-  fRhoIntegrals = 0;
+  fRhoIntegralFile  = new TFile();
+  fRhoGIntegralTree = 0;
+  fRhoIntegralTree  = 0;
+  fRhoGIntegrals    = 0;
+  fRhoIntegrals     = 0;
     
   // The binning scheme for the direct integral tables
-	fNR0Bins = 200;
-	fNCosTheta0Bins = 1000;
-	fNSBins = 500;
-	fNEBins = 1;
-  fNBinsRhoG = fNR0Bins * fNCosTheta0Bins * fNSBins * fNEBins;
-  fR0Min = 0.0;
-	fR0Max = 4000.0;
-  fCosTheta0Min = 0.0;
-  fCosTheta0Max = 1.0;
-	fEMin = 1500.0;
-	fEMax = 3000.0;
-  fSMin = 0.0;
-	fSMax = 2500.0; 
-  fIntegralEnergyBin = -1;
-  fIntegralSMax = -1;
+  fNR0Bins              = 200;
+  fNCosTheta0Bins       = 1000;
+  fNSBins               = 500;
+  fNEBins               = 1;
+  fNBinsRhoG            = fNR0Bins * fNCosTheta0Bins * fNSBins * fNEBins;
+  fR0Min                = 0.0;
+  fR0Max                = 4000.0;
+  fCosTheta0Min         = 0.0;
+  fCosTheta0Max         = 1.0;
+  fEMin                 = 1500.0;
+  fEMax                 = 3000.0;
+  fSMin                 = 0.0;
+  fSMax                 = 2500.0;
+  fIntegralEnergyBin    = -1;
+  fIntegralSMax         = -1;
   fIntegralParticleType = WCSimLikelihoodTrack::Unknown;
   
   // The binning scheme for the indirect integral tables
   fNSBinsRho = fNSBins;
   fNEBinsRho = fNEBins;
-  fNBinsRho = fNSBinsRho * fNEBinsRho;
-  fSMinRho = fSMin;
-  fSMaxRho = fSMax;
-  fEMinRho = fEMin;
-  fEMaxRho = fEMax;
+  fNBinsRho  = fNSBinsRho * fNEBinsRho;
+  fSMinRho   = fSMin;
+  fSMaxRho   = fSMax;
+  fEMinRho   = fEMin;
+  fEMaxRho   = fEMax;
   
 //  std::cout << "Done!" << std::endl;
   return;
@@ -140,22 +141,22 @@ WCSimLikelihoodTuner::~WCSimLikelihoodTuner()
     fIsOpen = WCSimLikelihoodTrack::Unknown;
     delete fProfileLocation;
     delete fProfiles;
-    if(fHistArray) delete fHistArray;
+    if(fHistArray)    delete fHistArray;
     if(fAngHistArray) delete fAngHistArray;
-    if(fFluxArray) delete fFluxArray;
+    if(fFluxArray)    delete fFluxArray;
 //    if(fWhichHisto) delete fWhichHisto;
     fProfileLocation = 0;
-    fProfiles = 0;
-    fHistArray = 0;
-    fAngHistArray= 0;
-    fFluxArray= 0;
+    fProfiles        = 0;
+    fHistArray       = 0;
+    fAngHistArray    = 0;
+    fFluxArray       = 0;
     
     if(fRhoGIntegralTree) delete fRhoGIntegralTree;
-    if(fRhoIntegralTree) delete fRhoIntegralTree;
+    if(fRhoIntegralTree)  delete fRhoIntegralTree;
     if(fRhoGIntegralFile) delete fRhoGIntegralFile;
-	  if(fRhoIntegralFile) delete fRhoIntegralFile;
-    if(fRhoGIntegrals) delete fRhoGIntegrals;
-    if(fRhoIntegrals) delete fRhoIntegrals;
+    if(fRhoIntegralFile)  delete fRhoIntegralFile;
+    if(fRhoGIntegrals)    delete fRhoGIntegrals;
+    if(fRhoIntegrals)     delete fRhoIntegrals;
 
 }
 
@@ -250,14 +251,11 @@ Double_t WCSimLikelihoodTuner::TransmissionFunction(Double_t s, WCSimLikelihoodT
 	
 	if( s== 0) return 1;
     // First we need the distance from the photon emission to the PMT 
-    TVector3 pmtPos(myDigit->GetX(), myDigit->GetY(), myDigit->GetZ());
-    TVector3 emissionPos(myTrack->GetX() + s*sin(myTrack->GetTheta())*cos(myTrack->GetPhi()),
-                         myTrack->GetY() + s*sin(myTrack->GetTheta())*sin(myTrack->GetPhi()), 
-                         myTrack->GetZ() + s*cos(myTrack->GetTheta()));
+    TVector3 pmtPos      = myDigit->GetPos();
+    TVector3 emissionPos = myTrack->GetPropagatedPos(s);
     Double_t r = (pmtPos - emissionPos).Mag();
 
-
-    // We'll use a triple exponential to start with
+    // We'll use a triple exponential to parameterise the transmission probability
     Double_t nu[3] = {-1.137e-5,-5.212e-4, -4.359e-3}; // nu = 1/Decay length in mm
     Double_t f[3]      = {0.8827, 0.08162, 0.03515};
     Double_t trans=0.0;
@@ -274,12 +272,10 @@ Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrack * myT
 {
 	return 1;
     // We need the angle of incidence at the PMT
-    TVector3 pmtPos(myDigit->GetX(), myDigit->GetY(), myDigit->GetZ());
-    TVector3 emissionPos(myTrack->GetX() + s*sin(myTrack->GetTheta())*cos(myTrack->GetPhi()),
-                         myTrack->GetY() + s*sin(myTrack->GetTheta())*sin(myTrack->GetPhi()), 
-                         myTrack->GetZ() + s*cos(myTrack->GetTheta()));
-    TVector3 pmtToEm = emissionPos - pmtPos;
-    TVector3 pmtFace(myDigit->GetFaceX(), myDigit->GetFaceY(), myDigit->GetFaceZ());
+    TVector3 pmtPos      = myDigit->GetPos();
+    TVector3 emissionPos = myTrack->GetPropagatedPos(s);
+    TVector3 pmtToEm     = emissionPos - pmtPos;
+    TVector3 pmtFace     = myDigit->GetFace();
 
     Double_t cosTheta = pmtFace.Dot(pmtToEm) / (pmtFace.Mag() * pmtToEm.Mag()); 
 
@@ -296,13 +292,13 @@ Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrack * myT
     // Function for the PMT acceptance's dependence on the angle: 
     // WCSim defines arrays of efficiency at 10 degree intervals and linearly interpolates
 
- /*   if( cosTheta < 0.0 || cosTheta > 1.0 )
+	/*
+    if( cosTheta < 0.0 || cosTheta > 1.0 )
     {
-
-//      std::cout << "Behind the PMT, cosTheta = " << cosTheta << std::endl;
-//      pmtPos.Print() ;
-//      emissionPos.Print();
-      return 0.0;
+    //  std::cout << "Behind the PMT, cosTheta = " << cosTheta << std::endl;
+    //  pmtPos.Print() ;
+    //  emissionPos.Print();
+        return 0.0;
     }
 
     Double_t theta = TMath::ACos(cosTheta) * 180.0 / TMath::Pi();
@@ -321,13 +317,7 @@ Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrack * myT
       }
     }
       return efficiency/100.;
-*/
-
-
-
-
-
-
+	*/
 }
 
 /*
@@ -352,58 +342,59 @@ Double_t WCSimLikelihoodTuner::SolidAngle(Double_t s, WCSimLikelihoodTrack * myT
 {
     // Now some physical parameters of the phototube
 	Double_t WCSimPMTRadius = 12.7;
-//    Double_t WCSimPMTExposeHeight = WCSimPMTRadius - 1.0;
+	// Double_t WCSimPMTExposeHeight = WCSimPMTRadius - 1.0;
 
 	
     // We need the distance from emission to the PMT
     // These are from WCSim so they're in cm
-    TVector3 pmtPos(myDigit->GetX() + myDigit->GetFaceX() * WCSimPMTRadius,
-    				myDigit->GetY() + myDigit->GetFaceY() * WCSimPMTRadius, 
-    				myDigit->GetZ() + myDigit->GetFaceZ() * WCSimPMTRadius);
-    TVector3 emissionPos(myTrack->GetX() + s*sin(myTrack->GetTheta())*cos(myTrack->GetPhi()),
-                         myTrack->GetY() + s*sin(myTrack->GetTheta())*sin(myTrack->GetPhi()), 
-                         myTrack->GetZ() + s*cos(myTrack->GetTheta()));
-    Double_t r = (pmtPos - emissionPos).Mag();
+    TVector3 pmtDomePos  = myDigit->GetPos() + WCSimPMTRadius * myDigit->GetFace();
+    TVector3 emissionPos = myTrack->GetPropagatedPos(s);
+    Double_t r = (pmtDomePos - emissionPos).Mag();
 
     // Purely geometry: we need the solid angle of a cone whose bottom is a circle of the same radius as the circle of PMT poking
     // through the blacksheet.  This is 2pi( 1 - cos(coneAngle) ) where coneAngle can be deduced from trig and the PMT geometry
 	// So the fraction of total solid angle is this/4pi = 0.5(1 - cos(coneAngle))
 	Double_t solidAngle = 2.0*TMath::Pi()*(1.0 - (r)/sqrt( (r*r + WCSimPMTRadius * WCSimPMTRadius)));
 	
+
+	/*
+	 * DEPRECATED...
+
 	// I multiply by cosTheta to account for the angle from track to PMT diminishing its effective area
 	// This isn't strictly correct (solid angle of a sphere cut off by a plane turns out to be quite complicated
 	// but it's a decent approximation to a small effect
-//	solidAngle *= TMath::Cos((emissionPos - pmtPos).Angle(TVector3(myDigit->GetFaceX(), myDigit->GetFaceY(), myDigit->GetFaceZ())));
+    // solidAngle *= TMath::Cos((emissionPos - pmtPos).Angle(TVector3(myDigit->GetFaceX(), myDigit->GetFaceY(), myDigit->GetFaceZ())));
 
 	// See whether the PMT covers more than 1 bin in cosTheta - if it does we should have picked multiple theta bins from g(cosTheta)
 	// so scale the solid angle accordingly.
-//    this->LoadEmissionProfiles(myTrack);
-////	std::cout << fWhichHisto->FindBin(myTrack->GetE());
-//	TH2D * hG = (TH2D*)fAngHistArray->At(fWhichHisto->FindBin(myTrack->GetE()) - 1);
-////	std::cout << fWhichHisto->FindBin(myTrack->GetE() - 1) << "   " << hG << std::endl;
-//	Double_t cosThetaBins = hG->GetNbinsX();
-//	Double_t cosThetaRange = (hG->GetXaxis())->GetXmax() - (hG->GetXaxis())->GetXmin();
-//	Double_t dCosTheta = cosThetaRange / cosThetaBins;
-//	
-//	Double_t angleToCenter = pmtPos.Angle(emissionPos);
-//	Double_t rangeThetaPMT = TMath::ACos(1.0 - 0.5*solidAngle / TMath::Pi());
-////	std::cout << "angle to center " << angleToCenter << "     rangeThetaPMT " << rangeThetaPMT << std::endl;
-//	Double_t rangeCosThetaPMT = 2 * TMath::Sin(angleToCenter) * TMath::Sin(rangeThetaPMT);
-//
-//
-//	std::cout << "pmt range = " << rangeCosThetaPMT << " dCosTheta = " << dCosTheta << "  range / dCosTheta = " << rangeCosThetaPMT / dCosTheta << std::endl;
-//	solidAngle *= rangeCosThetaPMT / dCosTheta;
-	/*if(pmtPos.Z() > 1000)
-	{
-		std::cout << "cosTheta = " << TMath::Cos(TMath::ATan2(WCSimPMTRadius, r)) << std::endl;
-    	std::cout << "solid angle = " << solidAngle << std::endl;
-    	std::cout << "r = " << r << "    WCSimPMTRadius = " << WCSimPMTRadius << "   solid angle  = " << solidAngle << "    hit Q = " << myDigit->GetQ() << std::endl;;
-    	std::cout << "Pmt pos = " ;
-    	pmtPos.Print();
-    	std::cout << "Emission pos = " ;
-    	emissionPos.Print();
-    	std::cout << std::endl;
-	}*/
+    // this->LoadEmissionProfiles(myTrack);
+    // std::cout << fWhichHisto->FindBin(myTrack->GetE());
+    // TH2D * hG = (TH2D*)fAngHistArray->At(fWhichHisto->FindBin(myTrack->GetE()) - 1);
+    // std::cout << fWhichHisto->FindBin(myTrack->GetE() - 1) << "   " << hG << std::endl;
+    // Double_t cosThetaBins = hG->GetNbinsX();
+    // Double_t cosThetaRange = (hG->GetXaxis())->GetXmax() - (hG->GetXaxis())->GetXmin();
+    // Double_t dCosTheta = cosThetaRange / cosThetaBins;
+    //
+    // Double_t angleToCenter = pmtPos.Angle(emissionPos);
+    // Double_t rangeThetaPMT = TMath::ACos(1.0 - 0.5*solidAngle / TMath::Pi());
+    // std::cout << "angle to center " << angleToCenter << "     rangeThetaPMT " << rangeThetaPMT << std::endl;
+    // Double_t rangeCosThetaPMT = 2 * TMath::Sin(angleToCenter) * TMath::Sin(rangeThetaPMT);
+    //
+    //
+    // std::cout << "pmt range = " << rangeCosThetaPMT << " dCosTheta = " << dCosTheta << "  range / dCosTheta = " << rangeCosThetaPMT / dCosTheta << std::endl;
+    // solidAngle *= rangeCosThetaPMT / dCosTheta;
+    //	if(pmtPos.Z() > 1000)
+    //	{
+    //		std::cout << "cosTheta = " << TMath::Cos(TMath::ATan2(WCSimPMTRadius, r)) << std::endl;
+    //    	std::cout << "solid angle = " << solidAngle << std::endl;
+    //    	std::cout << "r = " << r << "    WCSimPMTRadius = " << WCSimPMTRadius << "   solid angle  = " << solidAngle << "    hit Q = " << myDigit->GetQ() << std::endl;;
+    //    	std::cout << "Pmt pos = " ;
+    //    	pmtPos.Print();
+    //    	std::cout << "Emission pos = " ;
+    //    	emissionPos.Print();
+    //    	std::cout << std::endl;
+    //	}
+    */
     return solidAngle;
     
 }
@@ -416,7 +407,7 @@ Double_t WCSimLikelihoodTuner::SolidAngle(Double_t s, WCSimLikelihoodTrack * myT
 /////////////////////////////////////////////////////////////////////////////////////////////
 Double_t WCSimLikelihoodTuner::ScatteringTable(Double_t s)
 {
-    // 20% scattered light for now
+    // A fixed percentage of scattered light for now
     return 0.001;
 }
 
@@ -432,27 +423,27 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ( Double_t s, WCSimLikelih
     // Check make sure the particle is still inside the detector
 	if( fConstrainExtent )
 	{
-	  TVector3 pos = myTrack->GetVtx() + s*myTrack->GetDir();
-	  if( fabs(pos.X()) > fExtent[0] || fabs(pos.Y()) > fExtent[1] || fabs(pos.Z()) > fExtent[2])
-      {
+	  TVector3 pos = myTrack->GetPropagatedPos(s);
+	  if( IsOutsideDetector(pos))
+	  {
         J.push_back(0.0);
         J.push_back(0.0);
         return J;
       }
     }
 
-
     // Work out the direct and indirect contributions to J
     // J[0] = J_dir, J[1] = J_ind
     if( s == 0.0)
     {
     	std::cout << "Transmission = " << this->TransmissionFunction(s, myTrack, myDigit) << std::endl
-    			  << "Efficiency = "   << this->Efficiency(s, myTrack, myDigit) << std::endl
-    			  << "SolidAngle = " << this->SolidAngle(s, myTrack, myDigit) << std::endl;
+    			  << "Efficiency =   " << this->Efficiency(s, myTrack, myDigit) << std::endl
+    			  << "SolidAngle =   " << this->SolidAngle(s, myTrack, myDigit) << std::endl;
     }
+
     J.push_back(   this->TransmissionFunction(s, myTrack, myDigit) 
                  * this->Efficiency(s, myTrack, myDigit)
-            //     * this->QuantumEfficiency(myTrack)
+            //   * this->QuantumEfficiency(myTrack)
                  * this->SolidAngle(s, myTrack, myDigit));
     J.push_back(J.at(0) * this->ScatteringTable(s));
     return J;
@@ -478,9 +469,10 @@ void WCSimLikelihoodTuner::CalculateCoefficients(WCSimLikelihoodTrack * myTrack,
     // Load the file containing the emission profiles for different energies
     // whichHisto should be a TH1I with the same energy binning as we want for the reconstruction
     // There should also be a TObjArray with the emission profiles for the center value of each energy bin
-//    std::cout << "Getting the histogram" << std::endl;
+    // std::cout << "Getting the histogram" << std::endl;
     this->LoadEmissionProfiles(myTrack);
  
+
     Int_t whichBin = fWhichHisto->GetXaxis()->FindBin(myTrack->GetE()) - 1; // Histogram bins count from 1, arrays from 0
     // std::cout << "WhichBin = " << whichBin << "   energy = " << myTrack->GetE() << std::endl;
     if(whichBin < 0 || whichBin > fWhichHisto->GetNbinsX())
@@ -521,53 +513,53 @@ void WCSimLikelihoodTuner::CalculateCoefficients(WCSimLikelihoodTrack * myTrack,
     Double_t JDir[3] = {0.,0.,0.};
     Double_t JInd[3] = {0.,0.,0.};
         
-        // std::cout << " Second loop: kk = " << kk << "    s = " << s[kk] << "     JDir = " << JDir[kk] << std::endl;
+    // std::cout << " Second loop: kk = " << kk << "    s = " << s[kk] << "     JDir = " << JDir[kk] << std::endl;
     for(int k = 0; k < 3; ++k)
     {
         std::vector<Double_t> J = this->CalculateJ( s[k], myTrack, myDigit);
         JDir[k] = J.at(0); 
         JInd[k] = J.at(1);
     }
+
     // Now do a quadratic fit to the Cherenkov and indirect parts, sampling them at these 3 points
-    // We can actually work this out analytically:    
-    
+    // We can actually work this out analytically:
     fDirCoeffs[0] = JDir[0];
     fDirCoeffs[1] = (4.*JDir[1] - JDir[2] -3.*JDir[0]) / (2*s[1]);
     fDirCoeffs[2] = (JDir[0] + JDir[2] - 2.*JDir[1]) / (2 * s[1] * s[1]);
-//    std::cout << "jDir:        " << JDir[0]       << "," << JDir[1]       << "," << JDir[2]       << std::endl;
-//    std::cout << "fDirCoeffs:  " << fDirCoeffs[0] << "," << fDirCoeffs[1] << "," << fDirCoeffs[2] << std::endl; 
-//    
+    // std::cout << "jDir:        " << JDir[0]       << "," << JDir[1]       << "," << JDir[2]       << std::endl;
+    // std::cout << "fDirCoeffs:  " << fDirCoeffs[0] << "," << fDirCoeffs[1] << "," << fDirCoeffs[2] << std::endl;
+
 
     fIndCoeffs[0] = JInd[0];
     fIndCoeffs[1] = (4.*JInd[1] - JInd[2] -3.*JInd[0]) / (2*s[1]);
     fIndCoeffs[2] = (JInd[0] + JInd[2] - 2.*JInd[1]) / (2 * s[1] * s[1]);
 
-//    if((myDigit->GetTubeId() % 10000) == 0)
-//    {
-//      TGraph * gr = new TGraph();
-//      for(int i = 0; i < hProfile->GetNbinsX(); ++i)
-//      {
-//        double tempS = hProfile->GetXaxis()->GetBinCenter(i);
-//        std::vector<Double_t> tempJ = this->CalculateJ(tempS, myTrack, myDigit);
-//        gr->SetPoint(gr->GetN(), tempS, tempJ.at(1));
-//      }
-//      TF1 * jInd = new TF1("jInd","[0] + [1] * x + [2] * x * x", 0, hProfile->GetXaxis()->GetXmax());
-//      jInd->SetParameters(fIndCoeffs[0], fIndCoeffs[1], fIndCoeffs[2]);
-//  
-//      TCanvas * c1 = new TCanvas("c1","c1", 800, 600);
-//      gr->SetLineColor(kBlue);
-//      gr->SetLineWidth(2);
-//      gr->Draw("ALP");
-//      jInd->SetLineColor(kRed);
-//      jInd->SetLineWidth(2);
-//      jInd->Draw("same");
-//      TString str;
-//      str.Form("jInd%d.png",myDigit->GetTubeId());
-//      c1->SaveAs(str.Data());
-//      delete c1;
-//      delete jInd;
-//      delete gr;
-//    }  
+    //    if((myDigit->GetTubeId() % 10000) == 0)
+    //    {
+    //      TGraph * gr = new TGraph();
+    //      for(int i = 0; i < hProfile->GetNbinsX(); ++i)
+    //      {
+    //        double tempS = hProfile->GetXaxis()->GetBinCenter(i);
+    //        std::vector<Double_t> tempJ = this->CalculateJ(tempS, myTrack, myDigit);
+    //        gr->SetPoint(gr->GetN(), tempS, tempJ.at(1));
+    //      }
+    //      TF1 * jInd = new TF1("jInd","[0] + [1] * x + [2] * x * x", 0, hProfile->GetXaxis()->GetXmax());
+    //      jInd->SetParameters(fIndCoeffs[0], fIndCoeffs[1], fIndCoeffs[2]);
+    //
+    //      TCanvas * c1 = new TCanvas("c1","c1", 800, 600);
+    //      gr->SetLineColor(kBlue);
+    //      gr->SetLineWidth(2);
+    //      gr->Draw("ALP");
+    //      jInd->SetLineColor(kRed);
+    //      jInd->SetLineWidth(2);
+    //      jInd->Draw("same");
+    //      TString str;
+    //      str.Form("jInd%d.png",myDigit->GetTubeId());
+    //      c1->SaveAs(str.Data());
+    //      delete c1;
+    //      delete jInd;
+    //      delete gr;
+    //    }
   
     // std::cout << "Done here" << std::endl;  
     return;
@@ -594,7 +586,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateCoefficientsVector(WCSimLik
 // ////////////////////////////////////////////////////////////////////////////////////////////////
 void WCSimLikelihoodTuner::CalculateCutoff( WCSimLikelihoodTrack * myTrack )
 {
-//  std::cout << "Calculating the cutoff" << std::endl;
+  //  std::cout << "Calculating the cutoff" << std::endl;
   if(myTrack == fLastCutoff) return;
   
   Double_t cutoff = fSMax;
@@ -604,18 +596,23 @@ void WCSimLikelihoodTuner::CalculateCutoff( WCSimLikelihoodTrack * myTrack )
     TVector3 vtx = myTrack->GetVtx();
     TVector3 dir = myTrack->GetDir();
     Double_t sMax[3] = {0., 0.,0.};
+
     for(int i = 0; i < 3; ++i)
     {
-      if(dir[i] > 1e-6)
+      if( dir(i) > 1e-6 )
       {
-        sMax[i] = -1. * (vtx(i) / dir(i)) + TMath::Sqrt( fExtent[i] * fExtent[i] / (dir(i)*dir(i)));
-        std::cout << sMax[i] << std::endl;
+          sMax[i] = (  fExtent[i] - vtx(i) ) / ( dir(i) );
+      }
+      else if( dir(i) < -1e-6 )
+      {
+          sMax[i] = ( -fExtent[i] - vtx(i) ) / ( dir(i) );
       }
       else sMax[i] = cutoff;
+      std::cout << sMax[i] << std::endl;
     }
   
     // The world's laziest sorting algorithm:
-    if( sMax[0] < cutoff) cutoff = sMax[0];
+    if( sMax[0] < cutoff)  cutoff = sMax[0];
     if( sMax[1] < cutoff ) cutoff = sMax[1];
     if( sMax[2] < cutoff ) cutoff = sMax[2];
   }
@@ -1318,3 +1315,7 @@ Bool_t WCSimLikelihoodTuner::GetCalculateIntegrals() const
   return fCalculateIntegrals;
 }
 
+Bool_t WCSimLikelihoodTuner::IsOutsideDetector(const TVector3 &pos)
+{
+    return (fabs(pos.X()) > fExtent[0] || fabs(pos.Y()) > fExtent[1] || fabs(pos.Z()) > fExtent[2]);
+}

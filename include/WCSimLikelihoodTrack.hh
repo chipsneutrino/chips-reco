@@ -22,9 +22,11 @@ class WCSimLikelihoodTrack : public TObject
 
     
         WCSimLikelihoodTrack();
-        WCSimLikelihoodTrack( double x, double y, double z, double t, double theta, double phi, double E, WCSimLikelihoodTrack::TrackType type );
+        WCSimLikelihoodTrack( double x, double y, double z, double t,
+                              double theta, double phi, double E,
+                              WCSimLikelihoodTrack::TrackType type );
         virtual ~WCSimLikelihoodTrack();
-		    void Print();
+		void Print();
         
     // Setters
 		void SetX(double x);
@@ -34,7 +36,7 @@ class WCSimLikelihoodTrack : public TObject
 		void SetTheta(double th);
 		void SetPhi(double phi);
 		void SetE(double E);
-    void SetType(WCSimLikelihoodTrack::TrackType type);
+		void SetType(WCSimLikelihoodTrack::TrackType type);
 		
 		// Getters
 		const double GetX();
@@ -50,15 +52,16 @@ class WCSimLikelihoodTrack : public TObject
         const TVector3 GetDir();
 		const double GetE();
         const WCSimLikelihoodTrack::TrackType GetType();
+        const TVector3 GetPropagatedPos(Double_t s);
  
     protected:
     private:
-			double fVtx[3];	// vertex position
+			double fVtx[3];	    // vertex position
 			double fT0;			// vertex time
-			double fTheta0;	// polar angle to z axis
+			double fTheta0;	    // polar angle to z axis
 			double fPhi0;		// azimuthal angle to z axis
 			double fE0;			// kinetic energy
-      WCSimLikelihoodTrack::TrackType fType;
+			WCSimLikelihoodTrack::TrackType fType; // particle type (e, mu, pi...)
 
 
 

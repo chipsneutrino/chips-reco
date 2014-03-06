@@ -51,22 +51,22 @@ WCSimLikelihoodDigit::~WCSimLikelihoodDigit()
 ///////////////////////////////////////////////////////////////////////////
 // Getters
 ///////////////////////////////////////////////////////////////////////////
-int WCSimLikelihoodDigit::GetTubeId(){ return fTubeId;}
-double WCSimLikelihoodDigit::GetQ(){ return fQ;}
-double WCSimLikelihoodDigit::GetT(){ return fT;}
-double WCSimLikelihoodDigit::GetX(){ return fPos[0]; }
-double WCSimLikelihoodDigit::GetY(){ return fPos[1]; }
-double WCSimLikelihoodDigit::GetZ(){ return fPos[2]; }
-double WCSimLikelihoodDigit::GetFaceX(){ return fFace[0]; }
-double WCSimLikelihoodDigit::GetFaceY(){ return fFace[1]; }
-double WCSimLikelihoodDigit::GetFaceZ(){ return fFace[2]; }
+int WCSimLikelihoodDigit::GetTubeId() const { return fTubeId;}
+double WCSimLikelihoodDigit::GetQ() const { return fQ;}
+double WCSimLikelihoodDigit::GetT() const { return fT;}
 
-void WCSimLikelihoodDigit::Print()
+TVector3 WCSimLikelihoodDigit::GetPos() const { return TVector3(fPos[0], fPos[1], fPos[2]); }
+double WCSimLikelihoodDigit::GetX() const { return fPos[0]; }
+double WCSimLikelihoodDigit::GetY() const { return fPos[1]; }
+double WCSimLikelihoodDigit::GetZ() const { return fPos[2]; }
+
+TVector3 WCSimLikelihoodDigit::GetFace() const { return TVector3(fFace[0], fFace[1], fFace[2]) ; }
+double WCSimLikelihoodDigit::GetFaceX() const { return fFace[0]; }
+double WCSimLikelihoodDigit::GetFaceY() const { return fFace[1]; }
+double WCSimLikelihoodDigit::GetFaceZ() const { return fFace[2]; }
+
+void WCSimLikelihoodDigit::Print() const
 {
-	Double_t fQ;
-	Double_t fT;
-	Double_t fPos[3];
-	Double_t fFace[3];
 	std::cout << "WCSimLikelihoodDigit::Print()" << std::endl
 			  << "     fTubeId = " << fTubeId << std::endl
 			  << "     fQ      = " << fQ << std::endl
