@@ -2,7 +2,7 @@
 
 void wc_trackminimizer()
 {
-    TFile fTree("fitTree500.root","RECREATE");
+    TFile fTree("fitTree500_simAn.root","RECREATE");
     TTree fitTree("fitTree", "fitTree");
     Int_t event;
     Double_t fitX, fitY, fitZ, fitDistance;
@@ -43,6 +43,7 @@ void wc_trackminimizer()
     // Reconstruct Events
     // ==================
     int nEvts = myInterface->GetNumEvents();
+    nEvts = 500;
     std::cout << nEvts << " = num events" << std::endl;
 
     // The best fit track results
@@ -100,27 +101,25 @@ void wc_trackminimizer()
     std::cout << "True values were (100,-200,320,0) (pi/4,0) 1500MeV" << std::endl;
     fTree.cd();
     fitTree.Write();
+
+
+    hReso.Write();
     fTree.Close();
 
-
-    TFile fOut("resolution.root","RECREATE");
-    hReso.Write();
-    fOut.Close();
-
-    TFile seedMarkerFile("seedMarker.root","RECREATE");
-    TMarker seedMarker(seedTrack.GetX(), seedTrack.GetY(), 0);
-    seedMarker.SetMarkerSize(1.8);
-    seedMarker.SetMarkerColor(kGreen-2);
-    seedMarker.SetMarkerStyle(29);
-    seedMarker.Write();
-    seedMarkerFile.Close();
-    TFile fitMarkerFile("fitMarker.root","RECREATE");
-    TMarker fitMarker((fitTracks.at(0)).GetX(), (fitTracks.at(0)).GetY(), 1);
-    fitMarker.SetMarkerSize(1.8);
-    fitMarker.SetMarkerColor(kBlue-2);
-    fitMarker.SetMarkerStyle(29);
-    fitMarker.Write();
-    fitMarkerFile.Close();
+//    TFile seedMarkerFile("seedMarker.root","RECREATE");
+//    TMarker seedMarker(seedTrack.GetX(), seedTrack.GetY(), 0);
+//    seedMarker.SetMarkerSize(1.8);
+//    seedMarker.SetMarkerColor(kGreen-2);
+//    seedMarker.SetMarkerStyle(29);
+//    seedMarker.Write();
+//    seedMarkerFile.Close();
+//    TFile fitMarkerFile("fitMarker.root","RECREATE");
+//    TMarker fitMarker((fitTracks.at(0)).GetX(), (fitTracks.at(0)).GetY(), 1);
+//    fitMarker.SetMarkerSize(1.8);
+//    fitMarker.SetMarkerColor(kBlue-2);
+//    fitMarker.SetMarkerStyle(29);
+//    fitMarker.Write();
+//    fitMarkerFile.Close();
 
     
 }

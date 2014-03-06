@@ -87,6 +87,7 @@ void WCSimChargeLikelihood::SetTracks( std::vector<WCSimLikelihoodTrack*> myTrac
 {
   // std::cout << " *** WCSimChargeLikelihood::SetTracks() *** " << std::endl;
   fTracks = myTracks;
+  fTracks.at(0)->Print();
   fGotTrackParameters = false;
 }
 
@@ -165,8 +166,8 @@ double WCSimChargeLikelihood::Calc2LnL()
   {
     fDigit = (WCSimLikelihoodDigit *)fDigitArray->GetDigit(jDigit);
     Double_t chargeObserved = fDigit->GetQ();
-    //if((jDigit % 100) == 0){ std::cout << "jDigit  = " << jDigit << "/" << fDigitArray->GetNDigits() << "  Observed charge = " << chargeObserved << "   Expected charge = " << predictedCharges[jDigit] << "    ... So -2lnL now = " << Charge2LnL << std::endl;  }
     Charge2LnL += fDigitizer->GetMinus2LnL( predictedCharges[jDigit], chargeObserved);
+    //if((jDigit % 1) == 0){ std::cout << "jDigit  = " << jDigit << "/" << fDigitArray->GetNDigits() << "  Observed charge = " << chargeObserved << "   Expected charge = " << predictedCharges[jDigit] << "    ... So -2lnL now = " << Charge2LnL << std::endl;  }
     X = fDigit->GetX();
     Y = fDigit->GetY();
     Z = fDigit->GetZ();

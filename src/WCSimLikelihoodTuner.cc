@@ -973,9 +973,12 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateChIntegrals(WCSimLikelihood
     
     CalculateCutoff( myTrack );
     int cutoffBin = hProfile->GetNbinsX();
+    float cutoffFrac = 1.0;
     if( fCutoffIntegral > 0.0 && fCutoffIntegral < hProfile->GetXaxis()->GetXmax() && fCutoffIntegral > hProfile->GetXaxis()->GetXmin() )
     {
       cutoffBin = hProfile->FindBin(fCutoffIntegral);
+      cutoffFrac = ( fCutoffIntegral - hProfile->GetBinLowEdge(cutoffBin)) / 
+                   ( hProfile->GetBinWidth(cutoffBin));
     }
 
     // Now do the integrals. 
@@ -983,17 +986,18 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateChIntegrals(WCSimLikelihood
     TVector3 pmtPos(myDigit->GetX(), myDigit->GetY(), myDigit->GetZ());
     TVector3 vtxPos(myTrack->GetVtx());
     TVector3 vtxDir(myTrack->GetDir());
-    for(int iBin = 1; iBin <= cutoffBin; ++iBin)
+    for(int iBin = 1; iBin < cutoffBin; ++iBin)
     {
         Double_t rho = 0.;
         Double_t g = 0.; 
         Double_t s = hProfile->GetBinCenter(iBin);
 //        Double_t sLow = hProfile->GetBinLowEdge(iBin);
 //        Double_t sHigh = sLow + hProfile->GetBinWidth(iBin);
-        if( s > fCutoffIntegral && fCutoffIntegral >= 0. ) 
-        {
-          break;
-        }
+        // loop should handle this already
+        // if( s > fCutoffIntegral && fCutoffIntegral >= 0. ) 
+        // {
+        //   break;
+        // }
 
         Double_t cosTheta = TMath::Cos(vtxDir.Angle( pmtPos - (vtxPos + s * vtxDir)));
 //        Double_t cosThetaLow = TMath::Cos(vtxDir.Angle( pmtPos - (vtxPos + sLow * vtxDir) ));
@@ -1053,6 +1057,18 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateChIntegrals(WCSimLikelihood
         integrals[1] += rho * g * s * hProfile->GetBinWidth(iBin);
         integrals[2] += rho * g * s * s * hProfile->GetBinWidth(iBin);
       }
+      // Now we should be looking at the last bin - so only include part of it
+      {
+        Double_t rho = 0.;
+        Double_t g = 0.; 
+        Double_t s = hProfile->GetBinCenter(cutoffBin);
+        Double_t cosTheta = TMath::Cos(vtxDir.Angle( pmtPos - (vtxPos + s * vtxDir)));
+        rho = hProfile->GetBinContent(cutoffBin);
+        g = hAngularProfile->GetBinContent( hAngularProfile->GetXaxis()->FindBin(cosTheta), cutoffBin );
+        integrals[0] += cutoffFrac * rho * g * hProfile->GetBinWidth(cutoffBin);
+        integrals[1] += cutoffFrac * rho * g * s * hProfile->GetBinWidth(cutoffBin);
+        integrals[2] += cutoffFrac * rho * g * s * s * hProfile->GetBinWidth(cutoffBin);
+     }
 //   std::cout << "s = " << fCutoffIntegral << "   " << integrals[0] << "   " << integrals[1] << "   " << integrals[2] << std::endl;
   
     return integrals;

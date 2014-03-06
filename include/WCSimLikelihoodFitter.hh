@@ -34,6 +34,9 @@ class WCSimLikelihoodFitter
         WCSimLikelihoodTrack::TrackType fType;
         std::map<Int_t, Int_t> fParMap;
         std::vector<WCSimLikelihoodTrack> fBestFit;
+        WCSimLikelihoodTrack RescaleParams(Double_t x, Double_t y, Double_t z, Double_t t,
+                                           Double_t th, Double_t phi, Double_t E,
+                                           WCSimLikelihoodTrack::TrackType type);
         
 
         Double_t fMinimum;
