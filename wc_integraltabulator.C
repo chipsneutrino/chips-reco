@@ -10,6 +10,11 @@ void wc_integraltabulator()
     WCSimLikelihoodTrack::TrackType myType = WCSimLikelihoodTrack::MuonLike;
     TString filename("tabulatedIntegralsRhoG.bin");
     myTuner->TabulateIntegrals(myType, filename);
+<<<<<<< HEAD
     //WCSimLikelihoodTrack * myTrack = new WCSimLikelihoodTrack(0,0,0,0,0,0,1500,WCSimLikelihoodTrack::MuonLike);
     //myTuner->LoadTabulatedIntegrals(myTrack);
+=======
+    WCSimLikelihoodTrack * myTrack = new WCSimLikelihoodTrack(0,0,0,0,0,0,1500,WCSimLikelihoodTrack::MuonLike);
+    myTuner->LoadTabulatedIntegrals(myTrack);
+>>>>>>> 1d76eafaf5c2e96d8b78405738da852825d0e829
 }
