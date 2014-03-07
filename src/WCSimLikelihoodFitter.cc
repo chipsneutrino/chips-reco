@@ -29,6 +29,9 @@
 ClassImp(WCSimLikelihoodFitter)
 #endif
 
+/**
+ * @todo Remove hardcoding of track type
+ */
 WCSimLikelihoodFitter::WCSimLikelihoodFitter(WCSimRootEvent * myRootEvent)
 {
     fRootEvent = myRootEvent;
@@ -38,13 +41,15 @@ WCSimLikelihoodFitter::WCSimLikelihoodFitter(WCSimRootEvent * myRootEvent)
     fParMap[1] = 8; // The number of fit parameters for n tracks, plus 1 for nTracks itself (fixed)
     fParMap[2] = 11;
     fMinimum  = 0;
-    fSeedVtxX = 0.0;
-    fSeedVtxY = 0.0;
-    fSeedVtxZ = 0.0;
-    fSeedTheta = 0.0;
-    fSeedPhi = 0.0;
+    fSeedVtxX = 0.6;
+    fSeedVtxY = 0.6;
+    fSeedVtxZ = 0.6;
+    fSeedTheta = 0.1;
+    fSeedPhi = 0.5;
     fIsFirstCall = true;
 }
+
+
 
 WCSimLikelihoodFitter::~WCSimLikelihoodFitter()
 {
@@ -52,24 +57,29 @@ WCSimLikelihoodFitter::~WCSimLikelihoodFitter()
   delete fTotalLikelihood;
 }
 
+
+
 Int_t WCSimLikelihoodFitter::GetNPars(Int_t nTracks)
 {
+  // Do we know how to fit this number of tracks?
   Int_t nPars = -1;
   std::map<Int_t, Int_t>::const_iterator mapItr = fParMap.find(nTracks);
   if(mapItr == fParMap.end()) std::cerr << "WCSimLikelihoodFitter::GetNPars *** Error: could not look up the number of parameters for " << nTracks << " tracks" << std::endl;
   else nPars = fParMap[nTracks];
+
   return nPars;
 }
 
-/** Perform the minimization.
- * @input nTracks Number of tracks to allow in the fitter
- * @return Whether minimizer converged (0 if it did)
- **/
-Int_t WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
+
+
+void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
 {
-  // Set up the minimizer
-   // ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "GSLSimAn");
+   // Set up the minimizer
    ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Simplex");
+
+   // Alternatively: use a different algorithm to check the minimizer works
+   // ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "GSLSimAn");
+
    min->SetMaxFunctionCalls(9999999);
    min->SetMaxIterations(9);
    min->SetPrintLevel(3);
@@ -92,7 +102,6 @@ Int_t WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
   std::string * parName = new std::string[nPars];
 
   // Set parameter start values to the seed output
-  
   if(nTracks == 1 || nTracks ==2)
   {
     
@@ -173,6 +182,8 @@ Int_t WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
   }
 
  /* 
+    // If we test the using the simulated annealing algorithm to do the minimizing
+    // it converges better if we vary parameters between 0 and 1 and scale them up later
     par[0] = nTracks;    // x
     par[1] = fSeedVtxX;    // x
     par[2] = fSeedVtxY;    // y
@@ -241,48 +252,55 @@ Int_t WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
     parName[10] = "energy_2";
   }
   */
+
+  // Print the parameters we're using
   for(UInt_t j = 0; j < nPars; ++j)
-  {std::cout << j << "   " << parName[j] << "   " << par[j] << "   " << minVal[j] << "   " << maxVal[j] << std::endl;}
+  {
+      std::cout << j << "   " << parName[j] << "   " << par[j] << "   " << minVal[j] << "   " << maxVal[j] << std::endl;
+  }
 
   // Tell the minimizer the functor and variables to consider
   min->SetFunction(func);
-//  min->SetFixedVariable(0,"nTracks",nTracks);  // Lets the wrapper construct the right likelihood
+  // min->SetFixedVariable(0,"nTracks",nTracks);  // Lets the wrapper construct the right likelihood
+
+  // Set the fixed and free variables
   for(Int_t i = 0; i < nPars; ++i)
   {
     min->SetVariable(i,parName[i], par[i], stepSize[i]);
     if((1 == i || 2 == i || 3 == i ) && (maxVal[i] != minVal[i])){ min->SetLimitedVariable(i,parName[i], par[i], stepSize[i], minVal[i], maxVal[i]);}
-    if(0 == i || 4 == i || 5 == i || 6 == i || 7 == i) min->SetFixedVariable(i, parName[i], par[i]);
+    if(0 == i || 4 == i || 5 == i || 6 == i || 7 == i) { min->SetFixedVariable(i, parName[i], par[i]); }
     std::cout << i << "   " << parName[i] << "   " << par[i] << "   " << minVal[i] << "   " << maxVal[i] << std::endl;
   }
 
-//  // Fix the direction
-//  min->SetFixedVariable(5, parName[5], par[5]);
-//  min->SetFixedVariable(6, parName[6], par[6]);
-//
+  //  // Fix the direction
+  //  min->SetFixedVariable(5, parName[5], par[5]);
+  //  min->SetFixedVariable(6, parName[6], par[6]);
+
+
   // Perform the minimization
   min->Minimize();
-  Int_t minStatus = min->Status();
-  // std::cout << "Manual status is " << minStatus << std::endl;
   fMinimum = min->MinValue();
+
   // Get and print the fit results
   const Double_t * outPar = min->X();
 
-//  // Fix the vertex
-//  min->SetFixedVariable(1, parName[1], outPar[1]);
-//  min->SetFixedVariable(2, parName[2], outPar[2]);
-//  min->SetFixedVariable(3, parName[3], outPar[3]);
-//  min->SetLimitedVariable(5, parName[5], par[5], stepSize[5], maxVal[5], minVal[5]);
-//  min->SetLimitedVariable(6, parName[6], par[6], stepSize[6], maxVal[6], minVal[6]);
-//  for(UInt_t j = 0; j < nPars; ++j){std::cout << j << "   " << parName[j] << "   " << par[j] << "   " << minVal[j] << "   " << maxVal[j] << std::endl;}
-//  min->Minimize();
+  //  // Fix the vertex
+  //  min->SetFixedVariable(1, parName[1], outPar[1]);
+  //  min->SetFixedVariable(2, parName[2], outPar[2]);
+  //  min->SetFixedVariable(3, parName[3], outPar[3]);
+  //  min->SetLimitedVariable(5, parName[5], par[5], stepSize[5], maxVal[5], minVal[5]);
+  //  min->SetLimitedVariable(6, parName[6], par[6], stepSize[6], maxVal[6], minVal[6]);
+  //  for(UInt_t j = 0; j < nPars; ++j){std::cout << j << "   " << parName[j] << "   " << par[j] << "   " << minVal[j] << "   " << maxVal[j] << std::endl;}
+  //  min->Minimize();
 
 
   // Get and print the fit results
   const Double_t * outPar2 = min->X();
   const Double_t * err    = min->Errors();
   std::cout << "Best fit track: " << std::endl;
-  // RescaleParams(outPar2[1],  outPar2[2],  outPar2[3],  outPar2[4],  outPar2[5],  outPar2[6],  outPar2[7], fType).Print();
+  RescaleParams(outPar2[1],  outPar2[2],  outPar2[3],  outPar2[4],  outPar2[5],  outPar2[6],  outPar2[7], fType).Print();
 
+  // Now save the best-fit tracks
   fBestFit.clear();
   switch(nTracks)
   {
@@ -300,14 +318,13 @@ Int_t WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
     default:
       break;
   }
-  // std::cout << "Manual status is now " << minStatus << std::endl;
-  return minStatus;
+  return;
 }
 
-////////////////////////////////////////////////////////////
-// Wrapper: constructs the correct number of track objects
-// then works out the total likelihood
-////////////////////////////////////////////////////////////
+/**
+ * Wrapper: constructs the correct number of track objects
+ * then works out the total likelihood
+ */
 Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
 {
   std::vector<WCSimLikelihoodTrack> trackVec;
@@ -332,16 +349,17 @@ Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
     trackVec.push_back(myTrack2);
   }
 
-  if(fIsFirstCall || 1)
+  if(fIsFirstCall || 1) // TEMP: Print it out all the time for now
   {
     std::cout << "Tracks used for first call:" << std::endl;
     std::vector<WCSimLikelihoodTrack>::iterator itr = trackVec.begin();
-    // for( ; itr < trackVec.end(); ++itr)
-    // {
-    //   (*itr).Print();
-    // }
+    for( ; itr < trackVec.end(); ++itr)
+    {
+      (*itr).Print();
+    }
     fIsFirstCall = false;
   }
+
   std::cout << " ...  Done" << std::endl;
   Double_t minus2LnL = 0.0;
   fTotalLikelihood->SetTracks(trackVec);
@@ -352,6 +370,7 @@ Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
 
 
 /*
+ * Integrate the time likelihood here:
 double WCSimLikelihoodFitter::Time2LnL( )
 {
     WCSimChargeLikelihood * myChargeLikelihood = new WCSimChargeLikelihood( fLikelihoodDigitArray, fTrack );
@@ -382,9 +401,11 @@ void WCSimLikelihoodFitter::SeedParams( WCSimReco * myReco )
   
 
    fSeedTheta   = TMath::ACos(recoDirZ);
-   if(recoDirY != 0) fSeedPhi = TMath::ATan2(recoDirY,recoDirX); // range -pi to pi
+   if(recoDirY != 0) fSeedPhi = TMath::ATan2(recoDirY,recoDirX); // Ensure range is -pi to pi
    else fSeedPhi = (recoDirX < 0.0)? 0.5*TMath::Pi() : -0.5*TMath::Pi();
 
+   //   fSeedTheta = 0.5*TMath::Pi();
+   //   fSeedPhi = 0.25*TMath::Pi();
 
   // std::cout << "Seed dir = (vx, vy, vz) = ( " << recoDirX << "," << recoDirY << "," << recoDirZ << ")" << std::endl
   std::cout << "-> theta = " << fSeedTheta << "    phi = " << fSeedPhi << std::endl
@@ -412,16 +433,21 @@ WCSimLikelihoodTrack WCSimLikelihoodFitter::RescaleParams(Double_t x, Double_t y
                                                           Double_t th, Double_t phi, Double_t E, 
                                                           WCSimLikelihoodTrack::TrackType type)
 {
+  // Currently do nothing...
   return WCSimLikelihoodTrack(x,y,z,t,th,phi,E,type);
+
+  // But could do this - scale variables in the range (0,1) up to proper track parameers:
   double pi = TMath::Pi();
   double x2,y2,z2,t2,th2,phi2,E2;
-//   x2   = (1900.+x)/3800.;
-//   y2   = (1900.+y)/3800.;
-//   z2   = (940. +z)/1880.;
-//   t2   = t;
-//   th2  = th / pi;
-//   phi2 = (phi+pi)/(2*pi);
-//   E2    = E / 1500;
+  // x2   = (1900.+x)/3800.;
+  // y2   = (1900.+y)/3800.;
+  // z2   = (940. +z)/1880.;
+  // t2   = t;
+  // th2  = th / pi;
+  // phi2 = (phi+pi)/(2*pi);
+  // E2   = E / 1500;
+
+  // Dirty hack: detector dimensions hardcoded for quick testing
   x2 = 3800.0 * x - 1900.;
   y2 = 3800.0 * y - 1900.;
   z2 = 1880.0 * z - 940.;

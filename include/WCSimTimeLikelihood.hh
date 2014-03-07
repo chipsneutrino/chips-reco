@@ -1,3 +1,10 @@
+/**
+ * \class WCSimTimeLikelihood
+ * This class is used to calculate the contribution to the
+ * total likelihood due to the timing information of the PMT
+ * hits.
+ */
+
 #ifndef WCSIMTIMELIKELIHOOD_H
 #define WCSIMTIMELIKELIHOOD_H
 

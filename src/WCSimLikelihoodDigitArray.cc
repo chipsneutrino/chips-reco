@@ -100,9 +100,18 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myEvent )
 
 }
 
-// Use hits before digitizing them to help tune the charge likelihood
+/**
+ * Use hits before digitizing them to help tune the charge likelihood
+ * @TODO Handle this properly using one constructor and some kind of Initialise() function
+ */
 WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myRootEvent, Bool_t useUndigitized)
 {
+    if( ! useUndigitized )
+    {
+        std::cerr << "Error: bool useUndigitized has to be true" << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
 	// Check the number of PMTs and create a TClonesArray with one entry per PMT
     Int_t numPMT = ((WCSimGeometry::Instance())->GetNumPMTs());  // WCSimGeometry adds 1 to the true number to prevent overflow errors
   	WCSimGeometry::PrintGeometry();
@@ -165,7 +174,7 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myRootEve
  
     	Float_t t = ((WCSimRootCherenkovHitTime *)fCherenkovHitTimes->At(myChHit->GetTotalPe(0)))->GetTruetime();	
 		
-		  WCSimRootGeom * myGeom = (WCSimRootGeom*)(WCSimGeometry::Instance())->GetWCSimGeometry();
+    	WCSimRootGeom * myGeom = (WCSimRootGeom*)(WCSimGeometry::Instance())->GetWCSimGeometry();
     	WCSimRootPMT myPMT = myGeom->GetPMTFromTubeID(tubeID);
     	Double_t posX = myPMT.GetPosition(0);
     	Double_t posY = myPMT.GetPosition(1);

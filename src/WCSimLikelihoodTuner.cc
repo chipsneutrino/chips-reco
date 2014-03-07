@@ -133,6 +133,8 @@ void WCSimLikelihoodTuner::Initialize()
 
 
 }
+
+
 /////////////////////////////////////////////
 // Destructor
 /////////////////////////////////////////////
@@ -162,6 +164,8 @@ WCSimLikelihoodTuner::~WCSimLikelihoodTuner()
 
 }
 
+
+
 void WCSimLikelihoodTuner::UpdateDigitArray( WCSimLikelihoodDigitArray * myDigitArray)
 {
 
@@ -177,6 +181,7 @@ void WCSimLikelihoodTuner::UpdateDigitArray( WCSimLikelihoodDigitArray * myDigit
 }
 
 
+
 ////////////////////////////////////////////////////////////////////////
 // Load the appropriate emission profiles for this track's particle type
 ////////////////////////////////////////////////////////////////////////
@@ -185,6 +190,8 @@ void WCSimLikelihoodTuner::LoadEmissionProfiles( WCSimLikelihoodTrack * myTrack 
   this->LoadEmissionProfiles(myTrack->GetType());
   return;
 }
+
+
 
 ///////////////////////////////////////////////////////////////
 // Load the appropriate emission profile for a given track type
@@ -216,7 +223,7 @@ void WCSimLikelihoodTuner::LoadEmissionProfiles( WCSimLikelihoodTrack::TrackType
       std::cerr << "Track type = " << myType << std::endl;
       break;
     default:
-      std::cerr << "Error: unkown track type in WCSimLikelihoodTuner::LoadEmissionProfiles" << std::endl;
+      std::cerr << "Error: unknown track type in WCSimLikelihoodTuner::LoadEmissionProfiles" << std::endl;
       std::cerr << "Track type = " << myType << std::endl;
       exit(EXIT_FAILURE);
   }
@@ -231,15 +238,15 @@ void WCSimLikelihoodTuner::LoadEmissionProfiles( WCSimLikelihoodTrack::TrackType
     //std::cout << " Was null" << fProfiles << std::endl;
   }
 
-  fProfiles = new TFile(fProfileLocation->Data(),"READ");
-  fIsOpen = myType;
-  fHistArray = (TObjArray *) fProfiles->Get("histArray");
+  fProfiles     = new TFile(fProfileLocation->Data(),"READ");
+  fIsOpen       = myType;
+  fHistArray    = (TObjArray *) fProfiles->Get("histArray");
   fHistArray->SetOwner(kTRUE);
   fAngHistArray = (TObjArray *) fProfiles->Get("angHistArray");
   fAngHistArray->SetOwner(kTRUE);
-  fFluxArray = (TObjArray *) fProfiles->Get("fluxArray");
+  fFluxArray    = (TObjArray *) fProfiles->Get("fluxArray");
   fFluxArray->SetOwner(kTRUE);
-  fWhichHisto = (TH1D*) fProfiles->Get("hWhichHisto");
+  fWhichHisto   = (TH1D*) fProfiles->Get("hWhichHisto");
   return;
   
 
@@ -250,16 +257,19 @@ void WCSimLikelihoodTuner::LoadEmissionProfiles( WCSimLikelihoodTrack::TrackType
 /////////////////////////////////////////////////////////////////////////////////////////
 Double_t WCSimLikelihoodTuner::TransmissionFunction(Double_t s, WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit)
 {
+    // return 1;
+	
 	if( s== 0) return 1;
-    // First we need the distance from the photon emission to the PMT 
+
+	// First we need the distance from the photon emission to the PMT
     TVector3 pmtPos      = myDigit->GetPos();
     TVector3 emissionPos = myTrack->GetPropagatedPos(s);
-    Double_t r = (pmtPos - emissionPos).Mag();
+    Double_t r           = (pmtPos - emissionPos).Mag();
 
     // We'll use a triple exponential to parameterise the transmission probability
-    Double_t nu[3] = {-1.137e-5,-5.212e-4, -4.359e-3}; // nu = 1/Decay length in mm
+    Double_t nu[3]     = {-1.137e-5,-5.212e-4, -4.359e-3}; // nu = 1/Decay length in mm
     Double_t f[3]      = {0.8827, 0.08162, 0.03515};
-    Double_t trans=0.0;
+    Double_t trans     = 0.0;
     for(int i = 0; i < 3; ++i){ trans+= f[i]*exp(1.0 * 10 * r * nu[i]);}  //Convert to cm -> factor 10
     return trans;
 }
@@ -271,6 +281,8 @@ Double_t WCSimLikelihoodTuner::TransmissionFunction(Double_t s, WCSimLikelihoodT
 ///////////////////////////////////////////////////////////////////////////////////////
 Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit)
 {
+	// return 1;
+
     // We need the angle of incidence at the PMT
     TVector3 pmtPos      = myDigit->GetPos();
     TVector3 emissionPos = myTrack->GetPropagatedPos(s);
@@ -596,15 +608,15 @@ void WCSimLikelihoodTuner::CalculateCutoff( WCSimLikelihoodTrack * myTrack )
   {
     assert(fGeomType != WCSimLikelihoodDigitArray::kUnknown);
 
-    TVector3 vtx = myTrack->GetVtx();
-    TVector3 dir = myTrack->GetDir();
+    TVector3 vtx     = myTrack->GetVtx();
+    TVector3 dir     = myTrack->GetDir();
     Double_t sMax[3] = {0., 0.,0.};
 
-    // std::cout << "Vertex is " << std::endl;
-    // vtx.Print();
+    std::cout << "Vertex is " << std::endl;
+    vtx.Print();
 
-    // std::cout << "Direction is " << std::endl;
-    // dir.Print();
+    std::cout << "Direction is " << std::endl;
+    dir.Print();
 
     if( fGeomType == WCSimLikelihoodDigitArray::kCylinder )
     {
@@ -619,14 +631,14 @@ void WCSimLikelihoodTuner::CalculateCutoff( WCSimLikelihoodTrack * myTrack )
   }
   std::cout << "Cutoff = " << cutoff << ".... returning" << std::endl;
   fCutoffIntegral = cutoff;
-  fLastCutoff = myTrack;
+  fLastCutoff     = myTrack;
   return;
 }
 
 /// Calculate where the integral should be cut off if the detector is a cylinder
 Double_t WCSimLikelihoodTuner::CalculateCylinderCutoff(const TVector3 &vtx, const TVector3 &dir)
 {
-  Double_t cutoff = fSMax;
+  Double_t cutoff  = fSMax;
   Double_t sMax[3] = {0., 0.,0.};
  
   TVector3 flatDir( dir(0), dir(1), 0);
@@ -638,31 +650,31 @@ Double_t WCSimLikelihoodTuner::CalculateCylinderCutoff(const TVector3 &vtx, cons
   Double_t part1 = -1 * xDotD;
   Double_t part2 = TMath::Sqrt( xDotD * xDotD  - flatDir.Mag2() * (flatVtx.Mag2() - fExtent[0]*fExtent[0])  );
 
-  Double_t s1 = (part1 + part2) / flatDir.Mag2();
-  Double_t s2 = (part1 - part2) / flatDir.Mag2();
-  if( s1 > 0) sMax[0] = s1;
-  else if( s2 > 0) sMax[0] = s2;
+  Double_t s1    = (part1 + part2) / flatDir.Mag2();
+  Double_t s2    = (part1 - part2) / flatDir.Mag2();
+  if( s1 > 0) {      sMax[0] = s1; }
+  else if( s2 > 0) { sMax[0] = s2; }
 
   sMax[1] = sMax[0];
-  // std::cout << "It's a cylinder, sR = " << sMax[0] <<std::endl;
+  std::cout << "It's a cylinder, sR = " << sMax[0] <<std::endl;
 
   // The z coordinate
   if( dir(2) > 1e-6 )
   {
       sMax[2] = (  fExtent[2] - vtx(2) ) / ( dir(2) );
-      // std::cout << "Direction " << 2 << " cutoff is " << sMax[2] << std::endl;
+      std::cout << "Direction " << 2 << " cutoff is " << sMax[2] << std::endl;
   }
   else if( dir(2) < -1e-6 )
   {
       sMax[2] = ( -fExtent[2] - vtx(2) ) / ( dir(2) );
-      // std::cout << "Direction " << 2 << " (negative) cutoff is " << sMax[2] << std::endl;
+      std::cout << "Direction " << 2 << " (negative) cutoff is " << sMax[2] << std::endl;
   }
-  else sMax[2] = cutoff;
+  else { sMax[2] = cutoff; }
   std::cout << sMax[2] << std::endl;
   
   // The world's laziest sorting algorithm:
-  if( sMax[0] < cutoff)  cutoff = sMax[0];
-  if( sMax[2] < cutoff ) cutoff = sMax[2];
+  if( sMax[0] < cutoff) { cutoff = sMax[0]; }
+  if( sMax[2] < cutoff) { cutoff = sMax[2]; }
 
   return cutoff;
 }
@@ -670,7 +682,7 @@ Double_t WCSimLikelihoodTuner::CalculateCylinderCutoff(const TVector3 &vtx, cons
 /// Calculate where the integral should be cut off if the detector is a box
 Double_t WCSimLikelihoodTuner::CalculateMailBoxCutoff(const TVector3 &vtx, const TVector3 &dir)
 {
-  Double_t cutoff = fSMax;
+  Double_t cutoff  = fSMax;
   Double_t sMax[3] = {0., 0.,0.};
   
   // Escapes in r
@@ -686,13 +698,13 @@ Double_t WCSimLikelihoodTuner::CalculateMailBoxCutoff(const TVector3 &vtx, const
         sMax[i] = ( -fExtent[i] - vtx(i) ) / ( dir(i) );
         std::cout << "Direction " << i << " (negative) cutoff is " << sMax[i] << std::endl;
     }
-    else sMax[i] = cutoff;
+    else { sMax[i] = cutoff; }
     std::cout << sMax[i] << std::endl;
   }
   // The world's laziest sorting algorithm:
-  if( sMax[0] < cutoff)  cutoff = sMax[0];
-  if( sMax[1] < cutoff)  cutoff = sMax[1];
-  if( sMax[2] < cutoff ) cutoff = sMax[2];
+  if( sMax[0] < cutoff) { cutoff = sMax[0]; }
+  if( sMax[1] < cutoff) { cutoff = sMax[1]; }
+  if( sMax[2] < cutoff) { cutoff = sMax[2]; }
 
   return cutoff;
 }
@@ -701,13 +713,13 @@ Double_t WCSimLikelihoodTuner::CalculateMailBoxCutoff(const TVector3 &vtx, const
 //////////////////////////////////////////////////////////////////////////
 Int_t WCSimLikelihoodTuner::GetEBin(Double_t energy)
 {
-  if(energy == fEMax) return fNEBins-1;
+  if(energy == fEMax) { return fNEBins-1; }
   return static_cast<Int_t>( (energy - fEMin) / ((fEMax - fEMin)/(Double_t)fNEBins) );
 }
 
 Int_t WCSimLikelihoodTuner::GetSBin(Double_t sMax)
 {  
-  if(sMax >= fSMax) return 3*(fNSBins-1);
+  if(sMax >= fSMax) { return 3*(fNSBins-1); }
   return 3*static_cast<Int_t>( (sMax - 0) / (fSMax/(Double_t)fNSBins ));
 }
 
@@ -716,20 +728,20 @@ Int_t WCSimLikelihoodTuner::GetESBin(Double_t energy, Double_t sMax)
 {  
   Int_t eBin = (energy >= fEMaxRho)? fNEBinsRho-1 : static_cast<Int_t>( (energy - fEMinRho) / ((fEMaxRho-fEMinRho)/(Double_t)fNEBinsRho ));
   Int_t sBin = (sMax >= fSMaxRho)? fNSBins-1 : static_cast<Int_t>( (sMax - fSMinRho) / ((fSMaxRho-fSMinRho)/(Double_t)fNSBinsRho ));
-//  std::cout << "energy = " << energy << "   so eBin = " << eBin << std::endl
-//            << "sMax   = " << fSMax  << "   so sBin = " << sBin << std::endl
-//            << "ESBin  = " << sBin + fNSBins * eBin << std::endl;
+  // std::cout << "energy = " << energy << "   so eBin = " << eBin << std::endl
+  //           << "sMax   = " << fSMax  << "   so sBin = " << sBin << std::endl
+  //           << "ESBin  = " << sBin + fNSBins * eBin << std::endl;
   return 3*(sBin + fNSBinsRho * eBin);
 }
 
 Int_t WCSimLikelihoodTuner::GetIntegralBin(Double_t E, Double_t sMax, Double_t R0, Double_t cosTheta0)
 {
-	  Int_t eBin = (E >= fEMax) ? fNEBins-1 : static_cast<Int_t>( (E - fEMin) / ((fEMax - fEMin)/(Double_t)fNEBins) );
+	Int_t eBin = (E >= fEMax) ? fNEBins-1 : static_cast<Int_t>( (E - fEMin) / ((fEMax - fEMin)/(Double_t)fNEBins) );
     Int_t sBin = (sMax >= fSMax) ? fNSBins-1 : static_cast<Int_t>( (sMax - fSMin) / ((fSMax-fSMin)/(Double_t)fNSBins ));
     Int_t R0Bin = (R0 >= fR0Max) ? fNR0Bins-1 : static_cast<Int_t>( (R0 - fR0Min) / ((fR0Max-fR0Min)/(Double_t)fNR0Bins ));
     Int_t cosTheta0Bin = ( cosTheta0 >= fCosTheta0Max)? fNCosTheta0Bins-1 : static_cast<Int_t>( (cosTheta0 - fCosTheta0Min) / ((fCosTheta0Max - fCosTheta0Min)/(Double_t)fNCosTheta0Bins ));
-//    std::cout << "Values are " << "Energy = " << E << "   sMax = " << sMax << "   R0 = " << R0 << "   cosTheta0" << cosTheta0 << std::endl;
-//    std::cout << "Bins are " << eBin << "/" << fNEBins << "    " << sBin << "/" << fNSBins << "    " << R0Bin << "/" << fNR0Bins << "     " << cosTheta0Bin << "/" << fNCosTheta0Bins <<  std::endl;
+    // std::cout << "Values are " << "Energy = " << E << "   sMax = " << sMax << "   R0 = " << R0 << "   cosTheta0" << cosTheta0 << std::endl;
+    // std::cout << "Bins are " << eBin << "/" << fNEBins << "    " << sBin << "/" << fNSBins << "    " << R0Bin << "/" << fNR0Bins << "     " << cosTheta0Bin << "/" << fNCosTheta0Bins <<  std::endl;
     
    	return  3*(sBin + fNSBins*(cosTheta0Bin + fNCosTheta0Bins*(R0Bin + fNR0Bins *( eBin ))));
 }
@@ -744,39 +756,38 @@ Int_t WCSimLikelihoodTuner::GetIntegralBin(Double_t E, Double_t sMax, Double_t R
 void WCSimLikelihoodTuner::LoadTabulatedIntegrals( WCSimLikelihoodTrack * myTrack )
 {
   // Check we have the same track type, energy and s cutoff as before
-	WCSimLikelihoodTrack::TrackType myType = myTrack->GetType();
+  WCSimLikelihoodTrack::TrackType myType = myTrack->GetType();
   this->CalculateCutoff(myTrack);
 
   // In which case we don't need to do anything!
-	if( myType == fIntegralParticleType )
-	{
-//			std::cout << "Returning!" << std::endl;
-		return;
-	}
-
+  if( myType == fIntegralParticleType )
+  {
+    // std::cout << "Returning!" << std::endl;
+	return;
+  }
 		
   std::cout << "Looking up integrals" << std::endl;
   // Otherwise open up the right table file
   std::ifstream integralFileRhoG;
   std::ifstream integralFileRho;
-	switch(myType)
-	{
-		case WCSimLikelihoodTrack::MuonLike:
-			std::cout << "It's muon-like" << std::endl;
-      integralFileRhoG.open("config/integralsMuonRhoG.dat",std::ios::in|std::ios::binary);
-      integralFileRho.open("config/integralsMuonRho.dat",std::ios::in|std::ios::binary);
-      break;
-	  	case WCSimLikelihoodTrack::ElectronLike:
-	  		std::cout << "Is it tripping the electronlike flag too?" << WCSimLikelihoodTrack::ElectronLike << std::endl;
-      integralFileRhoG.open("config/integralsElectronRhoG.dat",std::ios::in|std::ios::binary);
-      integralFileRho.open("config/integralsElectronRho.dat",std::ios::in|std::ios::binary);
-	  	break;
-		case WCSimLikelihoodTrack::Unknown:
-  		std::cout << "Or is it?" << "   " << myType << std::endl;
-	  		std::cerr << "Error: could not identify particle type, exiting" << std::endl;	 			
-        exit(EXIT_FAILURE);	
-			break;
-	}
+  switch(myType)
+  {
+      case WCSimLikelihoodTrack::MuonLike:
+          std::cout << "It's muon-like" << std::endl;
+          integralFileRhoG.open("config/integralsMuonRhoG.dat",std::ios::in|std::ios::binary);
+          integralFileRho.open("config/integralsMuonRho.dat",std::ios::in|std::ios::binary);
+          break;
+      case WCSimLikelihoodTrack::ElectronLike:
+          std::cout << "Is it tripping the electronlike flag too?" << WCSimLikelihoodTrack::ElectronLike << std::endl;
+          integralFileRhoG.open("config/integralsElectronRhoG.dat",std::ios::in|std::ios::binary);
+          integralFileRho.open("config/integralsElectronRho.dat",std::ios::in|std::ios::binary);
+          break;
+      case WCSimLikelihoodTrack::Unknown:
+          std::cout << "Or is it?" << "   " << myType << std::endl;
+          std::cerr << "Error: could not identify particle type, exiting" << std::endl;
+          exit(EXIT_FAILURE);
+          break;
+  }
 
   if(integralFileRhoG.is_open() == false)
   {
@@ -799,22 +810,22 @@ void WCSimLikelihoodTuner::LoadTabulatedIntegrals( WCSimLikelihoodTrack * myTrac
     integralFileRhoG.read((char *) &fCosTheta0Max, sizeof(fCosTheta0Max));
     integralFileRhoG.read((char *) &fSMin, sizeof(fSMin));
     integralFileRhoG.read((char *) &fSMax, sizeof(fSMax));
-       std::cout << fNCosTheta0Bins << "  " << fSMax << std::endl;
+    std::cout << fNCosTheta0Bins << "  " << fSMax << std::endl;
 
     fNBinsRhoG = 3 * fNEBins * fNR0Bins * fNCosTheta0Bins * fNSBins;
     std::cout << fNBinsRhoG;
     if(fRhoGIntegrals) delete fRhoGIntegrals;
     fRhoGIntegrals = new Double_t[fNBinsRhoG];
     integralFileRhoG.read((char *) &fRhoGIntegrals[0], fNBinsRhoG * sizeof(fRhoGIntegrals[0]));
-//    ofstream outFile("whatWeReadRhoG.txt");
-//    for(int i = 0; i < fNBinsRhoG; i+=3)
-//    {
-//      outFile << fRhoGIntegrals[i] << " ";
-//      outFile << fRhoGIntegrals[i+1] << " ";
-//      outFile << fRhoGIntegrals[i+2] << " ";
-//      if((i % 60) == 0) outFile << std::endl;
-//    }
-//    outFile.close();
+    // ofstream outFile("whatWeReadRhoG.txt");
+    // for(int i = 0; i < fNBinsRhoG; i+=3)
+    // {
+    //    outFile << fRhoGIntegrals[i] << " ";
+    //    outFile << fRhoGIntegrals[i+1] << " ";
+    //    outFile << fRhoGIntegrals[i+2] << " ";
+    //    if((i % 60) == 0) outFile << std::endl;
+    // }
+    // outFile.close();
 
   } 
     
@@ -838,20 +849,21 @@ void WCSimLikelihoodTuner::LoadTabulatedIntegrals( WCSimLikelihoodTrack * myTrac
     fNBinsRho = 3 * fNEBinsRho * fNSBinsRho;
     fRhoIntegrals = new Double_t[fNBinsRho];
     integralFileRho.read((char *) &fRhoIntegrals[0], fNBinsRho * sizeof(fRhoIntegrals[0]));
-//    ofstream outFile;
-//    outFile.open("whatWeReadRho.txt");
-//    for(int i = 0; i < fNBinsRho; i+=3)
-//    { 
-//      outFile << fRhoIntegrals[i] << " ";
-//      outFile << fRhoIntegrals[i+1] << " ";
-//      outFile << fRhoIntegrals[i+2] << " ";
-//      if((i%60)==0 && i != 0) outFile << std::endl;
-//    }
-//    outFile.close();
+    // ofstream outFile;
+    // outFile.open("whatWeReadRho.txt");
+    // for(int i = 0; i < fNBinsRho; i+=3)
+    // {
+    //    outFile << fRhoIntegrals[i] << " ";
+    //    outFile << fRhoIntegrals[i+1] << " ";
+    //    outFile << fRhoIntegrals[i+2] << " ";
+    //    if((i%60)==0 && i != 0) outFile << std::endl;
+    // }
+    // outFile.close();
   }
 
   fIntegralParticleType = myType;
 
+  return;
 }
 
 
@@ -859,7 +871,6 @@ void WCSimLikelihoodTuner::LoadTabulatedIntegrals( WCSimLikelihoodTrack * myTrac
 //  Get the integrals along the track, using the config file to decide if
 //  they should be looked-up or calculated numerically
 ///////////////////////////////////////////////////////////////////////////
-
 // First the contribution from Cherenkov light
 double WCSimLikelihoodTuner::GetChIntegrals(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit, Int_t sPower)
 {
@@ -871,7 +882,7 @@ double WCSimLikelihoodTuner::GetChIntegrals(WCSimLikelihoodTrack * myTrack, WCSi
     }
     else 
     {
-      // std::cout << "Looking up the Cherenkov integrals" << std::endl;
+      std::cout << "Looking up the Cherenkov integrals" << std::endl;
       return this->LookupChIntegrals(myTrack, myDigit, sPower);
     }
 }
@@ -886,7 +897,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::GetChIntegrals(WCSimLikelihoodTrack 
     }
     else
     {
-      // std::cout << "Looking up the Cherenkov integrals" << std::endl;
+      std::cout << "Looking up the Cherenkov integrals" << std::endl;
       return this->LookupChIntegrals(myTrack, myDigit);
     }
 }
@@ -936,36 +947,38 @@ double WCSimLikelihoodTuner::LookupChIntegrals(WCSimLikelihoodTrack * myTrack, W
 ///////////////////////////////////////////////////////////////////////////
 std::vector<Double_t> WCSimLikelihoodTuner::LookupChIntegrals(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit)
 {
-//  	std::cout << "*** WCSimLikelihoodTuner::LookupChIntegrals() *** Looking up the tabulated integrals for direct Cherenkov light" << std::endl; 
+    // std::cout << "*** WCSimLikelihoodTuner::LookupChIntegrals() *** Looking up the tabulated integrals for direct Cherenkov light" << std::endl;
 	this->LoadTabulatedIntegrals( myTrack );
 
  	
- 	//std::cout << "Doing the vector stuff ..." ;
+ 	// std::cout << "Doing the vector stuff ..." ;
  	TVector3 pmtPos(myDigit->GetX(), myDigit->GetY(), myDigit->GetZ());
  	Double_t R0 = (pmtPos - (myTrack->GetVtx())).Mag();
  	Double_t cosTheta0 = myTrack->GetDir().Dot(pmtPos - myTrack->GetVtx()) / (R0);
- 	//std::cout << "Done! ... ";
+ 	// std::cout << "Done! ... ";
  	
- 	//std::cout << "Checking which bin...";
-  Int_t whichBin = this->GetIntegralBin(myTrack->GetE(), fCutoffIntegral, R0, cosTheta0);
-  //std::cout << "  E      = " << myTrack->GetE() << "  sMax      = " << fCutoffIntegral << " R0     = " << R0 << "    cosTheta0 = " << cosTheta0 << std::endl;
-//  std::cout << "Int bin = " << this->GetIntegralBin(myTrack->GetE(), fCutoffIntegral, R0, cosTheta0) << std::endl;
-//  std::cout << "Integrals are      i[0]    = " << fRhoGIntegrals[whichBin] << "         i[1] = " << fRhoGIntegrals[1+whichBin] << "       i[2] = " << fRhoGIntegrals[whichBin+2] << std::endl;
+ 	// std::cout << "Checking which bin...";
+    Int_t whichBin = this->GetIntegralBin(myTrack->GetE(), fCutoffIntegral, R0, cosTheta0);
+    // std::cout << "  E      = " << myTrack->GetE() << "  sMax      = " << fCutoffIntegral << " R0     = " << R0 << "    cosTheta0 = " << cosTheta0 << std::endl;
+    // std::cout << "Int bin = " << this->GetIntegralBin(myTrack->GetE(), fCutoffIntegral, R0, cosTheta0) << std::endl;
+    // std::cout << "Integrals are      i[0]    = " << fRhoGIntegrals[whichBin] << "         i[1] = " << fRhoGIntegrals[1+whichBin] << "       i[2] = " << fRhoGIntegrals[whichBin+2] << std::endl;
 
-// 	std::cout << "Bin = " << whichBin << "   Done! ... ";
- 	
-	//std::cout << "Making the vector...";
+    // std::cout << "Bin = " << whichBin << "   Done! ... ";
+	// std::cout << "Making the vector...";
+
 	std::vector<Double_t> integralsVec;
-  if( whichBin+2 > fNBinsRhoG ) std::cerr << "There's a problem with fRhoGIntegrals!" << std::endl
-                                                      << fNBinsRhoG << "   " << whichBin << std::endl;
+	if( whichBin+2 > fNBinsRhoG )
+	{
+	    std::cerr << "There's a problem with fRhoGIntegrals!" << std::endl
+	              << fNBinsRhoG << "   " << whichBin << std::endl;
+	}
 	integralsVec.push_back(fRhoGIntegrals[whichBin]);
 	integralsVec.push_back(fRhoGIntegrals[whichBin+1]);
 	integralsVec.push_back(fRhoGIntegrals[whichBin+2]);
 	
- 	//std::cout << "Done! ... ";
- 	//std::cout << std::endl;
-  
-//  std::cout << "R0 = " << R0 << "    cosTheta0 = " << cosTheta0 << "     E = " << myTrack->GetE() << "    sMax = " << fCutoffIntegral << "     s term = " << integralsVec.at(1) << "    integral bin = " << whichBin << std::endl;
+ 	// std::cout << "Done! ... ";
+ 	// std::cout << std::endl;
+	// std::cout << "R0 = " << R0 << "    cosTheta0 = " << cosTheta0 << "     E = " << myTrack->GetE() << "    sMax = " << fCutoffIntegral << "     s term = " << integralsVec.at(1) << "    integral bin = " << whichBin << std::endl;
   
  	return integralsVec;
 
@@ -990,8 +1003,8 @@ Double_t WCSimLikelihoodTuner::LookupIndIntegrals(WCSimLikelihoodTrack * myTrack
 
 std::vector<Double_t> WCSimLikelihoodTuner::LookupIndIntegrals(WCSimLikelihoodTrack * myTrack)
 {
-//  	std::cout << "*** WCSimLikelihoodTuner::LookupIndIntegrals() *** Looking up the tabulated integrals for indirect light" << std::endl; 
- 	  this->LoadTabulatedIntegrals( myTrack );
+    // std::cout << "*** WCSimLikelihoodTuner::LookupIndIntegrals() *** Looking up the tabulated integrals for indirect light" << std::endl;
+ 	this->LoadTabulatedIntegrals( myTrack );
     
     Int_t ESBin = this->GetESBin(myTrack->GetE(), fCutoffIntegral); 
     std::vector<Double_t> integralsVec;
@@ -1019,9 +1032,7 @@ Double_t WCSimLikelihoodTuner::CalculateChIntegrals(WCSimLikelihoodTrack * myTra
 
 std::vector<Double_t> WCSimLikelihoodTuner::CalculateChIntegrals(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit)
 {
-
-
-//    std::cout << "*** WCSimLikelihoodTuner::CalculateChIntegrals() ***" << std::endl;
+    // std::cout << "*** WCSimLikelihoodTuner::CalculateChIntegrals() ***" << std::endl;
     this->LoadEmissionProfiles(myTrack);
     Int_t whichBin = fWhichHisto->FindBin(myTrack->GetE()) - 1; // Histogram bins count from 1, arrays from 0
     if(whichBin < 0 || whichBin > fWhichHisto->GetNbinsX())
@@ -1030,8 +1041,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateChIntegrals(WCSimLikelihood
         exit(EXIT_FAILURE);
     }
 
-
-    //std::cout << "We want number " << whichBin << std::endl;
+    // std::cout << "We want number " << whichBin << std::endl;
     TH1D * hProfile = (TH1D*)fHistArray->At(whichBin);
     TH2D * hAngularProfile = (TH2D*)fAngHistArray->At(whichBin);
  
@@ -1062,8 +1072,8 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateChIntegrals(WCSimLikelihood
         Double_t rho = 0.;
         Double_t g = 0.; 
         Double_t s = hProfile->GetBinCenter(iBin);
-//        Double_t sLow = hProfile->GetBinLowEdge(iBin);
-//        Double_t sHigh = sLow + hProfile->GetBinWidth(iBin);
+        // Double_t sLow = hProfile->GetBinLowEdge(iBin);
+        // Double_t sHigh = sLow + hProfile->GetBinWidth(iBin);
         // loop should handle this already
         // if( s > fCutoffIntegral && fCutoffIntegral >= 0. ) 
         // {
@@ -1072,10 +1082,10 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateChIntegrals(WCSimLikelihood
         
         TVector3 toPMT = pmtPos - myTrack->GetPropagatedPos(s);
         Double_t cosTheta = TMath::Cos(vtxDir.Angle( toPMT ));
-//        Double_t cosThetaLow = TMath::Cos(vtxDir.Angle( pmtPos - (vtxPos + sLow * vtxDir) ));
-//        Double_t cosThetaHigh = TMath::Cos(vtxDir.Angle( pmtPos - (vtxPos + sHigh * vtxDir) ));
+        // Double_t cosThetaLow = TMath::Cos(vtxDir.Angle( pmtPos - (vtxPos + sLow * vtxDir) ));
+        // Double_t cosThetaHigh = TMath::Cos(vtxDir.Angle( pmtPos - (vtxPos + sHigh * vtxDir) ));
 
-                // Make sure the histograms in s and s, cosTheta(s) have the same binning on the s axis
+        // Make sure the histograms in s and s, cosTheta(s) have the same binning on the s axis
         rho = hProfile->GetBinContent(iBin);
         g = hAngularProfile->GetBinContent( hAngularProfile->GetXaxis()->FindBin(cosTheta), iBin );
 
@@ -1142,7 +1152,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateChIntegrals(WCSimLikelihood
         integrals[1] += cutoffFrac * rho * g * s * hProfile->GetBinWidth(cutoffBin);
         integrals[2] += cutoffFrac * rho * g * s * s * hProfile->GetBinWidth(cutoffBin);
      }
-//   std::cout << "s = " << fCutoffIntegral << "   " << integrals[0] << "   " << integrals[1] << "   " << integrals[2] << std::endl;
+      // std::cout << "s = " << fCutoffIntegral << "   " << integrals[0] << "   " << integrals[1] << "   " << integrals[2] << std::endl;
   
     return integrals;
 }
@@ -1245,21 +1255,22 @@ void WCSimLikelihoodTuner::TabulateIndirectIntegrals( WCSimLikelihoodTrack::Trac
     {
       integrals.clear();
       std::cout << iEBin << std::endl;
-		  Double_t E = fEMin + iEBin*((fEMax - fEMin)/fNEBins);
+      Double_t E = fEMin + iEBin*((fEMax - fEMin)/fNEBins);
       TH1D * hProfile = (TH1D*)fHistArray->At(fWhichHisto->FindBin(E) - 1);
-//      hProfile->Print();
+      // hProfile->Print();
       
       // An array to keep track of the intermediate values of the integrals
       Double_t rhoS[3] = {0.0, 0.0, 0.0};
-		  for( Int_t iSBin = 0; iSBin < fNSBinsRho; ++iSBin)
-		  {   
+	  for( Int_t iSBin = 0; iSBin < fNSBinsRho; ++iSBin)
+	  {
         std::cout << "iSBin = " << iSBin << "/" << fNSBinsRho << std::endl;
-			  Double_t s = hProfile->GetBinCenter(iSBin+1);
-			  Double_t sWidth = hProfile->GetBinWidth(iSBin+1);
+        Double_t s = hProfile->GetBinCenter(iSBin+1);
+		Double_t sWidth = hProfile->GetBinWidth(iSBin+1);
         Double_t rho = hProfile->GetBinContent(iSBin+1);
         rhoS[0] += rho * sWidth;
         rhoS[1] += rho * s * sWidth;
         rhoS[2] += rho * s * s * sWidth;
+
         // Save the integrals at every step
         outFile.write(reinterpret_cast<char*>(&rhoS),sizeof(rhoS));
         checkWriting << rhoS[0] << " " << rhoS[1] << " " << rhoS[2] << " ";
@@ -1267,7 +1278,7 @@ void WCSimLikelihoodTuner::TabulateIndirectIntegrals( WCSimLikelihoodTrack::Trac
       }  	  	
     }
     checkWriting.close();
-	  outFile.close();
+	outFile.close();
     return;
 }
 
@@ -1280,7 +1291,7 @@ void WCSimLikelihoodTuner::TabulateIndirectIntegrals( WCSimLikelihoodTrack::Trac
 void WCSimLikelihoodTuner::TabulateDirectIntegrals(WCSimLikelihoodTrack::TrackType myType, TString filename)
 {
 
-	  Double_t rhoGS[3] = {0.,0.,0.};
+	Double_t rhoGS[3] = {0.,0.,0.};
 
     // We need this temporary array to let us loop over s at fixed R0, cosTheta0
     // But tabulate looping over R0 and cosTheta0 at fixed s
@@ -1312,53 +1323,51 @@ void WCSimLikelihoodTuner::TabulateDirectIntegrals(WCSimLikelihoodTrack::TrackTy
     Int_t theCount = 0;                         
     for( int iEBin = 0; iEBin < fNEBins; ++iEBin)
     {
-		  Double_t E = fEMin + iEBin*((fEMax - fEMin)/fNEBins);
+	  Double_t E = fEMin + iEBin*((fEMax - fEMin)/fNEBins);
       TH1D * hProfile = (TH1D*)fHistArray->At(fWhichHisto->FindBin(E)-1); // -1 to convert from bins to array positions
       TH2D * hAngularProfile = (TH2D*)fAngHistArray->At(fWhichHisto->FindBin(E)-1); // as arrays number from 0 but bins from 1
-
             
-		  for( Int_t iR0Bin = 0; iR0Bin < fNR0Bins; ++iR0Bin)
+	  for( Int_t iR0Bin = 0; iR0Bin < fNR0Bins; ++iR0Bin)
+	  {
+	      std::cout << "iEBin = " << iEBin << "    iR0Bin = " << iR0Bin << std::endl;
+		  std::cout << "fR0Max = " << fR0Max << "   fR0Min = " << fR0Min << std::endl;
+		  Double_t R0 = fR0Min + iR0Bin * ((fR0Max - fR0Min)/(Double_t)fNR0Bins) ;
+		  for( Int_t iCosTheta0Bin = 0; iCosTheta0Bin < fNCosTheta0Bins; ++iCosTheta0Bin)
 		  {
-		    std::cout << "iEBin = " << iEBin << "    iR0Bin = " << iR0Bin << std::endl;
-        std::cout << "fR0Max = " << fR0Max << "   fR0Min = " << fR0Min << std::endl; 
-			  Double_t R0 = fR0Min + iR0Bin * ((fR0Max - fR0Min)/(Double_t)fNR0Bins) ;
-			  for( Int_t iCosTheta0Bin = 0; iCosTheta0Bin < fNCosTheta0Bins; ++iCosTheta0Bin)
+			  Double_t cosTheta0 = fCosTheta0Min + iCosTheta0Bin*((fCosTheta0Max - fCosTheta0Min)/fNCosTheta0Bins);
+			  rhoGS[0] = 0.0;
+			  rhoGS[1] = 0.0;
+			  rhoGS[2] = 0.0;
+			  for( Int_t iSBin = 0; iSBin < fNSBins; ++iSBin)
 			  {
-				  Double_t cosTheta0 = fCosTheta0Min + iCosTheta0Bin*((fCosTheta0Max - fCosTheta0Min)/fNCosTheta0Bins);
-				  rhoGS[0] = 0.0;
-				  rhoGS[1] = 0.0;
-				  rhoGS[2] = 0.0;
-				  for( Int_t iSBin = 0; iSBin < fNSBins; ++iSBin)
-				  {
+			      // Work out the co-ordinates needed to look up the emission profiles at this step
+			      Double_t s = hProfile->GetBinCenter(iSBin+1);
+			      Double_t sWidth = hProfile->GetBinWidth(iSBin+1); // +1 is array numbering vs. bin numbering
+			      Double_t cosTheta = (R0*cosTheta0 - s)/TMath::Sqrt(R0*R0 + s*s - 2*R0*s*cosTheta0);
 
-            // Work out the co-ordinates needed to look up the emission profiles at this step
-					  Double_t s = hProfile->GetBinCenter(iSBin+1);
-            Double_t sWidth = hProfile->GetBinWidth(iSBin+1); // +1 is array numbering vs. bin numbering
-            Double_t cosTheta = (R0*cosTheta0 - s)/TMath::Sqrt(R0*R0 + s*s - 2*R0*s*cosTheta0);
+                if( iEBin == 0 && iR0Bin == 14 && iSBin == 250 && iCosTheta0Bin == 46 )
+                {
+                  std::cout << "It's that bin... " << "   E = " << iEBin << "   sMax = " << s << "    cosTheta0 = " << cosTheta0 << "    R0=  " << R0 << std::endl;
+                }
+                // Now get the values of the emission profiles
+                Double_t rho = hProfile->GetBinContent(iSBin+1);
+                Int_t binCosTheta = hAngularProfile->GetXaxis()->FindBin(cosTheta);
+                Int_t gBin = hAngularProfile->GetBin(binCosTheta,iSBin+1,0); //see doc of TH1::GetBin
+                Double_t g = hAngularProfile->GetBinContent(gBin);
 
-            if( iEBin == 0 && iR0Bin == 14 && iSBin == 250 && iCosTheta0Bin == 46 )
-            {
-              std::cout << "It's that bin... " << "   E = " << iEBin << "   sMax = " << s << "    cosTheta0 = " << cosTheta0 << "    R0=  " << R0 << std::endl;
-            }
-            // Now get the values of the emission profiles
-            Double_t rho = hProfile->GetBinContent(iSBin+1);
-            Int_t binCosTheta = hAngularProfile->GetXaxis()->FindBin(cosTheta);
-            Int_t gBin = hAngularProfile->GetBin(binCosTheta,iSBin+1,0); //see doc of TH1::GetBin
-            Double_t g = hAngularProfile->GetBinContent(gBin);
-
-            // Do this step of the integral
-            rhoGS[0] += rho * g * sWidth;
-            rhoGS[1] += rho * g * s * sWidth;
-            rhoGS[2] += rho * g * s * s * sWidth;
-            outFile.write(reinterpret_cast<char*>(&rhoGS),sizeof(rhoGS));
-            checkWriting << rhoGS[0] << " " << rhoGS[1] << " " << rhoGS[2] << " ";
-            if(((iSBin + fNSBins*(iCosTheta0Bin + fNCosTheta0Bins*(iR0Bin + fNR0Bins*(iEBin)))) % 20) == 0) checkWriting << std::endl;
-				    theCount += 3;
-          }	
-			  }
+                // Do this step of the integral
+                rhoGS[0] += rho * g * sWidth;
+                rhoGS[1] += rho * g * s * sWidth;
+                rhoGS[2] += rho * g * s * s * sWidth;
+                outFile.write(reinterpret_cast<char*>(&rhoGS),sizeof(rhoGS));
+                checkWriting << rhoGS[0] << " " << rhoGS[1] << " " << rhoGS[2] << " ";
+                if(((iSBin + fNSBins*(iCosTheta0Bin + fNCosTheta0Bins*(iR0Bin + fNR0Bins*(iEBin)))) % 20) == 0) checkWriting << std::endl;
+                        theCount += 3;
+              }
 		  }
-    }
-    checkWriting.close();
+	  }
+   }
+   checkWriting.close();
    outFile.close();
    std::cout << "Total writes = " << theCount << std::endl;
    return;

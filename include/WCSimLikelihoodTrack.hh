@@ -1,3 +1,11 @@
+/**
+ * \class WCSimLikelihoodTrack
+ * This class represents a single charged particle
+ * track.  It holds its initial position and direction
+ * of propagation, as well as its energy and the particle's
+ * type.
+ */
+
 #ifndef WCSIMLIKELIHOODTRACK_H
 #define WCSIMLIKELIHOODTRACK_H
 
@@ -9,19 +17,37 @@ class WCSimLikelihoodTrack : public TObject
 {
     
     public:
-        // To what kind of particle does the track correspond?
+        /**
+         * To what kind of particle does the track correspond?
+         */
         enum TrackType
         {
-            Unknown = 0,
-            ElectronLike = 1,
-            MuonLike = 2
+            Unknown = 0, //!< Track type is unknown
+            ElectronLike = 1, //!< An electron-like track (could be a photon)
+            MuonLike = 2 //!< A muon-like track
         };
         
+        /**
+         * Get the text name of a give track type
+         * @param myType Track type
+         * @return Name corresponding to the enum
+         */
         std::string TrackTypeToString( WCSimLikelihoodTrack::TrackType myType );
 
 
     
         WCSimLikelihoodTrack();
+        /**
+         * Constructo
+         * @param x Track vertex x
+         * @param y Track vertex y
+         * @param z Track vertex z
+         * @param t Track start time
+         * @param theta Angle to z axis
+         * @param phi Azimuthal angle
+         * @param E Track energy
+         * @param type Particle type
+         */
         WCSimLikelihoodTrack( double x, double y, double z, double t,
                               double theta, double phi, double E,
                               WCSimLikelihoodTrack::TrackType type );
@@ -52,16 +78,24 @@ class WCSimLikelihoodTrack : public TObject
         const TVector3 GetDir();
 		const double GetE();
         const WCSimLikelihoodTrack::TrackType GetType();
+
+        /**
+         * Function to calculate the position a distance s away from the track vertex in
+         * the direction of travel of the track
+         * @param s Distance to propagate from the vertex
+         * @return The position of the particle after it propagates a distance s from
+         *         the vertex
+         */
         const TVector3 GetPropagatedPos(Double_t s);
  
     protected:
     private:
-			double fVtx[3];	    // vertex position
-			double fT0;			// vertex time
-			double fTheta0;	    // polar angle to z axis
-			double fPhi0;		// azimuthal angle to z axis
-			double fE0;			// kinetic energy
-			WCSimLikelihoodTrack::TrackType fType; // particle type (e, mu, pi...)
+			double fVtx[3];	    ///< Vertex position
+			double fT0;			///< Vertex time
+			double fTheta0;	    ///< Polar angle to z axis
+			double fPhi0;		///< Azimuthal angle
+			double fE0;			///< Kinetic energy
+			WCSimLikelihoodTrack::TrackType fType; ///< Particle type (e, mu, pi...)
 
 
 

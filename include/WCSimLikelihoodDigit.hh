@@ -1,3 +1,10 @@
+/**
+ * \class
+ * This class holds hit information for a single PMT
+ * such as its position, orientation, recorded charge
+ * and hit time.  WCSimAnalysis interfaces with hits
+ * from WCSim using this class.
+ */
 #ifndef WCSIMLIKELIHOODDIGIT_H
 #define WCSIMLIKELIHOODDIGIT_H
 
@@ -7,39 +14,59 @@
 #include "TObject.h"
 #include "TVector3.h"
 
-class WCSimLikelihoodDigit : public TObject
+class WCSimLikelihoodDigit: public TObject
 {
-  public:
-      WCSimLikelihoodDigit( Double_t x, Double_t y, Double_t z, Double_t t, Double_t Q, Int_t tubeId, Double_t faceX, Double_t faceY, Double_t faceZ );
-      WCSimLikelihoodDigit( WCSimRootCherenkovDigiHit * myDigiHit );
-      virtual ~WCSimLikelihoodDigit();
-	
-      int GetTubeId() const;
-      double GetQ() const;
-      double GetT() const;
+public:
 
-      TVector3 GetPos() const;
-      double GetX() const;
-      double GetY() const;
-      double GetZ() const;
+    /**
+     * Constructor
+     * @param x PMT x co-ordinate
+     * @param y PMT y co-ordinate
+     * @param z PMT x co-ordinate
+     * @param t Time of hit
+     * @param Q Recorded charge (P.E.)
+     * @param tubeId Unique PMT ID number from WCSim
+     * @param faceX x co-ordinate of PMT normal
+     * @param faceY y co-ordinate of PMT normal
+     * @param faceZ z co-ordinate of PMT normal
+     */
+    WCSimLikelihoodDigit(Double_t x, Double_t y, Double_t z, Double_t t,
+            Double_t Q, Int_t tubeId, Double_t faceX, Double_t faceY,
+            Double_t faceZ);
 
-      TVector3 GetFace() const;
-      double GetFaceX() const;
-      double GetFaceY() const;
-      double GetFaceZ() const;
+    /**
+     * Constructor
+     * @param myDigiHit Digitized Cherenkov hit object from WCSim
+     */
+    WCSimLikelihoodDigit(WCSimRootCherenkovDigiHit * myDigiHit);
+    virtual ~WCSimLikelihoodDigit();
 
-      void Print() const;
- 
-  protected:
-  private:
-	Int_t fTubeId;
-	Double_t fQ;
-	Double_t fT;
-	Double_t fPos[3];
-	Double_t fFace[3];
+    int GetTubeId() const;
+    double GetQ() const;
+    double GetT() const;
 
-	ClassDef(WCSimLikelihoodDigit,1)
-		
+    TVector3 GetPos() const;
+    double GetX() const;
+    double GetY() const;
+    double GetZ() const;
+
+    TVector3 GetFace() const;
+    double GetFaceX() const;
+    double GetFaceY() const;
+    double GetFaceZ() const;
+
+    void Print() const;
+
+protected:
+private:
+    Int_t fTubeId;     ///< Unique PMT ID number from WCSim
+    Double_t fQ;       ///< Digitized charge (P.E.)
+    Double_t fT;       ///< Time of hit
+    Double_t fPos[3];  ///< (x,y,z) co-ordinates of the PMT location
+    Double_t fFace[3]; ///< (x,y,z) components of the direction normal to the PMT
+
+ClassDef(WCSimLikelihoodDigit,1)
+
 };
 
 #endif

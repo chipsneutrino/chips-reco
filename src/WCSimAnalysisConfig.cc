@@ -10,9 +10,13 @@
 
 ClassImp(WCSimAnalysisConfig)
 
+/// Static pointer to self (so we can make object a singleton)
 static WCSimAnalysisConfig * fgConfig = NULL;
 
-// Constructors
+/**
+ * Constructor
+ * @TODO Make this private so that the class is a singleton
+ */
 WCSimAnalysisConfig::WCSimAnalysisConfig()
 {
     std::cout << "The constructor" << std::endl;    
@@ -41,7 +45,6 @@ void WCSimAnalysisConfig::Print()
     
 }
 
-// Getters
 Bool_t WCSimAnalysisConfig::GetCalculateIntegrals() const
 {
   return fCalculateIntegrals;
@@ -76,37 +79,36 @@ void WCSimAnalysisConfig::LoadConfig()
     Int_t lineNum = 0;
     while(getline(inFile, line))
     {
-      std::cout << "Line is: " << line << std::endl;
-      std::cout << "lineNum = " << lineNum << std::endl;
+      // std::cout << "Line is: " << line << std::endl;
+      // std::cout << "lineNum = " << lineNum << std::endl;
         this->IgnoreComments(line);
         this->ParseLine(line, ++lineNum);
     }
-    std::cout << "Here!" << std::endl;
     this->SetFromMap();
     
     return;
 }
 
-// Erases comments beginning with // or #
+/// Erases comments beginning with // or #
 void WCSimAnalysisConfig::IgnoreComments( std::string &str )
 {
-    std::cout << "IgnoreComments" << std::endl;
+    // std::cout << "IgnoreComments" << std::endl;
     if( str.find("//") != str.npos) str.erase(str.find("//"));
     if( str.find("#") != str.npos) str.erase(str.find("#"));
-    std::cout << "Without comments " << str << std::endl;
+    // std::cout << "Without comments " << str << std::endl;
     return;
 }
 
 const Bool_t WCSimAnalysisConfig::IsBlankLine(std::string str)
 {
-  std::cout << "IsBlankLink" << "   " << str << std::endl;
+    // std::cout << "IsBlankLink" << "   " << str << std::endl;
     if( str.find_first_not_of(' ') == str.npos) return true;
     else return false;
 }
 
 const Bool_t WCSimAnalysisConfig::IsGoodLine( std::string str)
 {
-  std::cout << "IsGoodLine: " << str << std::endl;
+    // std::cout << "IsGoodLine: " << str << std::endl;
 
     Bool_t haveEquals = false;
     Bool_t haveLHS    = false;
@@ -131,17 +133,17 @@ const Bool_t WCSimAnalysisConfig::IsGoodLine( std::string str)
     {
         if(tempStr[rhs] != '\t' && tempStr[rhs] != ' ') haveRHS = true;
     }
-    std::cout << "haveEquals = " << haveEquals << std::endl
-              << "haveLHS = " << haveLHS << std::endl
-              << "haveRHS = " << haveRHS << std::endl
-              << "All = " << (haveLHS && haveRHS && haveEquals) << std::endl;
+    // std::cout << "haveEquals = " << haveEquals << std::endl
+    //           << "haveLHS = " << haveLHS << std::endl
+    //           << "haveRHS = " << haveRHS << std::endl
+    //           << "All = " << (haveLHS && haveRHS && haveEquals) << std::endl;
 
     return (haveEquals && haveLHS && haveRHS);
 }
 
 void WCSimAnalysisConfig::ExtractPair(std::string &lhs, std::string &rhs, std::string str)
 {
-  std::cout << "ExtractPair" << std::endl;
+    // std::cout << "ExtractPair" << std::endl;
     UInt_t splitPos = str.find("=");
     
     // Get left hand side of = sign and strip whitespace
@@ -153,15 +155,15 @@ void WCSimAnalysisConfig::ExtractPair(std::string &lhs, std::string &rhs, std::s
     rhs = str.substr(splitPos+1);
     rhs.erase(std::remove(rhs.begin(), rhs.end(), ' '), rhs.end());
     rhs.erase(std::remove(rhs.begin(), rhs.end(), '\t'), rhs.end()); 
-    std::cout << "str = " << str << std::endl
-              << "lhs = " << lhs << std::endl
-              << "rhs = " << rhs << std::endl;
+    // std::cout << "str = " << str << std::endl
+    //           << "lhs = " << lhs << std::endl
+    //           << "rhs = " << rhs << std::endl;
     return;
 }
 
 void WCSimAnalysisConfig::ParseLine(std::string str, Int_t lineNum)
 {
-  std::cout << "ParseLine: " << str << std::endl;
+    // std::cout << "ParseLine: " << str << std::endl;
     if(!(this->IsGoodLine(str)) ) 
     {
         std::cerr << "Error: line " << lineNum << "has the wrong format" << std::endl;
@@ -176,7 +178,7 @@ void WCSimAnalysisConfig::ParseLine(std::string str, Int_t lineNum)
 
 void WCSimAnalysisConfig::AddToMap(std::string lhs, std::string rhs)
 {
-  std::cout << "AddToMap" << std::endl;
+    // std::cout << "AddToMap" << std::endl;
     if( fMap.find(lhs) == fMap.end() ){ fMap[lhs] = rhs; }
     else
     { 
@@ -189,8 +191,10 @@ void WCSimAnalysisConfig::AddToMap(std::string lhs, std::string rhs)
 
 void WCSimAnalysisConfig::SetFromMap()
 {
-  std::cout << "SetFromMap" << std::endl;
+    // std::cout << "SetFromMap" << std::endl;
     std::map<std::string, std::string>::const_iterator itr = fMap.begin();
+
+    // Loop through the map, checking if any of the keys correspond to things we can set
     for( ; itr != fMap.end(); ++itr)
     {
       std::cout << (*itr).first << "   " << (*itr).second << std::endl;
@@ -246,8 +250,7 @@ WCSimAnalysisConfig::~WCSimAnalysisConfig()
 
 WCSimAnalysisConfig* WCSimAnalysisConfig::Instance()
 {
-
-  std::cout << " Instance ! " << std::endl;
+  // std::cout << " Instance ! " << std::endl;
   if( fgConfig == NULL ){ fgConfig = new WCSimAnalysisConfig(); }
   assert(fgConfig);
   if( fgConfig ){ }

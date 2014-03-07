@@ -8,9 +8,9 @@
 ClassImp(WCSimLikelihoodTrack)
 #endif
 
-///////////////////////////////////////////////////////////////////////////
-// Constructors
-///////////////////////////////////////////////////////////////////////////
+/*
+ * Constructors
+ */
 WCSimLikelihoodTrack::WCSimLikelihoodTrack()
 {   
 	fVtx[0] = 0;
@@ -29,11 +29,11 @@ WCSimLikelihoodTrack::WCSimLikelihoodTrack( double x, double y, double z, double
 	fVtx[0] = x;
 	fVtx[1] = y;
 	fVtx[2] = z;
-	fT0 = t;
+	fT0     = t;
 	fTheta0 = theta;
-	fPhi0 = phi;
-	fE0 = E;	
-    fType = myType;
+	fPhi0   = phi;
+	fE0     = E;
+    fType   = myType;
 	return;
 }
 
@@ -56,7 +56,7 @@ void WCSimLikelihoodTrack::Print()
 void WCSimLikelihoodTrack::SetX(double x){ fVtx[0] = x; }
 void WCSimLikelihoodTrack::SetY(double y){ fVtx[1] = y; }
 void WCSimLikelihoodTrack::SetZ(double z){ fVtx[2] = z; }
-void WCSimLikelihoodTrack::SetT(double t){ fT0 = t; }
+void WCSimLikelihoodTrack::SetT(double t){ fT0     = t; }
 void WCSimLikelihoodTrack::SetTheta(double th){ fTheta0 = th; }
 void WCSimLikelihoodTrack::SetPhi(double phi){ fPhi0 = phi; }
 void WCSimLikelihoodTrack::SetE(double E){ fE0 = E; }
@@ -68,14 +68,17 @@ const double WCSimLikelihoodTrack::GetX(){return fVtx[0]; }
 const double WCSimLikelihoodTrack::GetY(){return fVtx[1]; }
 const double WCSimLikelihoodTrack::GetZ(){return fVtx[2]; }
 const TVector3 WCSimLikelihoodTrack::GetVtx(){ return TVector3(fVtx[0], fVtx[1], fVtx[2]); }
+
 const double WCSimLikelihoodTrack::GetT(){return fT0; }
 const double WCSimLikelihoodTrack::GetTheta(){return fTheta0; }
 const double WCSimLikelihoodTrack::GetPhi(){return fPhi0; }
 const double WCSimLikelihoodTrack::GetE(){return fE0; }
+
 const double WCSimLikelihoodTrack::GetDirX(){ return TMath::Sin(fTheta0) * TMath::Cos(fPhi0); }
 const double WCSimLikelihoodTrack::GetDirY(){ return TMath::Sin(fTheta0) * TMath::Sin(fPhi0); }
 const double WCSimLikelihoodTrack::GetDirZ(){ return TMath::Cos(fTheta0); }
 const TVector3 WCSimLikelihoodTrack::GetDir(){ return TVector3( this->GetDirX(), this->GetDirY(), this->GetDirZ()); }
+
 const WCSimLikelihoodTrack::TrackType WCSimLikelihoodTrack::GetType(){ return fType;}
 
 ///////////////////////////////////////////////////////////////////////////
@@ -94,28 +97,22 @@ std::string WCSimLikelihoodTrack::TrackTypeToString( WCSimLikelihoodTrack::Track
 {
   std::string type;
 
-
   switch(myType)
   {
     case WCSimLikelihoodTrack::ElectronLike:
       type = "electron";
+      break;
     case WCSimLikelihoodTrack::MuonLike:
       type = "muon";
+      break;
     default:
       type = "UNKOWN";
+      break;
   }
   return type;
- 
-
 }
 
-/**
- * Function to calculate the position a distance s away from the track vertex in
- * the direction of travel of the track
- * @param s Distance to propagate from the vertex
- * @return The position of the particle after it propagates a distance s from
- *          the vertex
- */
+
 const TVector3 WCSimLikelihoodTrack::GetPropagatedPos(Double_t s)
 {
     return (this->GetVtx() + s * this->GetDir());
