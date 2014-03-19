@@ -26,6 +26,12 @@ WCSimTotalLikelihood::WCSimTotalLikelihood( WCSimLikelihoodDigitArray * myLikeli
 ///////////////////////////////////////////////////////////////////////////
 WCSimTotalLikelihood::~WCSimTotalLikelihood()
 {
+  //TODO: shouldn't we destroy the likelihood objects and the digit
+  //      arrray created in the initialisation list?
+  //      (btw WCSimLikelihoodDigitArray doesn't have a copy constructor)
+  //delete fLikelihoodDigitArray;
+  //delete fChargeLikelihood;
+  //delete fTimeLikelihood;
 }
 
 ///////////////////////////////////////////////////////////////////////////

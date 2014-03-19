@@ -242,6 +242,22 @@ double WCSimChargeLikelihood::ChargeExpectation(WCSimLikelihoodTrack * myTrack)
 }
 
 /**
+ * This function does the same thing as ChargeExpectation but for a specified PMT.
+ * This is necessary for the time likelihood (and must remain public).
+*/
+double WCSimChargeLikelihood::DigitChargeExpectation(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit)
+{
+    // std::cout << "*** WCSimChargeLikelihood::DigitChargeExpectation() *** Calculating the total expected mean charge at the specified PMT" << std::endl;
+
+  //FIXME: this is actually not working as supposed, because if you got track
+  //        parameters previously for a different track, it won't trigger
+  fDigit = myDigit;
+  if(!fGotTrackParameters) this->GetTrackParameters(myTrack);
+  return ChargeExpectation(myTrack);
+}
+
+
+/**
  * Calculate the expected contribution to the Poisson mean from direct
  * Cherenkov light
 */

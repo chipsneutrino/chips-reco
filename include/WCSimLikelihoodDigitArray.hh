@@ -28,6 +28,9 @@ class WCSimLikelihoodDigitArray : public TObject
           kMailBox  = 2 //!< Detector is a cuboid
         };
     
+        //TODO: we have a pointer as class member, so there should be
+        //      a proper copy constructor and proper destructor...
+
         WCSimLikelihoodDigitArray();
         /**
          * Constructor

@@ -77,6 +77,15 @@ class WCSimChargeLikelihood
         Double_t ChargeExpectation(WCSimLikelihoodTrack * myTrack);
 
         /**
+         * Calculate the predicted mean number of photons arriving at the specified PMT
+         * due to an individual particle track. For use by the time likelihood
+         * @param myTrack The charged particle track
+         * @param myDigit The PMT in question
+         * @return Predicted number of photons at the PMT originating from the track
+         */
+        Double_t DigitChargeExpectation(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit);
+
+        /**
          * Getter for total number of photons emitted by track over its whole length
          * @param myTrack The charged particle track
          * @return Average total number of photons emitted
