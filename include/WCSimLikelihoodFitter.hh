@@ -57,6 +57,12 @@ class WCSimLikelihoodFitter
         Double_t GetMinimum();
 
         /**
+         * Get the convergence status of the minimizer.  Zero
+         * means it converged with no error, everything else is an error code
+         */
+        Int_t GetStatus();
+
+        /**
          * Run the previous WCSimAnalysis fitter that uses a Hough transform
          * to seed our fit in roughly the right part of parameter space
          * @param myReco WCSimReco object used to run the old fitter
@@ -112,6 +118,7 @@ class WCSimLikelihoodFitter
         Double_t fSeedTheta; ///< Seed angle to the z axis
         Double_t fSeedPhi; ///< Seed azimuthal angle
         Bool_t fIsFirstCall; ///< Flags whether this is the first time the minimizer had calculated a likelihood (to print the seed)
+        Int_t fStatus; ///< Minimizer convergence status
 	
     ClassDef(WCSimLikelihoodFitter,1);
 };

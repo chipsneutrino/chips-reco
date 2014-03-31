@@ -24,6 +24,9 @@ WCSimAnalysisConfig::WCSimAnalysisConfig()
     fConstrainExtent = false;
     fDigiType = "";
     fConfName = "default.cfg";
+    fUseTransmission = true;
+    fUseAngularEfficiency = true;
+    fUseGlassCathodeReflection = true;
     this->SetConfigFile(fConfName);
     return;
 }
@@ -41,8 +44,11 @@ void WCSimAnalysisConfig::Print()
     std::cout << "*** WCSimAnalysisConfig::Print() *** " << std::endl;
     std::cout << "fCalculateIntegrals = " << fCalculateIntegrals << std::endl
               << "fConstrainExtent = " << fConstrainExtent << std::endl
-              << "fDigiType = " << fDigiType << std::endl;
-    
+              << "fDigiType = " << fDigiType << std::endl
+              << "fUseTransmission = " << fUseTransmission << std::endl
+              << "fUseAngularEfficiency = " << fUseAngularEfficiency << std::endl
+              << "fUseGlassCathodeReflection = " << fUseGlassCathodeReflection << std::endl;
+    return; 
 }
 
 Bool_t WCSimAnalysisConfig::GetCalculateIntegrals() const
@@ -60,6 +66,20 @@ std::string WCSimAnalysisConfig::GetDigiType() const
   return fDigiType;
 }
 
+Bool_t WCSimAnalysisConfig::GetUseTransmission() const
+{
+    return fUseTransmission;
+}
+
+Bool_t WCSimAnalysisConfig::GetUseAngularEfficiency() const
+{
+    return fUseAngularEfficiency;
+}
+
+Bool_t WCSimAnalysisConfig::GetUseGlassCathodeReflection() const
+{
+    return fUseGlassCathodeReflection;
+}
 
 void WCSimAnalysisConfig::LoadConfig()
 {
@@ -224,6 +244,57 @@ void WCSimAnalysisConfig::SetFromMap()
             else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
             {
                 fConstrainExtent = false;
+            }
+            else
+            {
+              std::cerr << "Error: " << (*itr).first << " = " << (*itr).second 
+                           << " should equal true/false or 1/0" << std::endl;
+              exit(EXIT_FAILURE);
+            }
+        }
+        else if((*itr).first.compare("UseTransmission") == 0)
+        {
+            if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+            {
+                fUseTransmission = true;
+            }
+            else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+            {
+                fUseTransmission = false;
+            }
+            else
+            {
+              std::cerr << "Error: " << (*itr).first << " = " << (*itr).second 
+                           << " should equal true/false or 1/0" << std::endl;
+              exit(EXIT_FAILURE);
+            }
+        }
+        else if((*itr).first.compare("UseAngularEfficiency") == 0)
+        {
+            if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+            {
+                fUseAngularEfficiency = true;
+            }
+            else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+            {
+                fUseAngularEfficiency = false;
+            }
+            else
+            {
+              std::cerr << "Error: " << (*itr).first << " = " << (*itr).second 
+                           << " should equal true/false or 1/0" << std::endl;
+              exit(EXIT_FAILURE);
+            }
+        }
+        else if((*itr).first.compare("UseGlassCathodeReflection") == 0)
+        {
+            if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+            {
+                fUseGlassCathodeReflection = true;
+            }
+            else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+            {
+                fUseGlassCathodeReflection = false;
             }
             else
             {

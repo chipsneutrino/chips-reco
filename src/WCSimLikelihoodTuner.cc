@@ -83,8 +83,8 @@ void WCSimLikelihoodTuner::Initialize()
   fHistArray->SetOwner(kTRUE);
   fAngHistArray    = (TObjArray *) fProfiles->Get("angHistArray");
   fAngHistArray->SetOwner(kTRUE);
-  fFluxArray       = (TObjArray *) fProfiles->Get("fluxArray");
-  fFluxArray->SetOwner(kTRUE);
+  // fFluxArray       = (TObjArray *) fProfiles->Get("fluxArray");
+  // fFluxArray->SetOwner(kTRUE);
   fWhichHisto      = (TH1D *) fProfiles->Get("hWhichHisto");
   fAverageQE       = 1.0;
 
@@ -219,7 +219,7 @@ void WCSimLikelihoodTuner::LoadEmissionProfiles( WCSimLikelihoodTrack::TrackType
       std::cerr << "Track type = " << myType << std::endl;
       break;
     case WCSimLikelihoodTrack::MuonLike:
-      fProfileLocation = new TString("./config/emissionProfilesMuon.root");
+      fProfileLocation = new TString("./config/emissionProfile_properQE.root");
       std::cerr << "Track type = " << myType << std::endl;
       break;
     default:
@@ -234,7 +234,7 @@ void WCSimLikelihoodTuner::LoadEmissionProfiles( WCSimLikelihoodTrack::TrackType
     delete fProfiles;
     delete fHistArray;
     delete fAngHistArray;
-    delete fFluxArray;
+    // delete fFluxArray;
     //std::cout << " Was null" << fProfiles << std::endl;
   }
 
@@ -244,8 +244,8 @@ void WCSimLikelihoodTuner::LoadEmissionProfiles( WCSimLikelihoodTrack::TrackType
   fHistArray->SetOwner(kTRUE);
   fAngHistArray = (TObjArray *) fProfiles->Get("angHistArray");
   fAngHistArray->SetOwner(kTRUE);
-  fFluxArray    = (TObjArray *) fProfiles->Get("fluxArray");
-  fFluxArray->SetOwner(kTRUE);
+  // fFluxArray    = (TObjArray *) fProfiles->Get("fluxArray");
+  // fFluxArray->SetOwner(kTRUE);
   fWhichHisto   = (TH1D*) fProfiles->Get("hWhichHisto");
   return;
   
@@ -257,11 +257,13 @@ void WCSimLikelihoodTuner::LoadEmissionProfiles( WCSimLikelihoodTrack::TrackType
 /////////////////////////////////////////////////////////////////////////////////////////
 Double_t WCSimLikelihoodTuner::TransmissionFunction(Double_t s, WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit)
 {
-    // return 1;
-	
-	if( s== 0) return 1;
+	if( s== 0 ) { return 1.0; }
 
-	// First we need the distance from the photon emission to the PMT
+  Double_t trans = 1.0;
+
+  if( WCSimAnalysisConfig::Instance()->GetUseTransmission() ) 
+  {
+    // First we need the distance from the photon emission to the PMT
     TVector3 pmtPos      = myDigit->GetPos();
     TVector3 emissionPos = myTrack->GetPropagatedPos(s);
     Double_t r           = (pmtPos - emissionPos).Mag();
@@ -269,9 +271,10 @@ Double_t WCSimLikelihoodTuner::TransmissionFunction(Double_t s, WCSimLikelihoodT
     // We'll use a triple exponential to parameterise the transmission probability
     Double_t nu[3]     = {-1.137e-5,-5.212e-4, -4.359e-3}; // nu = 1/Decay length in mm
     Double_t f[3]      = {0.8827, 0.08162, 0.03515};
-    Double_t trans     = 0.0;
+    trans = 0.0;
     for(int i = 0; i < 3; ++i){ trans+= f[i]*exp(1.0 * 10 * r * nu[i]);}  //Convert to cm -> factor 10
-    return trans;
+  }
+  return trans;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
@@ -281,7 +284,12 @@ Double_t WCSimLikelihoodTuner::TransmissionFunction(Double_t s, WCSimLikelihoodT
 ///////////////////////////////////////////////////////////////////////////////////////
 Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit)
 {
-	// return 1;
+  Double_t glassReflect = 0.0;
+  if(WCSimAnalysisConfig::Instance()->GetUseGlassCathodeReflection()) { glassReflect = 0.24; }
+
+  Double_t efficiency = 1.0;
+  if( WCSimAnalysisConfig::Instance()->GetUseAngularEfficiency() )
+  { 
 
     // We need the angle of incidence at the PMT
     TVector3 pmtPos      = myDigit->GetPos();
@@ -291,15 +299,17 @@ Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrack * myT
 
     Double_t cosTheta = pmtFace.Dot(pmtToEm) / (pmtFace.Mag() * pmtToEm.Mag()); 
 
-	// The MiniBooNE method:
+	  // The MiniBooNE method:
     Double_t theta = TMath::ACos(cosTheta) * 180. / TMath::Pi();
     if( theta > 90.0 )
     {
       theta = 180.0 - theta;
     }
 	
-	Double_t efficiency =  (1 + (-1.182e-4) * pow(theta, 2) + 4.959e-9 * pow(theta, 4) - 7.371e-14 * pow(theta, 6));
-	return efficiency;
+	  Double_t efficiency =  (1 + (-1.182e-4) * pow(theta, 2) + 4.959e-9 * pow(theta, 4) - 7.371e-14 * pow(theta, 6));
+    efficiency = 1.0;
+	}
+  return efficiency * (1-glassReflect);
 
     // Function for the PMT acceptance's dependence on the angle: 
     // WCSim defines arrays of efficiency at 10 degree intervals and linearly interpolates

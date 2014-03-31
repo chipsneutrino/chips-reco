@@ -2,23 +2,25 @@
 
 void wc_trackminimizer()
 {
-    TFile fTree("fitTree500_simAn.root","RECREATE");
-    TTree fitTree("fitTree", "fitTree");
+    TFile * fTree = new TFile("fitTree_newQE.root","RECREATE");
+    TTree * fitTree = new TTree("fitTree", "fitTree");
     Int_t event;
     Double_t fitX, fitY, fitZ, fitDistance;
     Double_t seedX, seedY, seedZ, seedDistance;
     Double_t minus2LnL;
+    Int_t fitStatus;
     
-    fitTree.Branch("event",&event);
-    fitTree.Branch("fitX",&fitX);
-    fitTree.Branch("fitY",&fitY);
-    fitTree.Branch("fitZ",&fitZ);
-    fitTree.Branch("seedX",&seedX);
-    fitTree.Branch("seedY",&seedY);
-    fitTree.Branch("seedZ",&seedZ);
-    fitTree.Branch("minus2LnL",&minus2LnL);
-    fitTree.Branch("fitDistance",&fitDistance);
-    fitTree.Branch("seedDistance",&seedDistance);
+    fitTree->Branch("event",&event);
+    fitTree->Branch("fitX",&fitX);
+    fitTree->Branch("fitY",&fitY);
+    fitTree->Branch("fitZ",&fitZ);
+    fitTree->Branch("seedX",&seedX);
+    fitTree->Branch("seedY",&seedY);
+    fitTree->Branch("seedZ",&seedZ);
+    fitTree->Branch("minus2LnL",&minus2LnL);
+    fitTree->Branch("fitDistance",&fitDistance);
+    fitTree->Branch("seedDistance",&seedDistance);
+    fitTree->Branch("fitStatus",&fitStatus);
 
 
     // Load WCSim libraries
@@ -29,10 +31,10 @@ void wc_trackminimizer()
     gSystem->Load("./lib/libWCSimAnalysis.so");
  
     // File to analyse
-    TString filename("/unix/fnu/ajperch/WCSim/localfile500.root");
+    TString filename("/unix/fnu/ajperch/WCSim/ep_muons_1500_QE_test.root");
 
     // Resolution histograms
-    TH1D hReso("hReso","Vertex resolution plot", 100, 0, 200);
+    TH1D * hReso = new TH1D("hReso","Vertex resolution plot", 100, 0, 200);
     
     // Initialize Reconstruction
     // =========================
@@ -43,7 +45,7 @@ void wc_trackminimizer()
     // Reconstruct Events
     // ==================
     int nEvts = myInterface->GetNumEvents();
-    nEvts = 500;
+    // if(nEvts > 500) { nEvts = 500; }
     std::cout << nEvts << " = num events" << std::endl;
 
     // The best fit track results
@@ -62,6 +64,7 @@ void wc_trackminimizer()
       myFitter->SeedParams( myReco );
       WCSimLikelihoodTrack seedTrack = myFitter->GetSeedParams();
       myFitter->Minimize2LnL(1);
+      fitStatus = myFitter->GetStatus();
       std::vector<WCSimLikelihoodTrack> fitTracks = myFitter->GetBestFit();
       bestFits.push_back(fitTracks);
       
@@ -70,17 +73,17 @@ void wc_trackminimizer()
       fitY = (fitTracks.at(0)).GetY();
       fitZ = (fitTracks.at(0)).GetZ();
       minus2LnL = myFitter->GetMinimum();
-      fitDistance = TMath::Sqrt( (100.  - fitTracks.at(0).GetX())*(100.  - fitTracks.at(0).GetX())
-                        +(-200. - fitTracks.at(0).GetY())*(-200. - fitTracks.at(0).GetY())
-                        +(320.  - fitTracks.at(0).GetZ())*(320.  - fitTracks.at(0).GetZ()));
+      fitDistance = TMath::Sqrt( (0.  - fitTracks.at(0).GetX())*(0.  - fitTracks.at(0).GetX())
+                        +(0. - fitTracks.at(0).GetY())*(0. - fitTracks.at(0).GetY())
+                        +(0.  - fitTracks.at(0).GetZ())*(0.  - fitTracks.at(0).GetZ()));
       seedX = seedTrack.GetX();
       seedY = seedTrack.GetY();
       seedZ = seedTrack.GetZ();
-      seedDistance = TMath::Sqrt(  (100. - seedX)*(100. - seedX) + (-200 - seedY)*(-200 - seedY) 
-                                 + (320 - seedTrack.GetZ()) * (320 - seedTrack.GetZ()));
+      seedDistance = TMath::Sqrt(  (0. - seedX)*(0. - seedX) + (0 - seedY)*(0 - seedY) 
+                                 + (0 - seedTrack.GetZ()) * (0 - seedTrack.GetZ()));
 
 
-      fitTree.Fill();
+      fitTree->Fill();
       delete myFitter;
     }
 
@@ -89,22 +92,19 @@ void wc_trackminimizer()
       for(UInt_t iTrack = 0 ; iTrack < (bestFits.at(iEvt)).size(); ++iTrack)
       {
         WCSimLikelihoodTrack fTrack = (bestFits.at(iEvt)).at(iTrack);
-        Float_t dist = TMath::Sqrt( (100.  - fTrack.GetX())*(100.  - fTrack.GetX())
-                        +(-200. - fTrack.GetY())*(-200. - fTrack.GetY())
-                        +(320.  - fTrack.GetZ())*(320.  - fTrack.GetZ()));
-        hReso.Fill(dist);
+        Float_t dist = TMath::Sqrt( (0.  - fTrack.GetX())*(0.  - fTrack.GetX())
+                        +(0. - fTrack.GetY())*(0. - fTrack.GetY())
+                        +(0.  - fTrack.GetZ())*(0.  - fTrack.GetZ()));
+        hReso->Fill(dist);
       }
-
-
-
     }
-    std::cout << "True values were (100,-200,320,0) (pi/4,0) 1500MeV" << std::endl;
-    fTree.cd();
-    fitTree.Write();
+    std::cout << "True values were (0,0,0,0) (0,0) 1500MeV" << std::endl;
+    fTree->cd();
+    fitTree->Write();
 
 
-    hReso.Write();
-    fTree.Close();
+    hReso->Write();
+    fTree->Close();
 
 //    TFile seedMarkerFile("seedMarker.root","RECREATE");
 //    TMarker seedMarker(seedTrack.GetX(), seedTrack.GetY(), 0);

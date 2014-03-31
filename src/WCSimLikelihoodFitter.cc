@@ -34,6 +34,7 @@ ClassImp(WCSimLikelihoodFitter)
  */
 WCSimLikelihoodFitter::WCSimLikelihoodFitter(WCSimRootEvent * myRootEvent)
 {
+    fStatus = -999;
     fRootEvent = myRootEvent;
     fLikelihoodDigitArray = new WCSimLikelihoodDigitArray(fRootEvent);
     fTotalLikelihood = new WCSimTotalLikelihood(fLikelihoodDigitArray);
@@ -280,7 +281,9 @@ void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
   // Perform the minimization
   min->Minimize();
   fMinimum = min->MinValue();
+  fStatus = min->Status();
 
+  
   // Get and print the fit results
   const Double_t * outPar = min->X();
 
@@ -410,7 +413,6 @@ void WCSimLikelihoodFitter::SeedParams( WCSimReco * myReco )
   // std::cout << "Seed dir = (vx, vy, vz) = ( " << recoDirX << "," << recoDirY << "," << recoDirZ << ")" << std::endl
   std::cout << "-> theta = " << fSeedTheta << "    phi = " << fSeedPhi << std::endl
             << "Seed position = (x,y,z) = ( " << fSeedVtxX << "," << fSeedVtxY << "," <<fSeedVtxZ << ")" << std::endl;
-
 }
 
 WCSimLikelihoodTrack WCSimLikelihoodFitter::GetSeedParams()
@@ -457,4 +459,9 @@ WCSimLikelihoodTrack WCSimLikelihoodFitter::RescaleParams(Double_t x, Double_t y
   E2 = 1500*E;
   WCSimLikelihoodTrack myTrack(x2,y2,z2,t2,th2,phi2,E2,type);
   return myTrack;
+}
+
+Int_t WCSimLikelihoodFitter::GetStatus()
+{
+  return fStatus;
 }

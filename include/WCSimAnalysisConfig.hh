@@ -53,7 +53,24 @@ public:
      * @return String containing the name of the digitizer type
      */
     std::string GetDigiType() const;
+   
+    /**
+     * Should we account for absorption of photons in the detector water
+     * @return True if we should account for transmission
+     */ 
+    Bool_t GetUseTransmission() const;
+
+    /**
+     * Should we account for the efficiency of the PMT as a function of incident photon angle?
+     * @return True if we should account for the angular efficiency
+     */
+    Bool_t GetUseAngularEfficiency() const;
     
+    /**
+     *  Should we account for the probability that a photon is reflected at the PMT glass
+     *  @return True if photons can be reflected by the PMT
+     */
+    Bool_t GetUseGlassCathodeReflection() const;
     
 
 private:
@@ -107,9 +124,12 @@ private:
     void SetFromMap();
     
 
-    const char *  fConfName;            ///< Path of a text file containing all the configuration parameters
-    Bool_t        fCalculateIntegrals;  ///< True if charge likelihood should calculate integrals, false to look them up
-    Bool_t        fConstrainExtent;     ///< True if integrals should cut off when the particle leaves the detector
+    const char *  fConfName;                   ///< Path of a text file containing all the configuration parameters
+    Bool_t        fCalculateIntegrals;         ///< True if charge likelihood should calculate integrals, false to look them up
+    Bool_t        fConstrainExtent;            ///< True if integrals should cut off when the particle leaves the detector
+    Bool_t        fUseTransmission;            ///< True if we should account for absorption of photons in the water
+    Bool_t        fUseAngularEfficiency;       ///< True if we should account for the PMT efficiency as a function of angle
+    Bool_t        fUseGlassCathodeReflection;  ///< True if we should account for photons being reflected off the PMT glass
     std::string   fDigiType;            ///< Name of digitizer type to use in WCSimDigitizerLikelihood::DigiType_t
 
     std::map<std::string, std::string> fMap; ///< Map to store key names and their values to set
