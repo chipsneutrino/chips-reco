@@ -46,6 +46,21 @@ WCSimLikelihoodDigit::WCSimLikelihoodDigit( WCSimRootCherenkovDigiHit * myDigiHi
     fFace[2] = myPMT.GetOrientation(2);
 }
 
+WCSimLikelihoodDigit::WCSimLikelihoodDigit(const WCSimLikelihoodDigit &otherLikelihoodDigit)
+{
+  fTubeId = otherLikelihoodDigit.fTubeId;
+  fQ = otherLikelihoodDigit.fQ;
+  fT = otherLikelihoodDigit.fT;
+
+  fPos[0] = otherLikelihoodDigit.fPos[0];
+  fPos[1] = otherLikelihoodDigit.fPos[1];
+  fPos[2] = otherLikelihoodDigit.fPos[2];
+
+  fFace[0] = otherLikelihoodDigit.fFace[0];
+  fFace[1] = otherLikelihoodDigit.fFace[1];
+  fFace[2] = otherLikelihoodDigit.fFace[2];
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // Destructor
 ///////////////////////////////////////////////////////////////////////////

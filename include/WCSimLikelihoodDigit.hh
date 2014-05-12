@@ -39,6 +39,12 @@ public:
      * @param myDigiHit Digitized Cherenkov hit object from WCSim
      */
     WCSimLikelihoodDigit(WCSimRootCherenkovDigiHit * myDigiHit);
+
+    /**
+     * Copy Constructor
+     */
+    WCSimLikelihoodDigit(const WCSimLikelihoodDigit &otherLikelihoodDigit);
+
     virtual ~WCSimLikelihoodDigit();
 
     int GetTubeId() const;
