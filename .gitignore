@@ -11,3 +11,5 @@
 *_.cxx
 /nbproject/private/
 *~
+lib/
+tmp/
