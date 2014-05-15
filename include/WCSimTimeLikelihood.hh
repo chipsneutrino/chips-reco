@@ -82,9 +82,9 @@ class WCSimTimeLikelihood : public TObject
   protected:
   private:
     /**
-     * Called by constructor.  Initializes vectors to hold the track integrals, and
-     * the WCSimLikelihoodTuner and WCSimDigitizerLikelihood member variables
+     * Called by constructor. Constructs parameter functions.
      * @param myDigitArray PMT responses for this event
+     * @param myChargeLikelihood charge likelihood object to get the charge prediction
      */
     void Initialize( WCSimLikelihoodDigitArray * myDigitArray, WCSimChargeLikelihood *myChargeLikelihood);
 

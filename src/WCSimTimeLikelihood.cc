@@ -143,7 +143,7 @@ Double_t WCSimTimeLikelihood::Calc2LnL()
 
     double likelihood = this->TimeLikelihood(firstTrack, timeCorrected);
     if ( TMath::IsNaN(likelihood) ) {
-      //std::cout << "For digit " << iDigit << " likelihood is not a number!\n";
+      std::cout << "For digit " << iDigit << " likelihood is not a number!\n";
       localLnL = 2e3;
     }              
     else if (likelihood <= 0.) {
@@ -253,13 +253,7 @@ Double_t WCSimTimeLikelihood::TimeLikelihood( WCSimLikelihoodTrack * myTrack, Do
   //      but can currently only compute the likelihood for a single one...
 
   double charge = this->GetPredictedCharge(myTrack);
-  //if charge is essentially 0, there won't be any hits, so the likelihood's 0 <<< NOT TRUE 
-  //FIXME: is this a good way to do it? => NO! => commented out
-  //if (charge < 1e-10) {
-  //  //std::cout << "Charge is 0, so likelihood too\n";
-  //  return 0;
-  //}
-
+  //find out in which charge bin does this value lie
   int ibin;
   for (ibin = 0; ibin < fNumChargeCuts; ibin++) {
     if (charge >= fChargeCuts[ibin] && charge < fChargeCuts[ibin+1]) break;
@@ -335,12 +329,13 @@ void WCSimTimeLikelihood::GetExternalVariables(const char *fName )
 /////////////////////////////////////////////////////////////////////////////
 Double_t WCSimTimeLikelihood::GetPredictedCharge(WCSimLikelihoodTrack * myTrack)
 {
-  //until the charge likelihood part works, we'll take the recorded charge
-  //double registeredCharge = fDigit->GetQ();
-  //return registeredCharge;
+  //TODO: ChargeLikelihood gets the predicted mu, but we trained our functions
+  //  on raw charge (post-digitiser)
+  //Once we get to training them with predicted charge, turn this off again
+  double registeredCharge = fDigit->GetQ();
+  return registeredCharge;
 
   double predictedCharge = fChargeLikelihood->DigitChargeExpectation(myTrack, fDigit);
-
   return predictedCharge;
 }
 
