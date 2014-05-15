@@ -34,11 +34,14 @@ void WCSimTimeLikelihood::Initialize( WCSimLikelihoodDigitArray * myDigitArray, 
   fDigitArray = myDigitArray;
   fChargeLikelihood = myChargeLikelihood;
 
-  //defining our likelihood function with 7 parameters for x from 0 to 1e4
+  //defining our likelihood function with 7 parameters
   fLikelihoodFunction = new TF1("fLikelihoodFunction", fFunctionForm, -1e4, 1e4, 7);
   
-  //defining our charge dependent parameter function for 9 charge bins
-  fChargeParameterFunction = new TF1("fChargeParameterFunction", "pol4", 0., 9.);
+  //defining our charge dependent parameter function
+  fChargeParameterFunction = new TF1("fChargeParameterFunction", "pol4", 0., 1e3);
+
+  //defining our energy dependent parameter
+  fEnergyParameterFunction = new TF1("fEnergyParameterFunction", "pol3", 0., 1e5);
 
   //Here was code doing function normalisation, but got moved to GetTrackParameters
 
@@ -58,6 +61,7 @@ WCSimTimeLikelihood::~WCSimTimeLikelihood()
   delete[] fNormFuncParams;
   delete fLikelihoodFunction;
   delete fChargeParameterFunction;
+  delete fEnergyParameterFunction;
 
 //XXX: debug code
 //fDebugFile->Close();
@@ -187,7 +191,7 @@ Double_t WCSimTimeLikelihood::CorrectedTime( WCSimLikelihoodTrack * myTrack, Dou
     double vtxTheta = myTrack->GetTheta();
     double midpoint = fTrackMidpoint;
 
-    //hopefully got my trigonometrics right
+    //hopefully got my trigonometry right
     double midX = vtxX + (TMath::Sin(vtxTheta)*TMath::Cos(vtxPhi) * midpoint);
     double midY = vtxY + (TMath::Sin(vtxTheta)*TMath::Sin(vtxPhi) * midpoint);
     double midZ = vtxZ + (TMath::Cos(vtxTheta) * midpoint);
@@ -260,8 +264,7 @@ Double_t WCSimTimeLikelihood::TimeLikelihood( WCSimLikelihoodTrack * myTrack, Do
   for (ibin = 0; ibin < fNumChargeCuts; ibin++) {
     if (charge >= fChargeCuts[ibin] && charge < fChargeCuts[ibin+1]) break;
   }
-  double chargeBin[1];
-  chargeBin[0] = ibin + 0.5; //evaluate these parameters at the bin center
+  double chargeBin[1]; chargeBin[0] = ibin;
   //std::cout << "\b, charge bin is: " << ibin << std::endl;
 
 //XXX: debug code
@@ -298,40 +301,25 @@ Double_t WCSimTimeLikelihood::TimeLikelihood( WCSimLikelihoodTrack * myTrack, Do
 
 ///////////////////////////////////////////////////////////////////////////
 //// TODO: explain what we're doing here in new comment style
-//// -> the myEnergy argument is only to ensure, that we extracted the
-////    track energy before calling this function
 /////////////////////////////////////////////////////////////////////////////
-void WCSimTimeLikelihood::GetExternalVariables( double myEnergy, const char *fName )
+void WCSimTimeLikelihood::GetExternalVariables(const char *fName )
 {
   TFile *inFile = new TFile(fName);
 
-  TTree *inTree = (TTree*) inFile->Get("timeParams");
+  TTree *inTree = (TTree*) inFile->Get("timeParams2");
   if (!inTree) {
     std::cerr << "Problems reading TFile with external variables!\n";
     return;
   }
 
-  double readEnergy;
-  inTree->SetBranchAddress("energy", &readEnergy);
-  inTree->SetBranchAddress("midpoint", &fTrackMidpoint);
-  inTree->SetBranchAddress("params", &fSecondaryParameters);
+  inTree->SetBranchAddress("midpointcoeffs", fTrackMidpointCoeffs);
+  //inTree->SetBranchAddress("params", fSecondaryParameters);
+  inTree->SetBranchAddress("tertiaryParams", fTertiaryParameters);
   inTree->SetBranchAddress("nqcuts", &fSizeChargeCuts);
-  inTree->SetBranchAddress("qcuts", &fChargeCuts);
+  inTree->SetBranchAddress("qcuts", fChargeCuts);
 
-  for (int ientry = 0; ientry < inTree->GetEntries(); ientry++) {
-    inTree->GetEntry(ientry);
-    fNumChargeCuts = fSizeChargeCuts - 1;
-
-    //TODO: the energy will be probably binned somehow
-    //  the binning should be defined somewhere!
-    //XXX: below - dirty trick - this is definitely something to think and work on!!!
-    double binSize = 50; //MeV
-    if ( TMath::Abs(readEnergy - myEnergy) < binSize ) break;
-  }
-
-  //now we should have the variables for our energy
-  //  written in the correct places
-  //XXX: or the last value from the loop...
+  inTree->GetEntry(0); //everything should be in the first entry
+  fNumChargeCuts = fSizeChargeCuts - 1;
 
   //let's see
   //inTree->Show();
@@ -364,34 +352,45 @@ void WCSimTimeLikelihood::GetTrackParameters(WCSimLikelihoodTrack * myTrack)
 {
   //std::cout << "*** WCSimTimeLikelihood::GetTrackParameters() *** " << std::endl;
 
-  fEnergy = myTrack->GetE();
-  
   //get the external variables from a file
-  this->GetExternalVariables(fEnergy, "./config/timeParams.root" );
+  //right now it doesn't require track information, but in the future
+  //  it might eg. need to know the particle type
+  this->GetExternalVariables("./config/timeParams.root" );
 
+  fEnergy = myTrack->GetE();
+
+  //calculate the track midpoint by evaluating a linear function
+  TF1 *midpointFunc = new TF1("midpointFunc", "pol1", 0, 1e5);
+  midpointFunc->SetParameters(fTrackMidpointCoeffs);
+  fTrackMidpoint = midpointFunc->Eval(fEnergy);
+  delete midpointFunc;
+  
   //Code moved from Initialize function because it needs ext. variables
+
+  //Evaluate the secondary parameters (from the tertiary ones)
+  double x[1]; x[0] = fEnergy;
+  for (int i = 0; i < 7; i++) {
+    for (int j = 0; j < 5; j++) {
+      fSecondaryParameters[i][j] =
+        fEnergyParameterFunction->EvalPar(x, fTertiaryParameters[i][j]);
+    }
+  }
 
   //Here we should normalise the likelihood function for each bin center
   //  and store the norm factor parameters for later
+  //(That way we do the integrals for each charge bin instead of each PMT)
   fNormFuncParams = new Double_t[fNumChargeCuts];
   for (int ibin = 0; ibin < fNumChargeCuts; ibin++) {
 
-    //TODO: code seems unclear, add comments
-    double chargeBin[1];
-    chargeBin[0] = ibin + 0.5; //evaluate these parameters at the bin center
+    double chargeBin[1]; chargeBin[0] = ibin;
     double timeFuncParams[7];  //each bin has a function with seven parameters
     for (int ipar = 0; ipar < 7; ipar++) { //loop over parameters
       //evaluate each one from the fits at the bin center
       timeFuncParams[ipar] = fChargeParameterFunction->EvalPar(chargeBin, fSecondaryParameters[ipar]);
     }
 
-    //set parameters for current charge bin and itegrate the function
-    //TODO: the integration interval is defined arbitrarily - this needs to be loaded from a file!
-    //lower integration boundary - from -900 to -100
-    double a = -900. + ibin*100.;
-    //higher integration boundary - from 10k to 1k
-    double b = 1e4 - ibin*9e3/8.;
-    double integral = fLikelihoodFunction->Integral(a, b, timeFuncParams);
+    //set parameters for current charge bin and integrate the function
+    double integral = fLikelihoodFunction->Integral(-1e3, 1e4, timeFuncParams);
     //std::cout << "Integral from " << a << " to " << b << " for bin " << ibin << " equals " << integral << "\n";
 
     //if integral is nan => alert?

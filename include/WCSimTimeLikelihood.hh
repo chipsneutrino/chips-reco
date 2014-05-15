@@ -69,13 +69,12 @@ class WCSimTimeLikelihood : public TObject
     Double_t TimeLikelihood( WCSimLikelihoodTrack * myTrack, Double_t correctedTime );
     Double_t TimeLikelihood( WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit* myDigit, Double_t correctedTime );
 
-    void GetExternalVariables( double myEnergy, const char *fName );
+    void GetExternalVariables( const char *fName );
     //void GetLikelihoodParameters(); //???
 
     //TODO: update comment
     /**
-     * Set the coefficients of the quadratic expansion to several geometric
-     * factors that pre-multiply the integrals along the track length
+     * Something something (anything?)
      * @param myTrack The charged particle track
      */
     void GetTrackParameters(WCSimLikelihoodTrack * myTrack);
@@ -98,12 +97,17 @@ class WCSimTimeLikelihood : public TObject
 
     //Energy dependent variables extracted from file
     Double_t fTrackMidpoint;  //track midpoint (middle)
-    //table of secondary parameters (for charge bins)
-    Double_t fSecondaryParameters[7][5];
+    //coefficients to get the above value
+    Double_t fTrackMidpointCoeffs[2];
+    //table of tertiary parameters (for energy values -> charge bins)
+    Double_t fTertiaryParameters[7][5][4];
     //table of cuts defining the charge bins
     Int_t fSizeChargeCuts;  //size of cuts array
     Int_t fNumChargeCuts;   //for convenience: size-1
     Double_t fChargeCuts[1000]; //probably not more
+
+    //table of secondary parameters (for charge bins)
+    Double_t fSecondaryParameters[7][5];
 
     //The time likelihood function
     static double fFunctionForm(double *x, double *par);
@@ -113,6 +117,8 @@ class WCSimTimeLikelihood : public TObject
 
     //The charge dependent parameter function
     TF1 *fChargeParameterFunction;
+    //The energy dependent parameter function
+    TF1 *fEnergyParameterFunction;
 
     //charge likelihood object to get the predicted charge
     WCSimChargeLikelihood *fChargeLikelihood;
