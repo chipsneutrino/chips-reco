@@ -48,7 +48,7 @@ class WCSimTotalLikelihood : public TObject
   private:
       WCSimLikelihoodDigitArray * fLikelihoodDigitArray; ///< Event to build likelihood for
       WCSimChargeLikelihood fChargeLikelihood; ///< Charge component of likelihood calculation
-      // WCSimTimeLikelihood fTimeLikelihood; ///< Time component of likelihood calculation
+       WCSimTimeLikelihood fTimeLikelihood; ///< Time component of likelihood calculation
       std::vector<WCSimLikelihoodTrack> fTracks; ///< Tracks to consider when calculating the likelihood
 
 	ClassDef(WCSimTotalLikelihood,1)

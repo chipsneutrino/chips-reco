@@ -18,7 +18,7 @@ WCSimTotalLikelihood::WCSimTotalLikelihood( WCSimLikelihoodDigitArray * myLikeli
   fLikelihoodDigitArray(myLikelihoodDigitArray), fChargeLikelihood(myLikelihoodDigitArray)
 {  
   // Put this in the initialization list when the time part is ready 
-  //fTimeLikelihood( myLikelihoodDigitArray, fChargeLikelihood ); 
+  fTimeLikelihood( myLikelihoodDigitArray, fChargeLikelihood ); 
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -26,12 +26,10 @@ WCSimTotalLikelihood::WCSimTotalLikelihood( WCSimLikelihoodDigitArray * myLikeli
 ///////////////////////////////////////////////////////////////////////////
 WCSimTotalLikelihood::~WCSimTotalLikelihood()
 {
-  //TODO: shouldn't we destroy the likelihood objects and the digit
+  //shouldn't we destroy the likelihood 
   //      arrray created in the initialisation list?
   //      (btw WCSimLikelihoodDigitArray doesn't have a copy constructor)
   //delete fLikelihoodDigitArray;
-  //delete fChargeLikelihood;
-  //delete fTimeLikelihood;
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -50,7 +48,7 @@ void WCSimTotalLikelihood::SetTracks( std::vector<WCSimLikelihoodTrack> myTracks
     myTrackPtrs.push_back(&(*trackIter)); 
   }
   fChargeLikelihood.SetTracks(myTrackPtrs);
-  //myTimeLikelihood.SetTracks(myTrackPtrs);
+  myTimeLikelihood.SetTracks(myTrackPtrs);
 
   return;
 }
@@ -62,7 +60,7 @@ void WCSimTotalLikelihood::ResetTracks()
 {
   fTracks.clear();
   fChargeLikelihood.ClearTracks();
-  //fTimeLikelihood.ClearTracks();
+  fTimeLikelihood.ClearTracks();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -72,5 +70,5 @@ Double_t WCSimTotalLikelihood::Calc2LnL()
 {
   // nb. at the moment we're just adding these together
   // may have to account for correlations somewhere
-  return fChargeLikelihood.Calc2LnL(); // + fTimeLikelihood.Calc2LnL();
+  return fChargeLikelihood.Calc2LnL() + fTimeLikelihood.Calc2LnL();
 }

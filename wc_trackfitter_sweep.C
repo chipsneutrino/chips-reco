@@ -4,19 +4,20 @@ void wc_trackfitter_sweep(Double_t energy)
     gSystem->Load("libGeom");
     gSystem->Load("libEve");
     gSystem->Load("libMinuit");
-    gSystem->Load("../WCSim/libWCSimRoot.so");
-    gSystem->Load("./lib/libWCSimAnalysis.so");
+    gSystem->Load("/home/mpf/wcsim/WCSim/libWCSimRoot.so");
+    gSystem->Load("/home/mpf/wcsim/WCSimAnalysis/lib/libWCSimAnalysis.so");
     gStyle->SetOptStat(0);
 
     // File to analyse
-    TString filename("/unix/fnu/ajperch/WCSim/localfile.root");
+    //TString filename("/unix/fnu/ajperch/WCSim/localfile.root");
+    TString filename("/home/mpf/wcsim/out/fnu/mu1500mev_top_out.root");
 
     WCSimInterface * myInterface = WCSimInterface::Instance();
     myInterface->LoadData(filename.Data());
     int nEvts = myInterface->GetNumEvents();
     std::cout << nEvts << " = num events" << std::endl;
-    Int_t nXBins = 200;
-    Int_t nYBins = 200;
+    Int_t nXBins = 10; //200;
+    Int_t nYBins = 10; //200;
     Int_t xMin = 0;
     Int_t xMax = 200;
     Int_t yMin = -280;
@@ -29,7 +30,7 @@ void wc_trackfitter_sweep(Double_t energy)
 
       WCSimRootEvent * myEvent = myInterface->GetWCSimEvent(iEvent);
       WCSimLikelihoodDigitArray * myLikelihoodDigitArray = new WCSimLikelihoodDigitArray(myEvent); // digitized
-      WCSimChargeLikelihood * myChargeLikelihood = new WCSimChargeLikelihood(myLikelihoodDigitArray, true);
+      WCSimChargeLikelihood * myChargeLikelihood = new WCSimChargeLikelihood(myLikelihoodDigitArray);
       //WCSimLikelihoodDigitArray * myLikelihoodDigitArray = new WCSimLikelihoodDigitArray(myEvent, kTRUE); // undigitized
        //WCSimLikelihoodTrack * myTrack = new WCSimLikelihoodTrack(0.,0.,0.,0.,0,0, energy, WCSimLikelihoodTrack::MuonLike);
       for(Int_t iXBin = 0; iXBin < nXBins; ++iXBin)
@@ -41,7 +42,7 @@ void wc_trackfitter_sweep(Double_t energy)
         {
           Double_t y = yMin + iYBin * (yMax - yMin)/static_cast<Float_t>nYBins;
           std::cout << std::endl << "x = " << x << "    y = " << y << std::endl;
-          WCSimLikelihoodTrack * myTrack = new WCSimLikelihoodTrack(x,y,320.,0.,0.771177,-0.0245231, energy, WCSimLikelihoodTrack::MuonLike);
+          WCSimLikelihoodTrack * myTrack = new WCSimLikelihoodTrack(x,y,0.,0.,TMath::Pi()/2.,0., energy, WCSimLikelihoodTrack::MuonLike);
           std::vector<WCSimLikelihoodTrack*> myTrackVec;
           myTrackVec.push_back(myTrack);
           myChargeLikelihood->SetTracks(myTrackVec);//WCSimLikelihoodTrack::TrackType myType = WCSimLikelihoodTrack::MuonLike; 
@@ -77,10 +78,10 @@ void wc_trackfitter_sweep(Double_t energy)
     f1->Close();
 
 
-    TCanvas * c1 = new TCanvas("c1","c1",1280,800);
-    chargeXZ->Draw("COLZ");
-    marker.Draw();
-    c1->SaveAs("xY_calc.png");
+    //TCanvas * c1 = new TCanvas("c1","c1",1280,800);
+    //chargeXZ->Draw("COLZ");
+    //marker.Draw();
+    //c1->SaveAs("xY_calc.png");
 
 
   delete c1;
