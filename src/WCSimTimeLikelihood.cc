@@ -58,7 +58,7 @@ void WCSimTimeLikelihood::Initialize( WCSimLikelihoodDigitArray * myDigitArray, 
 // Destructor
 WCSimTimeLikelihood::~WCSimTimeLikelihood()
 {
-  delete[] fNormFuncParams;
+  //if (fNormFuncParams) delete[] fNormFuncParams;
   delete fLikelihoodFunction;
   delete fChargeParameterFunction;
   delete fEnergyParameterFunction;

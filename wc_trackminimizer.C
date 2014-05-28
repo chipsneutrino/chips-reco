@@ -27,11 +27,12 @@ void wc_trackminimizer()
     gSystem->Load("libGeom");
     gSystem->Load("libEve");
     gSystem->Load("libMinuit");
-    gSystem->Load("../WCSim/libWCSimRoot.so");
-    gSystem->Load("./lib/libWCSimAnalysis.so");
+    gSystem->Load("/home/mpf/wcsim/WCSim/libWCSimRoot.so");
+    gSystem->Load("/home/mpf/wcsim/WCSimAnalysis/lib/libWCSimAnalysis.so");
  
     // File to analyse
-    TString filename("/unix/fnu/ajperch/WCSim/ep_muons_1500_QE_test.root");
+    //TString filename("/unix/fnu/ajperch/WCSim/ep_muons_1500_QE_test.root");
+    TString filename("/unix/fnu/ajperch/WCSim/ep_muon_1500_*.root");
 
     // Resolution histograms
     TH1D * hReso = new TH1D("hReso","Vertex resolution plot", 100, 0, 200);

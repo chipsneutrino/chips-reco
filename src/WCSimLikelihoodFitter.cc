@@ -118,7 +118,7 @@ void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
     par[1] = fSeedVtxX;    // x
     par[2] = fSeedVtxY;    // y
     par[3] = fSeedVtxZ;    // z
-    par[4] = 0.0;    // t
+    par[4] = -50.0;    // t
     par[5] = fSeedTheta;    // theta
     par[6] = fSeedPhi;    // phi
     par[7] = 1500;  // energy
@@ -127,7 +127,7 @@ void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
     minVal[1] = -1900.;
     minVal[2] = -1900.;
     minVal[3] = -940.;
-    minVal[4] = 0.;
+    minVal[4] = -250.;
     minVal[5] = 0. * TMath::Pi();
     minVal[6] = -1.0 * TMath::Pi();
     minVal[7] = 1500;
@@ -136,7 +136,7 @@ void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
     maxVal[1] = 1900.;
     maxVal[2] = 1900.;
     maxVal[3] = 940.;
-    maxVal[4] = 0.;
+    maxVal[4] = 100.;
     maxVal[5] = TMath::Pi();
     maxVal[6] = 1.0 * TMath::Pi();;
     maxVal[7] = 1500;
@@ -145,7 +145,7 @@ void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
     stepSize[1] = 50.;
     stepSize[2] = 50.;
     stepSize[3] = 50.;
-    stepSize[4] = 1.;
+    stepSize[4] = 10.;
     stepSize[5] = 0.02;
     stepSize[6] = 0.02;
     stepSize[7] = 1500;
@@ -269,7 +269,7 @@ void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
   {
     min->SetVariable(i,parName[i], par[i], stepSize[i]);
     if((1 == i || 2 == i || 3 == i ) && (maxVal[i] != minVal[i])){ min->SetLimitedVariable(i,parName[i], par[i], stepSize[i], minVal[i], maxVal[i]);}
-    if(0 == i || 4 == i || 5 == i || 6 == i || 7 == i) { min->SetFixedVariable(i, parName[i], par[i]); }
+    if(0 == i || 5 == i || 6 == i || 7 == i) { min->SetFixedVariable(i, parName[i], par[i]); }
     std::cout << i << "   " << parName[i] << "   " << par[i] << "   " << minVal[i] << "   " << maxVal[i] << std::endl;
   }
 

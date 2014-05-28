@@ -15,10 +15,11 @@ ClassImp(WCSimTotalLikelihood)
 // Constructor
 ///////////////////////////////////////////////////////////////////////////
 WCSimTotalLikelihood::WCSimTotalLikelihood( WCSimLikelihoodDigitArray * myLikelihoodDigitArray ) : 
-  fLikelihoodDigitArray(myLikelihoodDigitArray), fChargeLikelihood(myLikelihoodDigitArray)
+  fLikelihoodDigitArray(myLikelihoodDigitArray),
+  fTimeLikelihood( myLikelihoodDigitArray, &fChargeLikelihood ),  
+  fChargeLikelihood(myLikelihoodDigitArray)
 {  
-  // Put this in the initialization list when the time part is ready 
-  fTimeLikelihood( myLikelihoodDigitArray, fChargeLikelihood ); 
+  
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -48,7 +49,7 @@ void WCSimTotalLikelihood::SetTracks( std::vector<WCSimLikelihoodTrack> myTracks
     myTrackPtrs.push_back(&(*trackIter)); 
   }
   fChargeLikelihood.SetTracks(myTrackPtrs);
-  myTimeLikelihood.SetTracks(myTrackPtrs);
+  fTimeLikelihood.SetTracks(myTrackPtrs);
 
   return;
 }
