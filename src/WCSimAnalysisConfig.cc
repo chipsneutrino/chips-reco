@@ -19,14 +19,21 @@ static WCSimAnalysisConfig * fgConfig = NULL;
  */
 WCSimAnalysisConfig::WCSimAnalysisConfig()
 {
-    std::cout << "The constructor" << std::endl;    
-    fCalculateIntegrals = false;
-    fConstrainExtent = false;
-    fDigiType = "";
-    fConfName = "default.cfg";
-    fUseTransmission = true;
-    fUseAngularEfficiency = true;
+    // Initialise the member variables to some sensible
+    // values.  Note that these will be overriden in a 
+    // few lines time.
+    fCalculateIntegrals        = false;
+    fConstrainExtent           = true;
+    fDigiType                  = "";
+    fUseTransmission           = true;
+    fUseAngularEfficiency      = true;
     fUseGlassCathodeReflection = true;
+    fUseCharge                 = true;
+    fUseTime                   = true; 
+    
+    // Load the file with the default configuration
+    // and update the member variables above as necessary
+    fConfName = "default.cfg";
     this->SetConfigFile(fConfName);
     return;
 }
@@ -47,7 +54,9 @@ void WCSimAnalysisConfig::Print()
               << "fDigiType = " << fDigiType << std::endl
               << "fUseTransmission = " << fUseTransmission << std::endl
               << "fUseAngularEfficiency = " << fUseAngularEfficiency << std::endl
-              << "fUseGlassCathodeReflection = " << fUseGlassCathodeReflection << std::endl;
+              << "fUseGlassCathodeReflection = " << fUseGlassCathodeReflection << std::endl
+              << "fUseTime = " << fUseTime << std::endl
+              << "fUseCharge = " << fUseCharge << std::endl;
     return; 
 }
 
@@ -79,6 +88,19 @@ Bool_t WCSimAnalysisConfig::GetUseAngularEfficiency() const
 Bool_t WCSimAnalysisConfig::GetUseGlassCathodeReflection() const
 {
     return fUseGlassCathodeReflection;
+}
+
+Bool_t WCSimAnalysisConfig::GetUseChargeOnly() const
+{
+    return (fUseCharge && !fUseTime);
+}
+Bool_t WCSimAnalysisConfig::GetUseTimeOnly() const
+{
+    return (fUseTime && !fUseCharge);
+}
+Bool_t WCSimAnalysisConfig::GetUseChargeAndTime() const
+{
+    return (fUseCharge && fUseTime);
 }
 
 void WCSimAnalysisConfig::LoadConfig()
@@ -295,6 +317,40 @@ void WCSimAnalysisConfig::SetFromMap()
             else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
             {
                 fUseGlassCathodeReflection = false;
+            }
+            else
+            {
+              std::cerr << "Error: " << (*itr).first << " = " << (*itr).second 
+                           << " should equal true/false or 1/0" << std::endl;
+              exit(EXIT_FAILURE);
+            }
+        }
+        else if((*itr).first.compare("UseCharge") == 0)
+        {
+            if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+            {
+                fUseCharge = true;
+            }
+            else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+            {
+                fUseCharge = false;
+            }
+            else
+            {
+              std::cerr << "Error: " << (*itr).first << " = " << (*itr).second 
+                           << " should equal true/false or 1/0" << std::endl;
+              exit(EXIT_FAILURE);
+            }
+        }
+        else if((*itr).first.compare("UseTime") == 0)
+        {
+            if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+            {
+                fUseTime = true;
+            }
+            else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+            {
+                fUseTime = false;
             }
             else
             {

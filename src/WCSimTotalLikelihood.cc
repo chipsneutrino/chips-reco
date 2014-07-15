@@ -3,6 +3,7 @@
 #include "WCSimLikelihoodTrack.hh"
 #include "WCSimTimeLikelihood.hh"
 #include "WCSimTotalLikelihood.hh"
+#include "WCSimAnalysisConfig.hh"
 
 #include <iostream>
 #include <vector>
@@ -71,5 +72,10 @@ Double_t WCSimTotalLikelihood::Calc2LnL()
 {
   // nb. at the moment we're just adding these together
   // may have to account for correlations somewhere
-  return fChargeLikelihood.Calc2LnL() + fTimeLikelihood.Calc2LnL();
+  Double_t likelihood = fChargeLikelihood.Calc2LnL();
+  if(WCSimAnalysisConfig::Instance()->GetUseChargeAndTime())
+  {
+    likelihood += fTimeLikelihood.Calc2LnL();
+  }
+  return likelihood;
 }

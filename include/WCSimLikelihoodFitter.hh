@@ -117,6 +117,8 @@ class WCSimLikelihoodFitter
         Double_t fSeedVtxZ; ///< Seed vertex z coordinate
         Double_t fSeedTheta; ///< Seed angle to the z axis
         Double_t fSeedPhi; ///< Seed azimuthal angle
+        Double_t fSeedTime; ///< Seed track start time
+        Double_t fSeedEnergy; ///< Seed track kinetic energy
         Bool_t fIsFirstCall; ///< Flags whether this is the first time the minimizer had calculated a likelihood (to print the seed)
         Int_t fStatus; ///< Minimizer convergence status
 	

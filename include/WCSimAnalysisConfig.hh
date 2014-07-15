@@ -71,6 +71,25 @@ public:
      *  @return True if photons can be reflected by the PMT
      */
     Bool_t GetUseGlassCathodeReflection() const;
+
+    /**
+     * Should we only use the charge to calculate the likelihood?
+     * @return True if we should only use the charge
+     */
+    Bool_t GetUseChargeOnly() const;
+
+    /**
+     * Should we only use the time component to calculate the likelihood?
+     * @return True if we should only use the time
+     */
+    Bool_t GetUseTimeOnly() const;
+
+    /**
+     * Should we use the full combined (charge + time) information to calculate
+     * the likelihood?
+     * @return True if we should use charge and time together
+     */
+    Bool_t GetUseChargeAndTime() const;
     
 
 private:
@@ -130,6 +149,8 @@ private:
     Bool_t        fUseTransmission;            ///< True if we should account for absorption of photons in the water
     Bool_t        fUseAngularEfficiency;       ///< True if we should account for the PMT efficiency as a function of angle
     Bool_t        fUseGlassCathodeReflection;  ///< True if we should account for photons being reflected off the PMT glass
+    Bool_t        fUseTime;                    ///< True if we should include timing information in the likelihood
+    Bool_t        fUseCharge;                  ///< True if we should include charge information in the likelihood
     std::string   fDigiType;            ///< Name of digitizer type to use in WCSimDigitizerLikelihood::DigiType_t
 
     std::map<std::string, std::string> fMap; ///< Map to store key names and their values to set

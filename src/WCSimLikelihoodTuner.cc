@@ -219,7 +219,7 @@ void WCSimLikelihoodTuner::LoadEmissionProfiles( WCSimLikelihoodTrack::TrackType
       std::cerr << "Track type = " << myType << std::endl;
       break;
     case WCSimLikelihoodTrack::MuonLike:
-      fProfileLocation = new TString("./config/emissionProfile_properQE.root");
+      fProfileLocation = new TString("./config/emissionProfilesMuon.root");
       std::cerr << "Track type = " << myType << std::endl;
       break;
     default:

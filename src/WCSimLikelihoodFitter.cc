@@ -47,6 +47,8 @@ WCSimLikelihoodFitter::WCSimLikelihoodFitter(WCSimRootEvent * myRootEvent)
     fSeedVtxZ = 0.6;
     fSeedTheta = 0.1;
     fSeedPhi = 0.5;
+    fSeedTime = -40;
+    fSeedEnergy = 1500;
     fIsFirstCall = true;
 }
 
@@ -118,10 +120,10 @@ void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
     par[1] = fSeedVtxX;    // x
     par[2] = fSeedVtxY;    // y
     par[3] = fSeedVtxZ;    // z
-    par[4] = -50.0;    // t
+    par[4] = fSeedTime;    // t
     par[5] = fSeedTheta;    // theta
     par[6] = fSeedPhi;    // phi
-    par[7] = 1500;  // energy
+    par[7] = fSeedEnergy;  // energy
 
     minVal[0] = nTracks;
     minVal[1] = -1900.;
@@ -189,10 +191,10 @@ void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
     par[1] = fSeedVtxX;    // x
     par[2] = fSeedVtxY;    // y
     par[3] = fSeedVtxZ;    // z
-    par[4] = 0.0;    // t
+    par[4] = fSeedTime;    // t
     par[5] = fSeedTheta;    // theta
     par[6] = fSeedPhi;    // phi
-    par[7] = 1.00;  // energy
+    par[7] = fSeedEnergy;  // energy
 
     minVal[0] = nTracks;
     minVal[1] = 0.0; // -1900.;
@@ -268,8 +270,8 @@ void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
   for(Int_t i = 0; i < nPars; ++i)
   {
     min->SetVariable(i,parName[i], par[i], stepSize[i]);
-    if((1 == i || 2 == i || 3 == i ) && (maxVal[i] != minVal[i])){ min->SetLimitedVariable(i,parName[i], par[i], stepSize[i], minVal[i], maxVal[i]);}
-    if(0 == i || 5 == i || 6 == i || 7 == i) { min->SetFixedVariable(i, parName[i], par[i]); }
+    if((1 == i || 2 == i || 3 == i || i ==5 || i==6 ) && (maxVal[i] != minVal[i])){ min->SetLimitedVariable(i,parName[i], par[i], stepSize[i], minVal[i], maxVal[i]);}
+    if(7 == i) { min->SetFixedVariable(i, parName[i], par[i]); }
     std::cout << i << "   " << parName[i] << "   " << par[i] << "   " << minVal[i] << "   " << maxVal[i] << std::endl;
   }
 
@@ -417,7 +419,7 @@ void WCSimLikelihoodFitter::SeedParams( WCSimReco * myReco )
 
 WCSimLikelihoodTrack WCSimLikelihoodFitter::GetSeedParams()
 {
-  WCSimLikelihoodTrack seedTrack(fSeedVtxX, fSeedVtxY, fSeedVtxZ, 0, fSeedTheta, fSeedPhi, 1500, WCSimLikelihoodTrack::MuonLike);
+  WCSimLikelihoodTrack seedTrack(fSeedVtxX, fSeedVtxY, fSeedVtxZ, fSeedTime, fSeedTheta, fSeedPhi, fSeedEnergy, WCSimLikelihoodTrack::MuonLike);
   return seedTrack;
 }
 

@@ -1,12 +1,19 @@
 #include <vector>
 
-void wc_trackminimizer()
+void wc_trackminimizer(const char * file, Int_t skip, Int_t process)
 {
-    TFile * fTree = new TFile("fitTree_newQE.root","RECREATE");
+    const char * prefix = gSystem->BaseName(file);
+
+    TString savename(prefix);
+    savename.ReplaceAll(".root","");
+    savename.Append(TString::Format("_%d_charge.root", skip ));
+    std::cout << savename.Data() << std::endl;
+    TFile * fTree = new TFile(savename.Data(),"RECREATE");
     TTree * fitTree = new TTree("fitTree", "fitTree");
     Int_t event;
     Double_t fitX, fitY, fitZ, fitDistance;
     Double_t seedX, seedY, seedZ, seedDistance;
+    Double_t trueX, trueY, trueZ;
     Double_t minus2LnL;
     Int_t fitStatus;
     
@@ -14,6 +21,9 @@ void wc_trackminimizer()
     fitTree->Branch("fitX",&fitX);
     fitTree->Branch("fitY",&fitY);
     fitTree->Branch("fitZ",&fitZ);
+    fitTree->Branch("trueX",&trueX);
+    fitTree->Branch("trueY",&trueY);
+    fitTree->Branch("trueZ",&trueZ);
     fitTree->Branch("seedX",&seedX);
     fitTree->Branch("seedY",&seedY);
     fitTree->Branch("seedZ",&seedZ);
@@ -27,12 +37,13 @@ void wc_trackminimizer()
     gSystem->Load("libGeom");
     gSystem->Load("libEve");
     gSystem->Load("libMinuit");
-    gSystem->Load("/home/mpf/wcsim/WCSim/libWCSimRoot.so");
-    gSystem->Load("/home/mpf/wcsim/WCSimAnalysis/lib/libWCSimAnalysis.so");
+    gSystem->Load("../WCSim_github/libWCSimRoot.so");
+    gSystem->Load("./lib/libWCSimAnalysis.so");
  
     // File to analyse
-    //TString filename("/unix/fnu/ajperch/WCSim/ep_muons_1500_QE_test.root");
-    TString filename("/unix/fnu/ajperch/WCSim/ep_muon_1500_*.root");
+    //TString filename("/unix/fnu/ajperch/WCSim/macfiles/muon_1500_jul14_5.root
+    //");
+    TString filename(file);
 
     // Resolution histograms
     TH1D * hReso = new TH1D("hReso","Vertex resolution plot", 100, 0, 200);
@@ -52,13 +63,25 @@ void wc_trackminimizer()
     // The best fit track results
     std::vector<std::vector<WCSimLikelihoodTrack>> bestFits;
 
-    for(int iEvent = 0; iEvent < nEvts; ++iEvent)
+    std::vector<Double_t> trueXvec, trueYvec, trueZvec;
+
+    for(int iEvent = skip; iEvent < nEvts; ++iEvent)
     {
+      std::cout << "Skip = " << skip << "   Process = " << process << "    iEvt = " << iEvent << std::endl;
+      if (iEvent >= skip + process ) { break; } 
       // get first entry
       WCSimInterface::LoadEvent(iEvent);
       std::cerr << "Processing event " << iEvent << "/" << nEvts - 1 << std::endl; 
       WCSimRecoEvent* recoEvent = WCSimInterface::RecoEvent();
       WCSimTrueEvent* trueEvent = WCSimInterface::TrueEvent();
+      trueX = trueEvent->GetVtxX();
+      trueY = trueEvent->GetVtxY();
+      trueZ = trueEvent->GetVtxZ();
+      trueXvec.push_back(trueX);
+      trueYvec.push_back(trueY);
+      trueZvec.push_back(trueZ);
+
+
 
       WCSimRootEvent * myEvent = myInterface->GetWCSimEvent(iEvent);
       WCSimLikelihoodFitter * myFitter = new WCSimLikelihoodFitter(myEvent);
@@ -74,14 +97,14 @@ void wc_trackminimizer()
       fitY = (fitTracks.at(0)).GetY();
       fitZ = (fitTracks.at(0)).GetZ();
       minus2LnL = myFitter->GetMinimum();
-      fitDistance = TMath::Sqrt( (0.  - fitTracks.at(0).GetX())*(0.  - fitTracks.at(0).GetX())
-                        +(0. - fitTracks.at(0).GetY())*(0. - fitTracks.at(0).GetY())
-                        +(0.  - fitTracks.at(0).GetZ())*(0.  - fitTracks.at(0).GetZ()));
+      fitDistance = TMath::Sqrt( (trueX  - fitTracks.at(0).GetX())*(trueX  - fitTracks.at(0).GetX())
+                        +(trueY - fitTracks.at(0).GetY())*(trueY - fitTracks.at(0).GetY())
+                        +(trueZ  - fitTracks.at(0).GetZ())*(trueZ  - fitTracks.at(0).GetZ()));
       seedX = seedTrack.GetX();
       seedY = seedTrack.GetY();
       seedZ = seedTrack.GetZ();
-      seedDistance = TMath::Sqrt(  (0. - seedX)*(0. - seedX) + (0 - seedY)*(0 - seedY) 
-                                 + (0 - seedTrack.GetZ()) * (0 - seedTrack.GetZ()));
+      seedDistance = TMath::Sqrt(  (trueX - seedX)*(trueX - seedX) + (trueY - seedY)*(trueY - seedY) 
+                                 + (trueZ - seedTrack.GetZ()) * (trueZ - seedTrack.GetZ()));
 
 
       fitTree->Fill();
@@ -93,13 +116,12 @@ void wc_trackminimizer()
       for(UInt_t iTrack = 0 ; iTrack < (bestFits.at(iEvt)).size(); ++iTrack)
       {
         WCSimLikelihoodTrack fTrack = (bestFits.at(iEvt)).at(iTrack);
-        Float_t dist = TMath::Sqrt( (0.  - fTrack.GetX())*(0.  - fTrack.GetX())
-                        +(0. - fTrack.GetY())*(0. - fTrack.GetY())
-                        +(0.  - fTrack.GetZ())*(0.  - fTrack.GetZ()));
+        Float_t dist = TMath::Sqrt( (trueXvec[iEvt]  - fTrack.GetX())*(trueXvec[iEvt]  - fTrack.GetX())
+                        +(trueYvec[iEvt] - fTrack.GetY())*(trueYvec[iEvt] - fTrack.GetY())
+                        +(trueZvec[iEvt]  - fTrack.GetZ())*(trueZvec[iEvt]  - fTrack.GetZ()));
         hReso->Fill(dist);
       }
     }
-    std::cout << "True values were (0,0,0,0) (0,0) 1500MeV" << std::endl;
     fTree->cd();
     fitTree->Write();
 
