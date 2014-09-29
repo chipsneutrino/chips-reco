@@ -18,9 +18,6 @@
 #include <cassert>
 #include <iostream>
 
-#ifndef REFLEX_DICTIONARY
-ClassImp(WCSimEmissionProfileGenerator)
-#endif
 
 WCSimEmissionProfileGenerator::WCSimEmissionProfileGenerator( const char * treeName, Int_t particleType)
 {
