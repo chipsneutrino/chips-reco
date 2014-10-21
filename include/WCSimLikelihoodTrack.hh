@@ -32,7 +32,7 @@ class WCSimLikelihoodTrack : public TObject
          * @param myType Track type
          * @return Name corresponding to the enum
          */
-        std::string TrackTypeToString( WCSimLikelihoodTrack::TrackType myType );
+        static std::string TrackTypeToString( WCSimLikelihoodTrack::TrackType myType );
 
 
     
