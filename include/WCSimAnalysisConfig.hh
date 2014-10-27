@@ -143,7 +143,7 @@ private:
     void SetFromMap();
     
 
-    const char *  fConfName;                   ///< Path of a text file containing all the configuration parameters
+    std::string   fConfName;                   ///< Path of a text file containing all the configuration parameters
     Bool_t        fCalculateIntegrals;         ///< True if charge likelihood should calculate integrals, false to look them up
     Bool_t        fConstrainExtent;            ///< True if integrals should cut off when the particle leaves the detector
     Bool_t        fUseTransmission;            ///< True if we should account for absorption of photons in the water

@@ -33,8 +33,9 @@ WCSimAnalysisConfig::WCSimAnalysisConfig()
     
     // Load the file with the default configuration
     // and update the member variables above as necessary
-    fConfName = "default.cfg";
-    this->SetConfigFile(fConfName);
+    fConfName = getenv("WCSIMANAHOME");
+    fConfName.append("/config/default.cfg");
+    this->SetConfigFile(fConfName.c_str());
     return;
 }
 
@@ -108,7 +109,7 @@ void WCSimAnalysisConfig::LoadConfig()
     // Open the file and test opening:
     std::cout << "Loading config file" << std::endl;
     std::ifstream inFile;
-    inFile.open(fConfName);
+    inFile.open(fConfName.c_str());
     
     if( !inFile.is_open() )
     {
