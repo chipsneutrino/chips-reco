@@ -350,7 +350,9 @@ void WCSimTimeLikelihood::GetTrackParameters(WCSimLikelihoodTrack * myTrack)
   //get the external variables from a file
   //right now it doesn't require track information, but in the future
   //  it might eg. need to know the particle type
-  this->GetExternalVariables("./config/timeParams.root" );
+  std::string path = getenv("WCSIMANAHOME");
+  path.append("/config/timeParams.root");
+  this->GetExternalVariables(path.c_str());
 
   fEnergy = myTrack->GetE();
 

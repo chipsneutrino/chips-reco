@@ -353,7 +353,6 @@ Double_t WCSimDigitizerLikelihood::GetWCSimExpectation( const Double_t &undigi )
     TH1D *digiPDF = fDigiPDF->ProjectionX("", whichBin, whichBin);
     predictedCharge = digiPDF->GetMean();
     // std::cout << "    predicted charge = " << predictedCharge << std::endl;
-    f.Close();
   }
   else if( 10 <= undigi && undigi < 200)
   {
