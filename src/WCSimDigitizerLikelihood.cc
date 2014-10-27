@@ -80,7 +80,9 @@ void WCSimDigitizerLikelihood::SetDigiType( WCSimDigitizerLikelihood::DigiType_t
 void WCSimDigitizerLikelihood::OpenPDFs()
 {
   if( fPDFs != NULL ) delete fPDFs;
-  fPDFs = new TFile("config/pePDFs.root","READ");
+  std::string pdfFile = getenv("WCSIMANAHOME");
+  pdfFile.append("/config/pePDFs.root");
+  fPDFs = new TFile(pdfFile.c_str() ,"READ");
   fDigiPDF = (TH2D*)(fPDFs->Get("digiPDF"));
   return;
 }
@@ -333,8 +335,22 @@ Double_t WCSimDigitizerLikelihood::GetWCSimExpectation( const Double_t &undigi )
   else if( 0.5 <= undigi && undigi < 10.0)
   {
     // std::cout << "Using the PDFs:	undigi charge = " << undigi;
-    TFile f("./config/pePDFs.root","READ");
-    TH1D * digiPDF = (TH1D*)((TObjArray*)f.Get("peArray"))->At((Int_t)round(undigi)-1);
+
+    //FIXME: So after a long discussion with Andy, I have still no idea
+    //  what this should actually do. The old implementation was surely
+    //  wrong (outdated), but the function never gets actually called.
+    //  But it also means that this is not a priority to fix...
+    //  /mpf 27.11.14
+
+    //--Old code--
+    //TFile f("./config/pePDFs.root","READ");
+    //TH1D * digiPDF = (TH1D*)((TObjArray*)f.Get("peArray"))->At((Int_t)round(undigi)-1);
+
+    //--New code--
+    this->OpenPDFs();
+    Int_t whichBin = ((TAxis*)fDigiPDF->GetYaxis())->FindBin(undigi);
+    //FIXME: this is quite probably wrong
+    TH1D *digiPDF = fDigiPDF->ProjectionX("", whichBin, whichBin);
     predictedCharge = digiPDF->GetMean();
     // std::cout << "    predicted charge = " << predictedCharge << std::endl;
     f.Close();
