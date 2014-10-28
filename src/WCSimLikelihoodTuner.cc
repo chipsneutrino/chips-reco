@@ -74,7 +74,7 @@ void WCSimLikelihoodTuner::Initialize()
 {
   fIsOpen          = WCSimLikelihoodTrack::Unknown;
   fProfileLocation = new TString(getenv("WCSIMANAHOME"));
-  fProfileLocation.Append("/config/emissionProfilesElectron.root");
+  fProfileLocation->Append("/config/emissionProfilesElectron.root");
   fProfiles        = new TFile(fProfileLocation->Data());
   fHistArray       = 0;
   fAngHistArray    = 0;
@@ -217,12 +217,12 @@ void WCSimLikelihoodTuner::LoadEmissionProfiles( WCSimLikelihoodTrack::TrackType
   {
     case WCSimLikelihoodTrack::ElectronLike:
       fProfileLocation = new TString(getenv("WCSIMANAHOME"));
-      fProfileLocation.Append("/config/emissionProfilesElectron.root");
+      fProfileLocation->Append("/config/emissionProfilesElectron.root");
       std::cerr << "Track type = " << myType << std::endl;
       break;
     case WCSimLikelihoodTrack::MuonLike:
       fProfileLocation = new TString(getenv("WCSIMANAHOME"));
-      fProfileLocation.Append("/config/emissionProfilesMuon.root");
+      fProfileLocation->Append("/config/emissionProfilesMuon.root");
       std::cerr << "Track type = " << myType << std::endl;
       break;
     default:
@@ -781,31 +781,33 @@ void WCSimLikelihoodTuner::LoadTabulatedIntegrals( WCSimLikelihoodTrack * myTrac
 		
   std::cout << "Looking up integrals" << std::endl;
   // Otherwise open up the right table file
+  std::string pathRhoG;
   std::ifstream integralFileRhoG;
+  std::string pathRho;
   std::ifstream integralFileRho;
   switch(myType)
   {
       case WCSimLikelihoodTrack::MuonLike:
           std::cout << "It's muon-like" << std::endl;
 
-          std::string pathRhoG = getenv("WCSIMANAHOME");
+          pathRhoG = getenv("WCSIMANAHOME");
           pathRhoG.append("/config/integralsMuonRhoG.dat");
           integralFileRhoG.open(pathRhoG.c_str() ,std::ios::in|std::ios::binary);
 
-          std::string pathRho = getenv("WCSIMANAHOME");
+          pathRho = getenv("WCSIMANAHOME");
           pathRho.append("/config/integralsMuonRho.dat");
-          integralFileRho.open(pathRho ,std::ios::in|std::ios::binary);
+          integralFileRho.open(pathRho.c_str() ,std::ios::in|std::ios::binary);
           break;
       case WCSimLikelihoodTrack::ElectronLike:
           std::cout << "Is it tripping the electronlike flag too?" << WCSimLikelihoodTrack::ElectronLike << std::endl;
 
-          std::string pathRhoG = getenv("WCSIMANAHOME");
+          pathRhoG = getenv("WCSIMANAHOME");
           pathRhoG.append("/config/integralsElectronRhoG.dat");
-          integralFileRhoG.open(pathRhoG ,std::ios::in|std::ios::binary);
+          integralFileRhoG.open(pathRhoG.c_str() ,std::ios::in|std::ios::binary);
 
-          std::string pathRho = getenv("WCSIMANAHOME");
+          pathRho = getenv("WCSIMANAHOME");
           pathRho.append("/config/integralsElectronRho.dat");
-          integralFileRho.open(pathRho ,std::ios::in|std::ios::binary);
+          integralFileRho.open(pathRho.c_str() ,std::ios::in|std::ios::binary);
           break;
       case WCSimLikelihoodTrack::Unknown:
           std::cout << "Or is it?" << "   " << myType << std::endl;
