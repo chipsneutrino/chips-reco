@@ -1,0 +1,38 @@
+A set of scripts to generate emission profiles to be used for
+the WCSimAnalysis fitter.
+
+The concept is to run WCSim at a variety of energies and plot
+the number of Cherenkov photons emitted as a function of angle
+and distance that the particle has travelled, then appropriately
+normalise this into the distributions that go into the fitter.
+
+This requires several steps:
+
+1. Generate the .mac files that tell WCSim how to run:
+                  
+                  . make_profile_files.sh
+ 
+ 1a) This script repeatedly calls calling generate_macfile.py
+ 1b) Use `python generate_macfile.py -h` to explain the arguments
+ 1c) make_profile_files.sh will repeatedly run the python script and
+     step up the energy each time - you can edit the options in here
+ 1d) Make sure WCSim is saving the photon ntuple (and that WCSimTrackingAction
+     has percentageOfCherenkovPhotonsToDraw = 100.0;
+
+2. Run WCSim using each of these macfiles (use the batch!):
+            
+              for f in <the .sh files that were created>;
+                do qsub -q medium ${f}
+              done
+
+3. Collect your output files and use them to make the photon distributions:
+
+       <edit RunEmissionProfileGenerator.C to point to the new files> 
+       root -b -q RunEmissionProfileGenerator.C
+
+  3a) This will create a TChain for each energy
+  3b) And then run a TSelector over it to create the emission profile histograms
+  3c) These will all be packaged up in a single ROOT file whose name can be 
+      set in RunEmissionProfileGenerator using myGenerator->SetSaveName("name.root");
+
+4. Enjoy your new emission profiles!
