@@ -253,7 +253,12 @@ double WCSimChargeLikelihood::DigitChargeExpectation(WCSimLikelihoodTrack * myTr
   //        parameters previously for a different track, it won't trigger
   fDigit = myDigit;
   if(!fGotTrackParameters) this->GetTrackParameters(myTrack);
-  return ChargeExpectation(myTrack);
+  double charge_expectation =  ChargeExpectation(myTrack);
+  std::cout << "TubeID = " << fDigit->GetTubeId()
+            << ", predicted mu = " << charge_expectation
+            << ", registered charge = " << fDigit->GetQ() << std::endl;
+
+  return charge_expectation;
 }
 
 
@@ -296,7 +301,8 @@ double WCSimChargeLikelihood::GetMuDirect(WCSimLikelihoodTrack * myTrack )
       exit(EXIT_FAILURE);
   }
 
-  // std::cout << "muDirect = " << muDirect << std::endl;
+  std::cout << "TubeID = " << fDigit->GetTubeId()
+            << ", muDirect = " << muDirect << std::endl;
   return muDirect;
 }
 
@@ -321,13 +327,15 @@ double WCSimChargeLikelihood::GetMuIndirect(WCSimLikelihoodTrack * myTrack)
         //std::cout << "IT'S NEGATIVE! " << "  i0 = " << integrals[0] << "   i1 = " << integrals[1] << "   i2 = " << integrals[2] << "    fCoeffsInd = " << fCoeffsInd[0] << "," << fCoeffsInd[1] << "," << fCoeffsInd[2] << std::endl;
         muIndirect = 0;
     }
-//    std::cout << "Mu indirect = " << muIndirect << std::endl;
   }
   else
   {
       std::cerr << "Error: GetMuIndirect did not get track parameters first, aborting" << std::endl;
       exit(EXIT_FAILURE);
   }
+
+  std::cout << "TubeID = " << fDigit->GetTubeId()
+            << " Mu indirect = " << muIndirect << std::endl;
   return muIndirect;
 }
 
