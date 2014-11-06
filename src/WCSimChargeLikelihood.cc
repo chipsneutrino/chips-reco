@@ -119,9 +119,6 @@ void WCSimChargeLikelihood::UpdateDigitArray( WCSimLikelihoodDigitArray * myDigi
  */
 double WCSimChargeLikelihood::Calc2LnL()
 {
-
-  // std::cout << "fDigiPDF = " << fDigiPDF << "   " << fCoeffsCh.at(2) << std::endl;
-  // fDigiPDF->Draw("COLZ");
   // std::cout << "*** WCSimChargeLikelihood::Calc2LnL() *** Calculating the charge log likelihood" << std::endl;
   Double_t Charge2LnL = 0.0;
   Int_t trackNum      = 0;

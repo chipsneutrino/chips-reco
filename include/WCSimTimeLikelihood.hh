@@ -29,8 +29,10 @@ class WCSimTimeLikelihood : public TObject
      * @param myDigitArray The PMT responses for a single event
      * @param myChargeLikelihood Charge likelihood object to get charge prediction from
      */
-    //TODO: do we need charge likelihood in the constructor?
+    //FIXME: we don't need charge likelihood in the constructor
     WCSimTimeLikelihood( WCSimLikelihoodDigitArray * myDigitArray, WCSimChargeLikelihood *myChargeLikelihood);
+    //FIXME: quick hack before fixes - default constructor - to be removed
+    WCSimTimeLikelihood();
 
     virtual ~WCSimTimeLikelihood();
 

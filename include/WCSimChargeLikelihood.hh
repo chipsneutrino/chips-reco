@@ -32,6 +32,10 @@ class WCSimChargeLikelihood
          */
         WCSimChargeLikelihood( WCSimLikelihoodDigitArray * myDigitArray);
 
+        //FIXME: quick hack to use objects in a vector
+        //  in total likelihood - to be fixed
+        WCSimChargeLikelihood();
+
         virtual ~WCSimChargeLikelihood();
 
         /**
