@@ -16,14 +16,11 @@ ClassImp(WCSimTotalLikelihood)
 // Constructor
 ///////////////////////////////////////////////////////////////////////////
 WCSimTotalLikelihood::WCSimTotalLikelihood( WCSimLikelihoodDigitArray * myLikelihoodDigitArray ) : 
-  fLikelihoodDigitArray(myLikelihoodDigitArray)
+  fLikelihoodDigitArray(myLikelihoodDigitArray),
+  fTimeLikelihood(myLikelihoodDigitArray)
 {  
   fChargeLikelihoodVector.push_back(
       WCSimChargeLikelihood(fLikelihoodDigitArray) );
-
-  //FIXME new time likelihood will only ask for predicted charge later
-  fTimeLikelihood = WCSimTimeLikelihood(
-      fLikelihoodDigitArray, &(fChargeLikelihoodVector[0]) );
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -84,18 +81,22 @@ Double_t WCSimTotalLikelihood::Calc2LnL()
   // nb. at the moment we're just adding these together
   // may have to account for correlations somewhere
   Double_t likelihood;
+  std::vector<Double_t> predictedCharges; //one value for each track
 
   //TODO: Loop over digits
   //for (iDigit in fLikelihoodDigitArray) {
     for (unsigned int iTrack; iTrack < fTracks.size(); iTrack++) {
       //TODO: calculate for one digit only
       likelihood += fChargeLikelihoodVector[iTrack].Calc2LnL();
+      //TODO: get predicted charges from object
+      //predictedCharges.push_back(some_value);
     }
     if(WCSimAnalysisConfig::Instance()->GetUseChargeAndTime())
     {
       //TODO: calculate for one digit only
-      //TODO: use charge predicted by charge likelihood!
-      likelihood += fTimeLikelihood.Calc2LnL();
+      //FIXME: use charge predicted by charge likelihood!
+      predictedCharges.push_back( /*iDigit->GetQ()*/0);
+      likelihood += fTimeLikelihood.Calc2LnL(predictedCharges);
     }
   //} //for iDigit
 

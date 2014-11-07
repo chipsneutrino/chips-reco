@@ -16,23 +16,22 @@
 
 ///////////////////////////////////////////////////////////////////////////
 // Constructor
-WCSimTimeLikelihood::WCSimTimeLikelihood(WCSimLikelihoodDigitArray * myDigitArray, WCSimChargeLikelihood *myChargeLikelihood )
+WCSimTimeLikelihood::WCSimTimeLikelihood(WCSimLikelihoodDigitArray * myDigitArray)
 {   
   //std::cout << "*** WCSimTimeLikelihood::WCSimTimeLikelihood() *** Created time likelihood object" << std::endl;
   fDigitArray = NULL;
   fDigit = NULL;
-  this->Initialize( myDigitArray, myChargeLikelihood );
+  this->Initialize( myDigitArray);
 }
 
 
 
-void WCSimTimeLikelihood::Initialize( WCSimLikelihoodDigitArray * myDigitArray, WCSimChargeLikelihood *myChargeLikelihood )
+void WCSimTimeLikelihood::Initialize( WCSimLikelihoodDigitArray * myDigitArray)
 {
   //std::cout << "*** WCSimTimeLikelihood::Initialize() *** Initializing time likelihood" << std::endl; 
 
   fGotTrackParameters = -1; //false
   fDigitArray = myDigitArray;
-  fChargeLikelihood = myChargeLikelihood;
 
   //defining our likelihood function with 7 parameters
   fLikelihoodFunction = new TF1("fLikelihoodFunction", fFunctionForm, -1e4, 1e4, 7);
@@ -107,7 +106,7 @@ void WCSimTimeLikelihood::UpdateDigitArray( WCSimLikelihoodDigitArray * myDigitA
  * Calculate the (-2 log) likelihood of the measured PMT hit times
  * for a given set of track parameters.
  */
-Double_t WCSimTimeLikelihood::Calc2LnL()
+Double_t WCSimTimeLikelihood::Calc2LnL(std::vector<Double_t> predictedCharges )
 {
   //std::cout << "*** WCSimTimeLikelihood::Calc2LnL() *** Calculating the time log likelihood" << std::endl; 
 
@@ -141,7 +140,7 @@ Double_t WCSimTimeLikelihood::Calc2LnL()
     Double_t timeCorrected = this->CorrectedTime(0, timeObserved);
 
     //FIXME: just first track (index 0)
-    double likelihood = this->TimeLikelihood(0, timeCorrected);
+    double likelihood = this->TimeLikelihood(0, timeCorrected, predictedCharges);
     if ( TMath::IsNaN(likelihood) ) {
       std::cout << "For digit " << iDigit << " likelihood is not a number!\n";
       localLnL = 2e3;
@@ -238,14 +237,14 @@ Double_t WCSimTimeLikelihood::CorrectedTime( Int_t trackIndex, Double_t primaryT
 ///////////////////////////////////////////////////////////////////////////
 // TODO: explain what we're doing here in new comment style
 ///////////////////////////////////////////////////////////////////////////
-Double_t WCSimTimeLikelihood::TimeLikelihood( Int_t trackIndex, WCSimLikelihoodDigit* myDigit, Double_t correctedTime )
+Double_t WCSimTimeLikelihood::TimeLikelihood( Int_t trackIndex, WCSimLikelihoodDigit* myDigit, Double_t correctedTime, std::vector<Double_t> predictedCharges )
 {
   fDigit = myDigit;
-  return this->TimeLikelihood(trackIndex, correctedTime);
+  return this->TimeLikelihood(trackIndex, correctedTime, predictedCharges);
 }
 
 
-Double_t WCSimTimeLikelihood::TimeLikelihood( Int_t trackIndex, Double_t correctedTime )
+Double_t WCSimTimeLikelihood::TimeLikelihood( Int_t trackIndex, Double_t correctedTime, std::vector<Double_t> predictedCharges )
 {
   //std::cout << "*** WCSimTimeLikelihood::TimeLikelihood() *** Calculating the likelihood of the observed hit time" << std::endl; 
 
@@ -253,7 +252,7 @@ Double_t WCSimTimeLikelihood::TimeLikelihood( Int_t trackIndex, Double_t correct
   //      but can currently only compute the likelihood for a single one...
 
   //FIXME: only gets charge for first track in vector
-  double charge = this->GetPredictedCharge(0);
+  double charge = predictedCharges[0];
   //find out in which charge bin does this value lie
   int ibin;
   for (ibin = 0; ibin < fNumChargeCuts; ibin++) {
@@ -324,21 +323,6 @@ void WCSimTimeLikelihood::GetExternalVariables(const char *fName )
   //delete inTree;
 }
 
-
-///////////////////////////////////////////////////////////////////////////
-//// TODO: explain what we're doing here in new comment style
-/////////////////////////////////////////////////////////////////////////////
-Double_t WCSimTimeLikelihood::GetPredictedCharge(Int_t trackIndex)
-{
-  //TODO: ChargeLikelihood gets the predicted mu, but we trained our functions
-  //  on raw charge (post-digitiser)
-  //Once we get to training them with predicted charge, turn this off again
-  double registeredCharge = fDigit->GetQ();
-  return registeredCharge;
-
-  double predictedCharge = fChargeLikelihood->DigitChargeExpectation(trackIndex, fDigit);
-  return predictedCharge;
-}
 
 
 ///////////////////////////////////////////////////////////////////////////

@@ -32,9 +32,11 @@ class WCSimChargeLikelihood
          */
         WCSimChargeLikelihood( WCSimLikelihoodDigitArray * myDigitArray);
 
-        //FIXME: quick hack to use objects in a vector
-        //  in total likelihood - to be fixed
+        //ROOT requires a default ctor to generate dictionary
+        //for a vector of charge likelihood objects - do not use
         WCSimChargeLikelihood();
+
+        //TODO: assignment operator?
 
         virtual ~WCSimChargeLikelihood();
 
@@ -87,7 +89,7 @@ class WCSimChargeLikelihood
          * @param myDigit The PMT in question
          * @return Predicted number of photons at the PMT originating from the track
          */
-        Double_t DigitChargeExpectation(Int_t trackIndex, WCSimLikelihoodDigit *myDigit);
+        Double_t ChargeExpectation(Int_t trackIndex, WCSimLikelihoodDigit *myDigit);
 
         /**
          * Getter for total number of photons emitted by track over its whole length

@@ -242,9 +242,9 @@ double WCSimChargeLikelihood::ChargeExpectation(Int_t trackIndex)
  * This function does the same thing as ChargeExpectation but for a specified PMT.
  * This is necessary for the time likelihood (and must remain public).
 */
-double WCSimChargeLikelihood::DigitChargeExpectation(Int_t trackIndex, WCSimLikelihoodDigit * myDigit)
+double WCSimChargeLikelihood::ChargeExpectation(Int_t trackIndex, WCSimLikelihoodDigit * myDigit)
 {
-    // std::cout << "*** WCSimChargeLikelihood::DigitChargeExpectation() *** Calculating the total expected mean charge at the specified PMT" << std::endl;
+    // std::cout << "*** WCSimChargeLikelihood::ChargeExpectation() *** Calculating the total expected mean charge at the specified PMT" << std::endl;
 
   fDigit = myDigit;
   if(fGotTrackParameters != trackIndex) this->GetTrackParameters(trackIndex);
