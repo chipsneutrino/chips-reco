@@ -50,7 +50,7 @@ void WCSimChargeLikelihood::Initialize( WCSimLikelihoodDigitArray * myDigitArray
     fCoeffsInd.push_back(-999999);
     fCoeffsInd.push_back(-999999);
 
-    fGotTrackParameters = false;
+    fGotTrackParameters = -1; //false
     fDigitArray = myDigitArray;
 
     fTuner = new WCSimLikelihoodTuner(fDigitArray);
@@ -90,14 +90,14 @@ void WCSimChargeLikelihood::SetTracks( std::vector<WCSimLikelihoodTrack*> myTrac
   // std::cout << " *** WCSimChargeLikelihood::SetTracks() *** " << std::endl;
   fTracks = myTracks;
   // fTracks.at(0)->Print();
-  fGotTrackParameters = false;
+  fGotTrackParameters = -1; //false
 }
 
 void WCSimChargeLikelihood::AddTrack( WCSimLikelihoodTrack * myTrack )
 {
   // std::cout << " *** WCSimChargeLikelihood::AddTrack() *** " << std::endl;
   fTracks.push_back(myTrack);
-  fGotTrackParameters = false;
+  fGotTrackParameters = -1; //false
   return;
 }
 
@@ -145,21 +145,21 @@ double WCSimChargeLikelihood::Calc2LnL()
   }
 
   // Work out how many photons we expect at each PMT from each track
-  for( std::vector<WCSimLikelihoodTrack *>::iterator trackItr = fTracks.begin(); trackItr != fTracks.end(); ++trackItr)
+  for(unsigned int iTrack = 0; iTrack < fTracks.size(); iTrack++)
   {
-    trackNum = std::distance(fTracks.begin(), trackItr);
+    trackNum = iTrack;
 
     // Work out the predicted number of photons at each PMT
     for(int iDigit = 0; iDigit < fDigitArray->GetNDigits(); ++iDigit)
       {
         fDigit = (WCSimLikelihoodDigit *)fDigitArray->GetDigit(iDigit);
-        fGotTrackParameters = false;
+        fGotTrackParameters = -1; //false
 
         // Get integral coefficients
-        this->GetTrackParameters(*trackItr);
+        this->GetTrackParameters(iTrack);
 
         // Work out the predicted mean charge at this PMT
-        predictedCharges[iDigit] += this->ChargeExpectation(*trackItr);
+        predictedCharges[iDigit] += this->ChargeExpectation(iTrack);
      }
   }
 
@@ -203,16 +203,16 @@ double WCSimChargeLikelihood::Calc2LnL()
  * Charge at a given PMT is sampled from some distribution by the PMT digitiser.
  * This calculates the expected mean by summing direct and indirect light contributions.
 */
-double WCSimChargeLikelihood::ChargeExpectation(WCSimLikelihoodTrack * myTrack)
+double WCSimChargeLikelihood::ChargeExpectation(Int_t trackIndex)
 {
 
     // std::cout << "*** WCSimChargeLikelihood::ChargeExpectation() *** Calculating the total expected mean charge at the PMT" << std::endl;
     double muDir=0, muIndir=0;
 
-    if(fGotTrackParameters)
+    if(fGotTrackParameters == trackIndex)
     {
-      muDir   = this->GetMuDirect(myTrack);
-      muIndir = this->GetMuIndirect(myTrack);
+      muDir   = this->GetMuDirect(trackIndex);
+      muIndir = this->GetMuIndirect(trackIndex);
       // if(muDir) { std::cout << " Direct charge expectation = " << muDir
       //                       << " and indirect expectation = "  << muIndir
       //                       << "    total = " << muDir+muIndir << std::endl; }
@@ -242,15 +242,13 @@ double WCSimChargeLikelihood::ChargeExpectation(WCSimLikelihoodTrack * myTrack)
  * This function does the same thing as ChargeExpectation but for a specified PMT.
  * This is necessary for the time likelihood (and must remain public).
 */
-double WCSimChargeLikelihood::DigitChargeExpectation(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit)
+double WCSimChargeLikelihood::DigitChargeExpectation(Int_t trackIndex, WCSimLikelihoodDigit * myDigit)
 {
     // std::cout << "*** WCSimChargeLikelihood::DigitChargeExpectation() *** Calculating the total expected mean charge at the specified PMT" << std::endl;
 
-  //FIXME: this is actually not working as supposed, because if you got track
-  //        parameters previously for a different track, it won't trigger
   fDigit = myDigit;
-  if(!fGotTrackParameters) this->GetTrackParameters(myTrack);
-  double charge_expectation =  ChargeExpectation(myTrack);
+  if(fGotTrackParameters != trackIndex) this->GetTrackParameters(trackIndex);
+  double charge_expectation =  ChargeExpectation(trackIndex);
   std::cout << "TubeID = " << fDigit->GetTubeId()
             << ", predicted mu = " << charge_expectation
             << ", registered charge = " << fDigit->GetQ() << std::endl;
@@ -263,22 +261,23 @@ double WCSimChargeLikelihood::DigitChargeExpectation(WCSimLikelihoodTrack * myTr
  * Calculate the expected contribution to the Poisson mean from direct
  * Cherenkov light
 */
-double WCSimChargeLikelihood::GetMuDirect(WCSimLikelihoodTrack * myTrack )
+double WCSimChargeLikelihood::GetMuDirect(Int_t trackIndex)
 {
   //std::cout << "*** WCSimChargeLikelihood::GetMuDirect() *** Calculating the direct light contribution to the expected charge" << std::endl;
   double muDirect = 0.0 ;
 
   // Get the coefficients to multiply the integral
-  if(!fGotTrackParameters) { this->GetTrackParameters(myTrack); }
+  if(fGotTrackParameters != trackIndex) { this->GetTrackParameters(trackIndex); }
 
-  if(fGotTrackParameters)
+  if(fGotTrackParameters == trackIndex) //FIXME: no longer necessary?
   {
-    double lightFlux = this->GetLightFlux(myTrack);
-    std::vector<Double_t> integrals = fTuner->GetChIntegrals(myTrack, fDigit);
+    double lightFlux = this->GetLightFlux(trackIndex);
+    std::vector<Double_t> integrals
+      = fTuner->GetChIntegrals(fTracks[trackIndex], fDigit);
 
     // std::cout << "Energy = " << fEnergy << "  and light flux = " << lightFlux <<std::endl;
     // std::cout << " **** CALCULATING COEFFICIENTS ***** " << std::endl;
-    // fTuner->CalculateCoefficients(myTrack, fDigit);
+    // fTuner->CalculateCoefficients(fTracks[trackIndex], fDigit);
 
     // std::cout << "i0 = " << i0 << "  i1 = " << i1 << "   i2 = " << i2 << std::endl
     //           << "fCoeffsCh = " << fCoeffsCh[0] << "," << fCoeffsCh[1] << "," << fCoeffsCh[2] << std::endl;
@@ -307,16 +306,16 @@ double WCSimChargeLikelihood::GetMuDirect(WCSimLikelihoodTrack * myTrack )
  * Calculate the expected contribution to the Poisson mean from indirect
  *  (eg. scattered, reflected) Cherenkov light
 */
-double WCSimChargeLikelihood::GetMuIndirect(WCSimLikelihoodTrack * myTrack)
+double WCSimChargeLikelihood::GetMuIndirect(Int_t trackIndex)
 {
 
   //std::cout << "*** WCSimChargeLikelihood::GetMuIndirect() *** Calculating the indirect light contribution to the expected charge" << std::endl;
   double muIndirect = 0.0;
-  if(!fGotTrackParameters) this->GetTrackParameters(myTrack);
-  if(fGotTrackParameters)
+  if(fGotTrackParameters != trackIndex) this->GetTrackParameters(trackIndex);
+  if(fGotTrackParameters == trackIndex) //FIXME: no longer necessary?
   {
-    double lightFlux = this->GetLightFlux(myTrack);
-  	std::vector<Double_t> integrals = fTuner->GetIndIntegrals(myTrack);
+    double lightFlux = this->GetLightFlux(trackIndex);
+  	std::vector<Double_t> integrals = fTuner->GetIndIntegrals(fTracks[trackIndex]);
     
     muIndirect = lightFlux * ( integrals[0] * fCoeffsInd[0] + integrals[1] * fCoeffsInd[1] + integrals[2] * fCoeffsInd[2] );
     if(muIndirect < 0)
@@ -341,11 +340,11 @@ double WCSimChargeLikelihood::GetMuIndirect(WCSimLikelihoodTrack * myTrack)
  * its energy and particle type.  This function calculates it (just for muons at the moment)
  * @TODO Extend this properly to different particle types
  */
-double WCSimChargeLikelihood::GetLightFlux(WCSimLikelihoodTrack * myTrack)
+double WCSimChargeLikelihood::GetLightFlux(Int_t trackIndex)
 {
   //std::cout << "*** WCSimChargeLikelihood::GetLightFlux() *** Getting the light flux as a function of the track KE" << std::endl;
 
-  Double_t energy      = myTrack->GetE();
+  Double_t energy      = fTracks[trackIndex]->GetE();
   Double_t factorFromG = 1/(4.0*TMath::Pi()); // We want solid angle fraction
 
   Double_t factorFromSolidAngle = 1; //2*TMath::Pi();
@@ -369,10 +368,11 @@ double WCSimChargeLikelihood::GetLightFlux(WCSimLikelihoodTrack * myTrack)
 /**
  * @TODO Check we're not wasting time by calling this too often
  */
-void WCSimChargeLikelihood::GetTrackParameters(WCSimLikelihoodTrack * myTrack)
+void WCSimChargeLikelihood::GetTrackParameters(Int_t trackIndex)
 {
   // Get the coefficients to multiply the integrals by
-  std::vector<Double_t> coeffs = fTuner->CalculateCoefficientsVector(myTrack, fDigit);
+  std::vector<Double_t> coeffs
+    = fTuner->CalculateCoefficientsVector(fTracks[trackIndex], fDigit);
 
   fCoeffsCh[0] = coeffs[0];
   fCoeffsCh[1] = coeffs[1];
@@ -385,7 +385,7 @@ void WCSimChargeLikelihood::GetTrackParameters(WCSimLikelihoodTrack * myTrack)
   //           << "fCoeffsCh = " << fCoeffsCh[0] << "," << fCoeffsCh[1] << "," << fCoeffsCh[2] << std::endl
   //           << "fCoeffsInd = " << fCoeffsInd[0] << "," << fCoeffsInd[1] << "," << fCoeffsInd[2] << std::endl;
 
-  fGotTrackParameters = true;
+  fGotTrackParameters = trackIndex;
   return;
 
 }

@@ -30,7 +30,7 @@ void WCSimTimeLikelihood::Initialize( WCSimLikelihoodDigitArray * myDigitArray, 
 {
   //std::cout << "*** WCSimTimeLikelihood::Initialize() *** Initializing time likelihood" << std::endl; 
 
-  fGotTrackParameters = false;
+  fGotTrackParameters = -1; //false
   fDigitArray = myDigitArray;
   fChargeLikelihood = myChargeLikelihood;
 
@@ -83,15 +83,14 @@ void WCSimTimeLikelihood::SetTracks( std::vector<WCSimLikelihoodTrack*> myTracks
 {
   // std::cout << " *** WCSimTimeLikelihood::SetTracks() *** " << std::endl;
   fTracks = myTracks;
-  // fTracks.at(0)->Print();
-  fGotTrackParameters = false;
+  fGotTrackParameters = -1; //false
 }
 
 void WCSimTimeLikelihood::AddTrack( WCSimLikelihoodTrack * myTrack )
 {
   // std::cout << " *** WCSimTimeLikelihood::AddTrack() *** " << std::endl;
   fTracks.push_back(myTrack);
-  fGotTrackParameters = false;
+  fGotTrackParameters = -1; //false
   return;
 }
 
@@ -121,7 +120,6 @@ Double_t WCSimTimeLikelihood::Calc2LnL()
     std::cout << "Error, no tracks in the track vector!\n";
     return 0;
   }
-  WCSimLikelihoodTrack *firstTrack = fTracks.at(0);
 
   Double_t Time2LnL = 0.;
   for(int iDigit = 0; iDigit < fDigitArray->GetNDigits(); ++iDigit)
@@ -139,9 +137,11 @@ Double_t WCSimTimeLikelihood::Calc2LnL()
     }              
 
     //here apply the time correction for TOF effects
-    Double_t timeCorrected = this->CorrectedTime(firstTrack, timeObserved);
+    //FIXME: just first track (index 0)
+    Double_t timeCorrected = this->CorrectedTime(0, timeObserved);
 
-    double likelihood = this->TimeLikelihood(firstTrack, timeCorrected);
+    //FIXME: just first track (index 0)
+    double likelihood = this->TimeLikelihood(0, timeCorrected);
     if ( TMath::IsNaN(likelihood) ) {
       std::cout << "For digit " << iDigit << " likelihood is not a number!\n";
       localLnL = 2e3;
@@ -171,24 +171,24 @@ Double_t WCSimTimeLikelihood::Calc2LnL()
 ///////////////////////////////////////////////////////////////////////////
 // TODO: explain what we're doing here in new comment style
 ///////////////////////////////////////////////////////////////////////////
-Double_t WCSimTimeLikelihood::CorrectedTime( WCSimLikelihoodTrack * myTrack, Double_t primaryTime )
+Double_t WCSimTimeLikelihood::CorrectedTime( Int_t trackIndex, Double_t primaryTime )
 {
   //std::cout << "*** WCSimTimeLikelihood::CorrectedTime() *** Calculating time corrected for TOF effects" << std::endl; 
 
   double correctedTime = 0.;
 
-  if(!fGotTrackParameters) this->GetTrackParameters(myTrack);
-  if(fGotTrackParameters)
+  if(fGotTrackParameters != trackIndex) this->GetTrackParameters(trackIndex);
+  if(fGotTrackParameters == trackIndex) //FIXME: not necessary anymore?
   {
     //TODO: all the track parameters could be initialised at the very beginning
     //vertex positions
-    double vtxX = myTrack->GetX();
-    double vtxY = myTrack->GetY();
-    double vtxZ = myTrack->GetZ();
+    double vtxX = fTracks[trackIndex]->GetX();
+    double vtxY = fTracks[trackIndex]->GetY();
+    double vtxZ = fTracks[trackIndex]->GetZ();
     
     //track direction and midpoint position
-    double vtxPhi = myTrack->GetPhi();
-    double vtxTheta = myTrack->GetTheta();
+    double vtxPhi = fTracks[trackIndex]->GetPhi();
+    double vtxTheta = fTracks[trackIndex]->GetTheta();
     double midpoint = fTrackMidpoint;
 
     //hopefully got my trigonometry right
@@ -226,7 +226,7 @@ Double_t WCSimTimeLikelihood::CorrectedTime( WCSimLikelihoodTrack * myTrack, Dou
     double timeOffset = 950.; //ns
 
     //total correction includes true track time
-    double trackTime = myTrack->GetT();
+    double trackTime = fTracks[trackIndex]->GetT();
     correctedTime = primaryTime - tof_corr - timeOffset - trackTime;
   }
 
@@ -238,21 +238,22 @@ Double_t WCSimTimeLikelihood::CorrectedTime( WCSimLikelihoodTrack * myTrack, Dou
 ///////////////////////////////////////////////////////////////////////////
 // TODO: explain what we're doing here in new comment style
 ///////////////////////////////////////////////////////////////////////////
-Double_t WCSimTimeLikelihood::TimeLikelihood( WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit* myDigit, Double_t correctedTime )
+Double_t WCSimTimeLikelihood::TimeLikelihood( Int_t trackIndex, WCSimLikelihoodDigit* myDigit, Double_t correctedTime )
 {
   fDigit = myDigit;
-  return this->TimeLikelihood(myTrack, correctedTime);
+  return this->TimeLikelihood(trackIndex, correctedTime);
 }
 
 
-Double_t WCSimTimeLikelihood::TimeLikelihood( WCSimLikelihoodTrack * myTrack, Double_t correctedTime )
+Double_t WCSimTimeLikelihood::TimeLikelihood( Int_t trackIndex, Double_t correctedTime )
 {
   //std::cout << "*** WCSimTimeLikelihood::TimeLikelihood() *** Calculating the likelihood of the observed hit time" << std::endl; 
 
   //TODO: somehow handle the fact that we're given a whole vector of tracks
   //      but can currently only compute the likelihood for a single one...
 
-  double charge = this->GetPredictedCharge(myTrack);
+  //FIXME: only gets charge for first track in vector
+  double charge = this->GetPredictedCharge(0);
   //find out in which charge bin does this value lie
   int ibin;
   for (ibin = 0; ibin < fNumChargeCuts; ibin++) {
@@ -327,7 +328,7 @@ void WCSimTimeLikelihood::GetExternalVariables(const char *fName )
 ///////////////////////////////////////////////////////////////////////////
 //// TODO: explain what we're doing here in new comment style
 /////////////////////////////////////////////////////////////////////////////
-Double_t WCSimTimeLikelihood::GetPredictedCharge(WCSimLikelihoodTrack * myTrack)
+Double_t WCSimTimeLikelihood::GetPredictedCharge(Int_t trackIndex)
 {
   //TODO: ChargeLikelihood gets the predicted mu, but we trained our functions
   //  on raw charge (post-digitiser)
@@ -335,7 +336,7 @@ Double_t WCSimTimeLikelihood::GetPredictedCharge(WCSimLikelihoodTrack * myTrack)
   double registeredCharge = fDigit->GetQ();
   return registeredCharge;
 
-  double predictedCharge = fChargeLikelihood->DigitChargeExpectation(myTrack, fDigit);
+  double predictedCharge = fChargeLikelihood->DigitChargeExpectation(trackIndex, fDigit);
   return predictedCharge;
 }
 
@@ -343,7 +344,7 @@ Double_t WCSimTimeLikelihood::GetPredictedCharge(WCSimLikelihoodTrack * myTrack)
 ///////////////////////////////////////////////////////////////////////////
 // TODO: explain what we're doing here in new comment style
 ///////////////////////////////////////////////////////////////////////////
-void WCSimTimeLikelihood::GetTrackParameters(WCSimLikelihoodTrack * myTrack)
+void WCSimTimeLikelihood::GetTrackParameters(Int_t trackIndex)
 {
   //std::cout << "*** WCSimTimeLikelihood::GetTrackParameters() *** " << std::endl;
 
@@ -354,7 +355,7 @@ void WCSimTimeLikelihood::GetTrackParameters(WCSimLikelihoodTrack * myTrack)
   path.append("/config/timeParams.root");
   this->GetExternalVariables(path.c_str());
 
-  fEnergy = myTrack->GetE();
+  fEnergy = fTracks[trackIndex]->GetE();
 
   //calculate the track midpoint by evaluating a linear function
   TF1 *midpointFunc = new TF1("midpointFunc", "pol1", 0, 1e5);
@@ -401,7 +402,7 @@ void WCSimTimeLikelihood::GetTrackParameters(WCSimLikelihoodTrack * myTrack)
     //std::cout << "After normalising: " << integral << "\n";
   }
 
-  fGotTrackParameters = true;
+  fGotTrackParameters = trackIndex;
   return;
 }
 
