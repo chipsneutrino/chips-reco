@@ -13,7 +13,6 @@
 #include "WCSimLikelihoodDigit.hh"
 #include "WCSimLikelihoodDigitArray.hh"
 #include "WCSimLikelihoodTrack.hh"
-#include "WCSimChargeLikelihood.hh"
 #include "WCSimRecoEvent.hh"
 
 #include "TMath.h"
@@ -29,8 +28,7 @@ class WCSimTimeLikelihood : public TObject
      * @param myDigitArray The PMT responses for a single event
      * @param myChargeLikelihood Charge likelihood object to get charge prediction from
      */
-    //TODO: do we need charge likelihood in the constructor?
-    WCSimTimeLikelihood( WCSimLikelihoodDigitArray * myDigitArray, WCSimChargeLikelihood *myChargeLikelihood);
+    WCSimTimeLikelihood( WCSimLikelihoodDigitArray * myDigitArray);
 
     virtual ~WCSimTimeLikelihood();
 
@@ -42,9 +40,9 @@ class WCSimTimeLikelihood : public TObject
 
     /**
      * Set all the tracks that contribute to the likelihood at once
-     * @param myTrack Vector of all the track objects to consider
+     * @param myTracks Vector of all the track objects to consider
      */
-    void SetTracks( std::vector<WCSimLikelihoodTrack*> myTrack );
+    void SetTracks( std::vector<WCSimLikelihoodTrack*> myTracks );
 
     /// Remove all the tracks currently loaded
     void ClearTracks();
@@ -60,14 +58,14 @@ class WCSimTimeLikelihood : public TObject
      * given the current set of hypothesised tracks
      * @return -2 log(likelihood)
      */
-    Double_t Calc2LnL();
+    //FIXME: dirty hack to get it compiled -- change later
+    Double_t Calc2LnL(std::vector<Double_t> predictedCharges);
 
-    Double_t CorrectedTime( WCSimLikelihoodTrack * myTrack, Double_t primaryTime );
-    Double_t GetPredictedCharge( WCSimLikelihoodTrack * myTrack );
+    Double_t CorrectedTime( Int_t trackIndex, Double_t primaryTime );
 
     //TODO: time likelihood is not additive! work out how it behaves for >1 tracks
-    Double_t TimeLikelihood( WCSimLikelihoodTrack * myTrack, Double_t correctedTime );
-    Double_t TimeLikelihood( WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit* myDigit, Double_t correctedTime );
+    Double_t TimeLikelihood( Int_t trackIndex, Double_t correctedTime, std::vector<Double_t> predictedCharges );
+    Double_t TimeLikelihood( Int_t trackIndex, WCSimLikelihoodDigit* myDigit, Double_t correctedTime, std::vector<Double_t> predictedCharges );
 
     void GetExternalVariables( const char *fName );
     //void GetLikelihoodParameters(); //???
@@ -75,9 +73,9 @@ class WCSimTimeLikelihood : public TObject
     //TODO: update comment
     /**
      * Something something (anything?)
-     * @param myTrack The charged particle track
+     * @param trackIndex Index of the charged particle track in fTracks vector
      */
-    void GetTrackParameters(WCSimLikelihoodTrack * myTrack);
+    void GetTrackParameters(Int_t trackIndex);
 
   protected:
   private:
@@ -86,7 +84,7 @@ class WCSimTimeLikelihood : public TObject
      * @param myDigitArray PMT responses for this event
      * @param myChargeLikelihood charge likelihood object to get the charge prediction
      */
-    void Initialize( WCSimLikelihoodDigitArray * myDigitArray, WCSimChargeLikelihood *myChargeLikelihood);
+    void Initialize( WCSimLikelihoodDigitArray * myDigitArray);
 
     //XXX: debug stuff
     TFile *fDebugFile;
@@ -120,15 +118,15 @@ class WCSimTimeLikelihood : public TObject
     //The energy dependent parameter function
     TF1 *fEnergyParameterFunction;
 
-    //charge likelihood object to get the predicted charge
-    WCSimChargeLikelihood *fChargeLikelihood;
-
     // The track and event parameters for which we calculate the likelihood
     std::vector<WCSimLikelihoodTrack *>   fTracks;     ///< Vector of simultaneous tracks contributing to the likelihood
     WCSimLikelihoodDigitArray           * fDigitArray; ///< Response for all the detector's PMTs for this event
     WCSimLikelihoodDigit                * fDigit;      ///< The PMT being considered
 
-    Bool_t fGotTrackParameters;
+    /// Flag to check if GetTrackParameters() has been called to calculate
+    /// the integral coefficients. Shows index of the track in fTracks
+    /// vector or is negative if track parameters have not been calculated
+    Int_t fGotTrackParameters;
 
 
     //TODO: needed?

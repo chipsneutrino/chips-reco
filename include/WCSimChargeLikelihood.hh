@@ -32,6 +32,12 @@ class WCSimChargeLikelihood
          */
         WCSimChargeLikelihood( WCSimLikelihoodDigitArray * myDigitArray);
 
+        //ROOT requires a default ctor to generate dictionary
+        //for a vector of charge likelihood objects - do not use
+        WCSimChargeLikelihood();
+
+        //TODO: assignment operator?
+
         virtual ~WCSimChargeLikelihood();
 
         /**
@@ -71,49 +77,49 @@ class WCSimChargeLikelihood
         /**
          * Calculate the predicted mean number of photons arriving at the PMT specified by
          * WCSimChargeExpectation::fDigit due to an individual particle track
-         * @param myTrack The charged particle track
+         * @param trackIndex Index of the charged particle track in fTracks vector
          * @return Predicted number of photons at the PMT originating from the track
          */
-        Double_t ChargeExpectation(WCSimLikelihoodTrack * myTrack);
+        Double_t ChargeExpectation(Int_t trackIndex);
 
         /**
          * Calculate the predicted mean number of photons arriving at the specified PMT
          * due to an individual particle track. For use by the time likelihood
-         * @param myTrack The charged particle track
+         * @param trackIndex Index of the charged particle track in fTracks vector
          * @param myDigit The PMT in question
          * @return Predicted number of photons at the PMT originating from the track
          */
-        Double_t DigitChargeExpectation(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit);
+        Double_t ChargeExpectation(Int_t trackIndex, WCSimLikelihoodDigit *myDigit);
 
         /**
          * Getter for total number of photons emitted by track over its whole length
-         * @param myTrack The charged particle track
+         * @param trackIndex Index of the charged particle track in fTracks vector
          * @return Average total number of photons emitted
          */
-        Double_t GetLightFlux(WCSimLikelihoodTrack * myTrack);
+        Double_t GetLightFlux(Int_t trackIndex);
 
         /**
          * Get the predicted number of indirect (scattered, reflected etc.) photons
          * striking the PMT in WCSimChargeLikelihood::fDigit originating from a given track
-         * @param myTrack The charged particle track
+         * @param trackIndex Index of the charged particle track in fTracks vector
          * @return Predicted number of indirect photons hitting the PMT
          */
-        Double_t GetMuIndirect(WCSimLikelihoodTrack * myTrack);
+        Double_t GetMuIndirect(Int_t trackIndex);
 
         /**
          * Get the predicted number of direct (unscattered Cherenkov) photons
          * striking the PMT in WCSimChargeLikelihood::fDigit originating from a given track
-         * @param myTrack The charged particle track
+         * @param trackIndex Index of the charged particle track in fTracks vector
          * @return Predicted number of direct photons hitting the PMT
          */
-        Double_t GetMuDirect(WCSimLikelihoodTrack * myTrack);
+        Double_t GetMuDirect(Int_t trackIndex);
 
         /**
          * Set the coefficients of the quadratic expansion to several geometric
          * factors that pre-multiply the integrals along the track length
-         * @param myTrack The charged particle track
+         * @param trackIndex Index of the charged particle track in fTracks vector
          */
-        void GetTrackParameters(WCSimLikelihoodTrack * myTrack);
+        void GetTrackParameters(Int_t trackIndex);
 
     protected:
     private:
@@ -159,7 +165,11 @@ class WCSimChargeLikelihood
       // The fitted functions are defined using various variables that relate the track to the
       // PMT hit in question.  I calculate these in GetTrackParameters() and set a flag when
       // this has been done
-      Bool_t fGotTrackParameters; ///< Flag to check if GetTrackParameters() has been called to calculate the integral coefficients
+
+      /// Flag to check if GetTrackParameters() has been called to calculate
+      /// the integral coefficients. Shows index of the track in fTracks
+      /// vector or is negative if track parameters have not been calculated
+      Int_t fGotTrackParameters; 
 
 
 
