@@ -42,9 +42,9 @@ class WCSimTimeLikelihood : public TObject
 
     /**
      * Set all the tracks that contribute to the likelihood at once
-     * @param myTrack Vector of all the track objects to consider
+     * @param myTracks Vector of all the track objects to consider
      */
-    void SetTracks( std::vector<WCSimLikelihoodTrack*> myTrack );
+    void SetTracks( std::vector<WCSimLikelihoodTrack*> myTracks );
 
     /// Remove all the tracks currently loaded
     void ClearTracks();
@@ -62,12 +62,12 @@ class WCSimTimeLikelihood : public TObject
      */
     Double_t Calc2LnL();
 
-    Double_t CorrectedTime( WCSimLikelihoodTrack * myTrack, Double_t primaryTime );
-    Double_t GetPredictedCharge( WCSimLikelihoodTrack * myTrack );
+    Double_t CorrectedTime( Int_t trackIndex, Double_t primaryTime );
+    Double_t GetPredictedCharge(Int_t trackIndex);
 
     //TODO: time likelihood is not additive! work out how it behaves for >1 tracks
-    Double_t TimeLikelihood( WCSimLikelihoodTrack * myTrack, Double_t correctedTime );
-    Double_t TimeLikelihood( WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit* myDigit, Double_t correctedTime );
+    Double_t TimeLikelihood( Int_t trackIndex, Double_t correctedTime );
+    Double_t TimeLikelihood( Int_t trackIndex, WCSimLikelihoodDigit* myDigit, Double_t correctedTime );
 
     void GetExternalVariables( const char *fName );
     //void GetLikelihoodParameters(); //???
@@ -75,9 +75,9 @@ class WCSimTimeLikelihood : public TObject
     //TODO: update comment
     /**
      * Something something (anything?)
-     * @param myTrack The charged particle track
+     * @param trackIndex Index of the charged particle track in fTracks vector
      */
-    void GetTrackParameters(WCSimLikelihoodTrack * myTrack);
+    void GetTrackParameters(Int_t trackIndex);
 
   protected:
   private:
@@ -128,7 +128,10 @@ class WCSimTimeLikelihood : public TObject
     WCSimLikelihoodDigitArray           * fDigitArray; ///< Response for all the detector's PMTs for this event
     WCSimLikelihoodDigit                * fDigit;      ///< The PMT being considered
 
-    Bool_t fGotTrackParameters;
+    /// Flag to check if GetTrackParameters() has been called to calculate
+    /// the integral coefficients. Shows index of the track in fTracks
+    /// vector or is negative if track parameters have not been calculated
+    Int_t fGotTrackParameters;
 
 
     //TODO: needed?
