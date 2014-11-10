@@ -1,0 +1,61 @@
+/*
+ * WCSimFitterConfig.hh
+ *
+ *  Created on: 31 Oct 2014
+ *      Author: andy
+ */
+
+#ifndef WCSIMFITTERCONFIG_HH_
+#define WCSIMFITTERCONFIG_HH_
+#include "WCSimFitterParameters.hh"
+
+class WCSimFitterConfig{
+public:
+	static WCSimFitterConfig * Instance();
+	static void Print();
+
+	virtual ~WCSimFitterConfig();
+	void SetNumTracks(int nTracks);
+  unsigned int GetNumTracks() const;
+	unsigned int GetNumParameters();
+  unsigned int GetNumIndependentParameters();
+	WCSimFitterParameters GetFitterParameters(){ return fFitterParameters; }
+
+	void FixTrackParameter(int  numTrack, const char * name, bool doIt = true);
+	void FreeTrackParameter(int numTrack, const char * name, bool doIt = true);
+	bool GetIsFixedParameter(int numTrack, const char * name);
+
+  void SetParameter(unsigned int numTrack, const char * name, double min, double max, double start, bool fixIt);
+
+	void SetParMin( int numTrack, const char * name, double min);
+	double GetParMin( unsigned int numTrack, const char * name );
+
+	void SetParMax( int numTrack, const char * name, double max);
+	double GetParMax(unsigned int numTrack, const char * name);
+
+	void SetParStart( int numTrack, const char * name, double start);
+	double GetParStart( unsigned int numTrack, const char * name );
+
+	void SetParRange( int numTrack, const char * name, double min, double max);
+	std::pair<double, double> GetParRange( unsigned int numTrack, const char * name );
+
+	void SetNumEventsToFit(unsigned int numEvents);
+	unsigned int GetNumEventsToFit();
+
+	void SetJoinParametersTogether(unsigned int numTrack1, unsigned int numTrack2, const char * name);
+	bool GetJoinParametersTogether(unsigned int numTrack1, unsigned int numTrack2, const char * name);
+	bool GetIsParameterJoined(unsigned int numTrack, const char * name);
+	unsigned int GetTrackIsJoinedWith(unsigned int numTrack, const char * name);
+
+private:
+	WCSimFitterConfig();
+
+
+
+	WCSimFitterParameters fFitterParameters;
+  int fNumTracks;
+	int fNumEventsToFit;
+	int fNumParameters;
+};
+
+#endif /* WCSIMFITTERCONFIG_HH_ */

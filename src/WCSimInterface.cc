@@ -2,11 +2,16 @@
 #include "WCSimGeometry.hh"
 #include "WCSimParameters.hh"
 
+#include "WCSimLikelihoodDigitArray.hh"
+
 #include "WCSimTrueEvent.hh"
 #include "WCSimTrueTrack.hh"
 
 #include "WCSimRecoEvent.hh"
 #include "WCSimRecoDigit.hh"
+
+#include <TObjArray.h>
+#include <TObjString.h>
 
 #include <cmath>
 #include <iostream>
@@ -95,6 +100,8 @@ WCSimInterface::WCSimInterface()
 
   fDigitList = new std::vector<WCSimRecoDigit*>;
   fTrackList = new std::vector<WCSimTrueTrack*>;  
+  fTrueLikelihoodTracks = new std::vector<WCSimLikelihoodTrack*>;
+  fLikelihoodDigitArray = NULL;
 
   fTrigger = 0;
   fEvent = 0;
@@ -147,6 +154,21 @@ void WCSimInterface::AddFile(const char* file)
   return;
 }
 
+TObjArray WCSimInterface::GetFileNames()
+{
+  TObjArray fileNames;
+  TObjArray *fileElements=chain->GetListOfFiles();
+  TIter next(fileElements);
+  TChainElement *chEl=0;
+  while (( chEl=(TChainElement*)next() )) 
+  {
+    TObjString * name = new TObjString(chEl->GetTitle());
+    fileNames.AddLast(name)
+  }
+  fileNames.SetOwner(kTRUE);
+  return fileNames;
+}
+
 void WCSimInterface::ResetForNewSample()
 {
   if( fChain->GetEntries()>0 ){
@@ -170,6 +192,9 @@ void WCSimInterface::ResetForNewSample()
   // reset true event
   this->ResetTrueEvent();
 
+  // reset true tracks
+  this->ResetTrueLikelihoodTracks();
+
   //  reset reco event
   this->ResetRecoEvent();
 
@@ -191,12 +216,43 @@ void WCSimInterface::ResetTrueEvent()
     delete (WCSimTrueTrack*)(fTrackList->at(i));
   }
 
+
   // clear list of tracks
   // ====================
   fTrackList->clear();
 
   return;
 }
+
+void WCSimInterface::ResetTrueLikelihoodTracks()
+{
+	// delete list of tracks
+	// =====================
+	for( UInt_t i=0; i<fTrueLikelihoodTracks->size(); i++ ){
+	    delete (WCSimLikelihoodTrack*)(fTrueLikelihoodTracks->at(i));
+	}
+	fTrueLikelihoodTracks->clear();
+	return;
+}
+
+void WCSimInterface::BuildTrueLikelihoodTracks() {
+  std::cout << " *** WCSimInterface::BuildTrueLikelihoodTracks() *** " << std::endl;
+	this->ResetTrueLikelihoodTracks();
+  std::cout << "Size of fTrackList = " << fTrackList->size() << std::endl;
+
+	fTrueLikelihoodTracks = new std::vector<WCSimLikelihoodTrack*>;
+	unsigned int nTrack = fTrackList->size();
+	for( unsigned int iTrack = 0 ; iTrack < fTrackList->size(); ++iTrack )
+	{
+    std::cout << "Pushing back track number " << iTrack << std::endl;
+		WCSimLikelihoodTrack * likeTrack = new WCSimLikelihoodTrack(fTrackList->at(iTrack));
+		fTrueLikelihoodTracks->push_back(likeTrack);
+	}
+	std::cout << "BuiltTrueLikelihoodTracks!" << std::endl;
+  return;
+
+}
+
 
 void WCSimInterface::ResetRecoEvent()
 {
@@ -262,6 +318,7 @@ WCSimRootTrigger* WCSimInterface::GetWCSimTrigger(Int_t ievent)
   return fTrigger;
 }
 
+
 WCSimRootTrigger* WCSimInterface::FilterTrigger(WCSimRootEvent* myEvent)
 {
   // Sanity Check
@@ -313,6 +370,10 @@ void WCSimInterface::BuildEvent(WCSimRootTrigger* myTrigger)
   // Build Reco Event
   // ================
   BuildRecoEvent(myTrigger);
+
+  // Build vector of true tracks
+  // ===========================
+  BuildTrueLikelihoodTracks();
 
   return;
 }
@@ -677,6 +738,14 @@ void WCSimInterface::BuildRecoEvent(WCSimRootTrigger* myTrigger)
   }
 
   std::cout << "   Number of Digits = " << fRecoEvent->GetNDigits() << std::endl;
+  std::cout << "   Tracks found = " << fTrackList->size() << std::endl;
 
   return;
+}
+
+WCSimLikelihoodDigitArray* WCSimInterface::GetWCSimLikelihoodDigitArray(int ievent) {
+	WCSimRootEvent* myEvent = (WCSimRootEvent*)(GetWCSimEvent(ievent));
+	if( fLikelihoodDigitArray != NULL ){ delete fLikelihoodDigitArray; }
+	fLikelihoodDigitArray = new WCSimLikelihoodDigitArray(myEvent);
+	return fLikelihoodDigitArray;
 }

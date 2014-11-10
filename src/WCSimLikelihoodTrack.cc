@@ -1,4 +1,5 @@
 #include "WCSimLikelihoodTrack.hh"
+#include "WCSimTrueTrack.hh"
 #include "TMath.h"
 #include "TVector3.h"
 #include <string>
@@ -37,6 +38,18 @@ WCSimLikelihoodTrack::WCSimLikelihoodTrack( double x, double y, double z, double
 	return;
 }
 
+WCSimLikelihoodTrack::WCSimLikelihoodTrack(WCSimTrueTrack* trueTrack) {
+	fVtx[0] = trueTrack->GetG4VtxX();
+	fVtx[1] = trueTrack->GetG4VtxY();
+	fVtx[2] = trueTrack->GetG4VtxZ();
+	fT0 = 0;
+	fTheta0 = TMath::ACos( trueTrack->GetDirZ() );
+	fPhi0 = TMath::ATan2(trueTrack->GetVtxY(), trueTrack->GetVtxZ());
+	fE0 = trueTrack->GetEnergy();
+	fType = GetTypeFromPDG(trueTrack->GetTrackPDG());
+
+}
+
 void WCSimLikelihoodTrack::Print()
 {
   std::cout << "WCSimLikelihoodTrack::Print():" << std::endl
@@ -64,22 +77,35 @@ void WCSimLikelihoodTrack::SetE(double E){ fE0 = E; }
 ///////////////////////////////////////////////////////////////////////////
 // Getters
 ///////////////////////////////////////////////////////////////////////////
-const double WCSimLikelihoodTrack::GetX(){return fVtx[0]; }
-const double WCSimLikelihoodTrack::GetY(){return fVtx[1]; }
-const double WCSimLikelihoodTrack::GetZ(){return fVtx[2]; }
-const TVector3 WCSimLikelihoodTrack::GetVtx(){ return TVector3(fVtx[0], fVtx[1], fVtx[2]); }
+double WCSimLikelihoodTrack::GetX() const {return fVtx[0]; }
+double WCSimLikelihoodTrack::GetY() const {return fVtx[1]; }
+double WCSimLikelihoodTrack::GetZ() const {return fVtx[2]; }
+TVector3 WCSimLikelihoodTrack::GetVtx() const { return TVector3(fVtx[0], fVtx[1], fVtx[2]); }
 
-const double WCSimLikelihoodTrack::GetT(){return fT0; }
-const double WCSimLikelihoodTrack::GetTheta(){return fTheta0; }
-const double WCSimLikelihoodTrack::GetPhi(){return fPhi0; }
-const double WCSimLikelihoodTrack::GetE(){return fE0; }
+double WCSimLikelihoodTrack::GetT() const {return fT0; }
+double WCSimLikelihoodTrack::GetTheta() const {return fTheta0; }
+double WCSimLikelihoodTrack::GetPhi() const {return fPhi0; }
+double WCSimLikelihoodTrack::GetE() const {return fE0; }
 
-const double WCSimLikelihoodTrack::GetDirX(){ return TMath::Sin(fTheta0) * TMath::Cos(fPhi0); }
-const double WCSimLikelihoodTrack::GetDirY(){ return TMath::Sin(fTheta0) * TMath::Sin(fPhi0); }
-const double WCSimLikelihoodTrack::GetDirZ(){ return TMath::Cos(fTheta0); }
-const TVector3 WCSimLikelihoodTrack::GetDir(){ return TVector3( this->GetDirX(), this->GetDirY(), this->GetDirZ()); }
+double WCSimLikelihoodTrack::GetDirX() const { return TMath::Sin(fTheta0) * TMath::Cos(fPhi0); }
+double WCSimLikelihoodTrack::GetDirY() const { return TMath::Sin(fTheta0) * TMath::Sin(fPhi0); }
+double WCSimLikelihoodTrack::GetDirZ() const { return TMath::Cos(fTheta0); }
+TVector3 WCSimLikelihoodTrack::GetDir() const { return TVector3( this->GetDirX(), this->GetDirY(), this->GetDirZ()); }
 
-const WCSimLikelihoodTrack::TrackType WCSimLikelihoodTrack::GetType(){ return fType;}
+WCSimLikelihoodTrack::TrackType WCSimLikelihoodTrack::GetType() const { return fType;}
+
+double WCSimLikelihoodTrack::GetTrackParameter(
+		FitterParameterType::Type type) const {
+	if( type == FitterParameterType::kVtxX ){ return GetX(); }
+	if( type == FitterParameterType::kVtxY ){ return GetY(); }
+	if( type == FitterParameterType::kVtxZ ){ return GetZ(); }
+	if( type == FitterParameterType::kVtxT ){ return GetT(); }
+	if( type == FitterParameterType::kDirTh ){ return GetPhi(); }
+	if( type == FitterParameterType::kDirPhi ){ return GetTheta(); }
+	if( type == FitterParameterType::kEnergy ){ return GetE(); }
+	assert(0);
+	return -99999;
+}
 
 ///////////////////////////////////////////////////////////////////////////
 // Destructor
@@ -113,7 +139,9 @@ std::string WCSimLikelihoodTrack::TrackTypeToString( WCSimLikelihoodTrack::Track
 }
 
 
-const TVector3 WCSimLikelihoodTrack::GetPropagatedPos(Double_t s)
+TVector3 WCSimLikelihoodTrack::GetPropagatedPos(Double_t s) const
 {
     return (this->GetVtx() + s * this->GetDir());
 }
+
+

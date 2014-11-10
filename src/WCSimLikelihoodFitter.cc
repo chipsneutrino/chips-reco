@@ -1,3 +1,8 @@
+#include "WCSimChargeLikelihood.hh"
+#include "WCSimFitterConfig.hh"
+#include "WCSimFitterParameters.hh"
+#include "WCSimFitterPlots.hh"
+#include "WCSimFitterInterface.hh"
 #include "WCSimGeometry.hh"
 #include "WCSimInterface.hh"
 #include "WCSimLikelihoodDigitArray.hh"
@@ -8,18 +13,21 @@
 #include "WCSimRecoEvent.hh"
 #include "WCSimRootEvent.hh"
 #include "WCSimRootGeom.hh"
-#include "WCSimChargeLikelihood.hh"
 #include "WCSimTimeLikelihood.hh"
 #include "WCSimTotalLikelihood.hh"
+
 #include "TClonesArray.h"
 #include "TCollection.h"
 #include "TMath.h"
 #include "TMinuit.h"
+#include "TStopwatch.h"
+
 #include "Minuit2/Minuit2Minimizer.h"
 #include "Math/Functor.h"
 #include "Math/Minimizer.h"
 #include "Math/Factory.h"
 
+#include <string>
 #include <iostream>
 #include <vector>
 #include <map>
@@ -32,50 +40,26 @@ ClassImp(WCSimLikelihoodFitter)
 /**
  * @todo Remove hardcoding of track type
  */
-WCSimLikelihoodFitter::WCSimLikelihoodFitter(WCSimRootEvent * myRootEvent)
+WCSimLikelihoodFitter::WCSimLikelihoodFitter()
 {
-    fStatus = -999;
-    fRootEvent = myRootEvent;
-    fLikelihoodDigitArray = new WCSimLikelihoodDigitArray(fRootEvent);
-    fTotalLikelihood = new WCSimTotalLikelihood(fLikelihoodDigitArray);
-    fType = WCSimLikelihoodTrack::MuonLike;
-    fParMap[1] = 8; // The number of fit parameters for n tracks, plus 1 for nTracks itself (fixed)
-    fParMap[2] = 11;
-    fMinimum  = 0;
-    fSeedVtxX = 0.6;
-    fSeedVtxY = 0.6;
-    fSeedVtxZ = 0.6;
-    fSeedTheta = 0.1;
-    fSeedPhi = 0.5;
-    fSeedTime = -40;
-    fSeedEnergy = 1500;
-    fIsFirstCall = true;
+	fFitterPlots = NULL;
+	ResetEvent();
 }
-
-
 
 WCSimLikelihoodFitter::~WCSimLikelihoodFitter()
 {
-  delete fLikelihoodDigitArray;
-  delete fTotalLikelihood;
 }
 
-
-
-Int_t WCSimLikelihoodFitter::GetNPars(Int_t nTracks)
+UInt_t WCSimLikelihoodFitter::GetNPars()
 {
   // Do we know how to fit this number of tracks?
-  Int_t nPars = -1;
-  std::map<Int_t, Int_t>::const_iterator mapItr = fParMap.find(nTracks);
-  if(mapItr == fParMap.end()) std::cerr << "WCSimLikelihoodFitter::GetNPars *** Error: could not look up the number of parameters for " << nTracks << " tracks" << std::endl;
-  else nPars = fParMap[nTracks];
-
+  unsigned int nPars = WCSimFitterConfig::Instance()->GetNumIndependentParameters();
   return nPars;
 }
 
 
 
-void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
+void WCSimLikelihoodFitter::Minimize2LnL()
 {
    // Set up the minimizer
    ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Simplex");
@@ -83,7 +67,7 @@ void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
    // Alternatively: use a different algorithm to check the minimizer works
    // ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "GSLSimAn");
 
-   min->SetMaxFunctionCalls(9999999);
+   min->SetMaxFunctionCalls(100);
    min->SetMaxIterations(9);
    min->SetPrintLevel(3);
    min->SetTolerance(200);
@@ -91,194 +75,33 @@ void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
    std::cout << " Tolerance = " << min->Tolerance() << std::endl;
 
   // Convert nTracks into number of parameters
-  const Int_t nPars = this->GetNPars(nTracks);
+  const unsigned int nPars = this->GetNPars();
   
   // Tell the minimizer the function to minimize
   // We have to wrap it in this functor because it's a member function of this class
   ROOT::Math::Functor func(this,&WCSimLikelihoodFitter::WrapFunc, nPars);
   
-  Double_t * par        = new Double_t[nPars];            // the start values
-  Double_t * stepSize   = new Double_t[nPars];            // step sizes 
-  Double_t * minVal     = new Double_t[nPars];            // minimum bound on parameter 
-  Double_t * maxVal     = new Double_t[nPars];            // maximum bound on parameter
-  std::cout << "nPars = " << nPars << std::endl;
-  std::string * parName = new std::string[nPars];
-
-  // Set parameter start values to the seed output
-  if(nTracks == 1 || nTracks ==2)
-  {
-    
-    // par[0] = 80.;    // x
-    // par[1] = -200.;    // y
-    // par[2] = 320.;    // z
-    // par[3] = 0.;    // t
-    // par[4] = 0.2*TMath::Pi();    // theta
-    // par[5] = 0.05*TMath::Pi();    // phi
-    // par[6] = 1500;  // energy
-
-    par[0] = nTracks;    // x
-    par[1] = fSeedVtxX;    // x
-    par[2] = fSeedVtxY;    // y
-    par[3] = fSeedVtxZ;    // z
-    par[4] = fSeedTime;    // t
-    par[5] = fSeedTheta;    // theta
-    par[6] = fSeedPhi;    // phi
-    par[7] = fSeedEnergy;  // energy
-
-    minVal[0] = nTracks;
-    minVal[1] = -1900.;
-    minVal[2] = -1900.;
-    minVal[3] = -940.;
-    minVal[4] = -250.;
-    minVal[5] = 0. * TMath::Pi();
-    minVal[6] = -1.0 * TMath::Pi();
-    minVal[7] = 1500;
-
-    maxVal[0] = nTracks;
-    maxVal[1] = 1900.;
-    maxVal[2] = 1900.;
-    maxVal[3] = 940.;
-    maxVal[4] = 100.;
-    maxVal[5] = TMath::Pi();
-    maxVal[6] = 1.0 * TMath::Pi();;
-    maxVal[7] = 1500;
-
-    stepSize[0] = 0.;
-    stepSize[1] = 50.;
-    stepSize[2] = 50.;
-    stepSize[3] = 50.;
-    stepSize[4] = 10.;
-    stepSize[5] = 0.02;
-    stepSize[6] = 0.02;
-    stepSize[7] = 1500;
-
-    parName[0] = "nTracks";
-    parName[1] = "vtxX";
-    parName[2] = "vtxY";
-    parName[3] = "vtxZ";
-    parName[4] = "vtxT";
-    parName[5] = "theta";
-    parName[6] = "phi";
-    parName[7] = "energy";
-  }
-  if(nTracks == 2)
-  {
-    par[8]  = 0.;    // second track theta
-    par[9]  = 0.;    // second track phi
-    par[10] = 1500;  // second track energy
-
-    minVal[8]  = 0.;
-    minVal[9]  = 0.;
-    minVal[10] = 1500.;
-
-    maxVal[8]  = TMath::Pi();
-    maxVal[9]  = 2.0 * TMath::Pi();;
-    maxVal[10] = 1500;
-
-    stepSize[8]  = 0.05;
-    stepSize[9]  = 0.05;
-    stepSize[10] = 1500;
-
-    parName[8]  = "theta_2";
-    parName[9]  = "phi_2";
-    parName[10] = "energy_2";
-  }
-
- /* 
-    // If we test the using the simulated annealing algorithm to do the minimizing
-    // it converges better if we vary parameters between 0 and 1 and scale them up later
-    par[0] = nTracks;    // x
-    par[1] = fSeedVtxX;    // x
-    par[2] = fSeedVtxY;    // y
-    par[3] = fSeedVtxZ;    // z
-    par[4] = fSeedTime;    // t
-    par[5] = fSeedTheta;    // theta
-    par[6] = fSeedPhi;    // phi
-    par[7] = fSeedEnergy;  // energy
-
-    minVal[0] = nTracks;
-    minVal[1] = 0.0; // -1900.;
-    minVal[2] = 0.0; // -1900.;
-    minVal[3] = 0.0; // -940.;
-    minVal[4] = 0.0; // 0.;
-    minVal[5] = 0.0; // 0. * TMath::Pi();
-    minVal[6] = 0.0; // -1.0 * TMath::Pi();
-    minVal[7] = 1.0; // 1500;
-
-    maxVal[0] = nTracks;
-    maxVal[1] = 1.0; // 1900.;
-    maxVal[2] = 1.0; // 1900.;
-    maxVal[3] = 1.0; // 940.;
-    maxVal[4] = 1.0; // 0.;
-    maxVal[5] = 1.0; // TMath::Pi();
-    maxVal[6] = 1.0; // 1.0 * TMath::Pi();;
-    maxVal[7] = 1.0; // 1500;
-
-    stepSize[0] = 0.25; // 0.;
-    stepSize[1] = 0.25; // 50.;
-    stepSize[2] = 0.25; // 50.;
-    stepSize[3] = 0.25; // 50.;
-    stepSize[4] = 0.25; // 1.;
-    stepSize[5] = 0.25; // 0.02;
-    stepSize[6] = 0.25; // 0.02;
-    stepSize[7] = 1; // 1500;
-
-    parName[0] = "nTracks";
-    parName[1] = "vtxX";
-    parName[2] = "vtxY";
-    parName[3] = "vtxZ";
-    parName[4] = "vtxT";
-    parName[5] = "theta";
-    parName[6] = "phi";
-    parName[7] = "energy";
-  }
-  if(nTracks == 2)
-  {
-    par[8]  = 0.;    // second track theta
-    par[9]  = 0.;    // second track phi
-    par[10] = 1;  // second track energy
-
-    minVal[8]  = 0.;
-    minVal[9]  = 0.;
-    minVal[10] = 1.;
-
-    maxVal[8]  = TMath::Pi();
-    maxVal[9]  = 2.0 * TMath::Pi();;
-    maxVal[10] = 1.;
-
-    stepSize[8]  = 0.05;
-    stepSize[9]  = 0.05;
-    stepSize[10] = 1;
-
-    parName[8]  = "theta_2";
-    parName[9]  = "phi_2";
-    parName[10] = "energy_2";
-  }
-  */
-
   // Print the parameters we're using
   for(UInt_t j = 0; j < nPars; ++j)
   {
-      std::cout << j << "   " << parName[j] << "   " << par[j] << "   " << minVal[j] << "   " << maxVal[j] << std::endl;
+      std::cout << j << "   " << fNames[j] << "   " << fStartVals[j] << "   " << fMinVals[j] << "   " << fMaxVals[j] << std::endl;
   }
 
   // Tell the minimizer the functor and variables to consider
   min->SetFunction(func);
-  // min->SetFixedVariable(0,"nTracks",nTracks);  // Lets the wrapper construct the right likelihood
 
   // Set the fixed and free variables
-  for(Int_t i = 0; i < nPars; ++i)
+  for(UInt_t i = 0; i < nPars; ++i)
   {
-    min->SetVariable(i,parName[i], par[i], stepSize[i]);
-    if((1 == i || 2 == i || 3 == i || i ==5 || i==6 ) && (maxVal[i] != minVal[i])){ min->SetLimitedVariable(i,parName[i], par[i], stepSize[i], minVal[i], maxVal[i]);}
-    if(7 == i) { min->SetFixedVariable(i, parName[i], par[i]); }
-    std::cout << i << "   " << parName[i] << "   " << par[i] << "   " << minVal[i] << "   " << maxVal[i] << std::endl;
+	  if( fFixed[i])
+	  {
+	  	min->SetFixedVariable(i, fNames[i], fStartVals[i]);
+	  }
+	  else
+	  {
+		  min->SetLimitedVariable(i, fNames[i], fStartVals[i], fStepSizes[i], fMinVals[i], fMaxVals[i]);
+    }
   }
-
-  //  // Fix the direction
-  //  min->SetFixedVariable(5, parName[5], par[5]);
-  //  min->SetFixedVariable(6, parName[6], par[6]);
-
 
   // Perform the minimization
   min->Minimize();
@@ -301,28 +124,33 @@ void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
 
   // Get and print the fit results
   const Double_t * outPar2 = min->X();
-  const Double_t * err    = min->Errors();
   std::cout << "Best fit track: " << std::endl;
-  RescaleParams(outPar2[1],  outPar2[2],  outPar2[3],  outPar2[4],  outPar2[5],  outPar2[6],  outPar2[7], fType).Print();
+  RescaleParams(outPar2[0],  outPar2[1],  outPar2[2],  outPar2[3],  outPar2[4],  outPar2[5],  outPar2[6], fType).Print();
 
   // Now save the best-fit tracks
   fBestFit.clear();
-  switch(nTracks)
+  for(UInt_t iTrack = 0; iTrack < WCSimFitterConfig::Instance()->GetNumTracks(); ++iTrack)
   {
-    case 2:
-    {  
-      WCSimLikelihoodTrack tempTrack2 = RescaleParams( outPar[1], outPar[2], outPar[3], outPar[4], outPar[8], outPar[9], outPar[10], fType );
-      fBestFit.push_back(tempTrack2);
-    }
-    case 1:
-    {
-      WCSimLikelihoodTrack tempTrack1 = RescaleParams( outPar[1], outPar[2], outPar[3], outPar[4], outPar[5], outPar[6], outPar[7], fType );
-      fBestFit.push_back(tempTrack1);
-      std::reverse(fBestFit.begin(), fBestFit.end());
-    }
-    default:
-      break;
+	  std::pair<UInt_t, FitterParameterType::Type> trackParX = std::make_pair(iTrack, FitterParameterType::kVtxX);
+	  std::pair<UInt_t, FitterParameterType::Type> trackParY = std::make_pair(iTrack, FitterParameterType::kVtxY);
+	  std::pair<UInt_t, FitterParameterType::Type> trackParZ = std::make_pair(iTrack, FitterParameterType::kVtxZ);
+	  std::pair<UInt_t, FitterParameterType::Type> trackParT = std::make_pair(iTrack, FitterParameterType::kVtxT);
+	  std::pair<UInt_t, FitterParameterType::Type> trackParTh = std::make_pair(iTrack, FitterParameterType::kDirTh);
+	  std::pair<UInt_t, FitterParameterType::Type> trackParPhi = std::make_pair(iTrack, FitterParameterType::kDirPhi);
+	  std::pair<UInt_t, FitterParameterType::Type> trackParE = std::make_pair(iTrack, FitterParameterType::kEnergy);
+	  WCSimLikelihoodTrack track(
+								  outPar[fTrackParMap[trackParX]],
+								  outPar[fTrackParMap[trackParY]],
+								  outPar[fTrackParMap[trackParZ]],
+								  outPar[fTrackParMap[trackParT]],
+								  outPar[fTrackParMap[trackParTh]],
+								  outPar[fTrackParMap[trackParPhi]],
+								  outPar[fTrackParMap[trackParE]],
+								  fType
+								  );
+	  fBestFit.push_back(track);
   }
+
   return;
 }
 
@@ -332,63 +160,84 @@ void WCSimLikelihoodFitter::Minimize2LnL(Int_t nTracks)
  */
 Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
 {
-  std::vector<WCSimLikelihoodTrack> trackVec;
-  WCSimLikelihoodTrack myTrack = RescaleParams(x[1],x[2],x[3],x[4],x[5],x[6],x[7], fType);
-  trackVec.push_back(myTrack);
+  UInt_t nTracks = WCSimFitterConfig::Instance()->GetNumTracks();
+  std::vector<FitterParameterType::Type> allTypes = FitterParameterType::GetAllAllowedTypes();
 
-  // Check we can deal with the number of tracks provided
-  Int_t nTracks = static_cast<Int_t>(x[0]);
-  switch(nTracks)
+  // If we've fixed some track parameters together, then our array of fit parameters won't just be of size
+  // n tracks * m parameters per track, and we need to work out which entry corresponds to which parameter
+  // of which track(s) - this is probably expensive, so we'll do it once and look it up in a map thereafter
+  if( fIsFirstCall )
   {
-    case 1:
-      break;
-    case 2:
-      break;
-    default:
-      std::cerr << "WCSimLikelihoodFitter::WrapFunc *** Error: can only fit for 1 or 2 tracks" << std::endl;
-      return 0;
+	  fTrackParMap.clear();
+	  UInt_t arrayCounter = 0;
+	  for(UInt_t iTrack = 0; iTrack < nTracks; ++iTrack)
+	  {
+		  for(UInt_t iParam = 0; iParam < allTypes.size(); ++iParam)
+		  {
+			  // Is it joined?
+			  std::pair<UInt_t, FitterParameterType::Type> trackPar = std::make_pair(iTrack, allTypes.at(iParam));
+			  UInt_t isJoinedWith = WCSimFitterConfig::Instance()->GetTrackIsJoinedWith(iTrack, FitterParameterType::AsString(trackPar.second).c_str());
+			  if( isJoinedWith == iTrack ) 	// Itself, i.e. not joined with any other track
+			  {
+				  // Then set it to the value from the first track
+				  assert(arrayCounter < WCSimFitterConfig::Instance()->GetNumIndependentParameters());
+				  fTrackParMap[trackPar] = arrayCounter;
+				  arrayCounter++;
+			  }
+			  else
+			  {
+				  // Otherwise don't; set it to the next index value instead
+				  std::pair<UInt_t, FitterParameterType::Type> joinPar = std::make_pair(isJoinedWith, allTypes.at(iParam));
+				  fTrackParMap[trackPar] = fTrackParMap[joinPar];
+			  }
+		  }
+	  }
   }
-  if(x[0] == 2)
+
+  std::vector<WCSimLikelihoodTrack> tracksToFit;
+  for(UInt_t iTrack = 0 ; iTrack < nTracks; ++iTrack)
   {
-    WCSimLikelihoodTrack myTrack2 = RescaleParams(x[1],x[2],x[3],x[4],x[8],x[9],x[10], fType);
-    trackVec.push_back(myTrack2);
+	  std::pair<UInt_t, FitterParameterType::Type> trackParX = std::make_pair(iTrack, FitterParameterType::kVtxX);
+	  std::pair<UInt_t, FitterParameterType::Type> trackParY = std::make_pair(iTrack, FitterParameterType::kVtxY);
+	  std::pair<UInt_t, FitterParameterType::Type> trackParZ = std::make_pair(iTrack, FitterParameterType::kVtxZ);
+	  std::pair<UInt_t, FitterParameterType::Type> trackParT = std::make_pair(iTrack, FitterParameterType::kVtxT);
+	  std::pair<UInt_t, FitterParameterType::Type> trackParTh = std::make_pair(iTrack, FitterParameterType::kDirTh);
+	  std::pair<UInt_t, FitterParameterType::Type> trackParPhi = std::make_pair(iTrack, FitterParameterType::kDirPhi);
+	  std::pair<UInt_t, FitterParameterType::Type> trackParE = std::make_pair(iTrack, FitterParameterType::kEnergy);
+
+	  WCSimLikelihoodTrack track(
+								  x[fTrackParMap[trackParX]],
+								  x[fTrackParMap[trackParY]],
+								  x[fTrackParMap[trackParZ]],
+								  x[fTrackParMap[trackParT]],
+								  x[fTrackParMap[trackParTh]],
+								  x[fTrackParMap[trackParPhi]],
+								  x[fTrackParMap[trackParE]],
+								  fType
+								  );
+	  tracksToFit.push_back(track);
   }
+
+
 
   if(fIsFirstCall || 1) // TEMP: Print it out all the time for now
   {
     std::cout << "Tracks used for first call:" << std::endl;
-    std::vector<WCSimLikelihoodTrack>::iterator itr = trackVec.begin();
-    for( ; itr < trackVec.end(); ++itr)
+    std::vector<WCSimLikelihoodTrack>::iterator itr = tracksToFit.begin();
+    for( ; itr < tracksToFit.end(); ++itr)
     {
       (*itr).Print();
     }
-    fIsFirstCall = false;
   }
 
-  std::cout << " ...  Done" << std::endl;
   Double_t minus2LnL = 0.0;
-  fTotalLikelihood->SetTracks(trackVec);
+  fTotalLikelihood->SetTracks(tracksToFit);
   minus2LnL = fTotalLikelihood->Calc2LnL();
+
+  fIsFirstCall = false;
   return minus2LnL;
 }
 
-
-
-/*
- * Integrate the time likelihood here:
-double WCSimLikelihoodFitter::Time2LnL( )
-{
-    WCSimChargeLikelihood * myChargeLikelihood = new WCSimChargeLikelihood( fLikelihoodDigitArray, fTrack );
-    WCSimTimeLikelihood * myTimeLikelihood = new WCSimTimeLikelihood( fLikelihoodDigitArray, fTrack, myChargeLikelihood );
-    Double_t time2LnL = myTimeLikelihood->Calc2LnL();
-    delete myTimeLikelihood;
-    delete myChargeLikelihood;
-
-    //std::cout << "Returning -2* time LnL" << std::endl;
-    std::cout << "-2 * Time2LnL = " << time2LnL << std::endl;
-    return time2LnL;
-}
-*/
 
 // Use the previous Hough transform-based reconstruction algorithm to seed the multi-track one
 void WCSimLikelihoodFitter::SeedParams( WCSimReco * myReco )
@@ -433,6 +282,163 @@ Double_t WCSimLikelihoodFitter::GetMinimum()
   return fMinimum;
 }
 
+void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
+	fIsFirstCall = true;
+	fRootEvent = WCSimInterface::Instance()->GetWCSimEvent(iEvent);
+	fLikelihoodDigitArray = WCSimInterface::Instance()->GetWCSimLikelihoodDigitArray(iEvent);
+  std::cout << "There are " << fLikelihoodDigitArray->GetNDigits() << " digits" << std::endl;
+	if(fTotalLikelihood != NULL)
+	{
+		fTotalLikelihood->SetLikelihoodDigitArray(fLikelihoodDigitArray);
+	}
+	else
+	{
+		fTotalLikelihood = new WCSimTotalLikelihood(fLikelihoodDigitArray);
+	}
+
+	Minimize2LnL();
+
+	if(WCSimFitterInterface::Instance()->GetMakeFits() ) {
+		WCSimInterface::Instance()->BuildEvent(iEvent);
+    std::cout << "Getting true likelihood tracks 2" << std::endl;
+		fTrueLikelihoodTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
+		std::cout << "Fill plots now 3" << std::endl;
+    FillPlots();
+    std::cout << "Plots filled" << std::endl;
+	}
+
+	return;
+
+
+}
+
+void WCSimLikelihoodFitter::CreateParameterArrays() {
+	Int_t numParams = WCSimFitterConfig::Instance()->GetNumIndependentParameters();
+
+	fStartVals = new Double_t[numParams];
+	fMinVals   = new Double_t[numParams];
+	fMaxVals   = new Double_t[numParams];
+	fStepSizes = new Double_t[numParams];
+	fFixed	   = new Bool_t[numParams];
+	fNames 	   = new std::string[numParams];
+}
+
+void WCSimLikelihoodFitter::SetParameterArrays() {
+	Int_t iParam = 0;
+	UInt_t numTracks = WCSimFitterConfig::Instance()->GetNumTracks();
+	for(UInt_t jTrack = 0; jTrack < numTracks; ++jTrack)
+	{
+		std::vector<FitterParameterType::Type> paramTypes = FitterParameterType::GetAllAllowedTypes();
+		std::vector<FitterParameterType::Type>::const_iterator typeItr = paramTypes.begin();
+		for( ; typeItr != paramTypes.end(); ++typeItr)
+		{
+			const char * name  = FitterParameterType::AsString(*typeItr).c_str();
+
+			if(WCSimFitterConfig::Instance()->GetIsParameterJoined(jTrack, name)){
+				continue;
+			}
+			else{
+				fStartVals[iParam] = WCSimFitterConfig::Instance()->GetParStart(jTrack,name);
+				fMinVals[iParam]   = WCSimFitterConfig::Instance()->GetParMin(jTrack,name);
+				fMaxVals[iParam]   = WCSimFitterConfig::Instance()->GetParMax(jTrack,name);
+				fStepSizes[iParam] = (WCSimFitterConfig::Instance()->GetParMax(jTrack,name) - WCSimFitterConfig::Instance()->GetParMin(jTrack, name)) / 50.0;
+				fFixed[iParam]     = WCSimFitterConfig::Instance()->GetIsFixedParameter(jTrack,name);
+				TString parName;
+				parName.Form("%s_track%d", name, jTrack);
+				fNames[iParam]     = std::string(parName.Data());
+        std::cout << "Setting parameter: " << "name = " << fNames[iParam] << " min = " << fMinVals[iParam] << "   max = " << fMaxVals[iParam] << "  start = " << fStartVals[iParam] << "  fix = " << fFixed[iParam] << std::endl;
+				iParam++;
+			}
+		}
+	}
+	return;
+}
+
+void WCSimLikelihoodFitter::DeleteParameterArrays() {
+	if( fStartVals != NULL ) { delete [] fStartVals; }
+	if( fMinVals != NULL )   { delete [] fMinVals; }
+	if( fMaxVals != NULL )   { delete [] fMaxVals; }
+	if( fStepSizes != NULL ) { delete [] fStepSizes; }
+	if( fFixed != NULL ) 	 { delete [] fFixed; }
+	if( fNames != NULL ) 	 { delete [] fNames; }
+}
+
+void WCSimLikelihoodFitter::SetFitterPlots(WCSimFitterPlots* fitterPlots) {
+  std::cout << "Setting fFitterPlots" << std::endl;
+	fFitterPlots = fitterPlots;
+  std::cout << "Number of surface bins" << fFitterPlots->GetNumSurfaceBins() << std::endl;
+}
+
+void WCSimLikelihoodFitter::Make1DSurface(
+	std::pair<UInt_t, FitterParameterType::Type> trackPar) {
+  std::cout << " *** WCSimLikelihoodFitter::Make1DSurface() *** " << std::endl;
+  std::cout << "What about fFitterPlots? " << fFitterPlots << std::endl;
+  
+  std::map<std::pair<UInt_t, FitterParameterType::Type>, UInt_t >::iterator itr = fTrackParMap.find(trackPar);
+	if( itr != fTrackParMap.end() )
+	{
+		unsigned int arrIndex = (*itr).second;
+		double min = fMinVals[arrIndex];
+		double max = fMaxVals[arrIndex];
+
+		Double_t * x = new Double_t[WCSimFitterConfig::Instance()->GetNumIndependentParameters()];
+		for(unsigned int iBin = 0; iBin < WCSimFitterConfig::Instance()->GetNumIndependentParameters(); ++iBin)
+		{
+			x[iBin] = fStartVals[iBin];
+		}
+
+		for(unsigned int iBin = 0; iBin < fFitterPlots->GetNumSurfaceBins(); ++iBin)
+		{
+			double stepVal = min + (max - min) * iBin / (double)fFitterPlots->GetNumSurfaceBins();
+			x[arrIndex] = stepVal;
+			fFitterPlots->Fill1DProfile(trackPar, stepVal, WrapFunc(x));
+		}
+	}
+
+}
+
+void WCSimLikelihoodFitter::Make2DSurface(
+		std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > trackPar) {
+    std::map<std::pair<UInt_t, FitterParameterType::Type>, UInt_t >::iterator itr1 = fTrackParMap.find(trackPar.first);
+    std::map<std::pair<UInt_t, FitterParameterType::Type>, UInt_t >::iterator itr2 = fTrackParMap.find(trackPar.second);
+
+    if( itr1 != fTrackParMap.end() && itr2 != fTrackParMap.end())
+    {
+		  unsigned int arrIndexX = (*itr1).second;
+		  double minX = fMinVals[arrIndexX];
+		  double maxX = fMaxVals[arrIndexX];
+
+		  unsigned int arrIndexY = (*itr2).second;
+		  double minY = fMinVals[arrIndexY];
+		  double maxY = fMaxVals[arrIndexY];
+
+
+		  Double_t * x = new Double_t[WCSimFitterConfig::Instance()->GetNumIndependentParameters()];
+		  // Set everything to the default value
+		  for(unsigned int iXBin = 0; iXBin < WCSimFitterConfig::Instance()->GetNumIndependentParameters(); ++iXBin)
+		  {
+		  	x[iXBin] = fStartVals[iXBin];
+		  }
+
+		  // Now step over each variable
+		  for(unsigned int iXBin = 0; iXBin < fFitterPlots->GetNumSurfaceBins(); ++iXBin)
+		  {
+		  	double stepValX = minX + (maxX - minX) * iXBin / (double)fFitterPlots->GetNumSurfaceBins();
+		  	x[arrIndexX] = stepValX;
+
+
+		  	for(unsigned int iYBin = 0; iYBin < fFitterPlots->GetNumSurfaceBins(); ++iYBin)
+		  	{
+		  		double stepValY = minY + (maxY - minY) * iYBin / (double)fFitterPlots->GetNumSurfaceBins();
+		  		x[arrIndexY] = stepValY;
+		  		fFitterPlots->Fill2DProfile(trackPar, stepValX, stepValY, WrapFunc(x));
+		  	}
+		  }
+    }
+
+    return;
+}
+
 WCSimLikelihoodTrack WCSimLikelihoodFitter::RescaleParams(Double_t x, Double_t y, Double_t z, Double_t t,
                                                           Double_t th, Double_t phi, Double_t E, 
                                                           WCSimLikelihoodTrack::TrackType type)
@@ -466,4 +472,67 @@ WCSimLikelihoodTrack WCSimLikelihoodFitter::RescaleParams(Double_t x, Double_t y
 Int_t WCSimLikelihoodFitter::GetStatus()
 {
   return fStatus;
+}
+
+void WCSimLikelihoodFitter::RunFits() {
+	CreateParameterArrays();
+
+	for(UInt_t iEvent = 0; iEvent < WCSimFitterConfig::Instance()->GetNumEventsToFit() ; ++iEvent)
+	{
+		SetParameterArrays();
+		FitEventNumber(iEvent);
+	}
+
+	DeleteParameterArrays();
+}
+
+void WCSimLikelihoodFitter::RunSurfaces() {
+
+	std::vector<std::pair<unsigned int, FitterParameterType::Type> > all1DProfile = fFitterPlots->GetAll1DSurfaceKeys();
+  std::cout << "Size of 1D surface vector = " << all1DProfile.size() << std::endl;
+	for(std::vector<std::pair<unsigned int, FitterParameterType::Type> >::iterator itr1D = all1DProfile.begin() ;
+		itr1D != all1DProfile.end(); ++itr1D)
+	{
+		Make1DSurface(*itr1D);
+	}
+
+
+	std::vector<std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > > all2DProfile = fFitterPlots->GetAll2DSurfaceKeys();
+	for(std::vector<std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > >::iterator itr2D = all2DProfile.begin() ;
+			itr2D != all2DProfile.end(); ++itr2D)
+	{
+			Make2DSurface(*itr2D);
+	}
+
+	return;
+}
+
+void WCSimLikelihoodFitter::ResetEvent() {
+    fStatus = -999;
+    fRootEvent = NULL;
+    fLikelihoodDigitArray = NULL; // WCSimInterface cleans up after itself so no need to delete these here
+    fTotalLikelihood = NULL;
+
+    fStatus = -999;
+    fType = WCSimLikelihoodTrack::MuonLike;
+    fParMap[1] = 8; // The number of fit parameters for n tracks, plus 1 for nTracks itself (fixed)
+    fParMap[2] = 11;
+    fMinimum  = 0;
+    fSeedVtxX = 0.6;
+    fSeedVtxY = 0.6;
+    fSeedVtxZ = 0.6;
+    fSeedTheta = 0.1;
+    fSeedPhi = 0.5;
+    fSeedTime = -40;
+    fSeedEnergy = 1500;
+    fIsFirstCall = true;
+}
+
+void WCSimLikelihoodFitter::FillPlots() {
+	if(fFitterPlots != NULL)
+	{
+		fFitterPlots->FillPlots(fBestFit);
+		fFitterPlots->FillRecoMinusTrue(fBestFit, fTrueLikelihoodTracks);
+	}
+	return;
 }

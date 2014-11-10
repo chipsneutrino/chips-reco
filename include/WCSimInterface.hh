@@ -1,9 +1,11 @@
 #ifndef WCSIMINTERFACE_HH
 #define WCSIMINTERFACE_HH
 
+#include "TObjArray.h"
 #include "TObject.h"
 #include "TChain.h"
 
+#include "WCSimLikelihoodTrack.hh"
 #include "WCSimRootEvent.hh"
 #include "WCSimRootGeom.hh"
 
@@ -11,6 +13,8 @@
 
 class WCSimRecoDigit;
 class WCSimRecoEvent;
+
+class WCSimLikelihoodDigitArray;
 
 class WCSimTrueTrack;
 class WCSimTrueEvent;
@@ -35,6 +39,10 @@ class WCSimInterface : public TObject {
   static WCSimRootEvent* WCSimEvent();
   static WCSimRootTrigger* WCSimTrigger();
 
+  TObjArray GetFileNames();
+
+
+
   static Int_t GetRunNumber();
   static Int_t GetEventNumber();
   static Int_t GetTriggerNumber();
@@ -46,6 +54,11 @@ class WCSimInterface : public TObject {
 
   void SetTrueEnergyThreshold(Double_t ke) { fEnergyThreshold = ke; }
   void SetTrueRangeThreshold(Double_t ds) { fRangeThreshold = ds; }
+  
+  WCSimLikelihoodDigitArray * GetWCSimLikelihoodDigitArray(int ievent);
+  WCSimLikelihoodDigitArray * GetWCSimLikelihoodDigitArray() { return fLikelihoodDigitArray;};
+
+  std::vector<WCSimLikelihoodTrack*> * GetTrueLikelihoodTracks(){ return fTrueLikelihoodTracks; }
 
   WCSimTrueEvent* GetTrueEvent(){ return fTrueEvent; }
   WCSimRecoEvent* GetRecoEvent(){ return fRecoEvent; }
@@ -63,7 +76,7 @@ class WCSimInterface : public TObject {
 
   void ResetForNewSample();
 
- private:
+ protected:
   WCSimInterface();
   ~WCSimInterface();
 
@@ -74,6 +87,12 @@ class WCSimInterface : public TObject {
 
   void ResetTrueEvent();
   void ResetRecoEvent();
+
+ private:
+
+  // These should only get called by BuildTrueEvent and ResetTrueEvent
+  void BuildTrueLikelihoodTracks();
+  void ResetTrueLikelihoodTracks();
 
   WCSimTrueEvent* fTrueEvent;
   WCSimRecoEvent* fRecoEvent;
@@ -87,6 +106,8 @@ class WCSimInterface : public TObject {
   WCSimRootTrigger* fTrigger;
   WCSimRootEvent* fEvent;
   WCSimRootGeom* fGeometry;
+  WCSimLikelihoodDigitArray * fLikelihoodDigitArray;
+  std::vector<WCSimLikelihoodTrack*> * fTrueLikelihoodTracks;
 
   Double_t fEnergyThreshold;
   Double_t fRangeThreshold;

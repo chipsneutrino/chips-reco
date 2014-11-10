@@ -74,7 +74,7 @@ void WCSimLikelihoodTuner::Initialize()
 {
   fIsOpen          = WCSimLikelihoodTrack::Unknown;
   fProfileLocation = new TString(getenv("WCSIMANAHOME"));
-  fProfileLocation->Append("/config/emissionProfilesElectron.root");
+  fProfileLocation->Append("/config/emissionProfilesMuonInterpolate.root");
   fProfiles        = new TFile(fProfileLocation->Data());
   fHistArray       = 0;
   fAngHistArray    = 0;
@@ -222,7 +222,7 @@ void WCSimLikelihoodTuner::LoadEmissionProfiles( WCSimLikelihoodTrack::TrackType
       break;
     case WCSimLikelihoodTrack::MuonLike:
       fProfileLocation = new TString(getenv("WCSIMANAHOME"));
-      fProfileLocation->Append("/config/emissionProfilesMuon.root");
+      fProfileLocation->Append("/config/emissionProfilesMuonInterpolate.root");
       std::cerr << "Track type = " << myType << std::endl;
       break;
     default:

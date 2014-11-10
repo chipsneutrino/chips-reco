@@ -8,12 +8,15 @@
 #ifndef WCSIMLIKELIHOODFITTER_H
 #define WCSIMLIKELIHOODFITTER_H
 
-#include "WCSimRootEvent.hh"
+#include "WCSimFitterParameters.hh"
+#include "WCSimFitterPlots.hh"
 #include "WCSimLikelihoodDigitArray.hh"
+#include "WCSimLikelihoodTrack.hh"
 #include "WCSimReco.hh"
 #include "WCSimRecoDigit.hh"
-#include "WCSimLikelihoodTrack.hh"
+#include "WCSimRootEvent.hh"
 #include "WCSimTotalLikelihood.hh"
+
 #include <vector>
 #include <map>
 
@@ -26,27 +29,41 @@ class WCSimLikelihoodFitter
          * Constructor
          * @param Event object from WCSim to reconstruct
          */
-        WCSimLikelihoodFitter( WCSimRootEvent*);
+		WCSimLikelihoodFitter();
         virtual ~WCSimLikelihoodFitter();
+        void Init();
+        void SetFitterPlots(WCSimFitterPlots * fitterPlots);
+        void RunFits();
+        void RunSurfaces();
+
+
+
+    protected:
+    private:
+
+        void CreateParameterArrays();
+        void SetParameterArrays();
+        void DeleteParameterArrays();
+
+        void FitEventNumber(Int_t iEvent);
+        void ResetEvent();
 
         /**
          * Perform the minimization
-         * @param nTracks Number of tracks to include in the fit
          */
-        void Minimize2LnL(Int_t nTracks);
+        void Minimize2LnL();
 
         /**
          * Work out how many free parameters Minuit needs to run over
-         * @param nTracks Number of tracks to include in the fit
          * @return Number of parameters to use in Minuit
          */
-        Int_t GetNPars(Int_t nTracks);
+        UInt_t GetNPars();
 
         /**
          * Wrapper to WCSimTotalLikelihood::Calc2LnL so that
          * we can use it as Minuit's FCN
          * @param x Array of parameters used to construct the track objects for the fit
-         * @return -2 log(likelihood) for this set of trakcs
+         * @return -2 log(likelihood) for this set of tracks
          */
         Double_t WrapFunc(const Double_t * x);
 
@@ -81,14 +98,19 @@ class WCSimLikelihoodFitter
          */
         WCSimLikelihoodTrack GetSeedParams();
 
-    protected:
-    private:
+        void FillPlots();
+
+        void Make1DSurface(std::pair<unsigned int, FitterParameterType::Type> trackPar);
+        void Make2DSurface(std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > trackPar);
+
+
         WCSimTotalLikelihood * fTotalLikelihood; ///< Class used to calculate the total (combined charge and time) likelihood that we minimize
         WCSimRootEvent * fRootEvent; ///< Simulated event from WCSim to be reconstructed
         WCSimLikelihoodDigitArray * fLikelihoodDigitArray; ///< Array of PMT responses
         WCSimLikelihoodTrack::TrackType fType; ///< Particle type to fit for
         std::map<Int_t, Int_t> fParMap; ///< Map relating the number of tracks (key) to the number of Minuit parameters (value)
         std::vector<WCSimLikelihoodTrack> fBestFit;  ///< The best-fit track or tracks
+        std::vector<WCSimLikelihoodTrack*> * fTrueLikelihoodTracks; ///< The MC-truth tracks for this event
 
         /**
          * Used to rescale all the track parameters from the range 0 to 1
@@ -110,6 +132,13 @@ class WCSimLikelihoodFitter
                                            Double_t th, Double_t phi, Double_t E,
                                            WCSimLikelihoodTrack::TrackType type);
         
+        Double_t * fStartVals;
+        Double_t * fMinVals;
+        Double_t * fMaxVals;
+        Double_t * fStepSizes;
+        Bool_t * fFixed;
+        std::string * fNames;
+
 
         Double_t fMinimum; ///< Value of -2 log(likelihood) at the best-fit point
         Double_t fSeedVtxX; ///< Seed vertex x coordinate
@@ -121,6 +150,10 @@ class WCSimLikelihoodFitter
         Double_t fSeedEnergy; ///< Seed track kinetic energy
         Bool_t fIsFirstCall; ///< Flags whether this is the first time the minimizer had calculated a likelihood (to print the seed)
         Int_t fStatus; ///< Minimizer convergence status
+        std::map<std::pair<UInt_t, FitterParameterType::Type>, UInt_t > fTrackParMap;
+
+
+        WCSimFitterPlots * fFitterPlots;
 	
     ClassDef(WCSimLikelihoodFitter,1);
 };

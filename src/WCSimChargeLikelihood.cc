@@ -21,6 +21,7 @@
 #include "TH2D.h"
 #include "TMath.h"
 #include "TROOT.h"
+#include "TStopwatch.h"
 #include "TTree.h"
 
 
@@ -140,7 +141,6 @@ double WCSimChargeLikelihood::Calc2LnL()
   t->Branch("minus2LnL",&Like,"Like/D");
   t->Branch("trackNum",&trackNum,"TrackNum/I");
 
-
   Double_t * predictedCharges = new Double_t[fDigitArray->GetNDigits()];
   for(Int_t i = 0; i < fDigitArray->GetNDigits(); ++ i)
   {
@@ -151,7 +151,6 @@ double WCSimChargeLikelihood::Calc2LnL()
   for( std::vector<WCSimLikelihoodTrack *>::iterator trackItr = fTracks.begin(); trackItr != fTracks.end(); ++trackItr)
   {
     trackNum = std::distance(fTracks.begin(), trackItr);
-
     // Work out the predicted number of photons at each PMT
     for(int iDigit = 0; iDigit < fDigitArray->GetNDigits(); ++iDigit)
       {
@@ -308,18 +307,18 @@ double WCSimChargeLikelihood::GetMuIndirect(WCSimLikelihoodTrack * myTrack)
 {
 
   //std::cout << "*** WCSimChargeLikelihood::GetMuIndirect() *** Calculating the indirect light contribution to the expected charge" << std::endl;
-  double muIndirect = 0.0;
+  double muIndirect = 0.01;
   if(!fGotTrackParameters) this->GetTrackParameters(myTrack);
   if(fGotTrackParameters)
   {
     double lightFlux = this->GetLightFlux(myTrack);
   	std::vector<Double_t> integrals = fTuner->GetIndIntegrals(myTrack);
     
-    muIndirect = lightFlux * ( integrals[0] * fCoeffsInd[0] + integrals[1] * fCoeffsInd[1] + integrals[2] * fCoeffsInd[2] );
-    if(muIndirect < 0)
+    muIndirect += lightFlux * ( integrals[0] * fCoeffsInd[0] + integrals[1] * fCoeffsInd[1] + integrals[2] * fCoeffsInd[2] );
+    if(muIndirect < 0.01)
     {
         //std::cout << "IT'S NEGATIVE! " << "  i0 = " << integrals[0] << "   i1 = " << integrals[1] << "   i2 = " << integrals[2] << "    fCoeffsInd = " << fCoeffsInd[0] << "," << fCoeffsInd[1] << "," << fCoeffsInd[2] << std::endl;
-        muIndirect = 0;
+        muIndirect = 0.01;
     }
 //    std::cout << "Mu indirect = " << muIndirect << std::endl;
   }

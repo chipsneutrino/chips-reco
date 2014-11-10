@@ -65,5 +65,13 @@
 #pragma link C++ class vector<WCSimLikelihoodTrack*>;
 
 #pragma link C++ class WCSimAnalysisConfig+;
+#pragma link C++ class WCSimFitterConfig+;
+#pragma link C++ class WCSimFitterPlots+;
+#pragma link C++ class WCSimFitterInterface+;
+#pragma link C++ class WCSimFitterParameter+;
+#pragma link C++ class WCSimFitterSingleTrackParameters+;
+#pragma link C++ class WCSimFitterParameters+;
+#pragma link C++ enum FitterParameterType::Type+;
+#pragma link C++ class vector<WCSimFitterSingleTrackParameters>+;
 
 #endif

@@ -11,7 +11,10 @@
 
 #include "TObject.h"
 #include "TVector3.h"
+#include "WCSimFitterParameters.hh"
 #include <string>
+#include <cstdlib>
+class WCSimTrueTrack;
 
 class WCSimLikelihoodTrack : public TObject
 {
@@ -34,7 +37,13 @@ class WCSimLikelihoodTrack : public TObject
          */
         static std::string TrackTypeToString( WCSimLikelihoodTrack::TrackType myType );
 
+        TrackType GetTypeFromPDG(int pdg)
+        {
+        	if( abs(pdg) == 11 ) { return ElectronLike; }
+        	if( abs(pdg) == 13 ) { return MuonLike; }
 
+        	return Unknown;
+        }
     
         WCSimLikelihoodTrack();
         /**
@@ -51,34 +60,41 @@ class WCSimLikelihoodTrack : public TObject
         WCSimLikelihoodTrack( double x, double y, double z, double t,
                               double theta, double phi, double E,
                               WCSimLikelihoodTrack::TrackType type );
-        virtual ~WCSimLikelihoodTrack();
-		void Print();
-        
-    // Setters
-		void SetX(double x);
-		void SetY(double y);
-		void SetZ(double z);
-		void SetT(double t);
-		void SetTheta(double th);
-		void SetPhi(double phi);
-		void SetE(double E);
-		void SetType(WCSimLikelihoodTrack::TrackType type);
-		
-		// Getters
-		const double GetX();
-		const double GetY();
-		const double GetZ();
-        const TVector3 GetVtx();
-		const double GetT();
-		const double GetTheta();
-		const double GetPhi();
-        const double GetDirX();
-        const double GetDirY();
-        const double GetDirZ();
-        const TVector3 GetDir();
-		const double GetE();
-        const WCSimLikelihoodTrack::TrackType GetType();
 
+        /**
+         * Constructor from true WCSim track object
+         * @param trueTrack Track to convert into a WCSimLikelihoodTrack
+         */
+        WCSimLikelihoodTrack( WCSimTrueTrack * trueTrack);
+
+        virtual ~WCSimLikelihoodTrack();
+		    void Print();
+            
+        // Setters
+		    void SetX(double x);
+		    void SetY(double y);
+		    void SetZ(double z);
+		    void SetT(double t);
+		    void SetTheta(double th);
+		    void SetPhi(double phi);
+		    void SetE(double E);
+		    void SetType(WCSimLikelihoodTrack::TrackType type);
+		    
+		    // Getters
+		    double GetX() const;
+		    double GetY() const;
+		    double GetZ() const;
+        TVector3 GetVtx() const;
+		    double GetT() const;
+		    double GetTheta() const;
+		    double GetPhi() const;
+        double GetDirX() const;
+        double GetDirY() const;
+        double GetDirZ() const;
+        TVector3 GetDir() const;
+		    double GetE() const;
+        WCSimLikelihoodTrack::TrackType GetType() const;
+        double GetTrackParameter(FitterParameterType::Type type) const;
         /**
          * Function to calculate the position a distance s away from the track vertex in
          * the direction of travel of the track
@@ -86,7 +102,7 @@ class WCSimLikelihoodTrack : public TObject
          * @return The position of the particle after it propagates a distance s from
          *         the vertex
          */
-        const TVector3 GetPropagatedPos(Double_t s);
+        TVector3 GetPropagatedPos(Double_t s) const;
  
     protected:
     private:

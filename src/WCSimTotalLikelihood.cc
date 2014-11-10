@@ -17,8 +17,8 @@ ClassImp(WCSimTotalLikelihood)
 ///////////////////////////////////////////////////////////////////////////
 WCSimTotalLikelihood::WCSimTotalLikelihood( WCSimLikelihoodDigitArray * myLikelihoodDigitArray ) : 
   fLikelihoodDigitArray(myLikelihoodDigitArray),
-  fTimeLikelihood( myLikelihoodDigitArray, &fChargeLikelihood ),  
-  fChargeLikelihood(myLikelihoodDigitArray)
+  fChargeLikelihood(myLikelihoodDigitArray),
+  fTimeLikelihood( myLikelihoodDigitArray, &fChargeLikelihood )  
 {  
   
 }
@@ -78,4 +78,11 @@ Double_t WCSimTotalLikelihood::Calc2LnL()
     likelihood += fTimeLikelihood.Calc2LnL();
   }
   return likelihood;
+}
+
+void WCSimTotalLikelihood::SetLikelihoodDigitArray(
+		WCSimLikelihoodDigitArray* likelihoodDigitArray) {
+	fLikelihoodDigitArray = likelihoodDigitArray;
+	fChargeLikelihood = WCSimChargeLikelihood(likelihoodDigitArray);
+	fTimeLikelihood = WCSimTimeLikelihood(likelihoodDigitArray, &fChargeLikelihood);
 }

@@ -51,21 +51,21 @@ class WCSimTrueTrack : public TObject {
   Double_t fTrkP;
   Double_t fTrkE;
 
-  Double_t fG4VtxX;
-  Double_t fG4VtxY;
-  Double_t fG4VtxZ; 
-
-  Double_t fG4EndX;
-  Double_t fG4EndY;
-  Double_t fG4EndZ; 
-
-  Double_t fVtxX;
-  Double_t fVtxY;
-  Double_t fVtxZ;
+  Double_t fG4VtxX;  //< Where the Geant4 track object actually started (x)
+  Double_t fG4VtxY;  //< Where the Geant4 track object actually started (y) 
+  Double_t fG4VtxZ;  //< Where the Geant4 track object actually started (z) 
   
-  Double_t fEndX;
-  Double_t fEndY;
-  Double_t fEndZ;
+  Double_t fG4EndX;  //< Where the Geant4 track object actually ended (x)
+  Double_t fG4EndY;  //< Where the Geant4 track object actually ended (y)
+  Double_t fG4EndZ;  //< Where the Geant4 track object actually ended (z)
+
+  Double_t fVtxX;  //< Where the track first entered the detector (x)
+  Double_t fVtxY;  //< Where the track first entered the detector (y)
+  Double_t fVtxZ;  //< Where the track first entered the detector (z) 
+  
+  Double_t fEndX; //< Where the track exited the detector (x)
+  Double_t fEndY; //< Where the track exited the detector (y)
+  Double_t fEndZ; //< Where the track exited the detector (z)
 
   Double_t fDirX;
   Double_t fDirY;
