@@ -124,25 +124,26 @@ double WCSimChargeLikelihood::Calc2LnL(WCSimLikelihoodDigit *myDigit)
   Int_t trackNum      = 0;
 
   // A tree for diagnostic purposes
-  Double_t X, Y, Z, Qobs, Qpred, Like;
-  std::string str("likelihoodDoubleBins.root");
+  //Double_t X, Y, Z, Qobs, Qpred, Like;
+  //std::string str("likelihoodDoubleBins.root");
   // str->Form("likelihood_%f_%f.root", fEnergy, fTrack->GetZ());
-  TFile * file = new TFile(str.c_str(),"RECREATE");
-  TTree * t = new TTree("likelihood","likelihood");
-  t->Branch("X",&X,"X/D");
-  t->Branch("Y",&Y,"Y/D");
-  t->Branch("Z",&Z,"Z/D");
-  t->Branch("Qobs",&Qobs,"Qobs/D");
-  t->Branch("Qpred",&Qpred,"Qpred/D");
-  t->Branch("minus2LnL",&Like,"Like/D");
-  t->Branch("trackNum",&trackNum,"TrackNum/I");
+  //TFile * file = new TFile(str.c_str(),"RECREATE");
+  //TTree * t = new TTree("likelihood","likelihood");
+  //t->Branch("X",&X,"X/D");
+  //t->Branch("Y",&Y,"Y/D");
+  //t->Branch("Z",&Z,"Z/D");
+  //t->Branch("Qobs",&Qobs,"Qobs/D");
+  //t->Branch("Qpred",&Qpred,"Qpred/D");
+  //t->Branch("minus2LnL",&Like,"Like/D");
+  //t->Branch("trackNum",&trackNum,"TrackNum/I");
 
 
-  Double_t * predictedCharges = new Double_t[fDigitArray->GetNDigits()];
-  for(Int_t i = 0; i < fDigitArray->GetNDigits(); ++ i)
-  {
-    predictedCharges[i] = 0.0;
-  }
+  //Double_t * predictedCharges = new Double_t[fDigitArray->GetNDigits()];
+  //for(Int_t i = 0; i < fDigitArray->GetNDigits(); ++ i)
+  //{
+    //predictedCharges[i] = 0.0;
+  //}
+  Double_t predictedCharge = 0;
 
   // Work out how many photons we expect at each PMT from each track
   for(unsigned int iTrack = 0; iTrack < fTracks.size(); iTrack++)
@@ -150,50 +151,53 @@ double WCSimChargeLikelihood::Calc2LnL(WCSimLikelihoodDigit *myDigit)
     trackNum = iTrack;
 
     // Work out the predicted number of photons at each PMT
-    for(int iDigit = 0; iDigit < fDigitArray->GetNDigits(); ++iDigit)
-      {
-        fDigit = (WCSimLikelihoodDigit *)fDigitArray->GetDigit(iDigit);
+    //for(int iDigit = 0; iDigit < fDigitArray->GetNDigits(); ++iDigit)
+      //{
+        //fDigit = (WCSimLikelihoodDigit *)fDigitArray->GetDigit(iDigit);
+        fDigit = myDigit;
         fGotTrackParameters = -1; //false
 
         // Get integral coefficients
         this->GetTrackParameters(iTrack);
 
         // Work out the predicted mean charge at this PMT
-        predictedCharges[iDigit] += this->ChargeExpectation(iTrack);
-     }
+        //predictedCharges[iDigit] += this->ChargeExpectation(iTrack);
+        predictedCharge = this->ChargeExpectation(iTrack);
+     //}
   }
 
   // Now work out the probability of the measured charge at each PMT given the prediction
-  for(Int_t jDigit =0; jDigit < fDigitArray->GetNDigits(); ++jDigit)
-  {
-    fDigit                  = (WCSimLikelihoodDigit *)fDigitArray->GetDigit(jDigit);
+  //for(Int_t jDigit =0; jDigit < fDigitArray->GetNDigits(); ++jDigit)
+  //{
+    //fDigit                  = (WCSimLikelihoodDigit *)fDigitArray->GetDigit(jDigit);
     Double_t chargeObserved = fDigit->GetQ();
-    Double_t minus2LnL      = fDigitizer->GetMinus2LnL( predictedCharges[jDigit], chargeObserved);
+    //Double_t minus2LnL      = fDigitizer->GetMinus2LnL( predictedCharges[jDigit], chargeObserved);
+    Double_t minus2LnL = fDigitizer->GetMinus2LnL( predictedCharge, chargeObserved);
     Charge2LnL += minus2LnL;
 
     // Print diagnotics
     // if((jDigit % 1) == 0){ std::cout << "jDigit  = " << jDigit << "/" << fDigitArray->GetNDigits() << "  Observed charge = " << chargeObserved << "   Expected charge = " << predictedCharges[jDigit] << "    ... So -2lnL now = " << Charge2LnL << std::endl;  }
 
-    // Write the diagnostic tree
-    X     = fDigit->GetX();
-    Y     = fDigit->GetY();
-    Z     = fDigit->GetZ();
-    Qobs  = fDigit->GetQ();
-    Qpred = predictedCharges[jDigit];//this->DigitizerExpectation(chargeExpected);
-    Like  = minus2LnL;
-    t->Fill();
-  }
+    //// Write the diagnostic tree
+    //X     = fDigit->GetX();
+    //Y     = fDigit->GetY();
+    //Z     = fDigit->GetZ();
+    //Qobs  = fDigit->GetQ();
+    //Qpred = predictedCharges[jDigit];//this->DigitizerExpectation(chargeExpected);
+    //Like  = minus2LnL;
+    //t->Fill();
+  //}
   std::cout << "Final -2LnL = " << Charge2LnL;
 
   // Save diagnostic tree to file
   // std::cout << "Writing file to " << str.c_str() << std::endl;
-  file->cd();
-  t->Write();
-  file->Close();
-  if(file) delete file;
+  //file->cd();
+  //t->Write();
+  //file->Close();
+  //if(file) delete file;
 
   // Clean up pointers
-  delete [] predictedCharges;
+  //delete [] predictedCharges;
 
   return Charge2LnL;
 }

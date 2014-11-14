@@ -89,6 +89,8 @@ Double_t WCSimTotalLikelihood::Calc2LnL()
     predictedCharges.clear();
     for (unsigned int iTrack; iTrack < fTracks.size(); iTrack++) {
       //FIXME: use charge predicted by charge likelihood!
+      //predictedCharges.push_back( 
+      //    fChargeLikelihoodVector[iTrack]->ChargeExpectation(iTrack, digit) );
       predictedCharges.push_back( digit->GetQ() );
 
       likelihood += fChargeLikelihoodVector[iTrack].Calc2LnL(digit);
