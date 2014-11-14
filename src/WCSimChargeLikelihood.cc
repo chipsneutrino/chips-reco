@@ -117,7 +117,7 @@ void WCSimChargeLikelihood::UpdateDigitArray( WCSimLikelihoodDigitArray * myDigi
  * expected charge given the parameters, then it's use the digitiser to
  * work out the likelihood of the signal we measured
  */
-double WCSimChargeLikelihood::Calc2LnL()
+double WCSimChargeLikelihood::Calc2LnL(WCSimLikelihoodDigit *myDigit)
 {
   // std::cout << "*** WCSimChargeLikelihood::Calc2LnL() *** Calculating the charge log likelihood" << std::endl;
   Double_t Charge2LnL = 0.0;
@@ -396,14 +396,15 @@ void WCSimChargeLikelihood::GetTrackParameters(Int_t trackIndex)
  * values of the individual functions rather than tabulated integrals.
  * We won't use this in the fit, but it's useful for validation
 */
-Double_t WCSimChargeLikelihood::CalculateExactLikelihood()
+//FIXME: this won't end well - with all the integrating for each digit?...
+Double_t WCSimChargeLikelihood::CalculateExactLikelihood(WCSimLikelihoodDigit *myDigit)
 {
     // Remember previous setting
     Bool_t tempFlag = fTuner->GetCalculateIntegrals();
 
     // Force it to calculate the integrals just this once
     fTuner->SetCalculateIntegrals(true);
-    Double_t likelihood = this->Calc2LnL();
+    Double_t likelihood = this->Calc2LnL(myDigit);
 
     // Restore previous setting
     fTuner->SetCalculateIntegrals(tempFlag);

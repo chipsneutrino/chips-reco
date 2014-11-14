@@ -62,17 +62,19 @@ class WCSimChargeLikelihood
         void UpdateDigitArray( WCSimLikelihoodDigitArray * myDigitArray);
 
         /**
-         * Calculate -2 log(likelihood) for the current PMT response, given the current set of hypothesised tracks
+         * Calculate -2 log(likelihood) for the given PMT response, given the current set of hypothesised tracks
+         * @param myDigit Current PMT to give result for
          * @return -2 log(likelihood)
          */
-        Double_t Calc2LnL();
+        Double_t Calc2LnL(WCSimLikelihoodDigit *myDigit);
 
         /**
          * For debugging: force the integrals to be calculated iteratively
          * Makes no permanent changes to how the likelihood is calculated in the future
          * @return -2 log(likelihood) with the integrals calculated analytically, not looked-up
          */
-        Double_t CalculateExactLikelihood(); // Calc2LnL can (optionally) use tabulated integrals, this always calculates them by hand
+        //FIXME: this won't end well
+        Double_t CalculateExactLikelihood(WCSimLikelihoodDigit *myDigit); // Calc2LnL can (optionally) use tabulated integrals, this always calculates them by hand
 
         /**
          * Calculate the predicted mean number of photons arriving at the PMT specified by

@@ -54,12 +54,13 @@ class WCSimTimeLikelihood : public TObject
     void UpdateDigitArray( WCSimLikelihoodDigitArray * myDigitArray);
 
     /**
-     * Calculate -2 log(likelihood) for the current PMT response,
+     * Calculate -2 log(likelihood) for the given PMT response,
      * given the current set of hypothesised tracks
+     * @param myDigit Current PMT to give result for
+     * @param predictedCharges Vector of charge predictions for fTracks
      * @return -2 log(likelihood)
      */
-    //FIXME: dirty hack to get it compiled -- change later
-    Double_t Calc2LnL(std::vector<Double_t> predictedCharges);
+    Double_t Calc2LnL(WCSimLikelihoodDigit* myDigit, std::vector<Double_t> predictedCharges);
 
     Double_t CorrectedTime( Int_t trackIndex, Double_t primaryTime );
 

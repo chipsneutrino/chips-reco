@@ -103,10 +103,11 @@ void WCSimTimeLikelihood::UpdateDigitArray( WCSimLikelihoodDigitArray * myDigitA
 
 
 /**
- * Calculate the (-2 log) likelihood of the measured PMT hit times
- * for a given set of track parameters.
+ * Calculate the (-2 log) likelihood of the measured hit time
+ * at a given PMT for a given charge predictions fitting
+ * (previously set) track parameters
  */
-Double_t WCSimTimeLikelihood::Calc2LnL(std::vector<Double_t> predictedCharges )
+Double_t WCSimTimeLikelihood::Calc2LnL(WCSimLikelihoodDigit *myDigit, std::vector<Double_t> predictedCharges )
 {
   //std::cout << "*** WCSimTimeLikelihood::Calc2LnL() *** Calculating the time log likelihood" << std::endl; 
 
@@ -115,55 +116,60 @@ Double_t WCSimTimeLikelihood::Calc2LnL(std::vector<Double_t> predictedCharges )
   //      However, we can now only calculate the likelihood for
   //      one track, so we will only pay attention to the first one
 
+  if (predictedCharges.size() < fTracks.size()){
+    std::cout << "Error, not enough charge predictions for all tracks!\n";
+    return 0;
+  }
   if (fTracks.size() < 1) {
     std::cout << "Error, no tracks in the track vector!\n";
     return 0;
   }
 
-  Double_t Time2LnL = 0.;
-  for(int iDigit = 0; iDigit < fDigitArray->GetNDigits(); ++iDigit)
-  {	
+  Double_t time2LnL = 0.;
+  //For(int iDigit = 0; iDigit < fDigitArray->GetNDigits(); ++iDigit)
+  //{	
     //-2 Log likelihood for individual digit
-    double localLnL = 0;
+    //double localLnL = 0;
 
-    fDigit = fDigitArray->GetDigit(iDigit);
+    fDigit = myDigit;
     Double_t timeObserved = fDigit->GetT();
 
     //check if there is a hit
     if (timeObserved <= 0.) {
       //if time is 0, there's no hit - read next digit
-      continue;
+      return 0;
     }              
 
     //here apply the time correction for TOF effects
-    //FIXME: just first track (index 0)
+    //FIXME: not just first track (index 0)
     Double_t timeCorrected = this->CorrectedTime(0, timeObserved);
 
-    //FIXME: just first track (index 0)
+    //FIXME: not just first track (index 0)
     double likelihood = this->TimeLikelihood(0, timeCorrected, predictedCharges);
+
     if ( TMath::IsNaN(likelihood) ) {
-      std::cout << "For digit " << iDigit << " likelihood is not a number!\n";
-      localLnL = 2e3;
+      std::cout << "For digit " << fDigit->GetTubeId() << " likelihood is not a number!\n";
+      time2LnL = 2e3;
     }              
     else if (likelihood <= 0.) {
       //std::cout << "For some reason likelihood is not positive\n";
-      localLnL = 2e3;
+      time2LnL = 2e3;
     }              
     else {         
-      localLnL = -2.0 * TMath::Log( likelihood );
+      time2LnL = -2.0 * TMath::Log( likelihood );
       //if (likelihood > 1.0) std::cout << "For digit " << iDigit << " likelihood is " << likelihood << "\n";
     }              
 
-    Time2LnL += localLnL;
+    //time2LnL += localLnL;
     //std::cout << "Digit: " << iDigit << ", adding: " << localLnL
-    //        << ", so Time2LnL = " << Time2LnL << std::endl;
+    //        << ", so time2LnL = " << time2LnL << std::endl;
 
-  }
+  //}
 
 //XXX: debug code
 //fDebugHist9->Write();
 
-  return Time2LnL;
+  return time2LnL;
 }
 
 
