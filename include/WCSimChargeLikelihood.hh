@@ -36,7 +36,10 @@ class WCSimChargeLikelihood
         //for a vector of charge likelihood objects - do not use
         WCSimChargeLikelihood();
 
-        //TODO: assignment operator?
+        ///Copy constructor
+        WCSimChargeLikelihood(const WCSimChargeLikelihood &other);
+        ///Assignment operator
+        WCSimChargeLikelihood& operator= (const WCSimChargeLikelihood &rhs);
 
         virtual ~WCSimChargeLikelihood();
 

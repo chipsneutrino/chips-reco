@@ -241,6 +241,7 @@ void WCSimLikelihoodTuner::LoadEmissionProfiles( WCSimLikelihoodTrack::TrackType
     //std::cout << " Was null" << fProfiles << std::endl;
   }
 
+  //std::cout << fProfileLocation->Data() << "\n";
   fProfiles     = new TFile(fProfileLocation->Data(),"READ");
   fIsOpen       = myType;
   fHistArray    = (TObjArray *) fProfiles->Get("histArray");

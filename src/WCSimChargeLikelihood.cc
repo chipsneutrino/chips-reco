@@ -54,12 +54,35 @@ void WCSimChargeLikelihood::Initialize( WCSimLikelihoodDigitArray * myDigitArray
     fDigitArray = myDigitArray;
 
     fTuner = new WCSimLikelihoodTuner(fDigitArray);
-    
     fDigitizer = new WCSimDigitizerLikelihood();
 
     return;
 }
 
+
+///////////////////////////////////////////////////////////////////////////
+/// Copy constructor
+WCSimChargeLikelihood::WCSimChargeLikelihood(const WCSimChargeLikelihood &other)
+{
+  fTuner = NULL;
+  fDigitArray = NULL;
+  fDigit = NULL;
+  fDigitizer = NULL;
+  this->Initialize( other.fDigitArray );
+}
+
+
+///////////////////////////////////////////////////////////////////////////
+/// Copy constructor
+WCSimChargeLikelihood& WCSimChargeLikelihood::operator=(const WCSimChargeLikelihood &rhs)
+{
+  fTuner      = rhs.fTuner;;
+  fDigitArray = rhs.fDigitArray;;
+  fDigit      = rhs.fDigit;;
+  fDigitizer  = rhs.fDigitizer;;
+  this->Initialize( rhs.fDigitArray );
+  return *this;
+}
 
 
 ///////////////////////////////////////////////////////////////////////////
