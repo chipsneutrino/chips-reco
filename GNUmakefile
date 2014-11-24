@@ -32,7 +32,7 @@ BINDIR = ./bin
 
 INCLUDES = -I$(INCDIR)
 
-WCSIM_INCDIR = ${WCS}/include
+WCSIM_INCDIR = ../WCSim/include
 WCSIM_LIBDIR = ~/geant4/tmp/Linux-g++/WCSim
 
 WCSIM_INCLUDES = -I$(WCSIM_INCDIR)
@@ -56,10 +56,12 @@ ROOTEXTOBJS := $(WCSIM_LIBDIR)/WCSimRootEvent.o $(WCSIM_LIBDIR)/WCSimRootGeom.o 
 
 $(TMPDIR)/%.o : $(SRCDIR)/%.cc
 	@echo "<**Compiling $@**>"
+	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(WCSIM_INCLUDES) -c $< -o $@
 
 $(TMPDIR)/%.d: $(SRCDIR)/%.cc
 	@echo "<**Depend $@**>"
+	@mkdir -p $(@D)
 	set -e; $(CXX) $(CXXDEPEND) $(CXXFLAGS) $(INCLUDES) $(WCSIM_INCLUDES) $< \
 	| sed 's!$*\.o!& $@!' >$@;\
 	[ -s $@ ] || rm -f $@
@@ -72,6 +74,7 @@ rootcint : $(ROOTSRC)
 
 shared: $(ROOTDICT) $(ROOTSRC) $(ROOTOBJS)
 	@echo "<**Shared**>"
+	@mkdir -p lib 
 	g++ -shared $(ROOTLIBS) $(ROOTGLIBS) -O $(ROOTOBJS) -o $(ROOTSO)
 
 clean :
