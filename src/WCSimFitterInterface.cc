@@ -208,8 +208,6 @@ void WCSimFitterInterface::Run() {
   Init();
   std::cout << "  Making histograms" << std::endl;
 	fFitterPlots->MakeHistograms(WCSimFitterConfig::Instance());
-  std::cout << "  Giving list of files to fitter plots" << std::endl;
-  fFitterPlots->SetInputFileNamesToWrite( WCSimInterface::Instance()->GetFileNames() );
   std::cout << "  Running fits " << std::endl;
   if(fMakeFits) { fFitter->RunFits(); }
   std::cout << "  Running surfaces " << std::endl;

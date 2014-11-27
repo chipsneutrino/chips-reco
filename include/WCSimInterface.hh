@@ -39,10 +39,6 @@ class WCSimInterface : public TObject {
   static WCSimRootEvent* WCSimEvent();
   static WCSimRootTrigger* WCSimTrigger();
 
-  TObjArray GetFileNames();
-
-
-
   static Int_t GetRunNumber();
   static Int_t GetEventNumber();
   static Int_t GetTriggerNumber();

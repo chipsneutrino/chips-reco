@@ -141,6 +141,12 @@ std::pair<double, double> WCSimFitterConfig::GetParRange(unsigned int numTrack,
 }
 
 void WCSimFitterConfig::SetNumEventsToFit(unsigned int numEvents) {
+  int maxNumEvents = WCSimInterface::GetNumEvents();
+  if(numEvents > maxNumEvents)
+  {
+    std::cerr << "Warning: Requested to fit " << numEvents << " events, but the file only contains " << maxNumEvents << std::endl;
+    std::cerr << "         Fitting " << maxNumEvents << " events instead" << std::endl;
+  }
 	fNumEventsToFit = numEvents;
 }
 

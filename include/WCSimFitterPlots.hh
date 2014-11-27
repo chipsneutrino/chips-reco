@@ -27,9 +27,6 @@ public:
 
 	void SetSaveFileName(const char * filename);
 
-  void SetInputFileNamesToWrite( TObjArray nameArr );
-  TObjArray GetInputFileNamesToWrite() const;
-
 	void SetNumSurfaceBins(unsigned int numBins);
 	unsigned int GetNumSurfaceBins();
 
@@ -72,7 +69,6 @@ public:
 private:
 	TString fSaveFileName;
 	TFile * fSaveFile;
-  TObjArray fInputFileNames;
 	std::map<std::pair<unsigned int, FitterParameterType::Type>, TH1D*> fSurfaces1D;
 	std::map<std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> >, TH2D*> fSurfaces2D;
 	std::map<FitterParameterType::Type, std::vector<TH1D*> > fForEachEvent;

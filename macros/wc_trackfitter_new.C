@@ -1,7 +1,7 @@
 void wc_trackfitter_new(){
   // Path to WCSim ROOT file
   // =======================
-  TString filename("/home/ajperch/CHIPS/WCSim/muons_1357_testEInterp.root");
+  TString filename("/home/ajperch/CHIPS/WCSim/muons_1750.root");
   
   gApplication->ProcessLine(".except");
 
@@ -23,13 +23,13 @@ void wc_trackfitter_new(){
 
   // Set parameter(track number, "name", minimum, maximum, start, is fixed?)
   // Names are: kVtxX, kVtxY, kVtxZ, kDirTh, kDirPhi, kEnergy
-  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxX", -1900, 1900, 0, true);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxY", -1900, 1900, 0, true);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxZ", -900, 900, 0, true);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxT", -900, 900, 0, true);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kDirTh", 0, TMath::Pi(), 0, true);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kDirPhi", -TMath::Pi(), TMath::Pi(), 0, true);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kEnergy", 1000, 2000, 1500, false);
+  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxX", -1900, 1900, 0, false);
+  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxY", -1900, 1900, 0, false);
+  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxZ", -900, 900, 0, false);
+  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxT", -900, 900, 0, false);
+  WCSimFitterInterface::Instance()->SetParameter(0, "kDirTh", 0, TMath::Pi(), 0, false);
+  WCSimFitterInterface::Instance()->SetParameter(0, "kDirPhi", -TMath::Pi(), TMath::Pi(), 0, false);
+  WCSimFitterInterface::Instance()->SetParameter(0, "kEnergy", 1250, 2000, 1250, false);
 
 
   // Plot best-fit results
@@ -51,13 +51,15 @@ void wc_trackfitter_new(){
   WCSimFitterInterface::Instance()->PlotRecoMinusTrue("kEnergy");
 
   // Sweep out one variable
-  WCSimFitterInterface::Instance()->Set
+  WCSimFitterInterface::Instance()->SetNumSurfaceBins(100);
   WCSimFitterInterface::Instance()->Make1DSurface(0, "kEnergy");
+  WCSimFitterInterface::Instance()->SetMakeFits(kTRUE);
+  WCSimFitterInterface::Instance()->SetMakeSurfaces(kFALSE);
 
 
 
   WCSimFitterInterface::Instance()->Print();
-  WCSimFitterInterface::Instance()->SetNumEventsToFit(1);
+  WCSimFitterInterface::Instance()->SetNumEventsToFit(10);
   WCSimFitterInterface::Instance()->Run();
   
   std::cout << "Done!" << std::endl;

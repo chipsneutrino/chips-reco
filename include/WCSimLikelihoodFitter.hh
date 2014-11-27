@@ -44,6 +44,7 @@ class WCSimLikelihoodFitter
         void CreateParameterArrays();
         void SetParameterArrays();
         void DeleteParameterArrays();
+        void SetTrackParameterMap();
 
         void FitEventNumber(Int_t iEvent);
         void ResetEvent();
@@ -137,6 +138,7 @@ class WCSimLikelihoodFitter
         Double_t * fMaxVals;
         Double_t * fStepSizes;
         Bool_t * fFixed;
+        Bool_t * fIsEnergy;
         std::string * fNames;
 
 

@@ -405,17 +405,6 @@ void WCSimFitterPlots::SetSaveFileName(const char* filename) {
 	fSaveFileName = TString(filename);
 }
 
-void WCSimFitterPlots::SetInputFileNamesToWrite( TObjArray nameArr )
-{
-  fInputFileNames = nameArr;
-}
-
-TObjArray WCSimFitterPlots::GetInputFileNamesToWrite() const
-{
-  return fInputFileNames;
-}
-
-
 void WCSimFitterPlots::SavePlots() {
 	TDirectory* tmpd = 0;
 
@@ -474,7 +463,6 @@ void WCSimFitterPlots::SavePlots() {
 	}
 
   fSaveFile->cd();
-  fInputFileNames.Write();
   
   fSaveFile->Close();
 	tmpd->cd();

@@ -106,6 +106,7 @@ class WCSimLikelihoodTrack : public TObject
  
     protected:
     private:
+      void LoadEmissionProfile(WCSimLikelihoodTrack * myTrack);
 			double fVtx[3];	    ///< Vertex position
 			double fT0;			///< Vertex time
 			double fTheta0;	    ///< Polar angle to z axis

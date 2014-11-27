@@ -10,6 +10,8 @@
 #include "WCSimRecoEvent.hh"
 #include "WCSimRecoDigit.hh"
 
+#include <TChainElement.h>
+#include <TIterator.h>
 #include <TObjArray.h>
 #include <TObjString.h>
 
@@ -154,21 +156,6 @@ void WCSimInterface::AddFile(const char* file)
   return;
 }
 
-TObjArray WCSimInterface::GetFileNames()
-{
-  TObjArray fileNames;
-  TObjArray *fileElements=chain->GetListOfFiles();
-  TIter next(fileElements);
-  TChainElement *chEl=0;
-  while (( chEl=(TChainElement*)next() )) 
-  {
-    TObjString * name = new TObjString(chEl->GetTitle());
-    fileNames.AddLast(name)
-  }
-  fileNames.SetOwner(kTRUE);
-  return fileNames;
-}
-
 void WCSimInterface::ResetForNewSample()
 {
   if( fChain->GetEntries()>0 ){
@@ -241,7 +228,6 @@ void WCSimInterface::BuildTrueLikelihoodTracks() {
   std::cout << "Size of fTrackList = " << fTrackList->size() << std::endl;
 
 	fTrueLikelihoodTracks = new std::vector<WCSimLikelihoodTrack*>;
-	unsigned int nTrack = fTrackList->size();
 	for( unsigned int iTrack = 0 ; iTrack < fTrackList->size(); ++iTrack )
 	{
     std::cout << "Pushing back track number " << iTrack << std::endl;
