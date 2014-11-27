@@ -29,12 +29,13 @@
 /// Constructor
 WCSimChargeLikelihood::WCSimChargeLikelihood(WCSimLikelihoodDigitArray * myDigitArray)
 {
-    // std::cout << "*** WCSimChargeLikelihood::WCSimChargeLikelihood() *** Created charge likelihood object" << std::endl;
+    std::cout << "*** WCSimChargeLikelihood::WCSimChargeLikelihood() *** Created charge likelihood object" << std::endl;
     fTuner = NULL;
     fDigitArray = NULL;
     fDigit = NULL;
     fDigitizer = NULL;
     this->Initialize( myDigitArray );
+    fNumCalculations = 0;
 }
 
 
@@ -67,10 +68,18 @@ void WCSimChargeLikelihood::Initialize( WCSimLikelihoodDigitArray * myDigitArray
 /// Destructor
 WCSimChargeLikelihood::~WCSimChargeLikelihood()
 {
-    std::cout << "Delete fTuner" << std::endl;
-    if(fTuner != NULL) delete fTuner;
-    std::cout << "Delete fDigitizer" << std::endl;
-    if(fDigitizer != NULL) delete fDigitizer;
+    if(fTuner != NULL)
+    {
+      std::cout << "Delete fTuner" << std::endl;
+      delete fTuner;
+      fTuner = NULL;
+    }
+    if(fDigitizer != NULL)
+    {
+      std::cout << "Delete fDigitizer" << std::endl;
+      delete fDigitizer;
+      fDigitizer = NULL;
+    }
     std::cout << "Done!" << std::endl;
 }
 
@@ -131,15 +140,32 @@ double WCSimChargeLikelihood::Calc2LnL()
   Double_t X, Y, Z, Qobs, Qpred, Like;
   std::string str("likelihoodDoubleBins.root");
   // str->Form("likelihood_%f_%f.root", fEnergy, fTrack->GetZ());
-  TFile * file = new TFile(str.c_str(),"RECREATE");
-  TTree * t = new TTree("likelihood","likelihood");
-  t->Branch("X",&X,"X/D");
-  t->Branch("Y",&Y,"Y/D");
-  t->Branch("Z",&Z,"Z/D");
-  t->Branch("Qobs",&Qobs,"Qobs/D");
-  t->Branch("Qpred",&Qpred,"Qpred/D");
-  t->Branch("minus2LnL",&Like,"Like/D");
-  t->Branch("trackNum",&trackNum,"TrackNum/I");
+  TFile * file = new TFile(str.c_str(),"UPDATE");
+  TTree * t = 0;
+  t = (TTree*)(file->Get("likelihood"));
+  if( t == 0 ) { 
+    t = new TTree("likelihood","likelihood");
+    fNumCalculations = 0;
+    t->Branch("X",&X,"X/D");
+    t->Branch("Y",&Y,"Y/D");
+    t->Branch("Z",&Z,"Z/D");
+    t->Branch("Qobs",&Qobs,"Qobs/D");
+    t->Branch("Qpred",&Qpred,"Qpred/D");
+    t->Branch("minus2LnL",&Like,"Like/D");
+    t->Branch("trackNum",&trackNum,"TrackNum/I");
+    t->Branch("nCalc", &fNumCalculations, "CalcNum/I");
+  }
+  else{
+    t->SetBranchAddress("X",&X);
+    t->SetBranchAddress("Y",&Y);
+    t->SetBranchAddress("Z",&Z);
+    t->SetBranchAddress("Qobs",&Qobs);
+    t->SetBranchAddress("Qpred",&Qpred);
+    t->SetBranchAddress("minus2LnL",&Like);
+    t->SetBranchAddress("trackNum",&trackNum);
+    t->SetBranchAddress("nCalc", &fNumCalculations);
+    fNumCalculations++;
+  }
 
   Double_t * predictedCharges = new Double_t[fDigitArray->GetNDigits()];
   for(Int_t i = 0; i < fDigitArray->GetNDigits(); ++ i)
@@ -251,7 +277,7 @@ double WCSimChargeLikelihood::DigitChargeExpectation(WCSimLikelihoodTrack * myTr
   //FIXME: this is actually not working as supposed, because if you got track
   //        parameters previously for a different track, it won't trigger
   fDigit = myDigit;
-  if(!fGotTrackParameters) this->GetTrackParameters(myTrack);
+  if(!fGotTrackParameters){ this->GetTrackParameters(myTrack); }
   return ChargeExpectation(myTrack);
 }
 
@@ -277,8 +303,8 @@ double WCSimChargeLikelihood::GetMuDirect(WCSimLikelihoodTrack * myTrack )
     // std::cout << " **** CALCULATING COEFFICIENTS ***** " << std::endl;
     // fTuner->CalculateCoefficients(myTrack, fDigit);
 
-    // std::cout << "i0 = " << i0 << "  i1 = " << i1 << "   i2 = " << i2 << std::endl
-    //           << "fCoeffsCh = " << fCoeffsCh[0] << "," << fCoeffsCh[1] << "," << fCoeffsCh[2] << std::endl;
+    // std::cout << "integrals[0]= " << integrals[0] << "  integrals[1] = " << integrals[1] << "   integrals[2] = " << integrals[2] << std::endl
+    //          << "fCoeffsCh = " << fCoeffsCh[0] << "," << fCoeffsCh[1] << "," << fCoeffsCh[2] << std::endl;
 
     muDirect = lightFlux * ( integrals[0] * fCoeffsCh[0] + integrals[1] * fCoeffsCh[1] + integrals[2] * fCoeffsCh[2] );
     if(muDirect < 0)
@@ -305,10 +331,10 @@ double WCSimChargeLikelihood::GetMuDirect(WCSimLikelihoodTrack * myTrack )
 */
 double WCSimChargeLikelihood::GetMuIndirect(WCSimLikelihoodTrack * myTrack)
 {
-
+  return 0.01;
   //std::cout << "*** WCSimChargeLikelihood::GetMuIndirect() *** Calculating the indirect light contribution to the expected charge" << std::endl;
   double muIndirect = 0.01;
-  if(!fGotTrackParameters) this->GetTrackParameters(myTrack);
+  if(!fGotTrackParameters){ this->GetTrackParameters(myTrack); }
   if(fGotTrackParameters)
   {
     double lightFlux = this->GetLightFlux(myTrack);
@@ -337,26 +363,7 @@ double WCSimChargeLikelihood::GetMuIndirect(WCSimLikelihoodTrack * myTrack)
  */
 double WCSimChargeLikelihood::GetLightFlux(WCSimLikelihoodTrack * myTrack)
 {
-  //std::cout << "*** WCSimChargeLikelihood::GetLightFlux() *** Getting the light flux as a function of the track KE" << std::endl;
-
-  Double_t energy      = myTrack->GetE();
-  Double_t factorFromG = 1/(4.0*TMath::Pi()); // We want solid angle fraction
-
-  Double_t factorFromSolidAngle = 1; //2*TMath::Pi();
-  // There was an overall normalization of 2pi that used to be neglected
-  // because the solid angle subtended by a cone is 2pi(1 - cosTheta)
-  // I've absorbed this into the SolidAngle now
-
-  // Double_t nPhotons = 341.726*fEnergy;    // <-- EARLIER PARAMETRISATION
-  // Double_t nPhotons = 36.9427* - 3356.71; // <-- EARLIER PARAMETRISATION
-
-  // From a linear fit to nPhotons as a function of energy (it's very linear)
-  Double_t nPhotons = 17.91 + 39.61*energy;
-
-  // Things get sketchy at really low energies
-  if(nPhotons < 0) return 0;
-
-  return factorFromG * factorFromSolidAngle * nPhotons;
+  return fTuner->GetLightFlux(myTrack);
 }
 
 

@@ -19,6 +19,7 @@
 #include "TString.h"
 #include "TTree.h"
 
+#include "WCSimEmissionProfiles.hh"
 #include "WCSimLikelihoodTrack.hh"
 #include "WCSimLikelihoodDigitArray.hh"
 #include "WCSimRootGeom.hh"
@@ -138,7 +139,7 @@ class WCSimLikelihoodTuner
          * Load the lookup table containing the track integrals
          * @param myTrack Track to load the table for
          */
-	    void LoadTabulatedIntegrals(WCSimLikelihoodTrack * myTrack);
+	      void LoadTabulatedIntegrals(WCSimLikelihoodTrack * myTrack);
 
 	    // Bin lookups:
 	    Int_t GetEBin(Double_t energy);
@@ -258,7 +259,7 @@ class WCSimLikelihoodTuner
          */
         void TabulateIntegrals(WCSimLikelihoodTrack::TrackType myType, TString filename);
 
-        
+        Double_t GetLightFlux(WCSimLikelihoodTrack * myTrack);        
     
     protected:
     private:
@@ -284,13 +285,6 @@ class WCSimLikelihoodTuner
         Double_t fCutoffIntegral; ///< Distance along the particle's trajectory where it leaves the detector
 
         // Read in from the emission profile files
-        TString * fProfileLocation; ///< Path to file containing the emission profiles
-        TFile * fProfiles; ///< File containing the emission profiles
-        WCSimLikelihoodTrack::TrackType fIsOpen; ///< Track type whose emission profiles are open
-        TObjArray * fHistArray; ///< Array containing the 1D emission profiles as a function of distance for different track energies
-        TObjArray * fAngHistArray; ///< Array containing the 2D emission profiles as a function of distance and angle, for different track energies
-        TObjArray * fFluxArray; ///< Array containing histograms of the total number of photons emitted for different track energies
-        TH1D * fWhichHisto; ///< Used to look up which TObjArray entry corresponds to a given energy
 
 	  
 	  	// These are used to speed up reading in the pre-computed integrals
@@ -338,7 +332,7 @@ class WCSimLikelihoodTuner
 	  Double_t * fRhoGIntegrals; ///< Table of direct integrals flattened to a 1D array
 
 	  WCSimLikelihoodTrack::TrackType fIntegralParticleType; ///< The particle type whose table we've already loaded
-	  
+    WCSimEmissionProfiles fEmissionProfiles; ///< The emission profile handler 	  
 };
 
 #endif // WCSIMLIKELIHOODTUNER_H

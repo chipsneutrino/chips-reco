@@ -160,6 +160,7 @@ class WCSimChargeLikelihood
       // PMT hit in question.  I calculate these in GetTrackParameters() and set a flag when
       // this has been done
       Bool_t fGotTrackParameters; ///< Flag to check if GetTrackParameters() has been called to calculate the integral coefficients
+      Int_t fNumCalculations;
 
 
 

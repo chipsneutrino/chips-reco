@@ -73,5 +73,7 @@
 #pragma link C++ class WCSimFitterParameters+;
 #pragma link C++ enum FitterParameterType::Type+;
 #pragma link C++ class vector<WCSimFitterSingleTrackParameters>+;
+#pragma link C++ class WCSimEmissionProfiles+;
+#pragma link C++ enum EmissionProfile_t::Type+;
 
 #endif

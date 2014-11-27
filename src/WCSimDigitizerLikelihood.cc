@@ -111,6 +111,7 @@ Double_t WCSimDigitizerLikelihood::GetMinus2LnL( const Double_t &undigi, const D
     }
     default:
     {
+      std::cout << "Digitizer type is " << fType << std::endl;
       assert(fType == WCSimDigitizerLikelihood::kWCSim || fType == WCSimDigitizerLikelihood::kSimple);
       break;
     }
