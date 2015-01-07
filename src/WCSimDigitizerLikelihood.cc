@@ -382,6 +382,7 @@ Double_t WCSimDigitizerLikelihood::GetWCSimExpectation( const Double_t &undigi )
 
 Double_t WCSimDigitizerLikelihood::GetSimpleLikelihood(const Double_t &undigi, const Double_t &digi)
 {
+  // std::cout << "Digi = " << digi << "   and undigi = " << undigi << std::endl;
   Double_t prob = TMath::Poisson( digi, undigi );
   assert(prob >= 0.);
   return prob;

@@ -196,11 +196,12 @@ double WCSimChargeLikelihood::Calc2LnL()
   {
     fDigit                  = (WCSimLikelihoodDigit *)fDigitArray->GetDigit(jDigit);
     Double_t chargeObserved = fDigit->GetQ();
+    // Print diagnotics
+    // if((jDigit % 1) == 0){ std::cout << "jDigit  = " << jDigit << "/" << fDigitArray->GetNDigits() << "  Observed charge = " << chargeObserved << "   Expected charge = " << predictedCharges[jDigit] << std::endl; }
+    // "    ... So -2lnL now = " << Charge2LnL << std::endl;  }
     Double_t minus2LnL      = fDigitizer->GetMinus2LnL( predictedCharges[jDigit], chargeObserved);
     Charge2LnL += minus2LnL;
 
-    // Print diagnotics
-    // if((jDigit % 1) == 0){ std::cout << "jDigit  = " << jDigit << "/" << fDigitArray->GetNDigits() << "  Observed charge = " << chargeObserved << "   Expected charge = " << predictedCharges[jDigit] << "    ... So -2lnL now = " << Charge2LnL << std::endl;  }
 
     // Write the diagnostic tree
     X     = fDigit->GetX();
@@ -301,10 +302,10 @@ double WCSimChargeLikelihood::GetMuDirect(WCSimLikelihoodTrack * myTrack )
 
     // std::cout << "Energy = " << fEnergy << "  and light flux = " << lightFlux <<std::endl;
     // std::cout << " **** CALCULATING COEFFICIENTS ***** " << std::endl;
-    // fTuner->CalculateCoefficients(myTrack, fDigit);
+    //fTuner->CalculateCoefficients(myTrack, fDigit);
 
     // std::cout << "integrals[0]= " << integrals[0] << "  integrals[1] = " << integrals[1] << "   integrals[2] = " << integrals[2] << std::endl
-    //          << "fCoeffsCh = " << fCoeffsCh[0] << "," << fCoeffsCh[1] << "," << fCoeffsCh[2] << std::endl;
+    //           << "fCoeffsCh = " << fCoeffsCh[0] << "," << fCoeffsCh[1] << "," << fCoeffsCh[2] << std::endl;
 
     muDirect = lightFlux * ( integrals[0] * fCoeffsCh[0] + integrals[1] * fCoeffsCh[1] + integrals[2] * fCoeffsCh[2] );
     if(muDirect < 0)

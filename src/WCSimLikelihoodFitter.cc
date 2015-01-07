@@ -127,7 +127,7 @@ void WCSimLikelihoodFitter::Minimize2LnL()
   // Now we go again but free up the energy:
   for(UInt_t i = 0; i < nPars; ++i)
   {
-    if(fIsEnergy[i])
+    if(fIsEnergy[i] && !fFixed[i])
     {
       min->SetLimitedVariable(i, fNames[i], fStartVals[i], fStepSizes[i], fMinVals[i], fMaxVals[i]);
     }

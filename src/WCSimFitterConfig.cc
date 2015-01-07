@@ -6,6 +6,7 @@
  */
 
 #include "WCSimFitterConfig.hh"
+#include "WCSimInterface.hh"
 
 static WCSimFitterConfig * fgFitterConfig = 0;
 

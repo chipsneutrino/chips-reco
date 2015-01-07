@@ -32,7 +32,7 @@ BINDIR = ./bin
 
 INCLUDES = -I$(INCDIR)
 
-WCSIM_INCDIR = ${WCS}/include
+WCSIM_INCDIR = ${WCSIMHOME}/include
 WCSIM_LIBDIR = ~/geant4/tmp/Linux-g++/WCSim
 
 WCSIM_INCLUDES = -I$(WCSIM_INCDIR)
