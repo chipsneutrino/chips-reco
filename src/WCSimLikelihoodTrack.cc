@@ -73,6 +73,7 @@ void WCSimLikelihoodTrack::SetT(double t){ fT0     = t; }
 void WCSimLikelihoodTrack::SetTheta(double th){ fTheta0 = th; }
 void WCSimLikelihoodTrack::SetPhi(double phi){ fPhi0 = phi; }
 void WCSimLikelihoodTrack::SetE(double E){ fE0 = E; }
+void WCSimLikelihoodTrack::SetType(WCSimLikelihoodTrack::TrackType type){ fType = type; }
 
 ///////////////////////////////////////////////////////////////////////////
 // Getters

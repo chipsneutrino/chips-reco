@@ -17,10 +17,10 @@ ClassImp(WCSimTotalLikelihood)
 ///////////////////////////////////////////////////////////////////////////
 WCSimTotalLikelihood::WCSimTotalLikelihood( WCSimLikelihoodDigitArray * myLikelihoodDigitArray ) : 
   fLikelihoodDigitArray(myLikelihoodDigitArray),
-  fChargeLikelihood(myLikelihoodDigitArray),
-  fTimeLikelihood( myLikelihoodDigitArray, &fChargeLikelihood )  
+  fTimeLikelihood(myLikelihoodDigitArray)
 {  
-  
+  fChargeLikelihoodVector.push_back(
+      WCSimChargeLikelihood(fLikelihoodDigitArray) );
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -28,28 +28,33 @@ WCSimTotalLikelihood::WCSimTotalLikelihood( WCSimLikelihoodDigitArray * myLikeli
 ///////////////////////////////////////////////////////////////////////////
 WCSimTotalLikelihood::~WCSimTotalLikelihood()
 {
-  //shouldn't we destroy the likelihood 
-  //      arrray created in the initialisation list?
-  //      (btw WCSimLikelihoodDigitArray doesn't have a copy constructor)
-  //delete fLikelihoodDigitArray;
+  fChargeLikelihoodVector.clear();
 }
 
 ///////////////////////////////////////////////////////////////////////////
 //  Add some tracks
 ///////////////////////////////////////////////////////////////////////////
-void WCSimTotalLikelihood::SetTracks( std::vector<WCSimLikelihoodTrack> myTracks)
+void WCSimTotalLikelihood::SetTracks( std::vector<WCSimLikelihoodTrack> &myTracks)
 {
   this->ResetTracks();
   fTracks = myTracks;
 
   std::vector<WCSimLikelihoodTrack *> myTrackPtrs;
   std::vector<WCSimLikelihoodTrack>::iterator trackIter;
+  //FIXME This is a really ugly solution to the new idea
+  //  of one Charge Likelihood object for one track...
+  int i = 0;
   for(trackIter = fTracks.begin(); trackIter != fTracks.end(); ++trackIter)
   {
     std::cout << "TrackIter -> " << std::endl;
     myTrackPtrs.push_back(&(*trackIter)); 
+    if (i > 0) {
+      fChargeLikelihoodVector.push_back(
+          WCSimChargeLikelihood(fLikelihoodDigitArray) );
+    }
+    fChargeLikelihoodVector[i].AddTrack(&(*trackIter));
+    i++;
   }
-  fChargeLikelihood.SetTracks(myTrackPtrs);
   fTimeLikelihood.SetTracks(myTrackPtrs);
 
   return;
@@ -60,9 +65,12 @@ void WCSimTotalLikelihood::SetTracks( std::vector<WCSimLikelihoodTrack> myTracks
 ///////////////////////////////////////////////////////////////////////////
 void WCSimTotalLikelihood::ResetTracks()
 {
-  fTracks.clear();
-  fChargeLikelihood.ClearTracks();
+  for(unsigned int i = 0; i < fChargeLikelihoodVector.size(); i++) {
+    fChargeLikelihoodVector[i].ClearTracks();
+  }
+
   fTimeLikelihood.ClearTracks();
+  fTracks.clear();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -72,17 +80,39 @@ Double_t WCSimTotalLikelihood::Calc2LnL()
 {
   // nb. at the moment we're just adding these together
   // may have to account for correlations somewhere
-  Double_t likelihood = fChargeLikelihood.Calc2LnL();
-  if(WCSimAnalysisConfig::Instance()->GetUseChargeAndTime())
-  {
-    likelihood += fTimeLikelihood.Calc2LnL();
-  }
+  Double_t likelihood = 0; //actually -2 log likelihood
+  std::vector<Double_t> predictedCharges; //one value for each track
+
+
+  for(int iDigit = 0; iDigit < fLikelihoodDigitArray->GetNDigits(); ++iDigit) {
+    WCSimLikelihoodDigit *digit = fLikelihoodDigitArray->GetDigit(iDigit);
+
+    predictedCharges.clear();
+    for (unsigned int iTrack = 0; iTrack < fTracks.size(); iTrack++) {
+      //FIXME: use charge predicted by charge likelihood!
+      //predictedCharges.push_back( 
+      //    fChargeLikelihoodVector[iTrack]->ChargeExpectation(iTrack, digit) );
+      predictedCharges.push_back( digit->GetQ() );
+
+      likelihood += fChargeLikelihoodVector[iTrack].Calc2LnL(digit);
+    }
+    if(WCSimAnalysisConfig::Instance()->GetUseChargeAndTime())
+    {
+      likelihood += fTimeLikelihood.Calc2LnL(digit, predictedCharges);
+    }
+  } //for iDigit
+  std::cout << "Likelihood = " << likelihood << std::endl;
   return likelihood;
 }
 
 void WCSimTotalLikelihood::SetLikelihoodDigitArray(
 		WCSimLikelihoodDigitArray* likelihoodDigitArray) {
 	fLikelihoodDigitArray = likelihoodDigitArray;
-	fChargeLikelihood = WCSimChargeLikelihood(likelihoodDigitArray);
-	fTimeLikelihood = WCSimTimeLikelihood(likelihoodDigitArray, &fChargeLikelihood);
+
+  fChargeLikelihoodVector.clear();
+  std::vector<WCSimLikelihoodTrack> tmpTracks = fTracks;
+  fChargeLikelihoodVector.push_back(WCSimChargeLikelihood(fLikelihoodDigitArray));
+	fTimeLikelihood = WCSimTimeLikelihood(fLikelihoodDigitArray);
+  SetTracks(tmpTracks);
+  return;
 }

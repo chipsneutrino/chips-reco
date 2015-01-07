@@ -31,7 +31,7 @@ class WCSimTotalLikelihood : public TObject
        * Specify the tracks used to calculate the likelihood
        * @param myTracks Vector of all the tracks to consider
        */
-      void SetTracks(std::vector<WCSimLikelihoodTrack> myTracks);
+      void SetTracks(std::vector<WCSimLikelihoodTrack> &myTracks);
 
       /**
        * Clear the vector of tracks being considered
@@ -49,8 +49,8 @@ class WCSimTotalLikelihood : public TObject
   protected:
   private:
       WCSimLikelihoodDigitArray * fLikelihoodDigitArray; ///< Event to build likelihood for
-      WCSimChargeLikelihood fChargeLikelihood; ///< Charge component of likelihood calculation
-      WCSimTimeLikelihood fTimeLikelihood; ///< Time component of likelihood calculation
+      std::vector<WCSimChargeLikelihood> fChargeLikelihoodVector; ///< Charge component of likelihood calculation
+       WCSimTimeLikelihood fTimeLikelihood; ///< Time component of likelihood calculation
       std::vector<WCSimLikelihoodTrack> fTracks; ///< Tracks to consider when calculating the likelihood
 
 	ClassDef(WCSimTotalLikelihood,1)

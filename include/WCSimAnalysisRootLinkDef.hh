@@ -63,6 +63,7 @@
 #pragma link C++ class vector<WCSimLikelihoodTrack>;
 #pragma link C++ class vector<vector<WCSimLikelihoodTrack> >;
 #pragma link C++ class vector<WCSimLikelihoodTrack*>;
+#pragma link C++ class vector<WCSimChargeLikelihood>;
 
 #pragma link C++ class WCSimAnalysisConfig+;
 #pragma link C++ class WCSimFitterConfig+;
