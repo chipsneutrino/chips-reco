@@ -35,6 +35,7 @@ ClassImp(WCSimDigitizerLikelihood)
 WCSimDigitizerLikelihood::WCSimDigitizerLikelihood() : fType(kUnknown), fPDFs(NULL)
 {
 
+
   fDigiTypeNames["kSimple"]  = kSimple;
   fDigiTypeNames["kWCSim"]   = kWCSim;
   fDigiTypeNames["kUnknown"] = kUnknown;
@@ -43,6 +44,8 @@ WCSimDigitizerLikelihood::WCSimDigitizerLikelihood() : fType(kUnknown), fPDFs(NU
   fType = this->StringToDigiType(WCSimAnalysisConfig::Instance()->GetDigiType());
   if( fType == WCSimDigitizerLikelihood::kWCSim ) { this->OpenPDFs(); }
   std::cout << "Using the digitizer type " << fType << std::endl;/////////////////////////////////////////////////////////////////////
+
+  fPDFs = 0x0;
 
 }
 

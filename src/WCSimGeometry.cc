@@ -309,7 +309,7 @@ void WCSimGeometry::SetGeometry(WCSimRootGeom* myGeometry)
   // Look up PMT Locations (NB: +1 to stop overflow)
   // ===============================================
   std::cout << "   reading PMTs: " << myGeometry->GetWCNumPMT() << std::endl;
-  fPMTs = myGeometry->GetWCNumPMT() + 1;
+  fPMTs = myGeometry->GetWCNumPMT();
 
   fPmtX = new Double_t[fPMTs];
   fPmtY = new Double_t[fPMTs];

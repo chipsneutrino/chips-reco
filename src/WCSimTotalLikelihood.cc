@@ -1,4 +1,4 @@
-#include "WCSimChargeLikelihood.hh"
+#include "WCSimChargePredictor.hh"
 #include "WCSimLikelihoodDigitArray.hh"
 #include "WCSimLikelihoodTrack.hh"
 #include "WCSimTimeLikelihood.hh"
@@ -6,6 +6,7 @@
 #include "WCSimAnalysisConfig.hh"
 
 #include <iostream>
+#include <numeric>
 #include <vector>
 
 #ifndef REFLEX_DICTIONARY
@@ -17,10 +18,11 @@ ClassImp(WCSimTotalLikelihood)
 ///////////////////////////////////////////////////////////////////////////
 WCSimTotalLikelihood::WCSimTotalLikelihood( WCSimLikelihoodDigitArray * myLikelihoodDigitArray ) : 
   fLikelihoodDigitArray(myLikelihoodDigitArray),
-  fTimeLikelihood(myLikelihoodDigitArray)
+  fTimeLikelihood(myLikelihoodDigitArray),
+	fDigitizerLikelihood()
 {  
   fChargeLikelihoodVector.push_back(
-      WCSimChargeLikelihood(fLikelihoodDigitArray) );
+      WCSimChargePredictor(fLikelihoodDigitArray) );
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -50,7 +52,7 @@ void WCSimTotalLikelihood::SetTracks( std::vector<WCSimLikelihoodTrack> &myTrack
     myTrackPtrs.push_back(&(*trackIter)); 
     if (i > 0) {
       fChargeLikelihoodVector.push_back(
-          WCSimChargeLikelihood(fLikelihoodDigitArray) );
+          WCSimChargePredictor(fLikelihoodDigitArray) );
     }
     fChargeLikelihoodVector[i].AddTrack(&(*trackIter));
     i++;
@@ -80,29 +82,56 @@ Double_t WCSimTotalLikelihood::Calc2LnL()
 {
   // nb. at the moment we're just adding these together
   // may have to account for correlations somewhere
-  Double_t likelihood = 0; //actually -2 log likelihood
-  std::vector<Double_t> predictedCharges; //one value for each track
-
+  Double_t minus2LnL = 0; 
 
   for(int iDigit = 0; iDigit < fLikelihoodDigitArray->GetNDigits(); ++iDigit) {
-    WCSimLikelihoodDigit *digit = fLikelihoodDigitArray->GetDigit(iDigit);
-
-    predictedCharges.clear();
-    for (unsigned int iTrack = 0; iTrack < fTracks.size(); iTrack++) {
-      //FIXME: use charge predicted by charge likelihood!
-      //predictedCharges.push_back( 
-      //    fChargeLikelihoodVector[iTrack]->ChargeExpectation(iTrack, digit) );
-      predictedCharges.push_back( digit->GetQ() );
-
-      likelihood += fChargeLikelihoodVector[iTrack].Calc2LnL(digit);
-    }
-    if(WCSimAnalysisConfig::Instance()->GetUseChargeAndTime())
-    {
-      likelihood += fTimeLikelihood.Calc2LnL(digit, predictedCharges);
-    }
+    minus2LnL += Calc2LnL(iDigit);
   } //for iDigit
-  std::cout << "Likelihood = " << likelihood << std::endl;
-  return likelihood;
+
+  // std::cout << "-2 ln(Likelihood) = " << minus2LnL << std::endl;
+  return minus2LnL;
+}
+
+/////////////////////////////////////////////////////////////////////////
+//  Calculate the total predicted charge for this digit
+/////////////////////////////////////////////////////////////////////////
+Double_t WCSimTotalLikelihood::CalcPredictedCharge(unsigned int iDigit)
+{
+  std::vector<Double_t> predictedCharges = CalcPredictedCharges(iDigit);
+  Double_t totalCharge = 0.0;
+  for(unsigned int iTrack = 0; iTrack < predictedCharges.size(); ++iTrack)
+  {
+    totalCharge += predictedCharges.at(iTrack);
+  }
+  return totalCharge;
+}
+
+/////////////////////////////////////////////////////////////////////////
+//  Calculate the predicted charge for this digit from each track
+/////////////////////////////////////////////////////////////////////////
+std::vector<Double_t> WCSimTotalLikelihood::CalcPredictedCharges(unsigned int iDigit)
+{
+  std::vector<Double_t> predictedCharges;
+  for (unsigned int iTrack = 0; iTrack < fTracks.size(); iTrack++) {
+    predictedCharges.push_back( fChargeLikelihoodVector.at(iTrack).GetPredictedCharge(iDigit) );
+  }
+  return predictedCharges;
+}
+
+Double_t WCSimTotalLikelihood::Calc2LnL(int iDigit)
+{
+  WCSimLikelihoodDigit *digit = fLikelihoodDigitArray->GetDigit(iDigit);
+  std::vector<Double_t> predictedCharges = CalcPredictedCharges(iDigit);
+  double totalCharge = std::accumulate(predictedCharges.begin(), predictedCharges.end(), 0.0);
+  double minus2LnL = fDigitizerLikelihood.GetMinus2LnL(totalCharge, digit->GetQ());
+  // std::cout << "Recorded charge = " << digit->GetQ() << " and predicted charge = " << totalCharge << " so adds " << minus2LnL << " to -2LnL" << std::endl;
+
+  if(WCSimAnalysisConfig::Instance()->GetUseChargeAndTime())
+  {
+    minus2LnL += fTimeLikelihood.Calc2LnL(digit, predictedCharges);
+  }
+
+  return minus2LnL;
 }
 
 void WCSimTotalLikelihood::SetLikelihoodDigitArray(
@@ -111,7 +140,7 @@ void WCSimTotalLikelihood::SetLikelihoodDigitArray(
 
   fChargeLikelihoodVector.clear();
   std::vector<WCSimLikelihoodTrack> tmpTracks = fTracks;
-  fChargeLikelihoodVector.push_back(WCSimChargeLikelihood(fLikelihoodDigitArray));
+  fChargeLikelihoodVector.push_back(WCSimChargePredictor(fLikelihoodDigitArray));
 	fTimeLikelihood = WCSimTimeLikelihood(fLikelihoodDigitArray);
   SetTracks(tmpTracks);
   return;

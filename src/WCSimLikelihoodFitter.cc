@@ -1,4 +1,4 @@
-#include "WCSimChargeLikelihood.hh"
+#include "WCSimChargePredictor.hh"
 #include "WCSimFitterConfig.hh"
 #include "WCSimFitterParameters.hh"
 #include "WCSimFitterPlots.hh"

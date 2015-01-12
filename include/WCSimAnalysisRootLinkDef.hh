@@ -53,7 +53,7 @@
 #pragma link C++ class WCSimTotalLikelihood+;
 #pragma link C++ class WCSimLikelihoodFitter+;
 #pragma link C++ class WCSimLikelihoodTuner+;
-#pragma link C++ class WCSimChargeLikelihood+;
+#pragma link C++ class WCSimChargePredictor+;
 #pragma link C++ class WCSimLikelihoodDigit+;
 #pragma link C++ class WCSimLikelihoodDigitArray+;
 #pragma link C++ class WCSimLikelihoodTrack+;
@@ -63,7 +63,7 @@
 #pragma link C++ class vector<WCSimLikelihoodTrack>;
 #pragma link C++ class vector<vector<WCSimLikelihoodTrack> >;
 #pragma link C++ class vector<WCSimLikelihoodTrack*>;
-#pragma link C++ class vector<WCSimChargeLikelihood>;
+#pragma link C++ class vector<WCSimChargePredictor>;
 
 #pragma link C++ class WCSimAnalysisConfig+;
 #pragma link C++ class WCSimFitterConfig+;

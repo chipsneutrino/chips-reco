@@ -1,12 +1,11 @@
 /**
- * \class WCSimChargeLikelihood
+ * \class WCSimChargePredictor
  *
- * This class is used to calculate the contribution to the
- * total log-likelihood due to the charges measured at
- * each PMT (including if a PMT measures no charge)
+ * This class is used to calculate the predicted
+ * mean charge at a PMT due to a given track hypothesis
  */
-#ifndef WCSIMCHARGELIKELIHOOD_H
-#define WCSIMCHARGELIKELIHOOD_H
+#ifndef WCSIMCHARGEPREDICTOR_HH
+#define WCSIMCHARGEPREDICTOR_HH
 
 #include <vector>
 
@@ -23,25 +22,25 @@
 #include "TMath.h"
 #include "TTree.h"
 
-class WCSimChargeLikelihood
+class WCSimChargePredictor
 {
     public:
         /**
          * Constructor
          * @param myDigitArray The PMT responses for a single event
          */
-        WCSimChargeLikelihood( WCSimLikelihoodDigitArray * myDigitArray);
+        WCSimChargePredictor( WCSimLikelihoodDigitArray * myDigitArray);
 
         //ROOT requires a default ctor to generate dictionary
         //for a vector of charge likelihood objects - do not use
-        WCSimChargeLikelihood();
+        WCSimChargePredictor();
 
         ///Copy constructor
-        WCSimChargeLikelihood(const WCSimChargeLikelihood &other);
+        WCSimChargePredictor(const WCSimChargePredictor &other);
         ///Assignment operator
-        WCSimChargeLikelihood& operator= (const WCSimChargeLikelihood &rhs);
+        WCSimChargePredictor& operator= (const WCSimChargePredictor &rhs);
 
-        virtual ~WCSimChargeLikelihood();
+        virtual ~WCSimChargePredictor();
 
         /**
          * Add another track to calculate the likelihood for several particles at once
@@ -65,11 +64,18 @@ class WCSimChargeLikelihood
         void UpdateDigitArray( WCSimLikelihoodDigitArray * myDigitArray);
 
         /**
-         * Calculate -2 log(likelihood) for the given PMT response, given the current set of hypothesised tracks
+         * Calculate the predicted mean number of photons at a PMT given the hypothesised track
          * @param myDigit Current PMT to give result for
+         * @return Predicted mean number of photons at this PMT
+         */
+        Double_t GetPredictedCharge(WCSimLikelihoodDigit *myDigit);
+
+        /**
+         * Calculate the predicted mean number of photons at a PMT given the hypothesised track
+         * @param digitNum ID number of the desired PMT
          * @return -2 log(likelihood)
          */
-        Double_t Calc2LnL(WCSimLikelihoodDigit *myDigit);
+        Double_t GetPredictedCharge(Int_t digitNum);
 
         /**
          * For debugging: force the integrals to be calculated iteratively
@@ -165,7 +171,6 @@ class WCSimChargeLikelihood
         WCSimLikelihoodDigitArray           * fDigitArray; ///< Response for all the detector's PMTs for this event
         WCSimLikelihoodDigit                * fDigit;      ///< The PMT being considered
         WCSimLikelihoodTuner                * fTuner;      ///< Class to calculate effects of absorption, geometry, etc. and perform integrals
-        WCSimDigitizerLikelihood            * fDigitizer;  ///< Class to calculate the likelihood of getting the measured PMT hit given the predicted value
 
       // The fitted functions are defined using various variables that relate the track to the
       // PMT hit in question.  I calculate these in GetTrackParameters() and set a flag when
@@ -181,4 +186,4 @@ class WCSimChargeLikelihood
 
 };
 
-#endif // WCSIMCHARGELIKELIHOOD_H
+#endif // WCSIMCHARGEPREDICTOR_HH

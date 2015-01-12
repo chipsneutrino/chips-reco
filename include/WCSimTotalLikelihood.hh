@@ -8,7 +8,7 @@
 #ifndef WCSIMTOTALLIKELIHOOD_H
 #define WCSIMTOTALLIKELIHOOD_H
 
-#include "WCSimChargeLikelihood.hh"
+#include "WCSimChargePredictor.hh"
 #include "WCSimTimeLikelihood.hh"
 #include "WCSimLikelihoodDigitArray.hh"
 #include "WCSimLikelihoodTrack.hh"
@@ -42,15 +42,37 @@ class WCSimTotalLikelihood : public TObject
        * Calculate the combined charge and time likelihood
        * @return Total -2 log(likelihood) from charge and time components
        */
+      Double_t Calc2LnL(int iDigit);
+
+      /**
+       * Calculate the combined charge and time likelihood
+       * @return Total -2 log(likelihood) from charge and time components
+       */
       Double_t Calc2LnL();
+
+
+      /**
+       * Calculate the predicted charge at a given PMT
+       * @return The total of the expected mean number of photons, for all tracks
+       * @param nDigit The number of the PMT in the LikelihoodDigitArray
+       */
+      Double_t CalcPredictedCharge(unsigned int iDigit);
+      
+      /**
+       * Calculate the predicted charge at a given PMT
+       * @return The expected mean number of photons, one entry per track
+       * @param nDigit The number of the PMT in the LikelihoodDigitArray
+       */
+      std::vector<Double_t> CalcPredictedCharges(unsigned int iDigit);
 
       void SetLikelihoodDigitArray(WCSimLikelihoodDigitArray * likelihoodDigitArray);
  
   protected:
   private:
       WCSimLikelihoodDigitArray * fLikelihoodDigitArray; ///< Event to build likelihood for
-      std::vector<WCSimChargeLikelihood> fChargeLikelihoodVector; ///< Charge component of likelihood calculation
-       WCSimTimeLikelihood fTimeLikelihood; ///< Time component of likelihood calculation
+      std::vector<WCSimChargePredictor> fChargeLikelihoodVector; ///< Charge component of likelihood calculation
+      WCSimTimeLikelihood fTimeLikelihood; ///< Time component of likelihood calculation
+      WCSimDigitizerLikelihood fDigitizerLikelihood;
       std::vector<WCSimLikelihoodTrack> fTracks; ///< Tracks to consider when calculating the likelihood
 
 	ClassDef(WCSimTotalLikelihood,1)

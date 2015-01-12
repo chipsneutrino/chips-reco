@@ -1,5 +1,7 @@
 #! /bin/bash
 
+export WCSIMHOME=${FNU}/software/WCSim_github
+
 #WCSimAnalysis Home Directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export WCSIMANAHOME=${DIR}

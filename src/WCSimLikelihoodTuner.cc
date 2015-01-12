@@ -21,7 +21,7 @@
 #include "TVector2.h"
 #include "TVector3.h"
 
-#include "WCSimChargeLikelihood.hh"
+#include "WCSimChargePredictor.hh"
 #include "WCSimLikelihoodTrack.hh"
 #include "WCSimLikelihoodTuner.hh"
 #include "WCSimRootGeom.hh"
@@ -185,6 +185,7 @@ Double_t WCSimLikelihoodTuner::TransmissionFunction(Double_t s, WCSimLikelihoodT
     trans = 0.0;
     for(int i = 0; i < 3; ++i){ trans+= f[i]*exp(1.0 * 10 * r * nu[i]);}  //Convert to cm -> factor 10
   }
+  std::cout << "trans = " << trans << std::endl;
   return trans;
 }
 
@@ -209,17 +210,20 @@ Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrack * myT
     TVector3 pmtFace     = myDigit->GetFace();
 
     Double_t cosTheta = pmtFace.Dot(pmtToEm) / (pmtFace.Mag() * pmtToEm.Mag()); 
-
+    if(pmtFace.Mag() == 0)
+    {
+      myDigit->Print();
+      std::cout << "cosTheta = " << cosTheta << "   pmtFace = " << pmtFace.Mag() << "   pmtToEm = " << pmtToEm.Mag() << std::endl;
+    }
 	  // The MiniBooNE method:
     Double_t theta = TMath::ACos(cosTheta) * 180. / TMath::Pi();
     if( theta > 90.0 )
     {
       theta = 180.0 - theta;
     }
-	
-	  Double_t efficiency =  (1 + (-1.182e-4) * pow(theta, 2) + 4.959e-9 * pow(theta, 4) - 7.371e-14 * pow(theta, 6));
-    efficiency = 1.0;
+	  efficiency =  (1 + (-1.182e-4) * pow(theta, 2) + 4.959e-9 * pow(theta, 4) - 7.371e-14 * pow(theta, 6));
 	}
+  std::cout << "Efficiency = " << efficiency * (1-glassReflect) << std::endl;
   return efficiency * (1-glassReflect);
 
     // Function for the PMT acceptance's dependence on the angle: 
@@ -273,63 +277,25 @@ Double_t WCSimLikelihoodTuner::QuantumEfficiency(WCSimLikelihoodTrack * myTrack)
 //////////////////////////////////////////////////////////////////////////////////////////
 Double_t WCSimLikelihoodTuner::SolidAngle(Double_t s, WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit)
 {
-    // Now some physical parameters of the phototube
+  // Now some physical parameters of the phototube
 	Double_t WCSimPMTRadius = WCSimGeometry::Instance()->GetPMTRadius();
 
 	// Double_t WCSimPMTExposeHeight = WCSimPMTRadius - 1.0;
 
 	
-    // We need the distance from emission to the PMT
-    // These are from WCSim so they're in cm
-    TVector3 pmtDomePos  = myDigit->GetPos() + WCSimPMTRadius * myDigit->GetFace();
-    TVector3 emissionPos = myTrack->GetPropagatedPos(s);
-    Double_t r = (pmtDomePos - emissionPos).Mag();
+  // We need the distance from emission to the PMT
+  // These are from WCSim so they're in cm
+  TVector3 pmtDomePos  = myDigit->GetPos() + WCSimPMTRadius * myDigit->GetFace();
+  TVector3 emissionPos = myTrack->GetPropagatedPos(s);
+  Double_t r = (pmtDomePos - emissionPos).Mag();
 
-    // Purely geometry: we need the solid angle of a cone whose bottom is a circle of the same radius as the circle of PMT poking
-    // through the blacksheet.  This is 2pi( 1 - cos(coneAngle) ) where coneAngle can be deduced from trig and the PMT geometry
+  // Purely geometry: we need the solid angle of a cone whose bottom is a circle of the same radius as the circle of PMT poking
+  // through the blacksheet.  This is 2pi( 1 - cos(coneAngle) ) where coneAngle can be deduced from trig and the PMT geometry
 	// So the fraction of total solid angle is this/4pi = 0.5(1 - cos(coneAngle))
 	Double_t solidAngle = 2.0*TMath::Pi()*(1.0 - (r)/sqrt( (r*r + WCSimPMTRadius * WCSimPMTRadius)));
+  std::cout << "Solid angle = " << solidAngle << " = " << solidAngle / (0.04*(M_PI)) << std::endl;
 	
-
-	/*
-	 * DEPRECATED...
-
-	// I multiply by cosTheta to account for the angle from track to PMT diminishing its effective area
-	// This isn't strictly correct (solid angle of a sphere cut off by a plane turns out to be quite complicated
-	// but it's a decent approximation to a small effect
-    // solidAngle *= TMath::Cos((emissionPos - pmtPos).Angle(TVector3(myDigit->GetFaceX(), myDigit->GetFaceY(), myDigit->GetFaceZ())));
-
-	// See whether the PMT covers more than 1 bin in cosTheta - if it does we should have picked multiple theta bins from g(cosTheta)
-	// so scale the solid angle accordingly.
-    // this->LoadEmissionProfiles(myTrack);
-    // std::cout << fWhichHisto->FindBin(myTrack->GetE());
-    // TH2D * hG = (TH2D*)fAngHistArray->At(fWhichHisto->FindBin(myTrack->GetE()) - 1);
-    // std::cout << fWhichHisto->FindBin(myTrack->GetE() - 1) << "   " << hG << std::endl;
-    // Double_t cosThetaBins = hG->GetNbinsX();
-    // Double_t cosThetaRange = (hG->GetXaxis())->GetXmax() - (hG->GetXaxis())->GetXmin();
-    // Double_t dCosTheta = cosThetaRange / cosThetaBins;
-    //
-    // Double_t angleToCenter = pmtPos.Angle(emissionPos);
-    // Double_t rangeThetaPMT = TMath::ACos(1.0 - 0.5*solidAngle / TMath::Pi());
-    // std::cout << "angle to center " << angleToCenter << "     rangeThetaPMT " << rangeThetaPMT << std::endl;
-    // Double_t rangeCosThetaPMT = 2 * TMath::Sin(angleToCenter) * TMath::Sin(rangeThetaPMT);
-    //
-    //
-    // std::cout << "pmt range = " << rangeCosThetaPMT << " dCosTheta = " << dCosTheta << "  range / dCosTheta = " << rangeCosThetaPMT / dCosTheta << std::endl;
-    // solidAngle *= rangeCosThetaPMT / dCosTheta;
-    //	if(pmtPos.Z() > 1000)
-    //	{
-    //		std::cout << "cosTheta = " << TMath::Cos(TMath::ATan2(WCSimPMTRadius, r)) << std::endl;
-    //    	std::cout << "solid angle = " << solidAngle << std::endl;
-    //    	std::cout << "r = " << r << "    WCSimPMTRadius = " << WCSimPMTRadius << "   solid angle  = " << solidAngle << "    hit Q = " << myDigit->GetQ() << std::endl;;
-    //    	std::cout << "Pmt pos = " ;
-    //    	pmtPos.Print();
-    //    	std::cout << "Emission pos = " ;
-    //    	emissionPos.Print();
-    //    	std::cout << std::endl;
-    //	}
-    */
-    return solidAngle;
+	return solidAngle;
     
 }
 
@@ -352,9 +318,9 @@ Double_t WCSimLikelihoodTuner::ScatteringTable(Double_t s)
 /////////////////////////////////////////////////////////////////////////////////////////////
 std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ( Double_t s, WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit ) 
 {
-    std::vector<Double_t> J;
+  std::vector<Double_t> J;
 
-    // Check make sure the particle is still inside the detector
+  // Check make sure the particle is still inside the detector
 	if( fConstrainExtent )
 	{
 	  TVector3 pos = myTrack->GetPropagatedPos(s);
@@ -371,8 +337,8 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ( Double_t s, WCSimLikelih
     if( s == 0.0)
     {
     	std::cout << "Transmission = " << this->TransmissionFunction(s, myTrack, myDigit) << std::endl
-    			  << "Efficiency =   " << this->Efficiency(s, myTrack, myDigit) << std::endl
-    			  << "SolidAngle =   " << this->SolidAngle(s, myTrack, myDigit) << std::endl;
+    			  		<< "Efficiency =   " << this->Efficiency(s, myTrack, myDigit) << std::endl
+    			  		<< "SolidAngle =   " << this->SolidAngle(s, myTrack, myDigit) << std::endl;
     }
 
     J.push_back(   this->TransmissionFunction(s, myTrack, myDigit) 
@@ -942,7 +908,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateChIntegrals(WCSimLikelihood
     std::vector<Int_t> sPowers;
     sPowers.push_back(0);
     sPowers.push_back(1);
-    sPowers.push_back(1);
+    sPowers.push_back(2);
     std::vector<Double_t> integrals = fEmissionProfiles.GetRhoGIntegrals(myTrack, myDigit, sPowers, fCutoffIntegral, kTRUE);
 
       // std::cout << "s = " << fCutoffIntegral << "   " << integrals[0] << "   " << integrals[1] << "   " << integrals[2] << std::endl;

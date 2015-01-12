@@ -63,7 +63,7 @@ public:
   Double_t GetTrackLengthForPercentile(Double_t percentile);
 
 	virtual ~WCSimEmissionProfiles();
-  Double_t GetLightFlux(WCSimLikelihoodTrack * myTrack);
+  Double_t GetLightFlux(WCSimLikelihoodTrack * myTrack) const;
 
 
 private:

@@ -160,7 +160,7 @@ std::vector<Double_t> WCSimEmissionProfiles::GetRhoGIntegrals(WCSimLikelihoodTra
     TVector3 vtxPos = myTrack->GetVtx();
     TVector3 vtxDir = myTrack->GetDir();
 
-  // std::cout << "Integrating from " << 0.0 << " to " << cutoffS << std::endl;
+  std::cout << "Integrating from " << 0.0 << " to " << cutoffS << std::endl;
 
 	for(Int_t iBin = startBin; iBin < endBin; ++iBin)
 	{
@@ -176,11 +176,12 @@ std::vector<Double_t> WCSimEmissionProfiles::GetRhoGIntegrals(WCSimLikelihoodTra
       //          << "fRhoInterp = " << fRhoInterp->GetBinContent(iBin) << std::endl 
       //          << "fG         = " << fG->GetBinContent(fG->GetXaxis()->FindBin(cosTheta), iBin) << std::endl;
 
+      if(fRhoInterp->GetBinContent(iBin) == 0) { continue; }
       integrals.at(iPower) += binWidth
 			  	                   * fRhoInterp->GetBinContent(iBin)
 				                     * fG->GetBinContent(fG->GetXaxis()->FindBin(cosTheta), iBin)
 				                     * pow(fRhoInterp->GetBinCenter(iBin), sPowers.at(iPower));
-      // std::cout << "Now integrals.at(" << iPower << ") = " << integrals.at(iPower) << std::endl;
+      // std::cout << "Now integrals.at(" << iPower << ") = " << integrals.at(iPower) <<  " sPower = " << sPowers.at(iPower) << std::endl;
 	  }
   }
 	return integrals;
@@ -435,6 +436,16 @@ void WCSimEmissionProfiles::InterpolateG(WCSimLikelihoodTrack* myTrack) {
 }
 
 
+
+Double_t WCSimEmissionProfiles::GetLightFlux(WCSimLikelihoodTrack * myTrack) const
+{
+  //std::cout << "*** WCSimChargeLikelihood::GetLightFlux() *** Getting the light flux as a function of the track KE" << std::endl;
+  Double_t energy      = myTrack->GetE();
+  WCSimLikelihoodTrack::TrackType type = myTrack->GetType();
+  return this->GetLightFlux(type, energy);
+
+}
+
 Double_t WCSimEmissionProfiles::GetLightFlux(
 		WCSimLikelihoodTrack::TrackType type, Double_t energy) const {
 	assert(type == WCSimLikelihoodTrack::MuonLike || type == WCSimLikelihoodTrack::ElectronLike);
@@ -451,7 +462,7 @@ Double_t WCSimEmissionProfiles::GetLightFlux(
 	{
 		case WCSimLikelihoodTrack::MuonLike:
 			// From a linear fit to nPhotons as a function of energy (it's very linear)
-			nPhotons = 246.564 * energy - 20700;
+			nPhotons = 246.564/(5.0) * energy - 20700/(5.0);
 			// Things get sketchy at really low energies
 			if(nPhotons > 0){ flux = factorFromG * factorFromSolidAngle * nPhotons; }
       break;
@@ -547,27 +558,3 @@ void WCSimEmissionProfiles::SaveProfiles()
 
 }
 
-
-Double_t WCSimEmissionProfiles::GetLightFlux(WCSimLikelihoodTrack * myTrack)
-{
-  //std::cout << "*** WCSimChargeLikelihood::GetLightFlux() *** Getting the light flux as a function of the track KE" << std::endl;
-  Double_t energy      = myTrack->GetE();
-  Double_t factorFromG = 1/(4.0*TMath::Pi()); // We want solid angle fraction
-
-  Double_t factorFromSolidAngle = 1; //2*TMath::Pi();
-  // There was an overall normalization of 2pi that used to be neglected
-  // because the solid angle subtended by a cone is 2pi(1 - cosTheta)
-  // I've absorbed this into the SolidAngle now
-
-  // Double_t nPhotons = 341.726*fEnergy;    // <-- EARLIER PARAMETRISATION
-  // Double_t nPhotons = 36.9427* - 3356.71; // <-- EARLIER PARAMETRISATION
-
-  // From a linear fit to nPhotons as a function of energy (it's very linear)
-  Double_t nPhotons = 17.91 + 39.61*energy;
-
-  // Things get sketchy at really low energies
-  if(nPhotons < 0) return 0;
-
-  return factorFromG * factorFromSolidAngle * nPhotons;
-
-}

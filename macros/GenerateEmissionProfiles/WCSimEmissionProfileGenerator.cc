@@ -143,7 +143,7 @@ void WCSimEmissionProfileGenerator::MakeFluxHistogram()
     Int_t eventID = -999;
 
     Int_t nPhotons = chain->GetEntries();
-    Int_t nEvents  = 100;
+    Int_t nEvents  = chain->GetMaximum("eventID");
 
     TBranch * br = NULL;
     chain->SetBranchAddress("eventID",&eventID, &br);
