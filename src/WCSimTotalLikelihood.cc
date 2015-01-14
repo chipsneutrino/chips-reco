@@ -88,7 +88,7 @@ Double_t WCSimTotalLikelihood::Calc2LnL()
     minus2LnL += Calc2LnL(iDigit);
   } //for iDigit
 
-  // std::cout << "-2 ln(Likelihood) = " << minus2LnL << std::endl;
+  std::cout << "-2 ln(Likelihood) = " << minus2LnL << std::endl;
   return minus2LnL;
 }
 

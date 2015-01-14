@@ -126,14 +126,16 @@ std::vector<Double_t> WCSimEmissionProfiles::GetRhoIntegrals(std::vector<Int_t> 
 		Double_t startS, Double_t endS, Bool_t multiplyByWidth) {
 	Int_t startBin = fRhoInterp->GetXaxis()->FindBin(startS);
 	Int_t endBin = fRhoInterp->GetXaxis()->FindBin(endS);
-
+	std::cout << fRhoInterp->GetBinContent(endBin) << std::endl;;
 	std::vector<Double_t> integrals(sPowers.size(), 0.0);
 	for(Int_t iBin = startBin; iBin < endBin; ++iBin)
 	{
+
 		Double_t binWidth = multiplyByWidth ? fRhoInterp->GetXaxis()->GetBinWidth(iBin) : 1;
     for(UInt_t iPower = 0; iPower < sPowers.size(); ++iPower)
     {
-		  integrals.at(iPower) += binWidth * fRhoInterp->GetBinContent(iBin) * pow(fRhoInterp->GetBinCenter(iBin), sPowers.at(iPower));
+
+    	integrals.at(iPower) += binWidth * fRhoInterp->GetBinContent(iBin) * pow(fRhoInterp->GetBinCenter(iBin), sPowers.at(iPower));
 	  }
   }
 	return integrals;
@@ -155,12 +157,11 @@ std::vector<Double_t> WCSimEmissionProfiles::GetRhoGIntegrals(WCSimLikelihoodTra
 	Int_t endBin = fRhoInterp->GetXaxis()->FindBin(cutoffS);
 
 
-
     TVector3 pmtPos = myDigit->GetPos();
     TVector3 vtxPos = myTrack->GetVtx();
     TVector3 vtxDir = myTrack->GetDir();
 
-  std::cout << "Integrating from " << 0.0 << " to " << cutoffS << std::endl;
+  // std::cout << "Integrating from " << 0.0 << " to " << cutoffS << std::endl;
 
 	for(Int_t iBin = startBin; iBin < endBin; ++iBin)
 	{
@@ -337,8 +338,9 @@ void WCSimEmissionProfiles::InterpolateRho(WCSimLikelihoodTrack* myTrack) {
   // Convert the high and low distances into bin numbers
   Int_t binForLowHist = fRhoInterp->GetXaxis()->FindBin(truDist - loDist);
   Int_t binForHiHist = fRhoInterp->GetXaxis()->FindBin(hiDist - truDist);
-  // std::cout << "binForLowHist = " << binForLowHist << std::endl;
-  // std::cout << "binForHiHist  = " << binForHiHist << std::endl;
+  std::cout << "Energy = " << energy << std::endl;
+  std::cout << "binForLowHist = " << binForLowHist << std::endl;
+  std::cout << "binForHiHist  = " << binForHiHist << std::endl;
   
   Double_t scaleAdded = 0;
   Int_t nBinsToAverage = (profileHi->GetXaxis()->FindBin(hiDist - loDist) - profileHi->GetXaxis()->FindBin(hiDist - truDist));
@@ -397,12 +399,13 @@ void WCSimEmissionProfiles::InterpolateRho(WCSimLikelihoodTrack* myTrack) {
     fRhoInterpLo->SetBinContent(iBin, binContentLo);
     fRhoInterpHi->SetBinContent(iBin, binContentHi);
 	}
-  fRhoInterpLo->Scale(1.0/fRhoInterpLo->Integral());
-  fRhoInterpHi->Scale(1.0/fRhoInterpHi->Integral());
+  fRhoInterpLo->Scale(1.0/fRhoInterpLo->Integral("width"));
+  fRhoInterpHi->Scale(1.0/fRhoInterpHi->Integral("width"));
 
   fRhoInterp->Reset();
   fRhoInterp->Add(fRhoInterpLo, fRhoInterpHi, 1.-fracHi, fracHi);
   
+
   // TCanvas * can = new TCanvas("can","can",700,500);
   // fRhoInterp->Draw();
   // fRhoInterpLo->SetLineColor(kAzure);

@@ -185,7 +185,7 @@ Double_t WCSimLikelihoodTuner::TransmissionFunction(Double_t s, WCSimLikelihoodT
     trans = 0.0;
     for(int i = 0; i < 3; ++i){ trans+= f[i]*exp(1.0 * 10 * r * nu[i]);}  //Convert to cm -> factor 10
   }
-  std::cout << "trans = " << trans << std::endl;
+  //std::cout << "trans = " << trans << std::endl;
   return trans;
 }
 
@@ -210,11 +210,6 @@ Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrack * myT
     TVector3 pmtFace     = myDigit->GetFace();
 
     Double_t cosTheta = pmtFace.Dot(pmtToEm) / (pmtFace.Mag() * pmtToEm.Mag()); 
-    if(pmtFace.Mag() == 0)
-    {
-      myDigit->Print();
-      std::cout << "cosTheta = " << cosTheta << "   pmtFace = " << pmtFace.Mag() << "   pmtToEm = " << pmtToEm.Mag() << std::endl;
-    }
 	  // The MiniBooNE method:
     Double_t theta = TMath::ACos(cosTheta) * 180. / TMath::Pi();
     if( theta > 90.0 )
@@ -223,7 +218,7 @@ Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrack * myT
     }
 	  efficiency =  (1 + (-1.182e-4) * pow(theta, 2) + 4.959e-9 * pow(theta, 4) - 7.371e-14 * pow(theta, 6));
 	}
-  std::cout << "Efficiency = " << efficiency * (1-glassReflect) << std::endl;
+  //std::cout << "Efficiency = " << efficiency * (1-glassReflect) << std::endl;
   return efficiency * (1-glassReflect);
 
     // Function for the PMT acceptance's dependence on the angle: 
@@ -293,7 +288,7 @@ Double_t WCSimLikelihoodTuner::SolidAngle(Double_t s, WCSimLikelihoodTrack * myT
   // through the blacksheet.  This is 2pi( 1 - cos(coneAngle) ) where coneAngle can be deduced from trig and the PMT geometry
 	// So the fraction of total solid angle is this/4pi = 0.5(1 - cos(coneAngle))
 	Double_t solidAngle = 2.0*TMath::Pi()*(1.0 - (r)/sqrt( (r*r + WCSimPMTRadius * WCSimPMTRadius)));
-  std::cout << "Solid angle = " << solidAngle << " = " << solidAngle / (0.04*(M_PI)) << std::endl;
+  // std::cout << "Solid angle = " << solidAngle << " = " << solidAngle / (0.04*(M_PI)) << std::endl;
 	
 	return solidAngle;
     
@@ -494,7 +489,7 @@ void WCSimLikelihoodTuner::CalculateCutoff( WCSimLikelihoodTrack * myTrack )
     else assert(false);
 
   }
-  std::cout << "Cutoff = " << cutoff << ".... returning" << std::endl;
+  // std::cout << "Cutoff = " << cutoff << ".... returning" << std::endl;
   fCutoffIntegral = cutoff;
   fLastCutoff     = myTrack;
   return;

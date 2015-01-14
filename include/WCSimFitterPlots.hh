@@ -55,8 +55,12 @@ public:
 	void FillNtuple(WCSimFitterConfig * fitterConfig, std::vector<WCSimLikelihoodTrack> bestFits);
 	void FillPlots(std::vector<WCSimLikelihoodTrack> bestFits);
 	void FillRecoMinusTrue(std::vector<WCSimLikelihoodTrack> bestFits, std::vector<WCSimLikelihoodTrack*> * trueTracks);
-	void Fill1DProfile( std::pair<unsigned int, FitterParameterType::Type> theProfile, double stepVal, double minus2LnL);
-	void Fill2DProfile( std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > theProfile, double stepValX, double stepValY, double minus2LnL);
+  double Get1DSurfaceBinCenter(std::pair<unsigned int, FitterParameterType::Type> theProfile, int binNum);
+	void Fill1DProfile( std::pair<unsigned int, FitterParameterType::Type> theProfile, int binNum, double minus2LnL);
+  void Get2DSurfaceBinCenters(std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > theProfile, int binNumX, int binNumY, double &x, double &y);
+  double Get2DSurfaceBinCenterX(std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > theProfile, int binNumX);
+  double Get2DSurfaceBinCenterY(std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > theProfile, int binNumY);
+	void Fill2DProfile( std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > theProfile, int binNumX, int binNumY, double minus2LnL);
 	void SavePlots();
 
 	void Print();

@@ -354,8 +354,22 @@ void WCSimFitterPlots::FillNtuple(WCSimFitterConfig* fitterConfig,
 		std::vector<WCSimLikelihoodTrack> bestFits) {
 }
 
+double WCSimFitterPlots::Get1DSurfaceBinCenter(std::pair<unsigned int, FitterParameterType::Type> theProfile, int iBin)
+{
+	std::map<std::pair<unsigned int, FitterParameterType::Type>, TH1D*>::iterator mapItr = fSurfaces1D.find(theProfile);
+	if( mapItr != fSurfaces1D.end() )
+	{
+  	TH1D * profile = (*mapItr).second;
+		return profile->GetXaxis()->GetBinCenter(iBin);
+	}
+  else{
+    assert(0);
+  }
+
+}
+
 void WCSimFitterPlots::Fill1DProfile(std::pair<unsigned int, FitterParameterType::Type> theProfile,
-		double stepVal, double minus2LnL) {
+		int binNum, double minus2LnL) {
   std::cout << std::endl << "Fill 1D profile" << std::endl;
 	std::map<std::pair<unsigned int, FitterParameterType::Type>, TH1D*>::iterator mapItr = fSurfaces1D.find(theProfile);
 	if( mapItr != fSurfaces1D.end() )
@@ -364,19 +378,55 @@ void WCSimFitterPlots::Fill1DProfile(std::pair<unsigned int, FitterParameterType
   	TH1D * profile = (*mapItr).second;
     std::cout << "Profile = " << profile << std::endl; 
     std::cout << "Profile title = " << profile->GetTitle() << std::endl;
-		profile->SetBinContent(profile->GetXaxis()->FindBin(stepVal), minus2LnL);
+		profile->SetBinContent(binNum, minus2LnL);
 	}
 }
 
-void WCSimFitterPlots::Fill2DProfile(
-		std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > theProfile, double stepValX,
-		double stepValY, double minus2LnL) {
+void WCSimFitterPlots::Get2DSurfaceBinCenters(std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > theProfile, int binNumX, int binNumY, double &x, double &y)
+{
 	std::map<std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> >, TH2D* >::iterator mapItr;
 	mapItr = fSurfaces2D.find(theProfile);
 	if( mapItr != fSurfaces2D.end() )
 	{
 		TH2D * profile = (*mapItr).second;
-		profile->SetBinContent(profile->GetXaxis()->FindBin(stepValX), profile->GetYaxis()->FindBin(stepValY), minus2LnL);
+    x = profile->GetXaxis()->GetBinCenter(binNumX);
+    y = profile->GetYaxis()->GetBinCenter(binNumY);
+	}
+  else{
+    std::cerr << "Error: 2D profile not found!" << std::endl;
+    assert(mapItr != fSurfaces2D.end());
+  }
+  
+}
+
+
+double WCSimFitterPlots::Get2DSurfaceBinCenterX(std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > theProfile, int binNumX){
+  double x = 0;
+  double y = 0;
+  int binNumY = 1;
+  Get2DSurfaceBinCenters(theProfile, binNumX, binNumY, x, y);
+  return x;
+}
+
+
+double WCSimFitterPlots::Get2DSurfaceBinCenterY(std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > theProfile, int binNumY){
+  double x = 0.0;
+  double y = 0.0;
+  int binNumX = 1;
+  Get2DSurfaceBinCenters(theProfile, binNumX, binNumY, x, y);
+  return y;
+}
+
+
+void WCSimFitterPlots::Fill2DProfile(
+		std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > theProfile, int binNumX,
+		int binNumY, double minus2LnL) {
+	std::map<std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> >, TH2D* >::iterator mapItr;
+	mapItr = fSurfaces2D.find(theProfile);
+	if( mapItr != fSurfaces2D.end() )
+	{
+		TH2D * profile = (*mapItr).second;
+		profile->SetBinContent(binNumX, binNumY, minus2LnL);
 	}
 
 }

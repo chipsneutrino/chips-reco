@@ -103,6 +103,7 @@ void WCSimLikelihoodFitter::Minimize2LnL()
   min->SetFunction(func);
 
   // Set the fixed and free variables
+  Bool_t isAnythingFree = false;
   for(UInt_t i = 0; i < nPars; ++i)
   {
 	  if( fFixed[i] || fIsEnergy[i])
@@ -111,24 +112,29 @@ void WCSimLikelihoodFitter::Minimize2LnL()
 	  }
 	  else
 	  {
+      isAnythingFree = true;
 		  min->SetLimitedVariable(i, fNames[i], fStartVals[i], fStepSizes[i], fMinVals[i], fMaxVals[i]);
     }
   }
 
   // Perform the minimization
-  min->Minimize();
-  fMinimum = min->MinValue();
-  fStatus = min->Status();
-
+  if( isAnythingFree )
+  {
+    min->Minimize();
+    fMinimum = min->MinValue();
+    fStatus = min->Status();
+  }
   
   // Get and print the fit results
   const Double_t * outPar = min->X();
 
   // Now we go again but free up the energy:
+  Bool_t doSecondStep = false;
   for(UInt_t i = 0; i < nPars; ++i)
   {
     if(fIsEnergy[i] && !fFixed[i])
     {
+      doSecondStep = true;
       min->SetLimitedVariable(i, fNames[i], fStartVals[i], fStepSizes[i], fMinVals[i], fMaxVals[i]);
     }
     else
@@ -144,8 +150,13 @@ void WCSimLikelihoodFitter::Minimize2LnL()
   //  min->SetLimitedVariable(5, parName[5], par[5], stepSize[5], maxVal[5], minVal[5]);
   //  min->SetLimitedVariable(6, parName[6], par[6], stepSize[6], maxVal[6], minVal[6]);
   //  for(UInt_t j = 0; j < nPars; ++j){std::cout << j << "   " << parName[j] << "   " << par[j] << "   " << minVal[j] << "   " << maxVal[j] << std::endl;}
-  min->Minimize();
-
+  
+  // Either we want to minimise over the energy, or we haven't freed anything up at all
+  // and to perform the calculation at least once
+  if( doSecondStep || !isAnythingFree )
+  {
+    min->Minimize();
+  }
 
   // Get and print the fit results
   const Double_t * outPar2 = min->X();
@@ -376,7 +387,7 @@ void WCSimLikelihoodFitter::SetParameterArrays() {
 				fStartVals[iParam] = WCSimFitterConfig::Instance()->GetParStart(jTrack,name);
 				fMinVals[iParam]   = WCSimFitterConfig::Instance()->GetParMin(jTrack,name);
 				fMaxVals[iParam]   = WCSimFitterConfig::Instance()->GetParMax(jTrack,name);
-				fStepSizes[iParam] = (WCSimFitterConfig::Instance()->GetParMax(jTrack,name) - WCSimFitterConfig::Instance()->GetParMin(jTrack, name)) / 50.0;
+				fStepSizes[iParam] = (WCSimFitterConfig::Instance()->GetParMax(jTrack,name) - WCSimFitterConfig::Instance()->GetParMin(jTrack, name)) / 10.0;
 				fFixed[iParam]     = WCSimFitterConfig::Instance()->GetIsFixedParameter(jTrack,name);
 				TString parName;
 				parName.Form("%s_track%d", name, jTrack);
@@ -436,7 +447,7 @@ void WCSimLikelihoodFitter::Make1DSurface(
 		{
 			double stepVal = min + (max - min) * iBin / (double)fFitterPlots->GetNumSurfaceBins();
 			x[arrIndex] = stepVal;
-			fFitterPlots->Fill1DProfile(trackPar, stepVal, WrapFunc(x));
+			fFitterPlots->Fill1DProfile(trackPar, iBin, WrapFunc(x));
 		}
 	}
 
@@ -480,7 +491,7 @@ void WCSimLikelihoodFitter::Make2DSurface(
 	  	{
 	  		double stepValY = minY + (maxY - minY) * iYBin / (double)fFitterPlots->GetNumSurfaceBins();
 	  		x[arrIndexY] = stepValY;
-	  		fFitterPlots->Fill2DProfile(trackPar, stepValX, stepValY, WrapFunc(x));
+	  		fFitterPlots->Fill2DProfile(trackPar, iXBin, iYBin, WrapFunc(x));
 	  	}
 	  }
   }
