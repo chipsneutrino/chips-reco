@@ -136,7 +136,7 @@ void WCSimConcatenateEmissionProfiles::BuildArrays()
         assert( energyBins[distance] == (*gItr).first );
     }
 
-    energyBins[0] = 0.0;
+    // energyBins[0] = 0.0;
     energyBins[rhoMap.size()] = 30000.0;
     hWhichHisto->GetXaxis()->Set( rhoMap.size(), energyBins );
 
