@@ -8,6 +8,7 @@
 #ifndef WCSIMFITTERCONFIG_HH_
 #define WCSIMFITTERCONFIG_HH_
 #include "WCSimFitterParameters.hh"
+#include "WCSimLikelihoodTrack.hh"
 
 class WCSimFitterConfig{
 public:
@@ -19,6 +20,9 @@ public:
   unsigned int GetNumTracks() const;
 	unsigned int GetNumParameters();
   unsigned int GetNumIndependentParameters();
+
+	void SetTrackType(unsigned int numTrack, const char * typeName);
+	WCSimLikelihoodTrack::TrackType GetTrackType(const unsigned int &numTrack) const;
 	WCSimFitterParameters GetFitterParameters(){ return fFitterParameters; }
 
 	void FixTrackParameter(int  numTrack, const char * name, bool doIt = true);

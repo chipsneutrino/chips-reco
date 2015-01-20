@@ -64,6 +64,12 @@ void WCSimFitterInterface::SetNumTracks(unsigned int numTracks) {
 	WCSimFitterConfig::Instance()->SetNumTracks(numTracks);
 }
 
+void WCSimFitterInterface::SetTrackType( unsigned int numTrack, const char * typeName)
+{
+  std::cout << "WCSimFitterInterface::SetTrackType(" << numTrack << ", " << typeName << ")" << std::endl;
+	WCSimFitterConfig::Instance()->SetTrackType(numTrack, typeName);
+}
+
 void WCSimFitterInterface::JoinParametersTogether(unsigned int numTrack1, unsigned int numTrack2, const char * name)
 {
 	assert(numTrack1 < fNumTracks && numTrack2 < fNumTracks && numTrack1 != numTrack2);

@@ -74,6 +74,7 @@ int WCSimDigitizerPDFMaker::GetNumThrows() const {
 void WCSimDigitizerPDFMaker::Run() {
 	MakeHisto();
 	LoopDigitize();
+  FillEmptyBins();
 	NormHistogram();
 	SaveHistogram();
 }
@@ -252,6 +253,23 @@ void WCSimDigitizerPDFMaker::Digitize() {
 	fProbHisto->Fill(fMu, peSmeared);
 }
 
+void WCSimDigitizerPDFMaker::FillEmptyBins()
+{
+  for(unsigned int iBinX = 1; iBinX <= fProbHisto->GetNbinsX(); ++iBinX)
+  {
+    for(unsigned int iBinY = 1; iBinY <= fProbHisto->GetNbinsY(); ++iBinY)
+    {
+      if( fProbHisto->GetBinContent(iBinX, iBinY) == 0 )
+      {
+        fProbHisto->SetBinContent(1.0);
+      }
+    }
+  }
+  
+
+
+}
+
 void WCSimDigitizerPDFMaker::NormHistogram() {
 	double integral = fProbHisto->Integral();
 	if(integral > 0)
@@ -262,8 +280,10 @@ void WCSimDigitizerPDFMaker::NormHistogram() {
 }
 
 void WCSimDigitizerPDFMaker::SaveHistogram() {
-	fProbHisto->SetDirectory(0);
+	fProbHisto->SetName("digiPDF");
+  fProbHisto->SetDirectory(0);
 	fDebug->SetDirectory(0);
+
 	TString fileName = TString::Format("digitizerLikelihood_%f.root", fMu);
 	TFile * f = new TFile(fileName.Data(), "RECREATE");
 	fProbHisto->Write();

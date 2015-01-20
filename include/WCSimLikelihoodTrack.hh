@@ -11,7 +11,7 @@
 
 #include "TObject.h"
 #include "TVector3.h"
-#include "WCSimFitterParameters.hh"
+#include "WCSimTrackParameterEnums.hh"
 #include <string>
 #include <cstdlib>
 class WCSimTrueTrack;
@@ -29,7 +29,7 @@ class WCSimLikelihoodTrack : public TObject
             ElectronLike = 1, //!< An electron-like track (could be a photon)
             MuonLike = 2 //!< A muon-like track
         };
-        
+
         /**
          * Get the text name of a give track type
          * @param myType Track type
@@ -37,10 +37,19 @@ class WCSimLikelihoodTrack : public TObject
          */
         static std::string TrackTypeToString( WCSimLikelihoodTrack::TrackType myType );
 
-        TrackType GetTypeFromPDG(int pdg)
+        static TrackType GetTypeFromPDG(int pdg)
         {
         	if( abs(pdg) == 11 ) { return ElectronLike; }
         	if( abs(pdg) == 13 ) { return MuonLike; }
+
+        	return Unknown;
+        }
+
+        static TrackType GetTypeFromName( const char * name )
+        {
+        	std::string nameStr(name);
+        	if( nameStr == "MuonLike" ){ return MuonLike; }
+        	else if ( nameStr == "ElectronLike" ) { return ElectronLike; }
 
         	return Unknown;
         }

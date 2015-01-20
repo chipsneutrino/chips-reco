@@ -24,6 +24,9 @@ public:
 	void SetNumTracks( unsigned int numTracks );
 	unsigned int GetNumTracks() const;
 
+	void SetTrackType( unsigned int numTrack, const char * typeName);
+
+
 	void FixParameter(  unsigned int numTrack, const char * name, bool doIt = true );
 	void FreeParameter( unsigned int numTrack, const char * name, bool doIt = true );
 	void JoinParametersTogether(unsigned int numTrack1, unsigned int numTrack2, const char * name);

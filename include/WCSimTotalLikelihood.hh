@@ -67,6 +67,8 @@ class WCSimTotalLikelihood : public TObject
 
       void SetLikelihoodDigitArray(WCSimLikelihoodDigitArray * likelihoodDigitArray);
  
+      const WCSimChargePredictor * GetChargePredictor();
+
   protected:
   private:
       WCSimLikelihoodDigitArray * fLikelihoodDigitArray; ///< Event to build likelihood for

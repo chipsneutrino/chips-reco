@@ -35,6 +35,7 @@ private:
 	void MakeHisto();
 	void LoopDigitize();
 	void Digitize();
+  void FillEmptyBins();
 	void NormHistogram();
 	void SaveHistogram();
 

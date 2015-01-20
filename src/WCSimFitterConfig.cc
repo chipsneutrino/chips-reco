@@ -4,7 +4,7 @@
  *  Created on: 31 Oct 2014
  *      Author: andy
  */
-
+#include "WCSimLikelihoodTrack.hh"
 #include "WCSimFitterConfig.hh"
 #include "WCSimInterface.hh"
 
@@ -182,3 +182,17 @@ unsigned int WCSimFitterConfig::GetTrackIsJoinedWith(unsigned int numTrack, cons
 	FitterParameterType::Type type = FitterParameterType::FromName(name);
 	return fFitterParameters.GetTrackIsJoinedWith(numTrack, type);
 }
+
+void WCSimFitterConfig::SetTrackType(unsigned int numTrack,
+		const char* typeName)
+{
+  std::cout << "WCSimFitterConfig::SetTrackType(" << numTrack << ", " << typeName << ")" << std::endl;
+	WCSimLikelihoodTrack::TrackType type = WCSimLikelihoodTrack::GetTypeFromName(typeName);
+	fFitterParameters.SetTrackType(numTrack, type);
+}
+
+WCSimLikelihoodTrack::TrackType WCSimFitterConfig::GetTrackType(const unsigned int &numTrack) const
+{
+	return fFitterParameters.GetTrackType(numTrack);
+}
+

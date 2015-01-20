@@ -17,17 +17,17 @@ void RunEmissionProfileGenerator()
     gSystem->Load(toLoad.Data());
     */
 
-    gApplication->ProcessLine(".L WCSimConcatenateEmissionProfiles.cc++");
-    gApplication->ProcessLine(".L WCSimEmissionProfileGenerator.cc++");
+    gApplication->ProcessLine(".L /home/ajperch/CHIPS/WCSimAnalysis/macros/GenerateEmissionProfiles/WCSimConcatenateEmissionProfiles.cc++");
+    gApplication->ProcessLine(".L /home/ajperch/CHIPS/WCSimAnalysis/macros/GenerateEmissionProfiles/WCSimEmissionProfileGenerator.cc++");
     WCSimEmissionProfileGenerator * myGenerator = new WCSimEmissionProfileGenerator(treename, particlePDG);
     myGenerator->SetSaveName("emissionProfiles.root");
 
     // Repeat this for all the energies you need
     ////////////////////////////////////////////
     //                  Energy, PDG ID, path
-    myGenerator->AddFile(1250,    14, "/unix/fnu/ajperch/ep_jan5/ep_muon_1250_fast_0_photons.root");
-    myGenerator->AddFile(1500,    14, "/unix/fnu/ajperch/ep_jan5/ep_muon_1500_fast_0_photons.root");
-    myGenerator->AddFile(1750,    14, "/unix/fnu/ajperch/ep_jan5/ep_muon_1750_fast_0_photons.root");
+    myGenerator->AddFile(1250,    13, "/unix/fnu/ajperch/ep_jan5/ep_muon_1250_0_photons.root");
+    myGenerator->AddFile(1500,    13, "/unix/fnu/ajperch/ep_jan5/ep_muon_1500_0_photons.root");
+    myGenerator->AddFile(1750,    13, "/unix/fnu/ajperch/ep_jan5/ep_muon_1750_0_photons.root");
  
      /* ...
        ...

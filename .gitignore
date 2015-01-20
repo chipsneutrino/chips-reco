@@ -13,3 +13,7 @@
 *~
 lib/
 tmp/
+*.sh.o*
+*.sh.e*
+*.root
+*.so

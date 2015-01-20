@@ -145,3 +145,4 @@ void WCSimTotalLikelihood::SetLikelihoodDigitArray(
   SetTracks(tmpTracks);
   return;
 }
+

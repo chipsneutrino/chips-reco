@@ -65,6 +65,8 @@ public:
 	virtual ~WCSimEmissionProfiles();
   Double_t GetLightFlux(WCSimLikelihoodTrack * myTrack) const;
 
+  std::vector<Double_t> GetProfileEnergies() const;
+
 
 private:
 	UInt_t GetArrayBin(Double_t energy) const;

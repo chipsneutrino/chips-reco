@@ -99,6 +99,16 @@ class WCSimLikelihoodFitter
          */
         WCSimLikelihoodTrack GetSeedParams();
 
+        /**
+         * As a temporary measure to get results out of the fit, we'll perform
+         * a grid search to determine the energy, instead of turning Minuit loose on it
+         * (until we have a working method that interpolates for a smooth surface)
+         * @param best2LnL Will be updated with the best-fit -2Ln(likelihood)
+         * @param bestEnergies Will be updated with the best-fit energies for each independent track
+         */
+        void PerformEnergyGridSearch(Double_t &best2LnL, std::vector<Double_t> &bestEnergies);
+
+
         void FillPlots();
 
         void Make1DSurface(std::pair<unsigned int, FitterParameterType::Type> trackPar);
@@ -108,7 +118,7 @@ class WCSimLikelihoodFitter
         WCSimTotalLikelihood * fTotalLikelihood; ///< Class used to calculate the total (combined charge and time) likelihood that we minimize
         WCSimRootEvent * fRootEvent; ///< Simulated event from WCSim to be reconstructed
         WCSimLikelihoodDigitArray * fLikelihoodDigitArray; ///< Array of PMT responses
-        WCSimLikelihoodTrack::TrackType fType; ///< Particle type to fit for
+        std::vector<WCSimLikelihoodTrack::TrackType> fTypes; ///< Particle type to fit for
         std::map<Int_t, Int_t> fParMap; ///< Map relating the number of tracks (key) to the number of Minuit parameters (value)
         std::vector<WCSimLikelihoodTrack> fBestFit;  ///< The best-fit track or tracks
         std::vector<WCSimLikelihoodTrack*> * fTrueLikelihoodTracks; ///< The MC-truth tracks for this event

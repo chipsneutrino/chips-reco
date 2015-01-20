@@ -7,75 +7,15 @@
 
 #ifndef WCSIMFITTERPARAMETERS_HH_
 #define WCSIMFITTERPARAMETERS_HH_
+#include "WCSimLikelihoodTrack.hh"
+#include "WCSimTrackParameterEnums.hh"
 #include <string>
 #include <cassert>
 #include <map>
 #include <vector>
 #include <iostream>
 
-struct FitterParameterType{
-	enum Type{
-		kUnknown = 0,
-		kVtxX = 1,
-		kVtxY = 2,
-		kVtxZ = 3,
-		kVtxT = 4,
-		kDirTh = 5,
-		kDirPhi = 6,
-		kEnergy = 7
-	};
-	Type fType;
-	FitterParameterType(Type t) : fType(t){}
-	FitterParameterType(const FitterParameterType &fpt) : fType(fpt.fType) {};
-	operator Type () const { return fType; };
 
-	std::string AsString(){
-		return AsString(fType);
-	}
-
-	static std::string AsString(Type type){
-		std::string str("");
-		if( type == kVtxX )  { str = "kVtxX"; }
-		if( type == kVtxY )  { str = "kVtxY"; }
-		if( type == kVtxZ )  { str = "kVtxZ"; }
-		if( type == kVtxT )  { str = "kVtxT"; }
-		if( type == kDirTh ) { str = "kDirTh"; }
-		if( type == kDirPhi ){ str = "kDirPhi"; }
-		if( type == kEnergy ){ str = "kEnergy"; }
-		return str;
-	};
-	static FitterParameterType FromName(const char * name)
-	{
-		std::string nameStr(name);
-
-		if( nameStr.compare(std::string("kVtxX")) == 0){ return FitterParameterType(kVtxX); }
-		else if( nameStr.compare(std::string("kVtxY")) == 0){ return FitterParameterType(kVtxY); }
-		else if( nameStr.compare(std::string("kVtxZ")) == 0){ return FitterParameterType(kVtxZ); }
-		else if( nameStr.compare(std::string("kVtxT")) == 0){ return FitterParameterType(kVtxT); }
-		else if( nameStr.compare(std::string("kDirTh")) == 0){ return FitterParameterType(kDirTh); }
-		else if( nameStr.compare(std::string("kDirPhi")) == 0){ return FitterParameterType(kDirPhi); }
-		else if( nameStr.compare(std::string("kEnergy")) == 0){ return FitterParameterType(kEnergy); }
-		else{
-			std::cerr << "Error, " << name << " does not correspond to a known fitter parameter" << std::endl;
-			assert(0);
-		}
-		return FitterParameterType(kUnknown);
-
-	}
-	static std::vector<Type> GetAllAllowedTypes()
-	{
-		std::vector<Type> types;
-		types.push_back(kVtxX);
-		types.push_back(kVtxY);
-		types.push_back(kVtxZ);
-		types.push_back(kVtxT);
-		types.push_back(kDirTh);
-		types.push_back(kDirPhi);
-		types.push_back(kEnergy);
-		return types;
-	}
-
-};
 
 class WCSimFitterParameter{
 public:
@@ -173,6 +113,8 @@ public:
 	WCSimFitterParameters();
 	virtual ~WCSimFitterParameters();
   void SetNumTracks(unsigned int nTracks);
+  void SetTrackType(unsigned int nTrack, WCSimLikelihoodTrack::TrackType trackType);
+  WCSimLikelihoodTrack::TrackType GetTrackType(const unsigned int &nTrack) const;
 	unsigned int GetNumTracks() const { return fNumTracks;};
 	unsigned int GetNumParameters() const;
 	unsigned int GetNumIndependentParameters() const;
@@ -189,6 +131,7 @@ private:
 	unsigned int fNumParameters;
 	std::vector<WCSimFitterSingleTrackParameters> fTrackPars;
 	std::map<std::pair<unsigned int, unsigned int>, std::vector<FitterParameterType::Type> > fJoinedParams;
+	std::vector<WCSimLikelihoodTrack::TrackType> fTrackTypes;
 };
 
 #endif /* WCSIMFITTERPARAMETERS_HH_ */

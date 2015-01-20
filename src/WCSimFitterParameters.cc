@@ -6,6 +6,7 @@
  */
 
 #include "WCSimFitterParameters.hh"
+#include "WCSimLikelihoodTrack.hh"
 #include "TMath.h"
 #include <algorithm>
 #include <cassert>
@@ -183,11 +184,13 @@ void WCSimFitterParameters::SetNumTracks(unsigned int nTracks)
     {
       WCSimFitterSingleTrackParameters trackPars;
       AddTrack(trackPars);
+      fTrackTypes.push_back(WCSimLikelihoodTrack::Unknown);
     }
   }
   else if(fNumTracks > nTracks)
   {
     fTrackPars.erase( fTrackPars.begin() + nTracks, fTrackPars.end() );
+    fTrackTypes.erase( fTrackTypes.begin() + nTracks, fTrackTypes.end() );
   }
 
 
@@ -299,4 +302,15 @@ bool WCSimFitterParameters::GetIsParameterJoined(unsigned int track,
 
 	}
 	return false;
+}
+
+void WCSimFitterParameters::SetTrackType(unsigned int nTrack, WCSimLikelihoodTrack::TrackType trackType)
+{
+  std::cout << "WCSimFitterParameters::SetTrackType(" << nTrack << ", " << WCSimLikelihoodTrack::TrackTypeToString(trackType) << std::endl;
+	fTrackTypes.at(nTrack) = trackType;
+}
+
+WCSimLikelihoodTrack::TrackType WCSimFitterParameters::GetTrackType(const unsigned int &nTrack) const
+{
+	return fTrackTypes.at(nTrack);
 }
