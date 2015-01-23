@@ -124,7 +124,7 @@ class WCSimDigitizerLikelihood
        * @param digi Digitized P.E. recorded by the PMT
        * @return likelihood of getting the recorded P.E.
        */
-      Double_t GetWCSimLikelihood( const Double_t &undigi, const Double_t &digi );
+      Double_t GetWCSimLikelihood( Double_t undigi, const Double_t &digi );
 
       /**
        * Mean digitized P.E. returned by the PMT for a given predicted mean
@@ -177,6 +177,8 @@ class WCSimDigitizerLikelihood
       // then applies a threshold function,
       // then multiplies by an efficiency term
       Double_t fEfficiency; ///< Efficiency value used in the WCSim digitizer
+
+      Double_t fMinimum; ///< Minimum nonzero likelihood from histogram
 };
 
 #endif // WCSIMDIGITIZERLIKELIHOOD_H

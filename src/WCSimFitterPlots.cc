@@ -34,10 +34,14 @@ WCSimFitterPlots::~WCSimFitterPlots() {
 }
 
 void WCSimFitterPlots::SetPlotForEachEvent(const char* name, bool doIt) {
-  if(doIt){ std::cout << " *** SetPlotForEachEvent *** ... plotting " << name << std::endl; }
+  if(doIt)
+  {
+	std::cout << " *** SetPlotForEachEvent *** ... plotting " << name << std::endl;
 	FitterParameterType::Type type = FitterParameterType::FromName(name);
+	std::cout << " *** Set it *** " << std::endl;
 	std::vector<TH1D*> plotVec;
 	fForEachEvent.insert(std::make_pair(type,plotVec));
+  }
 }
 
 bool WCSimFitterPlots::GetPlotForEachEvent(const char* name) const {
@@ -45,6 +49,7 @@ bool WCSimFitterPlots::GetPlotForEachEvent(const char* name) const {
 }
 
 void WCSimFitterPlots::SetPlotRecoMinusTrue(const char* name, bool doIt) {
+	std::cout << " *** SetPlotRecoMinusTrue ***  ... plotting " << name << std::endl;
 	FitterParameterType::Type type = FitterParameterType::FromName(name);
 	std::vector<TH1D*> plotVec;
 	fRecoMinusTrue.insert(std::make_pair(type, plotVec));
@@ -55,9 +60,15 @@ bool WCSimFitterPlots::GetPlotRecoMinusTrue(const char* name) const {
 }
 
 void WCSimFitterPlots::Make1DSurface(const char* name, bool doIt, unsigned int trackNum) {
-	std::pair<unsigned int, FitterParameterType::Type> toProfile = std::make_pair(trackNum, FitterParameterType::FromName(name));
+
+	std::cout << " *** Make 1D surface ***  ... plotting " << name << std::endl;
+  FitterParameterType type = FitterParameterType::FromName(name);
+	std::cout << "Made type" << std::endl;
+  std::pair<unsigned int, FitterParameterType::Type> toProfile = std::make_pair(trackNum, type);
+  std::cout << "Maade pair" << std::endl;
 	TH1D* plotVec = 0;
 	fSurfaces1D.insert(std::make_pair(toProfile, plotVec));
+  std::cout << "Inserted to map" << std::endl;
 }
 
 bool WCSimFitterPlots::GetMake1DSurface(const char* name, unsigned int trackNum) const {
@@ -133,14 +144,23 @@ void WCSimFitterPlots::MakePlotsForEachEvent(WCSimFitterConfig* fitterConfig) {
 					   parName, iTrack, fitterConfig->GetNumTracks());
 
 			int numBins = 20;
+      std::cout << "numBins = " << numBins << std::endl;
 			if( fitterConfig->GetNumEventsToFit() > 400)
 			{
+        std::cout << "You shouldn't see this" << std::endl;
 				numBins = fitterConfig->GetNumEventsToFit() / 20;
 				numBins += (10 - (numBins % 10));
 			}
-			hist = new TH1D(title.Data(), name.Data(), numBins,
+      std::cout << "numBins = " << numBins << std::endl;
+      std::cout << "Trying to make histogram" << std::endl;
+      std::cout << "Parameter is " << parName << std::endl;
+      std::cout << "Minimum for track " << iTrack << " = " << fitterConfig->GetParMin(iTrack, parName) << std::endl;
+      std::cout << "Maximum for track " << iTrack << " = " << fitterConfig->GetParMax(iTrack, parName) << std::endl;
+			hist = new TH1D(name.Data(), title.Data(), numBins,
 							fitterConfig->GetParMin(iTrack, parName),
 							fitterConfig->GetParMax(iTrack, parName));
+      std::cout << "Histogram has " << numBins << " from " << hist->GetXaxis()->GetXmin() << " to " << hist->GetYaxis()->GetXmax() << std::endl;
+      std::cout << "Managed to make histogram" << std::endl;
 
 			hist->GetXaxis()->SetTitle(FitterParameterType::AsString(type).c_str());
 			hist->GetXaxis()->CenterTitle();
@@ -152,7 +172,9 @@ void WCSimFitterPlots::MakePlotsForEachEvent(WCSimFitterConfig* fitterConfig) {
 			hist->GetYaxis()->CenterTitle();
 			hist->SetLineWidth(2);
 			hist->SetLineColor(kRed);
+      std::cout << "Pushing it back" << std::endl;
       (*plotItr).second.push_back(hist);
+      std::cout << "Pushed" << std::endl;
 		}
 
 	}
@@ -181,9 +203,12 @@ void WCSimFitterPlots::MakeRecoMinusTrue(WCSimFitterConfig* fitterConfig) {
 				numBins = fitterConfig->GetNumEventsToFit() / 20;
 				numBins += (10 - (numBins % 10));
 			}
+
+      double lowBin = fitterConfig->GetParMax(iTrack, parName.c_str()) - 2 * (fitterConfig->GetParMax(iTrack, parName.c_str()) - fitterConfig->GetParMin(iTrack, parName.c_str()));
 			hist = new TH1D(title.Data(), name.Data(), numBins,
-							2.0 * fitterConfig->GetParMin(iTrack, parName.c_str()),
+              lowBin,
 							2.0 * fitterConfig->GetParMax(iTrack, parName.c_str()));
+      std::cout << "Histogram has " << numBins << " from " << hist->GetXaxis()->GetXmin() << " to " << hist->GetYaxis()->GetXmax() << std::endl;
 
 			TString xTitle;
 			xTitle.Form("Reco - true: %s", FitterParameterType::AsString(type).c_str());
@@ -204,24 +229,30 @@ void WCSimFitterPlots::MakeRecoMinusTrue(WCSimFitterConfig* fitterConfig) {
 
 void WCSimFitterPlots::Make1DSurfaces(WCSimFitterConfig* fitterConfig) {
 	std::map<std::pair<unsigned int, FitterParameterType::Type>, TH1D *>::iterator plotItr = fSurfaces1D.begin();
+	int i = 0;
 	for( ; plotItr != fSurfaces1D.end(); ++plotItr)
 	{
+		std::cout << "Making 1D surface number " << i << std::endl;
 		TH1D * hist = NULL;
 		FitterParameterType::Type type = ((*plotItr).first).second;
-		const char * parName = FitterParameterType::AsString(type).c_str();
-    unsigned int trackNum = ((*plotItr).first).first;
+		std::cout << FitterParameterType::AsString(type) << std::endl;
+		std::string parName = FitterParameterType::AsString(type);
+    std::cout << "parName = " << parName << std::endl;
+        unsigned int trackNum = ((*plotItr).first).first;
 
 
 		TString name, title;
-		name.Form("h_%s_likelihood_profile", parName);
+		name.Form("h_%s_likelihood_profile", parName.c_str());
 		title.Form("Profile of likelihood when %s is varied for track %d, with other parameters fixed",
-				   parName, trackNum);
+				   parName.c_str(), trackNum);
+    std::cout << "Making histogram" << std::endl;
 
-		hist = new TH1D(title.Data(), name.Data(), fNumSurfaceBins,
-						fitterConfig->GetParMin(trackNum, parName),
-						fitterConfig->GetParMax(trackNum, parName));
-		TString xTitle;
-		xTitle.Form("%s", FitterParameterType::AsString(type).c_str());
+		hist = new TH1D(name.Data(), title.Data(), fNumSurfaceBins,
+						fitterConfig->GetParMin(trackNum, parName.c_str()),
+						fitterConfig->GetParMax(trackNum, parName.c_str()));
+    std::cout << "Histogram has " << fNumSurfaceBins << " from " << hist->GetXaxis()->GetXmin() << " to " << hist->GetYaxis()->GetXmax() << std::endl;
+    std::cout << parName;
+		TString xTitle(parName.c_str());
 		hist->GetXaxis()->SetTitle(xTitle.Data());
 		hist->GetXaxis()->CenterTitle();
 		hist->GetXaxis()->SetLabelSize(0.05);
@@ -237,6 +268,7 @@ void WCSimFitterPlots::Make1DSurfaces(WCSimFitterConfig* fitterConfig) {
     (*plotItr).second = hist;
 
 	}
+  std::cout << "made that surface" << std::endl;
 }
 
 void WCSimFitterPlots::Make2DSurface(WCSimFitterConfig* fitterConfig) {
@@ -248,29 +280,29 @@ void WCSimFitterPlots::Make2DSurface(WCSimFitterConfig* fitterConfig) {
     
 	  std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > types = ((*plotItr).first);
 
-		const char * parName1 = FitterParameterType::AsString(types.first.second).c_str();
-		const char * parName2 = FitterParameterType::AsString(types.second.second).c_str();
+		std::string parName1 = FitterParameterType::AsString(types.first.second);
+		std::string parName2 = FitterParameterType::AsString(types.second.second);
 		unsigned int trackNum1 = (types.first).first;
 		unsigned int trackNum2 = (types.second).first;
 
 		TString name, title;
-		name.Form("h_%s_vs_%s_likelihood_profile", parName2, parName1);
+		name.Form("h_%s_vs_%s_likelihood_profile", parName2.c_str(), parName1.c_str());
 		title.Form("Profile of likelihood when %s & %s are varied for tracks %d and %d, with other parameters fixed",
-				   parName2, parName1, trackNum2, trackNum1);
+				   parName2.c_str(), parName1.c_str(), trackNum2, trackNum1);
 
-		hist = new TH2D(title.Data(), name.Data(),
+		hist = new TH2D(name.Data(), title.Data(),
 						fNumSurfaceBins,
-						fitterConfig->GetParMin(trackNum1, parName1),
-						fitterConfig->GetParMax(trackNum1, parName1),
+						fitterConfig->GetParMin(trackNum1, parName1.c_str()),
+						fitterConfig->GetParMax(trackNum1, parName1.c_str()),
 						fNumSurfaceBins,
-						fitterConfig->GetParMin(trackNum2, parName2),
-						fitterConfig->GetParMax(trackNum2, parName2));
+						fitterConfig->GetParMin(trackNum2, parName2.c_str()),
+						fitterConfig->GetParMax(trackNum2, parName2.c_str()));
 
-		hist->GetXaxis()->SetTitle(parName1);
+		hist->GetXaxis()->SetTitle(parName1.c_str());
 		hist->GetXaxis()->CenterTitle();
 		hist->GetXaxis()->SetLabelSize(0.05);
 		hist->GetXaxis()->SetTitleSize(0.05);
-		hist->GetYaxis()->SetTitle(parName2);
+		hist->GetYaxis()->SetTitle(parName2.c_str());
 		hist->GetYaxis()->SetLabelSize(0.05);
 		hist->GetYaxis()->SetTitleSize(0.05);
 		hist->GetYaxis()->CenterTitle();
@@ -473,13 +505,17 @@ void WCSimFitterPlots::SavePlots() {
 	std::map<std::pair<unsigned int, FitterParameterType::Type>, TH1D*>::iterator surf1DItr = fSurfaces1D.begin();
 	for( ; surf1DItr != fSurfaces1D.end() ; ++surf1DItr)
 	{
-    TH1D * hist = dynamic_cast<TH1D*>( ((*surf1DItr).second)->Clone() );
+    std::cout << "Saving plot" << std::endl;
+    TH1D * hist = (TH1D*)((*surf1DItr).second);
+    std::cout << "Plot " << hist->GetName() << " has " << hist->GetNbinsX() << " bins" << std::endl;
 		hist->Write();
 	}
 	std::map<std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> >, TH2D*>::iterator surf2DItr = fSurfaces2D.begin();
 	for( ; surf2DItr != fSurfaces2D.end() ; ++surf2DItr)
 	{
-    TH2D * hist = dynamic_cast<TH2D*>( ((*surf2DItr).second)->Clone() );
+    std::cout << "Saving plot" << std::endl;
+    TH2D * hist = (TH2D*)((*surf2DItr).second);
+    std::cout << "Plot " << hist->GetName() << " has " << hist->GetNbinsX() * hist->GetNbinsY() << " bins" << std::endl;
     hist->Write();
 	}
 
@@ -492,7 +528,9 @@ void WCSimFitterPlots::SavePlots() {
 		std::vector<TH1D*>::iterator plotItr = (*eachEventItr).second.begin();
 		for( ; plotItr != (*eachEventItr).second.end() ; ++plotItr)
 		{
-			TH1D * hist = dynamic_cast<TH1D*>( (*plotItr)->Clone() );
+      std::cout << "Saving plot" << std::endl;
+			TH1D * hist = (TH1D*)(*plotItr);
+      std::cout << "Plot " << hist->GetName() << " has " << hist->GetNbinsX() << " bins" << std::endl;
       hist->Write();
 		}
 	}
@@ -507,7 +545,9 @@ void WCSimFitterPlots::SavePlots() {
 		std::vector<TH1D*>::iterator plotItr = (*rmtItr).second.begin();
 		for( ; plotItr != ((*rmtItr).second).end() ; ++plotItr)
 		{
-      TH1D * hist = dynamic_cast<TH1D*>((*plotItr)->Clone());
+      std::cout << "Saving plot" << std::endl;
+      TH1D * hist = (TH1D*)(*plotItr);
+      std::cout << "Plot " << hist->GetName() << " has " << hist->GetNbinsX() << " bins" << std::endl;
       hist->Write();
 		}
 	}

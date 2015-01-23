@@ -15,21 +15,6 @@
 ClassImp(WCSimDigitizerLikelihood)
 #endif
 
-// static WCSimDigitizerLikelihood* fgWCSDigitizer = NULL;
-
-// Instance function: if a digitizer object already exists, return a pointer to it
-// Otherwise create one and return the pointer to that
-// Use this once WCSA can read config files and we don't need to set the digitizer type in the constructor
-// WCSimiDigitizer* WCSimDigitizerLikelihood::Instance()
-// {
-//   if( fgWCSDigitizer == NULL ){ fgWCSDigitizer = new WCSimDigitizerLikelihood(); }
-//   if( !fgWCSDigitizer ){ assert(fgWCSDigitizer); }
-//   if( fgWCSDigitizer ){ }
-// 
-//   return fgWCSDigitizer;
-// }
-
-
 /////////////////////////////////////////////////////////////////////
 /// Constructor - need to initialize the DigiType_t to string map here
 WCSimDigitizerLikelihood::WCSimDigitizerLikelihood() : fType(kUnknown), fPDFs(NULL)
@@ -42,10 +27,10 @@ WCSimDigitizerLikelihood::WCSimDigitizerLikelihood() : fType(kUnknown), fPDFs(NU
 
   // Set the digitizer type
   fType = this->StringToDigiType(WCSimAnalysisConfig::Instance()->GetDigiType());
+  fPDFs = 0x0;
   if( fType == WCSimDigitizerLikelihood::kWCSim ) { this->OpenPDFs(); }
   std::cout << "Using the digitizer type " << fType << std::endl;/////////////////////////////////////////////////////////////////////
 
-  fPDFs = 0x0;
 
 }
 
@@ -87,6 +72,7 @@ void WCSimDigitizerLikelihood::OpenPDFs()
   pdfFile.append("/config/pePDFs.root");
   fPDFs = new TFile(pdfFile.c_str() ,"READ");
   fDigiPDF = (TH2D*)(fPDFs->Get("digiPDF"));
+  fMinimum = fDigiPDF->GetMinimum(0) / 10.0;
   return;
 }
 
@@ -95,6 +81,17 @@ void WCSimDigitizerLikelihood::OpenPDFs()
 Double_t WCSimDigitizerLikelihood::GetMinus2LnL( const Double_t &undigi, const Double_t &digi )
 {
   // Bail out if the digitizer type is bad
+
+  double prediction = undigi;
+  if(undigi == 0)
+  {
+	 prediction = 1e-6;
+  }
+
+  return 2*prediction - 2 * digi * TMath::Log(prediction) + 2 * TMath::LnGamma(digi+1);
+
+
+
   switch( fType )
   {
     case WCSimDigitizerLikelihood::kSimple:
@@ -185,18 +182,30 @@ Double_t WCSimDigitizerLikelihood::GetExpectation( const Double_t &undigi )
  */
 Double_t WCSimDigitizerLikelihood::GetWCSimMinus2LnL( const Double_t &undigi, const Double_t &digi )
 {
+  // std::cout << " *** WCSimDigitizerLikelihood::GetWCSimMinus2LnL *** " << std::endl;
+  // std::cout << "Undigi = " << undigi << "   " << "digi = " << digi << std::endl;
   Double_t likelihood = this->GetWCSimLikelihood(undigi, digi);
   Double_t lnL = 0.0;
 
   // Some of our PDFs are read out of a histogram, so it can only handle probabilities above
   // roughly 1 / nEntries, or else it will return 0.  If that happens, we'll assume a Poisson-like
   // tail and take the log of that, as we can use a functional form for its log (Stirling's approx):
-  if(likelihood == 0)
+  lnL = TMath::Log( likelihood );
+
+  if(TMath::IsNaN(lnL))
   {
-    //std::cout << "Oh no! Likelihood = 0!" << digi << "   " << undigi << std::endl;
-    lnL = (digi * TMath::Log(undigi) - undigi) - TMath::LnGamma(digi+1);
+    // std::cout << "Oh no! Likelihood = 0!" << digi << "   " << undigi << std::endl;
+    if(undigi <= 0){ 
+      double tmpUndigi = 1e-6;
+      lnL = digi * TMath::Log(tmpUndigi) - undigi - TMath::LnGamma(digi+1);
+      assert( !(TMath::IsNaN(lnL) ));
+    }
+    else
+    {
+      lnL = (digi * TMath::Log(undigi) - undigi) - TMath::LnGamma(digi+1);
+      assert( !(TMath::IsNaN(lnL) ));
+    }
   }
-  else lnL = TMath::Log( likelihood );
   //std::cout << "Taking the log:     likelihood = " << likelihood << "    lnL = " << lnL << std::endl;
 
   // WCSim applies a threshold function: it picks a random uniform number from 0 to 1 and compares this
@@ -205,7 +214,7 @@ Double_t WCSimDigitizerLikelihood::GetWCSimMinus2LnL( const Double_t &undigi, co
   // The unpleasantly-nested function comes directly from WCSim so it has to look like this, unfortunately
   Double_t digiTest = digi + 0.1;
   Double_t pKeep    = (digiTest > 1.1) ? 1 : std::min(1.0,(-0.06374+digiTest*(3.748+digiTest*(-63.23+digiTest*(452.0+digiTest*(-1449.0+digiTest*(2513.0+digiTest*(-2529.+digiTest*(1472.0+digiTest*(-452.2+digiTest*(51.34+digiTest*2.370)))))))))));
-  if(pKeep < 0.) { pKeep = 0.; }
+  if(pKeep < 0.) { pKeep = 1e-8; }
   if(pKeep > 1.) { pKeep = 1.; }
  
   // If we measured a charge we need ln(pKeep) and if we didn't measure a charge, we need ln(1-pKeep):
@@ -213,7 +222,9 @@ Double_t WCSimDigitizerLikelihood::GetWCSimMinus2LnL( const Double_t &undigi, co
   //  std::cout << "Taking the log of ";
   //  if(digi > 0.) std::cout << "P(keep) = ln(" ;
   //  std::cout << pKeep  << ")" << std::endl;  
+  assert(!TMath::IsNaN(lnL));
   lnL += (digi>0.0) ? TMath::Log(pKeep) : 0; 
+  assert(!TMath::IsNaN(lnL));
 
   //  std::cout << "Taking the log of P(seen) = ln(" << std::min(1.0,(-0.06374+digiTest*(3.748+digiTest*(-63.23+digiTest*(452.0+digiTest*(-1449.0+digiTest*(2513.0+digiTest*(-2529.+digiTest*(1472.0+digiTest*(-452.2+digiTest*(51.34+digiTest*2.370))))))))))) << ")" << std::endl;
   //  lnL += (digiTest > 1.1) ? 0 : TMath::Log(std::min(1.0,(-0.06374+digiTest*(3.748+digiTest*(-63.23+digiTest*(452.0+digiTest*(-1449.0+digiTest*(2513.0+digiTest*(-2529.+digiTest*(1472.0+digiTest*(-452.2+digiTest*(51.34+digiTest*2.370))))))))))));
@@ -229,7 +240,7 @@ Double_t WCSimDigitizerLikelihood::GetWCSimMinus2LnL( const Double_t &undigi, co
  * calculated this number.  That threshold is not applied here, but in DigitizerMinus2LnL, which
  * is the function called by Calc2LnL
  */
-Double_t WCSimDigitizerLikelihood::GetWCSimLikelihood( const Double_t &undigi, const Double_t &digi )
+Double_t WCSimDigitizerLikelihood::GetWCSimLikelihood( Double_t undigi, const Double_t &digi )
 {
  	Double_t digitizerLikelihood = 0.0;
 
@@ -239,21 +250,37 @@ Double_t WCSimDigitizerLikelihood::GetWCSimLikelihood( const Double_t &undigi, c
  	// this as the final result.  To get the likelihood, we therefore need the probability
  	// that the sampler gives (measured value/0.985) * the probability (measured value/0.985)
  	// passes the threshold.
+  fEfficiency = 1.; // We deal with this in the code to make the digitiser PDFs now 
  	Double_t digiEff = digi/fEfficiency;
+  // std::cout << "digi = " << digi << "  digiEff = " << digiEff << "  fEfficiency = " << fEfficiency << std::endl;
 
     // if(undigi == 0.0 && digi == 0.0) digitizerLikelihood = 1.0;
 
+  
+  // std::cout << "Begin special case detection" << std::endl;
+  if( undigi <= 0 ) 
+  {
+    // std::cerr << "Error: predicted charge was less than zero (" << undigi << ")" << std::endl
+    //           << "Indicdentally, the measured charge was " << digi << std::endl;
+    undigi = 1e-6;
+    assert(undigi >0);
+  }
+  if( undigi > 0 )
+  {
+    // std::cerr << "Looking good - we predict " << undigi << " and measure " << digi << std::endl;
+  }
+
+
+
+
  	// Get the likelihood of an undigitized hit resulting in a given digitized one
- 	if( undigi < 0) { digitizerLikelihood = 0.; }
- 	else if(undigi == 0.0 && digiEff == 0.0) { digitizerLikelihood = 1; }
- 	else if(undigi == 0.0 && digiEff != 0.0)
-    {
-      // std::cerr << "Error: measured a charge when predicted charge was 0 - we can't take a likelihood of this" << std::endl;
-      digitizerLikelihood = 0.00000001;
-    }
-    else if( undigi < 10.0 ) { digitizerLikelihood = this->GetWCSimPickerLikelihood(undigi, digiEff); }
-    else if( undigi < 200. ) { digitizerLikelihood = this->GetWCSimGausExpoLikelihood(undigi, digiEff); }
-    else { digitizerLikelihood = this->GetWCSimGausLikelihood(undigi, digiEff); }
+ 	if( undigi <= 0) { undigi = fDigiPDF->GetXaxis()->GetBinCenter(1); }
+    
+    
+  if( undigi < 10.0 ) { digitizerLikelihood = this->GetWCSimPickerLikelihood(undigi, digiEff); }
+  else if( undigi < 200. ) { digitizerLikelihood = this->GetWCSimGausExpoLikelihood(undigi, digiEff); }
+  else { digitizerLikelihood = this->GetWCSimGausLikelihood(undigi, digiEff); }
+  std::cout << "DigitizerLikelihood = " << digitizerLikelihood << std::endl;
 
  	if(digitizerLikelihood < 0.0) { digitizerLikelihood = 0.0; }
 	// This is just a safeguard
@@ -279,15 +306,19 @@ Double_t WCSimDigitizerLikelihood::GetWCSimLikelihood( const Double_t &undigi, c
 Double_t WCSimDigitizerLikelihood::GetWCSimPickerLikelihood( const Double_t &undigi, const Double_t &digi )
 {
   // std::cout << " *** WCSimDigitizerLikelihood::DigitizePickerLikelihood *** " << std::endl
-  //           << "Undigitized hit = " << undigi <<"    Digitized hit = " << digi << std::endl;
+  //          << "Undigitized hit = " << undigi <<"    Digitized hit = " << digi << std::endl;
   Double_t maxQ = 10.0;
   if( undigi >= maxQ){ return this->GetWCSimGausExpoLikelihood(undigi, digi); }
 
   // std::cout << "Likelihood = " << digiPDF->GetBinContent(digiPDF->FindBin(digi)) << std::endl;
-  Int_t whichXBin     = ((TAxis*)fDigiPDF->GetXaxis())->FindBin(digi);
-  Int_t whichYBin     = ((TAxis*)fDigiPDF->GetYaxis())->FindBin(undigi);
+  Int_t whichXBin     = ((TAxis*)fDigiPDF->GetXaxis())->FindBin(undigi);
+  Int_t whichYBin     = ((TAxis*)fDigiPDF->GetYaxis())->FindBin(digi);
   Double_t likelihood = fDigiPDF->GetBinContent(whichXBin, whichYBin);
   // std::cout << "X bin = " << whichXBin << "    Y bin = " << whichYBin << "      likelihood = " << likelihood << std::endl;
+  if(likelihood == 0)
+  {
+    likelihood = fMinimum;
+  }
 
   return likelihood;
 }

@@ -9,7 +9,7 @@
 
 CXX           = g++
 CXXDEPEND     = -MM
-CXXFLAGS      = -g -Wall -fPIC
+CXXFLAGS      = -g -Wall -fPIC -std=c++0x
 LD            = g++
 LDFLAGS       = -g 
 
@@ -42,7 +42,7 @@ WCSIM_LIBS += -lWCSim
 .PHONY: 
 	all
 
-all: clean rootcint shared
+all: rootcint lib shared libWCSimAnalysis.a
 
 ROOTSO := $(LIBDIR)/libWCSimAnalysis.so
 
@@ -65,14 +65,17 @@ $(TMPDIR)/%.d: $(SRCDIR)/%.cc
 	[ -s $@ ] || rm -f $@
 
 $(ROOTDICT) : $(ROOTSRC)
-
-rootcint : $(ROOTSRC)
-	@echo "<**Rootcint**>"
 	rootcint -f $(ROOTDICT) -c -I$(INCDIR) -I$(WCSIM_INCDIR) -I$(shell root-config --incdir) WCSimEmissionProfiles.hh WCSimFitterConfig.hh WCSimFitterInterface.hh WCSimFitterParameters.hh WCSimFitterPlots.hh WCSimTimeLikelihood.hh WCSimAnalysisConfig.hh WCSimDigitizerLikelihood.hh WCSimTotalLikelihood.hh WCSimLikelihoodTrack.hh WCSimLikelihoodDigit.hh WCSimLikelihoodDigitArray.hh WCSimChargePredictor.hh WCSimLikelihoodTuner.hh WCSimLikelihoodFitter.hh WCSimDisplayViewer.hh WCSimDisplayFactory.hh WCSimDisplay.hh WCSimDisplayAB.hh WCSimEveDisplay.hh WCSimEventWriter.hh WCSimGeometry.hh WCSimInterface.hh WCSimParameters.hh WCSimRecoObjectTable.hh WCSimRecoFactory.hh WCSimReco.hh WCSimRecoAB.hh WCSimRecoDigit.hh WCSimRecoCluster.hh WCSimRecoClusterDigit.hh WCSimRecoRing.hh WCSimRecoVertex.hh WCSimRecoEvent.hh WCSimTrueEvent.hh WCSimTrueTrack.hh WCSimHoughTransform.hh WCSimHoughTransformArray.hh WCSimDataCleaner.hh WCSimVertexFinder.hh WCSimVertexGeometry.hh WCSimVertexViewer.hh WCSimRingFinder.hh WCSimRingViewer.hh WCSimNtupleFactory.hh WCSimNtuple.hh WCSimRecoNtuple.hh WCSimVertexNtuple.hh WCSimVertexSeedNtuple.hh WCSimNtupleWriter.hh WCSimMsg.hh WCSimAnalysisRootLinkDef.hh
+
+rootcint: $(ROOTDICT)
 
 shared: $(ROOTDICT) $(ROOTSRC) $(ROOTOBJS)
 	@echo "<**Shared**>"
 	g++ -shared $(ROOTLIBS) $(ROOTGLIBS) -O $(ROOTOBJS) -o $(ROOTSO)
+
+libWCSimAnalysis.a : $(ROOTOBJS)
+	$(RM) $@
+	ar clq $@ $(ROOTOBJS)
 
 clean :
 	@echo "<**Clean**>"

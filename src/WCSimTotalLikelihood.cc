@@ -120,9 +120,17 @@ std::vector<Double_t> WCSimTotalLikelihood::CalcPredictedCharges(unsigned int iD
 
 Double_t WCSimTotalLikelihood::Calc2LnL(int iDigit)
 {
+  // std::cout << "iDigit = " << iDigit << std::endl;
   WCSimLikelihoodDigit *digit = fLikelihoodDigitArray->GetDigit(iDigit);
   std::vector<Double_t> predictedCharges = CalcPredictedCharges(iDigit);
+  // std::cout << "Size of predicted charge vector = " << predictedCharges.size() << std::endl;
+  // for(int i = 0; i<predictedCharges.size(); ++i)
+  // {
+  //   std::cout << "predictedCharges[" << i << "] = " << predictedCharges.at(i) << std::endl;
+  // }
   double totalCharge = std::accumulate(predictedCharges.begin(), predictedCharges.end(), 0.0);
+
+
   double minus2LnL = fDigitizerLikelihood.GetMinus2LnL(totalCharge, digit->GetQ());
   // std::cout << "Recorded charge = " << digit->GetQ() << " and predicted charge = " << totalCharge << " so adds " << minus2LnL << " to -2LnL" << std::endl;
 

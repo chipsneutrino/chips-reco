@@ -11,7 +11,7 @@
 static WCSimFitterConfig * fgFitterConfig = 0;
 
 
-WCSimFitterConfig::WCSimFitterConfig() : fNumTracks(1), fNumEventsToFit(-1){
+WCSimFitterConfig::WCSimFitterConfig() : fNumTracks(1), fNumEventsToFit(0){
 	// TODO Auto-generated constructor stub
 
 }

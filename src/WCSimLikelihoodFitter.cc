@@ -386,7 +386,13 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
 
 void WCSimLikelihoodFitter::CreateParameterArrays() {
 	Int_t numParams = WCSimFitterConfig::Instance()->GetNumIndependentParameters();
-
+	if(fStartVals != NULL){ delete [] fStartVals; }
+	if(fMinVals != NULL){   delete [] fMinVals; }
+	if(fMaxVals != NULL){   delete [] fMaxVals; }
+	if(fStepSizes != NULL){ delete [] fStepSizes; }
+	if(fFixed != NULL){     delete [] fFixed; }
+	if(fIsEnergy!= NULL){   delete [] fIsEnergy; }
+	if(fNames != NULL){     delete [] fNames; }
 	fStartVals = new Double_t[numParams];
 	fMinVals   = new Double_t[numParams];
 	fMaxVals   = new Double_t[numParams];
@@ -472,7 +478,7 @@ void WCSimLikelihoodFitter::Make1DSurface(
 			x[iBin] = fStartVals[iBin];
 		}
 
-		for(unsigned int iBin = 0; iBin < fFitterPlots->GetNumSurfaceBins(); ++iBin)
+		for(unsigned int iBin = 1; iBin <= fFitterPlots->GetNumSurfaceBins(); ++iBin)
 		{
 			double stepVal = min + (max - min) * iBin / (double)fFitterPlots->GetNumSurfaceBins();
 			x[arrIndex] = stepVal;

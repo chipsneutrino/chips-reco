@@ -44,6 +44,7 @@ struct FitterParameterType{
 	};
 	static FitterParameterType FromName(const char * name)
 	{
+    std::cout << "Getting type from name: " << name << std::endl;
 		std::string nameStr(name);
 
 		if( nameStr.compare(std::string("kVtxX")) == 0){ return FitterParameterType(kVtxX); }

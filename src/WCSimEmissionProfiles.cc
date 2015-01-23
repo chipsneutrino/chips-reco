@@ -602,19 +602,32 @@ Double_t WCSimEmissionProfiles::GetLightFlux(
 	// I've absorbed this into the SolidAngle now
 
   Double_t nPhotons = 0.0;
+
+  double fudge = 1.0;
 	switch(type)
 	{
 		case WCSimLikelihoodTrack::MuonLike:
 			// From a linear fit to nPhotons as a function of energy (it's very linear)
 			nPhotons = 246.564/(5.0) * energy - 20700/(5.0);
-			// Things get sketchy at really low energies
+			
+      fudge = 1.0/0.699;         //  *furiously waves hands*  
+                                 //  m( 0_0 ) m
+                                 //         
+                                 // m ( 0_0 )m
+                                 //
+                                 //  m( 0_0 ) m
+                                 //
+                                 //  This is the factor by which the prediction is "off" from the simulation, on average
+                                 //  We should track it down...
+
+      // Things get sketchy at really low energies
 			if(nPhotons > 0){ flux = factorFromG * factorFromSolidAngle * nPhotons; }
       break;
     default:
       assert(0);
       break;
 	}
-
+  flux = flux * fudge;
 	return flux;
 }
 
