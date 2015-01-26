@@ -12,6 +12,7 @@
 class WCSimLikelihoodFitter;
 class WCSimFitterConfig;
 class WCSimFitterPlots;
+class WCSimFitterTree;
 
 
 class WCSimFitterInterface {
@@ -80,6 +81,7 @@ private:
 	unsigned int fNumTracks;
 	WCSimLikelihoodFitter * fFitter;
 	WCSimFitterPlots * fFitterPlots;
+	WCSimFitterTree * fFitterTree;
 
 	Bool_t fMakeFits;
 	Bool_t fMakeSurfaces;

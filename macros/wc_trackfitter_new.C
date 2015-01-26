@@ -1,7 +1,7 @@
 void wc_trackfitter_new(){
   // Path to WCSim ROOT file
   // =======================
-  TString filename("/home/ajperch/CHIPS/WCSimAnalysis/input_files/muon_1500_xz_6jan_recoTest.root");
+  TString filename("/unix/fnu/ajperch/software/WCSim_github/muon_lin_recoTest_colEff_5events.root");
   
   gApplication->ProcessLine(".except");
 
@@ -22,6 +22,7 @@ void wc_trackfitter_new(){
   WCSimInterface::LoadData(filename.Data());
   
   WCSimFitterInterface::Instance()->SetNumTracks(1);
+  WCSimFitterInterface::Instance()->SetTrackType(0, "MuonLike");
 
   // Set parameter(track number, "name", minimum, maximum, start, is fixed?)
   // Names are: kVtxX, kVtxY, kVtxZ, kDirTh, kDirPhi, kEnergy

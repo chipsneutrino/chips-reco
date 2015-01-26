@@ -10,6 +10,7 @@
 #include "WCSimLikelihoodFitter.hh"
 #include "WCSimFitterConfig.hh"
 #include "WCSimFitterPlots.hh"
+#include "WCSimFitterTree.hh"
 #include <TString.h>
 #include <cassert>
 
@@ -22,6 +23,7 @@ WCSimFitterInterface::WCSimFitterInterface() :
 		fFileName(""), fNumTracks(0), fFitter(0),
 		fFitterPlots(0), fMakeFits(true), fMakeSurfaces(true){
       fFitterPlots = new WCSimFitterPlots();
+      fFitterTree = new WCSimFitterTree();
       fFitter = NULL;
       Init();
 	// TODO Auto-generated constructor stub
@@ -31,12 +33,14 @@ WCSimFitterInterface::~WCSimFitterInterface() {
 	// TODO Auto-generated destructor stub
   if( fFitter != NULL) { delete fFitter; }
   if( fFitterPlots != NULL) { delete fFitterPlots; }
+  if( fFitterTree != NULL ) { delete fFitterTree; }
 }
 
 void WCSimFitterInterface::Init()
 {
   if( fFitter == NULL ) { fFitter = new WCSimLikelihoodFitter() ; }
   fFitter->SetFitterPlots( fFitterPlots );
+  fFitter->SetFitterTree( fFitterTree );
 }
 
 WCSimFitterInterface* WCSimFitterInterface::Instance()
@@ -213,12 +217,17 @@ void WCSimFitterInterface::Run() {
   std::cout << " *** WCSimFitterInterface::Run() *** " << std::endl;
   Init();
   std::cout << "  Making histograms" << std::endl;
-	fFitterPlots->MakeHistograms(WCSimFitterConfig::Instance());
+  fFitterPlots->MakeHistograms(WCSimFitterConfig::Instance());
+  std::cout << "  Making tree" << std::endl;
+  fFitterTree->MakeTree();
+
   std::cout << "  Running fits " << std::endl;
   if(fMakeFits) { fFitter->RunFits(); }
   std::cout << "  Running surfaces " << std::endl;
   if(fMakeSurfaces) { fFitter->RunSurfaces(); }
   std::cout << "  Saving plots " << std::endl;
   fFitterPlots->SavePlots();
+  std::cout << "  Saving tree " << std::endl;
+  fFitterTree->SaveTree(fFitterPlots->GetSaveFileName());
   std::cout << " *********************************** " << std::endl;
 }

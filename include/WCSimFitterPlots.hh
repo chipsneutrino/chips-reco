@@ -26,6 +26,7 @@ public:
 	virtual ~WCSimFitterPlots();
 
 	void SetSaveFileName(const char * filename);
+	TString GetSaveFileName() const;
 
 	void SetNumSurfaceBins(unsigned int numBins);
 	unsigned int GetNumSurfaceBins();

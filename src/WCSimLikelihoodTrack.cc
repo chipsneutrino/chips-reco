@@ -145,4 +145,13 @@ TVector3 WCSimLikelihoodTrack::GetPropagatedPos(Double_t s) const
     return (this->GetVtx() + s * this->GetDir());
 }
 
-
+Int_t WCSimLikelihoodTrack::GetPDG() const {
+	if( fType == MuonLike ){ return 13; }
+	else if( fType == ElectronLike ){ return 11; }
+	else
+	{
+		assert(    (std::cerr << "Could not get track PDG type for " << TrackTypeToString(fType) << std::endl)
+				&& false);
+	}
+	return -999;
+}

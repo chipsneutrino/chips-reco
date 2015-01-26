@@ -68,6 +68,7 @@
 #pragma link C++ class WCSimAnalysisConfig+;
 #pragma link C++ class WCSimFitterConfig+;
 #pragma link C++ class WCSimFitterPlots+;
+#pragma link C++ class WCSimFitterTree+;
 #pragma link C++ class WCSimFitterInterface+;
 #pragma link C++ class WCSimFitterParameter+;
 #pragma link C++ class WCSimFitterSingleTrackParameters+;

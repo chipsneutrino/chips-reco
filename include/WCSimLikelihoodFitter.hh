@@ -21,6 +21,7 @@
 #include <map>
 
 //class WCSimChargeLikelihood;
+class WCSimFitterTree;
 
 class WCSimLikelihoodFitter
 {
@@ -33,6 +34,7 @@ class WCSimLikelihoodFitter
         virtual ~WCSimLikelihoodFitter();
         void Init();
         void SetFitterPlots(WCSimFitterPlots * fitterPlots);
+        void SetFitterTree(WCSimFitterTree * fitterTree);
         void RunFits();
         void RunSurfaces();
 
@@ -110,6 +112,7 @@ class WCSimLikelihoodFitter
 
 
         void FillPlots();
+        void FillTree();
 
         void Make1DSurface(std::pair<unsigned int, FitterParameterType::Type> trackPar);
         void Make2DSurface(std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > trackPar);
@@ -166,7 +169,9 @@ class WCSimLikelihoodFitter
 
 
         WCSimFitterPlots * fFitterPlots;
-	
+        WCSimFitterTree * fFitterTree;
+
+
     ClassDef(WCSimLikelihoodFitter,1);
 };
 

@@ -112,6 +112,7 @@ class WCSimLikelihoodTrack : public TObject
          *         the vertex
          */
         TVector3 GetPropagatedPos(Double_t s) const;
+        Int_t GetPDG() const;
  
     protected:
     private:

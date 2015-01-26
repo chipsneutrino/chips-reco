@@ -2,6 +2,7 @@
 #include "WCSimFitterConfig.hh"
 #include "WCSimFitterParameters.hh"
 #include "WCSimFitterPlots.hh"
+#include "WCSimFitterTree.hh"
 #include "WCSimFitterInterface.hh"
 #include "WCSimGeometry.hh"
 #include "WCSimInterface.hh"
@@ -43,7 +44,8 @@ ClassImp(WCSimLikelihoodFitter)
  */
 WCSimLikelihoodFitter::WCSimLikelihoodFitter()
 {
-	fFitterPlots = NULL;
+  fFitterPlots = NULL;
+  fFitterTree = 0x0;
   fTotalLikelihood = NULL;
   fRootEvent = NULL;
   fLikelihoodDigitArray = NULL;
@@ -56,7 +58,7 @@ WCSimLikelihoodFitter::WCSimLikelihoodFitter()
   fFixed = NULL;
   fIsEnergy = NULL;
   fNames = NULL;
-	ResetEvent();
+  ResetEvent();
 }
 
 WCSimLikelihoodFitter::~WCSimLikelihoodFitter()
@@ -148,6 +150,7 @@ void WCSimLikelihoodFitter::Minimize2LnL()
   //  if( doSecondStep || !isAnythingFree )
   //  {
   //    min->Minimize();
+  //  	fMinimum = min->MinValue();
   //  }
   
   // Minuit gives us a const double array, but (for now) we want to do the grid search and then modify it
@@ -377,6 +380,8 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
 		std::cout << "Fill plots now 3" << std::endl;
     FillPlots();
     std::cout << "Plots filled" << std::endl;
+    FillTree();
+    std::cout << "Tree filled" << std::endl;
 	}
 
 	return;
@@ -598,7 +603,7 @@ void WCSimLikelihoodFitter::PerformEnergyGridSearch(Double_t& best2LnL,
   std::vector<Double_t> energyBinsOne;
   if( WCSimFitterConfig::Instance()->GetNumTracks() > 1)
 	{
-		WCSimLikelihoodTrack::TrackType trackOneType = WCSimFitterConfig::Instance()->GetTrackType(1);
+		trackOneType = WCSimFitterConfig::Instance()->GetTrackType(1);
 		WCSimLikelihoodTrack * tempTrack = new WCSimLikelihoodTrack();
 		tempTrack->SetType(trackOneType);
     tempTrack->SetE(WCSimFitterConfig::Instance()->GetParStart(1, "kEnergy"));
@@ -661,6 +666,7 @@ void WCSimLikelihoodFitter::PerformEnergyGridSearch(Double_t& best2LnL,
 
 
 	}
+  fMinimum = best2LnL;
   std::cout << "Grid search finished" << std::endl;
 
 }
@@ -784,4 +790,17 @@ void WCSimLikelihoodFitter::FillPlots() {
 		fFitterPlots->FillRecoMinusTrue(fBestFit, fTrueLikelihoodTracks);
 	}
 	return;
+}
+
+void WCSimLikelihoodFitter::FillTree() {
+	if(fFitterTree != NULL)
+	{
+		fFitterTree->Fill(fBestFit, *fTrueLikelihoodTracks, fMinimum);
+	}
+	return;
+}
+
+void WCSimLikelihoodFitter::SetFitterTree(WCSimFitterTree* fitterTree) {
+  std::cout << "Setting fFitterTree" << std::endl;
+  fFitterTree = fitterTree;
 }

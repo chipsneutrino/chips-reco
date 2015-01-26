@@ -634,5 +634,6 @@ void WCSimFitterPlots::FillRecoMinusTrue(
 	return;
 }
 
-
-
+TString WCSimFitterPlots::GetSaveFileName() const {
+	return fSaveFileName;
+}

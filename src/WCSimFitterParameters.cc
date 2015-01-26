@@ -225,7 +225,7 @@ unsigned int WCSimFitterParameters::GetNumParameters() const
 
 WCSimFitterSingleTrackParameters * WCSimFitterParameters::GetTrackParameters(
 		unsigned int trackNum) {
-  std::cout << "Getting paramters for track " << trackNum << "/" << fTrackPars.size() << std::endl;
+  std::cout << "Getting parameters for track " << trackNum << "/" << fTrackPars.size() << std::endl;
 	assert(trackNum < fTrackPars.size());
 	return &(fTrackPars.at(trackNum));
 }
