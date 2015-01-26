@@ -1,3 +1,4 @@
+#include "WCSimAnalysisConfig.hh"
 #include "WCSimChargePredictor.hh"
 #include "WCSimFitterConfig.hh"
 #include "WCSimFitterParameters.hh"
@@ -12,6 +13,7 @@
 #include "WCSimReco.hh"
 #include "WCSimRecoDigit.hh"
 #include "WCSimRecoEvent.hh"
+#include "WCSimRecoFactory.hh"
 #include "WCSimRootEvent.hh"
 #include "WCSimRootGeom.hh"
 #include "WCSimTimeLikelihood.hh"
@@ -58,6 +60,7 @@ WCSimLikelihoodFitter::WCSimLikelihoodFitter()
   fFixed = NULL;
   fIsEnergy = NULL;
   fNames = NULL;
+  fUseHoughFitterForSeed = WCSimAnalysisConfig::Instance()->GetUseHoughFitterForSeed();
   ResetEvent();
 }
 
@@ -81,6 +84,11 @@ void WCSimLikelihoodFitter::Minimize2LnL()
 
    // Alternatively: use a different algorithm to check the minimizer works
    // ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "GSLSimAn");
+
+   if( fTrackParMap.size() == 0)
+   {
+     SetTrackParameterMap();
+   }
 
    min->SetMaxFunctionCalls(100);
    min->SetMaxIterations(9);
@@ -107,6 +115,14 @@ void WCSimLikelihoodFitter::Minimize2LnL()
 
   // Set the fixed and free variables
   Bool_t isAnythingFree = false;
+
+  // Use the old track fitter to seed better start values:
+  // The seed algorithm will update fStartVals
+  if( fUseHoughFitterForSeed )
+  {
+	  SeedParams();
+  }
+
   for(UInt_t i = 0; i < nPars; ++i)
   {
 	  if( fFixed[i] || fIsEnergy[i])
@@ -115,9 +131,9 @@ void WCSimLikelihoodFitter::Minimize2LnL()
 	  }
 	  else
 	  {
-      isAnythingFree = true;
-		  min->SetLimitedVariable(i, fNames[i], fStartVals[i], fStepSizes[i], fMinVals[i], fMaxVals[i]);
-    }
+		  isAnythingFree = true;
+	  	  min->SetLimitedVariable(i, fNames[i], fStartVals[i], fStepSizes[i], fMinVals[i], fMaxVals[i]);
+	  }
   }
 
   // Perform the minimization
@@ -158,7 +174,7 @@ void WCSimLikelihoodFitter::Minimize2LnL()
   std::cout << "Here's outPar..." << std::endl;
   std::cout << outPar[0] << "  " << outPar[1] << std::endl;
   std::vector<Double_t> outParVec;
-  for(int iPar = 0; iPar < min->NDim(); ++iPar)
+  for(unsigned 	int iPar = 0; iPar < min->NDim(); ++iPar)
   {
     outParVec.push_back(outPar[iPar]);
   }
@@ -232,10 +248,6 @@ Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
   // If we've fixed some track parameters together, then our array of fit parameters won't just be of size
   // n tracks * m parameters per track, and we need to work out which entry corresponds to which parameter
   // of which track(s) - this is probably expensive, so we'll do it once and look it up in a map thereafter
-  if( fIsFirstCall )
-  { 
-    SetTrackParameterMap();
-  }
 
   std::vector<WCSimLikelihoodTrack> tracksToFit;
   for(UInt_t iTrack = 0 ; iTrack < nTracks; ++iTrack)
@@ -277,7 +289,6 @@ Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
   fTotalLikelihood->SetTracks(tracksToFit);
   minus2LnL = fTotalLikelihood->Calc2LnL();
 
-  fIsFirstCall = false;
   return minus2LnL;
 }
 
@@ -313,37 +324,67 @@ void WCSimLikelihoodFitter::SetTrackParameterMap()
 }
 
 // Use the previous Hough transform-based reconstruction algorithm to seed the multi-track one
-void WCSimLikelihoodFitter::SeedParams( WCSimReco * myReco )
+void WCSimLikelihoodFitter::SeedParams()
 {
+	std::cout << " *** WCSimLikelihoodFitter::SeedParams() *** " << std::endl;
+	WCSimReco * myReco = WCSimRecoFactory::Instance()->MakeReco(); // This calls new() - delete when done
+	WCSimRecoEvent* recoEvent = WCSimInterface::RecoEvent();
+	myReco->Run(recoEvent);
 
-   WCSimRecoEvent* recoEvent = WCSimInterface::RecoEvent();
-   myReco->Run(recoEvent);
-   fSeedVtxX = recoEvent->GetVtxX();
-   fSeedVtxY = recoEvent->GetVtxY();
-   fSeedVtxZ = recoEvent->GetVtxZ();
+	fSeedMap.clear();
+	fSeedMap.insert(std::make_pair(FitterParameterType::kVtxX, recoEvent->GetVtxX()));
+	fSeedMap.insert(std::make_pair(FitterParameterType::kVtxY, recoEvent->GetVtxY()));
+	fSeedMap.insert(std::make_pair(FitterParameterType::kVtxZ, recoEvent->GetVtxZ()));
 
-   Double_t recoDirX = recoEvent->GetDirX();
-   Double_t recoDirY = recoEvent->GetDirY();
-   Double_t recoDirZ = recoEvent->GetDirZ();
-  
+	Double_t recoDirX = recoEvent->GetDirX();
+	Double_t recoDirY = recoEvent->GetDirY();
+	Double_t recoDirZ = recoEvent->GetDirZ();
+	Double_t seedTheta   = TMath::ACos(recoDirZ);
+	Double_t seedPhi     = -999.9;
+	if(recoDirY != 0){ seedPhi = TMath::ATan2(recoDirY,recoDirX); }// Ensure range is -pi to pi
+	else{ seedPhi = (recoDirX < 0.0)? 0.5*TMath::Pi() : -0.5*TMath::Pi(); }
 
-   fSeedTheta   = TMath::ACos(recoDirZ);
-   if(recoDirY != 0) fSeedPhi = TMath::ATan2(recoDirY,recoDirX); // Ensure range is -pi to pi
-   else fSeedPhi = (recoDirX < 0.0)? 0.5*TMath::Pi() : -0.5*TMath::Pi();
 
-   //   fSeedTheta = 0.5*TMath::Pi();
-   //   fSeedPhi = 0.25*TMath::Pi();
+	fSeedMap.insert(std::make_pair(FitterParameterType::kDirTh, seedTheta));
+	fSeedMap.insert(std::make_pair(FitterParameterType::kDirPhi, seedPhi));
 
-  // std::cout << "Seed dir = (vx, vy, vz) = ( " << recoDirX << "," << recoDirY << "," << recoDirZ << ")" << std::endl
-  std::cout << "-> theta = " << fSeedTheta << "    phi = " << fSeedPhi << std::endl
-            << "Seed position = (x,y,z) = ( " << fSeedVtxX << "," << fSeedVtxY << "," <<fSeedVtxZ << ")" << std::endl;
+	//	std::cout << "Seed values:" << std::endl;
+	//	std::map<FitterParameterType::Type, Double_t>::const_iterator printer = fSeedMap.begin();
+	//	for(; printer != fSeedMap.end(); ++printer)
+	//	{
+	//		std::cout << "Seed for " << FitterParameterType::AsString((*printer).first) << " = " << (*printer).second << std::endl;
+	//	}
+	//   fSeedTheta = 0.5*TMath::Pi();
+	//   fSeedPhi = 0.25*TMath::Pi();
+
+	// For every fit parameter we've set, find the array index for that parameter in fStartVals
+	// And set that array entry to the corresponding seed value we just worked out
+	//                 Track             Type            Array index
+	std::map<std::pair<UInt_t, FitterParameterType::Type>, UInt_t >::iterator trackParItr;
+
+	// Loop over all parameters for all tracks
+	for(trackParItr = fTrackParMap.begin(); trackParItr != fTrackParMap.end(); ++trackParItr)
+	{
+	   // Find the seed corresponding this parameter type
+	   FitterParameterType::Type searchType = ((*trackParItr).first).second;
+	   std::map<FitterParameterType::Type, Double_t>::const_iterator seedSearch = fSeedMap.find(searchType);
+	   if(seedSearch != fSeedMap.end())
+	   {
+		   // Then set the start value for this parameter to the seed value
+		   UInt_t arrIndex = (*trackParItr).second;
+		   if(!fFixed[arrIndex])
+		   {
+			   std::cout << "Setting seed for " << arrIndex << " to " << (*seedSearch).second << std::endl;
+			   fStartVals[arrIndex] = (*seedSearch).second;
+		   }
+	   }
+	}
+	delete myReco;
+	// std::cout << "Seed dir = (vx, vy, vz) = ( " << recoDirX << "," << recoDirY << "," << recoDirZ << ")" << std::endl
+	// std::cout << "-> theta = " << fSeedTheta << "    phi = " << fSeedPhi << std::endl
+	//           << "Seed position = (x,y,z) = ( " << fSeedVtxX << "," << fSeedVtxY << "," <<fSeedVtxZ << ")" << std::endl;
 }
 
-WCSimLikelihoodTrack WCSimLikelihoodFitter::GetSeedParams()
-{
-  WCSimLikelihoodTrack seedTrack(fSeedVtxX, fSeedVtxY, fSeedVtxZ, fSeedTime, fSeedTheta, fSeedPhi, fSeedEnergy, WCSimLikelihoodTrack::MuonLike);
-  return seedTrack;
-}
 
 std::vector<WCSimLikelihoodTrack> WCSimLikelihoodFitter::GetBestFit()
 {
@@ -371,17 +412,17 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
 		fTotalLikelihood = new WCSimTotalLikelihood(fLikelihoodDigitArray);
 	}
 
-	Minimize2LnL();
 
 	if(WCSimFitterInterface::Instance()->GetMakeFits() ) {
 		WCSimInterface::Instance()->BuildEvent(iEvent);
-    std::cout << "Getting true likelihood tracks 2" << std::endl;
+		Minimize2LnL();
+		std::cout << "Getting true likelihood tracks 2" << std::endl;
 		fTrueLikelihoodTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
 		std::cout << "Fill plots now 3" << std::endl;
-    FillPlots();
-    std::cout << "Plots filled" << std::endl;
-    FillTree();
-    std::cout << "Tree filled" << std::endl;
+		FillPlots();
+		std::cout << "Plots filled" << std::endl;
+		FillTree();
+		std::cout << "Tree filled" << std::endl;
 	}
 
 	return;
@@ -408,6 +449,7 @@ void WCSimLikelihoodFitter::CreateParameterArrays() {
 }
 
 void WCSimLikelihoodFitter::SetParameterArrays() {
+	std::cout << "Setting parameter arrays" << std::endl;
 	Int_t iParam = 0;
 	UInt_t numTracks = WCSimFitterConfig::Instance()->GetNumTracks();
 	fTypes.clear();
@@ -630,7 +672,7 @@ void WCSimLikelihoodFitter::PerformEnergyGridSearch(Double_t& best2LnL,
 
 
 	bool isFirstLoop = true;
-  for(int iBin = 0; iBin < energyBinsZero.size(); ++iBin)
+  for(unsigned int iBin = 0; iBin < energyBinsZero.size(); ++iBin)
 	{
     std::cout << "TrackZeroIndex = " << trackZeroIndex << std::endl;
     std::cout << "Energby bin " << iBin << " is " << energyBinsZero.at(iBin) << std::endl;
@@ -639,7 +681,7 @@ void WCSimLikelihoodFitter::PerformEnergyGridSearch(Double_t& best2LnL,
     std::cout << "about to do the loop" << std::endl;
 
 
-    int jBin = 0;
+    unsigned int jBin = 0;
     do
   	{
       std::cout << "jBin = " << jBin << std::endl;
@@ -773,13 +815,7 @@ void WCSimLikelihoodFitter::ResetEvent() {
     fParMap[1] = 8; // The number of fit parameters for n tracks, plus 1 for nTracks itself (fixed)
     fParMap[2] = 11;
     fMinimum  = 0;
-    fSeedVtxX = 0.6;
-    fSeedVtxY = 0.6;
-    fSeedVtxZ = 0.6;
-    fSeedTheta = 0.1;
-    fSeedPhi = 0.5;
-    fSeedTime = -40;
-    fSeedEnergy = 1500;
+    fSeedMap.clear();
     fIsFirstCall = true;
 }
 

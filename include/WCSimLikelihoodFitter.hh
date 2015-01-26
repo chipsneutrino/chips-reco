@@ -87,7 +87,7 @@ class WCSimLikelihoodFitter
          * to seed our fit in roughly the right part of parameter space
          * @param myReco WCSimReco object used to run the old fitter
          */
-        void SeedParams( WCSimReco * myReco );
+        void SeedParams();
 
         /**
          * Get a vector containing the track(s) at the best-fit point
@@ -154,15 +154,11 @@ class WCSimLikelihoodFitter
         Bool_t * fIsEnergy;
         std::string * fNames;
 
+        Bool_t fUseHoughFitterForSeed;
+        std::map<FitterParameterType::Type, Double_t> fSeedMap;
 
         Double_t fMinimum; ///< Value of -2 log(likelihood) at the best-fit point
-        Double_t fSeedVtxX; ///< Seed vertex x coordinate
-        Double_t fSeedVtxY; ///< Seed vertex y coordinate
-        Double_t fSeedVtxZ; ///< Seed vertex z coordinate
-        Double_t fSeedTheta; ///< Seed angle to the z axis
-        Double_t fSeedPhi; ///< Seed azimuthal angle
-        Double_t fSeedTime; ///< Seed track start time
-        Double_t fSeedEnergy; ///< Seed track kinetic energy
+
         Bool_t fIsFirstCall; ///< Flags whether this is the first time the minimizer had calculated a likelihood (to print the seed)
         Int_t fStatus; ///< Minimizer convergence status
         std::map<std::pair<UInt_t, FitterParameterType::Type>, UInt_t > fTrackParMap;

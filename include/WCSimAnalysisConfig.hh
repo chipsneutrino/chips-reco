@@ -91,6 +91,12 @@ public:
      */
     Bool_t GetUseChargeAndTime() const;
     
+    /**
+     * Should we use the old Hough transform fitter to seed the start values?
+     * @return True if we should seed using the old fitter
+     */
+    Bool_t GetUseHoughFitterForSeed() const;
+
 
 private:
     /// Read the configuration text file specified in WCSimAnalysisConfig::fConfName
@@ -151,6 +157,7 @@ private:
     Bool_t        fUseGlassCathodeReflection;  ///< True if we should account for photons being reflected off the PMT glass
     Bool_t        fUseTime;                    ///< True if we should include timing information in the likelihood
     Bool_t        fUseCharge;                  ///< True if we should include charge information in the likelihood
+    Bool_t 	      fUseHoughFitterForSeed;	   ///< True if we should use the old Hough transform fitter to seed the start values
     std::string   fDigiType;            ///< Name of digitizer type to use in WCSimDigitizerLikelihood::DigiType_t
 
     std::map<std::string, std::string> fMap; ///< Map to store key names and their values to set

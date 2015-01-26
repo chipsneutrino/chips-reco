@@ -30,7 +30,7 @@ WCSimAnalysisConfig::WCSimAnalysisConfig()
     fUseGlassCathodeReflection = true;
     fUseCharge                 = true;
     fUseTime                   = true; 
-    
+    fUseHoughFitterForSeed			   = true;
     // Load the file with the default configuration
     // and update the member variables above as necessary
     fConfName = getenv("WCSIMANAHOME");
@@ -57,7 +57,8 @@ void WCSimAnalysisConfig::Print()
               << "fUseAngularEfficiency = " << fUseAngularEfficiency << std::endl
               << "fUseGlassCathodeReflection = " << fUseGlassCathodeReflection << std::endl
               << "fUseTime = " << fUseTime << std::endl
-              << "fUseCharge = " << fUseCharge << std::endl;
+              << "fUseCharge = " << fUseCharge << std::endl
+    		  << "fSeedWithHough = " << fUseHoughFitterForSeed << std::endl;
     return; 
 }
 
@@ -102,6 +103,11 @@ Bool_t WCSimAnalysisConfig::GetUseTimeOnly() const
 Bool_t WCSimAnalysisConfig::GetUseChargeAndTime() const
 {
     return (fUseCharge && fUseTime);
+}
+
+Bool_t WCSimAnalysisConfig::GetUseHoughFitterForSeed() const
+{
+	return fUseHoughFitterForSeed;
 }
 
 void WCSimAnalysisConfig::LoadConfig()
@@ -364,6 +370,23 @@ void WCSimAnalysisConfig::SetFromMap()
         {
             std::cout << "It's " << ((*itr).second) << std::endl;
             fDigiType = ((*itr).second);
+        }
+        else if((*itr).first.compare("UseHoughFitterForSeed") == 0)
+        {
+            if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+            {
+                fUseHoughFitterForSeed = true;
+            }
+            else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+            {
+                fUseHoughFitterForSeed = false;
+            }
+            else
+            {
+              std::cerr << "Error: " << (*itr).first << " = " << (*itr).second
+                           << " should equal true/false or 1/0" << std::endl;
+              exit(EXIT_FAILURE);
+            }
         }
             
     }
