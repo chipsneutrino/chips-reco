@@ -146,6 +146,16 @@ int WCSimFitterInterface::GetNumEventsToFit() {
 	return WCSimFitterConfig::Instance()->GetNumEventsToFit();
 }
 
+void WCSimFitterInterface::SetFirstEventToFit(int iEvt)
+{
+	WCSimFitterConfig::Instance()->SetFirstEventToFit(iEvt);
+}
+
+int WCSimFitterInterface::GetFirstEventToFit() const
+{
+	return WCSimFitterConfig::Instance()->GetFirstEventToFit();
+}
+
 void WCSimFitterInterface::PlotForEachEvent(const char* name, Bool_t doIt) {
 	fFitterPlots->SetPlotForEachEvent(name, doIt);
 }

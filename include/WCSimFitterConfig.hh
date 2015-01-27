@@ -43,8 +43,11 @@ public:
 	void SetParRange( int numTrack, const char * name, double min, double max);
 	std::pair<double, double> GetParRange( unsigned int numTrack, const char * name );
 
-	void SetNumEventsToFit(unsigned int numEvents);
-	unsigned int GetNumEventsToFit();
+	void SetNumEventsToFit(int numEvents);
+	int GetNumEventsToFit();
+
+	void SetFirstEventToFit(unsigned int iEvt);
+	int GetFirstEventToFit() const;
 
 	void SetJoinParametersTogether(unsigned int numTrack1, unsigned int numTrack2, const char * name);
 	bool GetJoinParametersTogether(unsigned int numTrack1, unsigned int numTrack2, const char * name);
@@ -57,9 +60,10 @@ private:
 
 
 	WCSimFitterParameters fFitterParameters;
-  int fNumTracks;
+    int fNumTracks;
 	int fNumEventsToFit;
 	int fNumParameters;
+	int fFirstEventToFit;
 };
 
 #endif /* WCSIMFITTERCONFIG_HH_ */

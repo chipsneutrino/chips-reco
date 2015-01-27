@@ -49,6 +49,9 @@ public:
 	void SetNumEventsToFit(int nEvts);
 	int  GetNumEventsToFit();
 
+	void SetFirstEventToFit(int iEvt);
+	int GetFirstEventToFit() const;
+
 	void PlotForEachEvent(const char * name, bool doIt = true);
 	bool GetPlotForEachEvent(const char * name);
 

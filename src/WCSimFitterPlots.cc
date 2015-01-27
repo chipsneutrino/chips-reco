@@ -7,6 +7,7 @@
 
 #include "WCSimFitterConfig.hh"
 #include "WCSimFitterPlots.hh"
+#include <algorithm>
 #include <iostream>
 #include <map>
 #include <string>
@@ -611,14 +612,31 @@ void WCSimFitterPlots::FillPlots(std::vector<WCSimLikelihoodTrack> bestFits) {
 
 void WCSimFitterPlots::FillRecoMinusTrue(
 		std::vector<WCSimLikelihoodTrack> bestFits, std::vector<WCSimLikelihoodTrack*> * trueTracks) {
-	std::vector<WCSimLikelihoodTrack>::iterator bfItr = bestFits.begin();
-	std::vector<WCSimLikelihoodTrack*>::iterator truItr = (*trueTracks).begin();
 
 	unsigned int iTrack = 0;
-  for( ; bfItr != bestFits.end() && truItr != (*trueTracks).end() ; ++bfItr, ++truItr)
+	// First sort all the tracks by energy
+	std::sort(bestFits.begin(), bestFits.end(),
+			  [](WCSimLikelihoodTrack a, WCSimLikelihoodTrack b)  {return (a.GetE() > b.GetE());});
+	// Make a copy so we don't mess with the pointed vector
+	std::vector<WCSimLikelihoodTrack *> trueTracksSorted = *trueTracks;
+	std::sort(trueTracksSorted.begin(), trueTracksSorted.end(),
+			  [](WCSimLikelihoodTrack* a, WCSimLikelihoodTrack* b){return (a->GetE() > b->GetE());});
+
+	unsigned int maxTracksToPlot = trueTracksSorted.size();
+	if( trueTracksSorted.size() > bestFits.size() )
 	{
-		WCSimLikelihoodTrack bf = (*bfItr);
-		WCSimLikelihoodTrack tt = *(*truItr);
+		std::cerr << "Warning: more true tracks than best-fit tracks.  Picking the highest KE one" << std::endl;
+		maxTracksToPlot = bestFits.size();
+	}
+	else if( trueTracksSorted.size() < bestFits.size() )
+	{
+		std::cerr << "Warning: more fitted tracks than true tracks.  Picking the highest KE one" << std::endl;
+	}
+
+	for(unsigned int iTrack = 0; iTrack < maxTracksToPlot; ++iTrack)
+	{
+		WCSimLikelihoodTrack bft = (bestFits.at(iTrack));
+		WCSimLikelihoodTrack trt = *(trueTracksSorted.at(iTrack));
 
 		std::map<FitterParameterType::Type, std::vector<TH1D*> >::iterator plotVecItr = fRecoMinusTrue.begin();
 		for( ; plotVecItr != fRecoMinusTrue.end() ; ++plotVecItr )
@@ -626,10 +644,9 @@ void WCSimFitterPlots::FillRecoMinusTrue(
 			FitterParameterType::Type type = (*plotVecItr).first;
 			TH1D * hist = (*plotVecItr).second.at(iTrack);
 
-			double rmt = bf.GetTrackParameter(type) - tt.GetTrackParameter(type);
+			double rmt = bft.GetTrackParameter(type) - trt.GetTrackParameter(type);
 			hist->Fill(rmt);
 		}
-      iTrack++;
 	}
 	return;
 }

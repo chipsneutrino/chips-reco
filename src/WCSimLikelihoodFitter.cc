@@ -148,18 +148,19 @@ void WCSimLikelihoodFitter::Minimize2LnL()
   Bool_t doSecondStep = false;
 
   // This is what we ought to do:
-  //  for(UInt_t i = 0; i < nPars; ++i)
-  //  {
-  //    if(fIsEnergy[i] && !fFixed[i])
-  //    {
-  //      doSecondStep = true;
-  //      min->SetLimitedVariable(i, fNames[i], fStartVals[i], fStepSizes[i], fMinVals[i], fMaxVals[i]);
-  //    }
-  //    else
-  //    {
-  //      min->SetFixedVariable(i, fNames[i], outPar[i]);
-  //    }
-  //  }
+  const Double_t * outPar = min->X();
+  for(UInt_t i = 0; i < nPars; ++i)
+  {
+    if(fIsEnergy[i] && !fFixed[i])
+    {
+      doSecondStep = true;
+      min->SetLimitedVariable(i, fNames[i], fStartVals[i], fStepSizes[i], fMinVals[i], fMaxVals[i]);
+    }
+    else
+    {
+      min->SetFixedVariable(i, fNames[i], outPar[i]);
+    }
+  }
   
   //  // Either we want to minimise over the energy, or we haven't freed anything up at all
   //  // and to perform the calculation at least once
@@ -167,10 +168,10 @@ void WCSimLikelihoodFitter::Minimize2LnL()
   //  {
   //    min->Minimize();
   //  	fMinimum = min->MinValue();
+  //    outPar = min->X();
   //  }
   
   // Minuit gives us a const double array, but (for now) we want to do the grid search and then modify it
-  const Double_t * outPar = min->X();
   std::cout << "Here's outPar..." << std::endl;
   std::cout << outPar[0] << "  " << outPar[1] << std::endl;
   std::vector<Double_t> outParVec;
@@ -213,13 +214,13 @@ void WCSimLikelihoodFitter::Minimize2LnL()
 	  std::pair<UInt_t, FitterParameterType::Type> trackParTh = std::make_pair(iTrack, FitterParameterType::kDirTh);
 	  std::pair<UInt_t, FitterParameterType::Type> trackParPhi = std::make_pair(iTrack, FitterParameterType::kDirPhi);
 	  std::pair<UInt_t, FitterParameterType::Type> trackParE = std::make_pair(iTrack, FitterParameterType::kEnergy);
-    std::cout << "Track " << iTrack << ", parameter " << FitterParameterType::AsString(trackParX.second) << "   outParVec.at(" << fTrackParMap[trackParX] << ") = ";  std::cout << outParVec.at(fTrackParMap[trackParX]) << std::endl;
-    std::cout << "Track " << iTrack << ", parameter " << FitterParameterType::AsString(trackParY.second) << "   outParVec.at(" << fTrackParMap[trackParY] << ") = ";  std::cout << outParVec.at(fTrackParMap[trackParY]) << std::endl;
-    std::cout << "Track " << iTrack << ", parameter " << FitterParameterType::AsString(trackParZ.second) << "   outParVec.at(" << fTrackParMap[trackParZ] << ") = ";  std::cout << outParVec.at(fTrackParMap[trackParZ]) << std::endl;
-    std::cout << "Track " << iTrack << ", parameter " << FitterParameterType::AsString(trackParT.second) << "   outParVec.at(" << fTrackParMap[trackParT] << ") = ";  std::cout << outParVec.at(fTrackParMap[trackParT]) << std::endl;
-    std::cout << "Track " << iTrack << ", parameter " << FitterParameterType::AsString(trackParTh.second) << "   outParVec.at(" << fTrackParMap[trackParTh] << ") = ";  std::cout << outParVec.at(fTrackParMap[trackParTh]) << std::endl;
-    std::cout << "Track " << iTrack << ", parameter " << FitterParameterType::AsString(trackParPhi.second) << "   outParVec.at(" << fTrackParMap[trackParPhi] << ") = ";  std::cout << outParVec.at(fTrackParMap[trackParPhi]) << std::endl;
-    std::cout << "Track " << iTrack << ", parameter " << FitterParameterType::AsString(trackParE.second) << "   outParVec.at(" << fTrackParMap[trackParE] << ") = ";  std::cout << outParVec.at(fTrackParMap[trackParE]) << std::endl;
+	std::cout << "Track " << iTrack << ", parameter " << FitterParameterType::AsString(trackParX.second) << "   outParVec.at(" << fTrackParMap[trackParX] << ") = ";  std::cout << outParVec.at(fTrackParMap[trackParX]) << std::endl;
+	std::cout << "Track " << iTrack << ", parameter " << FitterParameterType::AsString(trackParY.second) << "   outParVec.at(" << fTrackParMap[trackParY] << ") = ";  std::cout << outParVec.at(fTrackParMap[trackParY]) << std::endl;
+	std::cout << "Track " << iTrack << ", parameter " << FitterParameterType::AsString(trackParZ.second) << "   outParVec.at(" << fTrackParMap[trackParZ] << ") = ";  std::cout << outParVec.at(fTrackParMap[trackParZ]) << std::endl;
+	std::cout << "Track " << iTrack << ", parameter " << FitterParameterType::AsString(trackParT.second) << "   outParVec.at(" << fTrackParMap[trackParT] << ") = ";  std::cout << outParVec.at(fTrackParMap[trackParT]) << std::endl;
+	std::cout << "Track " << iTrack << ", parameter " << FitterParameterType::AsString(trackParTh.second) << "   outParVec.at(" << fTrackParMap[trackParTh] << ") = ";  std::cout << outParVec.at(fTrackParMap[trackParTh]) << std::endl;
+	std::cout << "Track " << iTrack << ", parameter " << FitterParameterType::AsString(trackParPhi.second) << "   outParVec.at(" << fTrackParMap[trackParPhi] << ") = ";  std::cout << outParVec.at(fTrackParMap[trackParPhi]) << std::endl;
+	std::cout << "Track " << iTrack << ", parameter " << FitterParameterType::AsString(trackParE.second) << "   outParVec.at(" << fTrackParMap[trackParE] << ") = ";  std::cout << outParVec.at(fTrackParMap[trackParE]) << std::endl;
 	  WCSimLikelihoodTrack track(
 								  outParVec.at(fTrackParMap[trackParX]),
 								  outParVec.at(fTrackParMap[trackParY]),
@@ -341,7 +342,7 @@ void WCSimLikelihoodFitter::SeedParams()
 	Double_t recoDirZ = recoEvent->GetDirZ();
 	Double_t seedTheta   = TMath::ACos(recoDirZ);
 	Double_t seedPhi     = -999.9;
-	if(recoDirY != 0){ seedPhi = TMath::ATan2(recoDirY,recoDirX); }// Ensure range is -pi to pi
+	if(recoDirY != 0.0){ seedPhi = TMath::ATan2(recoDirY,recoDirX); }// Ensure range is -pi to pi
 	else{ seedPhi = (recoDirX < 0.0)? 0.5*TMath::Pi() : -0.5*TMath::Pi(); }
 
 
@@ -398,6 +399,7 @@ Double_t WCSimLikelihoodFitter::GetMinimum()
 
 void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
 	fIsFirstCall = true;
+	fEvent = iEvent;
 	fRootEvent = WCSimInterface::Instance()->GetWCSimEvent(iEvent);
 	fLikelihoodDigitArray = WCSimInterface::Instance()->GetWCSimLikelihoodDigitArray(iEvent);
   std::cout << "There are " << fLikelihoodDigitArray->GetNDigits() << " digits" << std::endl;
@@ -751,7 +753,11 @@ Int_t WCSimLikelihoodFitter::GetStatus()
 void WCSimLikelihoodFitter::RunFits() {
 	CreateParameterArrays();
 
-	for(UInt_t iEvent = 0; iEvent < WCSimFitterConfig::Instance()->GetNumEventsToFit() ; ++iEvent)
+	UInt_t firstEvent = WCSimFitterConfig::Instance()->GetFirstEventToFit();
+	UInt_t numEventsToFit = WCSimFitterConfig::Instance()->GetNumEventsToFit();
+
+
+	for(UInt_t iEvent = firstEvent; iEvent < firstEvent + WCSimFitterConfig::Instance()->GetNumEventsToFit() ; ++iEvent)
 	{
 		SetParameterArrays();
 		FitEventNumber(iEvent);
@@ -831,7 +837,7 @@ void WCSimLikelihoodFitter::FillPlots() {
 void WCSimLikelihoodFitter::FillTree() {
 	if(fFitterTree != NULL)
 	{
-		fFitterTree->Fill(fBestFit, *fTrueLikelihoodTracks, fMinimum);
+		fFitterTree->Fill(fEvent, fBestFit, *fTrueLikelihoodTracks, fMinimum);
 	}
 	return;
 }

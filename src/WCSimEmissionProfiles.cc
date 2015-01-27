@@ -149,67 +149,66 @@ Double_t WCSimEmissionProfiles::GetRhoGIntegral(WCSimLikelihoodTrack * myTrack, 
 
 std::vector<Double_t> WCSimEmissionProfiles::GetRhoGIntegrals(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit,
 		std::vector<Int_t> sPowers, Double_t cutoffS, Bool_t multiplyByWidth) {
-	
-  std::vector<Double_t> integrals(3, 0.0);
+
+	// std::cout << "WCSimEmissionProfiles::GetRhoGIntegrals()" << std::endl;
+	std::vector<Double_t> integrals(3, 0.0);
    
-  Int_t startBin = fRhoInterp->GetXaxis()->FindBin(0.);
+	Int_t startBin = fRhoInterp->GetXaxis()->FindBin(0.);
 	Int_t endBin = fRhoInterp->GetXaxis()->FindBin(cutoffS);
-
-
 
     TVector3 pmtPos = myDigit->GetPos();
     TVector3 vtxPos = myTrack->GetVtx();
     TVector3 vtxDir = myTrack->GetDir();
 
-  // std::cout << "Integrating from " << 0.0 << " to " << cutoffS << std::endl;
+   // std::cout << "Integrating from " << 0.0 << " to " << cutoffS << std::endl;
 
 	for(Int_t iBin = startBin; iBin < endBin; ++iBin)
 	{
 		Double_t s = fRhoInterp->GetBinCenter(iBin);
-    TVector3 toPMT = pmtPos - myTrack->GetPropagatedPos(s);
-    Double_t cosTheta = TMath::Cos(vtxDir.Angle( toPMT ));
+		TVector3 toPMT = pmtPos - myTrack->GetPropagatedPos(s);
+		Double_t cosTheta = TMath::Cos(vtxDir.Angle( toPMT ));
 
 		Double_t binWidth = multiplyByWidth ? fRhoInterp->GetXaxis()->GetBinWidth(iBin) : 1;
     
-    for(UInt_t iPower = 0 ; iPower < sPowers.size() ; ++iPower)
+		for(UInt_t iPower = 0 ; iPower < sPowers.size() ; ++iPower)
 		{
-      // std::cout << "Binwidth   = " << binWidth << std::endl
-      //          << "fRhoInterp = " << fRhoInterp->GetBinContent(iBin) << std::endl 
-      //          << "fG         = " << fG->GetBinContent(fG->GetXaxis()->FindBin(cosTheta), iBin) << std::endl;
+			// std::cout << "Binwidth   = " << binWidth << std::endl
+			//           << "fRhoInterp = " << fRhoInterp->GetBinContent(iBin) << std::endl
+			//           << "fG         = " << fG->GetBinContent(fG->GetXaxis()->FindBin(cosTheta), iBin) << std::endl;
 
-      if(fRhoInterp->GetBinContent(iBin) == 0) { continue; }
-      integrals.at(iPower) += binWidth
-			  	                   * fRhoInterp->GetBinContent(iBin)
-				                     * fG->GetBinContent(fG->GetXaxis()->FindBin(cosTheta), iBin)
-				                     * pow(fRhoInterp->GetBinCenter(iBin), sPowers.at(iPower));
-      // std::cout << "Now integrals.at(" << iPower << ") = " << integrals.at(iPower) <<  " sPower = " << sPowers.at(iPower) << std::endl;
-	  }
-  }
+			if(fRhoInterp->GetBinContent(iBin) == 0) { continue; }
+			integrals.at(iPower) += binWidth
+									* fRhoInterp->GetBinContent(iBin)
+									* fG->GetBinContent(fG->GetXaxis()->FindBin(cosTheta), iBin)
+									* pow(fRhoInterp->GetBinCenter(iBin), sPowers.at(iPower));
+			// std::cout << "Now integrals.at(" << iPower << ") = " << integrals.at(iPower) <<  " sPower = " << sPowers.at(iPower) << std::endl;
+		}
+	}
 	return integrals;
 
 }
 
 UInt_t WCSimEmissionProfiles::GetArrayBin(Double_t energy) const{
-  // std::cout << "Binning histogram is " << fBinningHistogram << std::endl;
+	// std::cout << "Binning histogram is " << fBinningHistogram << std::endl;
 	int iBin = fBinningHistogram->GetXaxis()->FindBin(energy) - 1;
-  if(iBin < 0) 
-  { 
-    std::cerr << "Warning, array bin number is less than zero - returning 0 instead" << std::endl;
-    iBin = 0;
-  }
+	if(iBin < 0)
+	{
+		std::cerr << "Warning, array bin number is less than zero - returning 0 instead" << std::endl;
+		iBin = 0;
+	}
   
-  return iBin; 
+	return iBin;
 }
 
 UInt_t WCSimEmissionProfiles::GetHistBin(Double_t energy) const{
-  return GetArrayBin(energy)+1; 
+	return GetArrayBin(energy)+1;
 }
 
 Double_t WCSimEmissionProfiles::GetFractionThroughBin(Double_t energy) const{
 	UInt_t iBin = GetHistBin(energy);
-  // std::cout << "Hist bin = " << iBin << std::endl;
-  // std::cout << "Its low edge = " << fBinningHistogram->GetXaxis()->GetBinLowEdge(iBin) << std::endl;
-  // std::cout << "And its width = " << fBinningHistogram->GetXaxis()->GetBinWidth(iBin);
+	// std::cout << "Hist bin = " << iBin << std::endl;
+	// std::cout << "Its low edge = " << fBinningHistogram->GetXaxis()->GetBinLowEdge(iBin) << std::endl;
+	// std::cout << "And its width = " << fBinningHistogram->GetXaxis()->GetBinWidth(iBin);
 	Double_t fraction =   (energy - fBinningHistogram->GetXaxis()->GetBinLowEdge(iBin))
 						/ (fBinningHistogram->GetXaxis()->GetBinWidth(iBin));
 	return fraction;
@@ -217,7 +216,7 @@ Double_t WCSimEmissionProfiles::GetFractionThroughBin(Double_t energy) const{
 
 void WCSimEmissionProfiles::LoadFile(WCSimLikelihoodTrack* myTrack) {
 	std::cout << " *** WCSimEmissionProfiles::LoadFile - Loading profile" << std::endl;
-  // std::cout << "Track type is " << WCSimLikelihoodTrack::TrackTypeToString(myTrack->GetType()) << std::endl;
+	// std::cout << "Track type is " << WCSimLikelihoodTrack::TrackTypeToString(myTrack->GetType()) << std::endl;
 	if( myTrack->GetType() != fLastType )
 	{
 
@@ -251,14 +250,14 @@ void WCSimEmissionProfiles::LoadFile(WCSimLikelihoodTrack* myTrack) {
 
 		fRhoArray->SetOwner(kTRUE);
 		fGArray->SetOwner(kTRUE);
-    std::cout << "Loaded array" << std::endl;
+		std::cout << "Loaded array" << std::endl;
 	}
 
 	fLastEnergy = myTrack->GetE();
 	fLastType = myTrack->GetType();
 	InterpolateProfiles(myTrack);
 
-  if(fDebug) { SaveProfiles(); }
+	if(fDebug) { SaveProfiles(); }
 	return;
 
 }
@@ -290,6 +289,10 @@ void WCSimEmissionProfiles::InterpolateRho(WCSimLikelihoodTrack* myTrack) {
 		delete fRhoInterp;
 		fRhoInterp = 0x0;
 	}
+
+	std::cerr << "Warning: not doing any interpolation, just getting the nearest profile" << std::endl;
+	fRhoInterp = (TH1D*)fRhoArray->At(GetArrayBin(myTrack->GetE()));
+	return;
 
 
 	// There are two kinds of interpolation that need to happen here:
@@ -542,6 +545,11 @@ void WCSimEmissionProfiles::InterpolateRho(WCSimLikelihoodTrack* myTrack) {
 
 void WCSimEmissionProfiles::InterpolateG(WCSimLikelihoodTrack* myTrack) {
 	Double_t energy = myTrack->GetE();
+	std::cerr << "Warning: not doing any interpolation, just getting the nearest profile" << std::endl;
+	fG = (TH2D*)fGArray->At(GetArrayBin(myTrack->GetE()));
+	return;
+
+
     TH2D * hGLo = (TH2D*)fGArray->At(GetArrayBin(energy));
     TH2D * hGHi = (TH2D*)fGArray->At(GetArrayBin(energy)+1);
 

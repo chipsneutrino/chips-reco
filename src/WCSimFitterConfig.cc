@@ -11,7 +11,7 @@
 static WCSimFitterConfig * fgFitterConfig = 0;
 
 
-WCSimFitterConfig::WCSimFitterConfig() : fNumTracks(1), fNumEventsToFit(0){
+WCSimFitterConfig::WCSimFitterConfig() : fNumTracks(1), fNumEventsToFit(0), fFirstEventToFit(0){
 	// TODO Auto-generated constructor stub
 
 }
@@ -141,17 +141,32 @@ std::pair<double, double> WCSimFitterConfig::GetParRange(unsigned int numTrack,
 	return minMax;
 }
 
-void WCSimFitterConfig::SetNumEventsToFit(unsigned int numEvents) {
+void WCSimFitterConfig::SetNumEventsToFit(int numEvents) {
   int maxNumEvents = WCSimInterface::GetNumEvents();
   if(numEvents > maxNumEvents)
   {
     std::cerr << "Warning: Requested to fit " << numEvents << " events, but the file only contains " << maxNumEvents << std::endl;
     std::cerr << "         Fitting " << maxNumEvents << " events instead" << std::endl;
+    fNumEventsToFit = maxNumEvents;
   }
-	fNumEventsToFit = numEvents;
+  else if( (numEvents + fNumEventsToFit) > maxNumEvents)
+  {
+	  std::cerr << "Warning: Requested to fit " << numEvents << " starting at event " << fFirstEventToFit << " but there are only " << maxNumEvents << " in total" << std::endl;
+	  std::cerr << "         Will start at " << fFirstEventToFit << " and fit up to the end of the file" << std::endl;
+	  fNumEventsToFit = maxNumEvents - fFirstEventToFit;
+  }
+  else if(numEvents == 0)
+  {
+	  std::cerr << "Warning: Requested to fit 0 events.  Will default to fitting all " << maxNumEvents << " events" << std::endl;
+	  fNumEventsToFit = maxNumEvents;
+  }
+  else
+  {
+	  fNumEventsToFit = numEvents;
+  }
 }
 
-unsigned int WCSimFitterConfig::GetNumEventsToFit() {
+int WCSimFitterConfig::GetNumEventsToFit() {
 	return fNumEventsToFit;
 }
 
@@ -196,3 +211,27 @@ WCSimLikelihoodTrack::TrackType WCSimFitterConfig::GetTrackType(const unsigned i
 	return fFitterParameters.GetTrackType(numTrack);
 }
 
+void WCSimFitterConfig::SetFirstEventToFit(unsigned int iEvt) {
+	  int maxNumEvents = WCSimInterface::GetNumEvents();
+	  if(iEvt > maxNumEvents)
+	  {
+	    std::cerr << "Warning: Requested to start fitting at event " << iEvt << ", but the file only contains " << maxNumEvents << std::endl;
+	    std::cerr << "         Starting at event 0 instead" << std::endl;
+	    fFirstEventToFit = 0;
+	  }
+	  else if(iEvt + fNumEventsToFit > maxNumEvents)
+	  {
+		  std::cerr << "Warning: Requested to fit " << fNumEventsToFit << " events, starting at " << iEvt << std::endl;
+		  std::cerr << "         But there are only " << maxNumEvents << " - will start at " << iEvt << " and fit up to the end of the file" << std::endl;
+		  fFirstEventToFit = iEvt;
+		  SetNumEventsToFit(maxNumEvents - iEvt);
+	  }
+	  else
+	  {
+		  fFirstEventToFit = iEvt;
+	  }
+}
+
+int WCSimFitterConfig::GetFirstEventToFit() const {
+	return fFirstEventToFit;
+}

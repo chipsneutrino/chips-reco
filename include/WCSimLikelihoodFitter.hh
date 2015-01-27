@@ -157,6 +157,7 @@ class WCSimLikelihoodFitter
         Bool_t fUseHoughFitterForSeed;
         std::map<FitterParameterType::Type, Double_t> fSeedMap;
 
+        Int_t fEvent; ///< Number of the event currently being fitted
         Double_t fMinimum; ///< Value of -2 log(likelihood) at the best-fit point
 
         Bool_t fIsFirstCall; ///< Flags whether this is the first time the minimizer had calculated a likelihood (to print the seed)
