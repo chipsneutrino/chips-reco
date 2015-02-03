@@ -8,6 +8,7 @@
 #include "WCSimFitterConfig.hh"
 #include "WCSimFitterPlots.hh"
 #include <algorithm>
+#include <functional>
 #include <iostream>
 #include <map>
 #include <string>
@@ -615,12 +616,10 @@ void WCSimFitterPlots::FillRecoMinusTrue(
 
 	unsigned int iTrack = 0;
 	// First sort all the tracks by energy
-	std::sort(bestFits.begin(), bestFits.end(),
-			  [](WCSimLikelihoodTrack a, WCSimLikelihoodTrack b)  {return (a.GetE() > b.GetE());});
+	std::sort(bestFits.begin(), bestFits.end(), WCSimLikelihoodTrack::EnergyGreaterThanOrEqual);
 	// Make a copy so we don't mess with the pointed vector
 	std::vector<WCSimLikelihoodTrack *> trueTracksSorted = *trueTracks;
-	std::sort(trueTracksSorted.begin(), trueTracksSorted.end(),
-			  [](WCSimLikelihoodTrack* a, WCSimLikelihoodTrack* b){return (a->GetE() > b->GetE());});
+	std::sort(trueTracksSorted.begin(), trueTracksSorted.end(), WCSimLikelihoodTrack::EnergyGreaterThanOrEqualPtrs);
 
 	unsigned int maxTracksToPlot = trueTracksSorted.size();
 	if( trueTracksSorted.size() > bestFits.size() )

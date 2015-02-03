@@ -104,6 +104,9 @@ class WCSimLikelihoodTrack : public TObject
 		    double GetE() const;
         WCSimLikelihoodTrack::TrackType GetType() const;
         double GetTrackParameter(FitterParameterType::Type type) const;
+
+        static bool EnergyGreaterThanOrEqual(const WCSimLikelihoodTrack &a, const WCSimLikelihoodTrack &b);
+        static bool EnergyGreaterThanOrEqualPtrs(WCSimLikelihoodTrack *a, WCSimLikelihoodTrack *b);
         /**
          * Function to calculate the position a distance s away from the track vertex in
          * the direction of travel of the track

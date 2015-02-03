@@ -155,3 +155,13 @@ Int_t WCSimLikelihoodTrack::GetPDG() const {
 	}
 	return -999;
 }
+
+Bool_t WCSimLikelihoodTrack::EnergyGreaterThanOrEqual(const WCSimLikelihoodTrack &a, const WCSimLikelihoodTrack &b)
+{
+  return (a.GetE() >= b.GetE());
+}
+
+Bool_t WCSimLikelihoodTrack::EnergyGreaterThanOrEqualPtrs(WCSimLikelihoodTrack *a, WCSimLikelihoodTrack *b)
+{
+  return (a->GetE() >= b->GetE());
+}
