@@ -81,7 +81,8 @@ void WCSimDigitizerLikelihood::OpenPDFs()
 Double_t WCSimDigitizerLikelihood::GetMinus2LnL( const Double_t &undigi, const Double_t &digi )
 {
   // Bail out if the digitizer type is bad
-
+  // std::cout << " *** WCSimDigitizerLikelihood::GetMinus2LnL *** " << std::endl;
+  // std::cout << "undigi (pred) = " << undigi << " and digi (MC) = " << digi << std::endl;
   double prediction = undigi;
   if(undigi == 0)
   {

@@ -291,7 +291,9 @@ void WCSimEmissionProfiles::InterpolateRho(WCSimLikelihoodTrack* myTrack) {
 	}
 
 	std::cerr << "Warning: not doing any interpolation, just getting the nearest profile" << std::endl;
-	fRhoInterp = (TH1D*)fRhoArray->At(GetArrayBin(myTrack->GetE()));
+	fRhoInterp = (TH1D*)(fRhoArray->At(GetArrayBin(myTrack->GetE()))->Clone());
+	fRhoInterp->SetDirectory(0);
+	// std::cout << "Energy = " << myTrack->GetE() << "  integral = " << fRhoInterp->Integral("W");
 	return;
 
 
@@ -547,6 +549,7 @@ void WCSimEmissionProfiles::InterpolateG(WCSimLikelihoodTrack* myTrack) {
 	Double_t energy = myTrack->GetE();
 	std::cerr << "Warning: not doing any interpolation, just getting the nearest profile" << std::endl;
 	fG = (TH2D*)fGArray->At(GetArrayBin(myTrack->GetE()));
+	fG->SetDirectory(0);
 	return;
 
 
@@ -618,7 +621,7 @@ Double_t WCSimEmissionProfiles::GetLightFlux(
 			// From a linear fit to nPhotons as a function of energy (it's very linear)
 			nPhotons = 246.564/(5.0) * energy - 20700/(5.0);
 			
-      fudge = 1.0/0.699;         //  *furiously waves hands*  
+      fudge = 1.0/0.699;         //  *furiously waves hands*
                                  //  m( 0_0 ) m
                                  //         
                                  // m ( 0_0 )m

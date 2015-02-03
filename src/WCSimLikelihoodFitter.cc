@@ -770,8 +770,8 @@ void WCSimLikelihoodFitter::RunSurfaces() {
 	
   CreateParameterArrays();
   SetParameterArrays();
-  fRootEvent = WCSimInterface::Instance()->GetWCSimEvent(0);
-	fLikelihoodDigitArray = WCSimInterface::Instance()->GetWCSimLikelihoodDigitArray(0);
+  fRootEvent = WCSimInterface::Instance()->GetWCSimEvent(WCSimFitterConfig::Instance()->GetFirstEventToFit());
+  fLikelihoodDigitArray = WCSimInterface::Instance()->GetWCSimLikelihoodDigitArray(WCSimFitterConfig::Instance()->GetFirstEventToFit());
   std::cout << "There are " << fLikelihoodDigitArray->GetNDigits() << " digits" << std::endl;
 	if(fTotalLikelihood != NULL)
 	{

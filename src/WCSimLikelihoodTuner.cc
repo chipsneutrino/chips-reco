@@ -329,12 +329,12 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ( Double_t s, WCSimLikelih
 
     // Work out the direct and indirect contributions to J
     // J[0] = J_dir, J[1] = J_ind
-    if( s == 0.0)
-    {
-    	std::cout << "Transmission = " << this->TransmissionFunction(s, myTrack, myDigit) << std::endl
-    			  		<< "Efficiency =   " << this->Efficiency(s, myTrack, myDigit) << std::endl
-    			  		<< "SolidAngle =   " << this->SolidAngle(s, myTrack, myDigit) << std::endl;
-    }
+//    if( s == 0.0)
+//    {
+//    	std::cout << "Transmission = " << this->TransmissionFunction(s, myTrack, myDigit) << std::endl
+//    			  		<< "Efficiency =   " << this->Efficiency(s, myTrack, myDigit) << std::endl
+//    			  		<< "SolidAngle =   " << this->SolidAngle(s, myTrack, myDigit) << std::endl;
+//    }
 
     J.push_back(   this->TransmissionFunction(s, myTrack, myDigit) 
                  * this->Efficiency(s, myTrack, myDigit)
@@ -472,10 +472,10 @@ void WCSimLikelihoodTuner::CalculateCutoff( WCSimLikelihoodTrack * myTrack )
     TVector3 vtx     = myTrack->GetVtx();
     TVector3 dir     = myTrack->GetDir();
 
-    std::cout << "Vertex is " << std::endl;
+    // std::cout << "Vertex is " << std::endl;
     vtx.Print();
 
-    std::cout << "Direction is " << std::endl;
+    // std::cout << "Direction is " << std::endl;
     dir.Print();
 
     if( fGeomType == WCSimLikelihoodDigitArray::kCylinder )
@@ -489,7 +489,7 @@ void WCSimLikelihoodTuner::CalculateCutoff( WCSimLikelihoodTrack * myTrack )
     else assert(false);
 
   }
-  // std::cout << "Cutoff = " << cutoff << ".... returning" << std::endl;
+  std::cout << "Energy = " << myTrack->GetE() << "   Cutoff = " << cutoff << ".... returning" << std::endl;
   fCutoffIntegral = cutoff;
   fLastCutoff     = myTrack;
   return;
@@ -552,15 +552,15 @@ Double_t WCSimLikelihoodTuner::CalculateMailBoxCutoff(const TVector3 &vtx, const
     if( dir(i) > 1e-6 )
     {
         sMax[i] = (  fExtent[i] - vtx(i) ) / ( dir(i) );
-        std::cout << "Direction " << i << " cutoff is " << sMax[i] << std::endl;
+        // std::cout << "Direction " << i << " cutoff is " << sMax[i] << std::endl;
     }
     else if( dir(i) < -1e-6 )
     {
         sMax[i] = ( -fExtent[i] - vtx(i) ) / ( dir(i) );
-        std::cout << "Direction " << i << " (negative) cutoff is " << sMax[i] << std::endl;
+        // std::cout << "Direction " << i << " (negative) cutoff is " << sMax[i] << std::endl;
     }
     else { sMax[i] = cutoff; }
-    std::cout << sMax[i] << std::endl;
+    // std::cout << sMax[i] << std::endl;
   }
   // The world's laziest sorting algorithm:
   if( sMax[0] < cutoff) { cutoff = sMax[0]; }
@@ -906,7 +906,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateChIntegrals(WCSimLikelihood
     sPowers.push_back(2);
     std::vector<Double_t> integrals = fEmissionProfiles.GetRhoGIntegrals(myTrack, myDigit, sPowers, fCutoffIntegral, kTRUE);
 
-      // std::cout << "s = " << fCutoffIntegral << "   " << integrals[0] << "   " << integrals[1] << "   " << integrals[2] << std::endl;
+    // std::cout << "WCSimLikelihoodTuner::CalculateChIntegrals()   s = " << fCutoffIntegral << "   " << integrals[0] << "   " << integrals[1] << "   " << integrals[2] << std::endl;
   
     return integrals;
 }
