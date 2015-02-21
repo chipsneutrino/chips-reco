@@ -4,6 +4,7 @@
 #include "WCSimRecoDigit.hh"
 
 #include "WCSimRecoObjectTable.hh"
+#include "WCSimRootEvent.hh"
 
 #include <iostream>
 #include <fstream>

@@ -10,6 +10,8 @@
 
 #include "WCSimLikelihoodTrack.hh"
 #include <vector>
+class TFile;
+class TString;
 class TTree;
 class WCSimRootGeom;
 class WCSimLikelihoodRecoEvent;
@@ -24,7 +26,9 @@ public:
 	virtual ~WCSimFitterTree();
 
 	void MakeTree();
-	void SaveTree(TString saveName);
+	void SaveTree();
+	void SetSaveFileName(TString saveName);
+	TString GetSaveFileName() const;
 	TTree * GetFitTree();
 	TTree * GetTruthTree();
 	TTree * GetRecoTree();
@@ -41,6 +45,8 @@ private:
 
 	void MakeRecoSummary(std::vector<WCSimLikelihoodTrack> bestFitTracks);
 
+	TFile * fSaveFile;
+	TString fSaveFileName;
 	TTree * fTrueTree;
 	TTree * fFitTree;
 	TTree * fRecoSummaryTree;
@@ -74,6 +80,7 @@ private:
 	WCSimRootGeom * fGeometry;
 	WCSimRecoSummary * fRecoSummary;
 	WCSimRootEvent * fWCSimRootEvent;
+
 
 	std::vector<WCSimLikelihoodTrack> fFitTracks;
 	std::vector<WCSimLikelihoodTrack> fTruthTracks;

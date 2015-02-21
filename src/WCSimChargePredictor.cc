@@ -27,6 +27,16 @@
 
 ///////////////////////////////////////////////////////////////////////////
 /// Constructor
+WCSimChargePredictor::WCSimChargePredictor()
+{
+  fTuner = NULL;
+  fDigitArray = NULL;
+  fDigit = NULL;
+  fNumCalculations = 0;
+  fTuner = NULL;
+}
+
+//
 WCSimChargePredictor::WCSimChargePredictor(WCSimLikelihoodDigitArray * myDigitArray)
 {
     // std::cout << "*** WCSimChargeLikelihood::WCSimChargeLikelihood() *** Created charge likelihood object" << std::endl;

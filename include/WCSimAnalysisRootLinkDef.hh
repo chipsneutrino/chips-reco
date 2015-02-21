@@ -78,5 +78,6 @@
 #pragma link C++ class WCSimEmissionProfiles+;
 #pragma link C++ enum EmissionProfile_t::Type+;
 #pragma link C++ class WCSimRecoSummary+;
+#pragma link C++ class WCSimRecoEvDisplay+;
 
 #endif

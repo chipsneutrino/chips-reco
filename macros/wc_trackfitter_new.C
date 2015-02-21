@@ -26,12 +26,12 @@ void wc_trackfitter_new(){
 
   // Set parameter(track number, "name", minimum, maximum, start, is fixed?)
   // Names are: kVtxX, kVtxY, kVtxZ, kDirTh, kDirPhi, kEnergy
-  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxX", -1200, 1200, 0, true);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxY", -1200, 1200, 0, true);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxZ", -900, 900, 0, true);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxT", -900, 900, 0, true);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kDirTh", 0, TMath::Pi(), 0, true);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kDirPhi", -TMath::Pi(), TMath::Pi(), 0.25*TMath::Pi(), true);
+  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxX", -1200, 1200, 0, false);
+  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxY", -1200, 1200, 0, false);
+  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxZ", -900, 900, 0, false);
+  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxT", -900, 900, 0, false);
+  WCSimFitterInterface::Instance()->SetParameter(0, "kDirTh", 0, TMath::Pi(), 0, false);
+  WCSimFitterInterface::Instance()->SetParameter(0, "kDirPhi", -TMath::Pi(), TMath::Pi(), 0.25*TMath::Pi(), false);
   WCSimFitterInterface::Instance()->SetParameter(0, "kEnergy", 1250, 1700, 1250, false);
 
 
@@ -57,7 +57,7 @@ void wc_trackfitter_new(){
   WCSimFitterInterface::Instance()->SetNumSurfaceBins(50);
   WCSimFitterInterface::Instance()->Make1DSurface(0, "kEnergy");
   WCSimFitterInterface::Instance()->SetMakeFits(kTRUE);
-  WCSimFitterInterface::Instance()->SetMakeSurfaces(kTRUE);
+  WCSimFitterInterface::Instance()->SetMakeSurfaces(kFALSE);
 
 
 

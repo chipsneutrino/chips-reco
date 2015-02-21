@@ -54,13 +54,6 @@ class WCSimLikelihoodTuner
         /**
          * Get the emission profiles (fraction of photons emitted in a given direction at a given
          * distance along the track) for a specific particle type
-         * @param myType Particle type
-         */
-        void LoadEmissionProfiles(WCSimLikelihoodTrack::TrackType myType);
-
-        /**
-         * Get the emission profiles (fraction of photons emitted in a given direction at a given
-         * distance along the track) for a specific particle type
          * @param myTrack Track object to load profiles for
          */
         void LoadEmissionProfiles(WCSimLikelihoodTrack * myTrack);
@@ -145,7 +138,6 @@ class WCSimLikelihoodTuner
 	    Int_t GetEBin(Double_t energy);
         Int_t GetSBin(Double_t sMax);
         Int_t GetESBin(Double_t energy, Double_t sMax);
-        Int_t GetIntegralBin(Double_t energy, Double_t s);
         Int_t GetIntegralBin(Double_t energy, Double_t R0, Double_t cosTheta0, Double_t s);
        
         // DEBUGGING:

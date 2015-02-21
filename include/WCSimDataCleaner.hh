@@ -53,8 +53,6 @@ class WCSimDataCleaner : public TObject {
 
   std::vector<WCSimRecoCluster*>* RecoClusters(std::vector<WCSimRecoDigit*>* digitlist);
 
-  std::vector<WCSimRecoDigit*>* FilterGoldenDigits(std::vector<WCSimRecoDigit*>* digitlist);
-
  private:
   WCSimDataCleaner();
    ~WCSimDataCleaner();

@@ -497,7 +497,7 @@ void WCSimFitterPlots::SavePlots() {
 		tmpd = gDirectory;
 	    std::cout << " *** WCSimFitter::SavePlots() *** " << std::endl;
 	    std::cout << "  opening file: " << fSaveFileName.Data() << std::endl;
-	    fSaveFile = new TFile(fSaveFileName.Data(), "RECREATE");
+	    fSaveFile = new TFile(fSaveFileName.Data(), "UPDATE");
 	}
 
 	fSaveFile->cd();
@@ -557,6 +557,7 @@ void WCSimFitterPlots::SavePlots() {
   fSaveFile->cd();
   
   fSaveFile->Close();
+  fSaveFile = NULL;
 	tmpd->cd();
 	return;
 }

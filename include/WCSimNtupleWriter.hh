@@ -16,7 +16,6 @@ class WCSimNtupleWriter : public TObject {
   WCSimNtupleWriter();
   ~WCSimNtupleWriter();
 
-  void Initialize();
 
   void UseNtuple( const char* ntuple ) { fNtupleName = ntuple; }
   void SetFileName( const char* filename ) { fNtpFileName = filename; }

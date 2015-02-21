@@ -15,6 +15,7 @@
 #include "TDirectory.h"
 #include "TFile.h"
 #include "TString.h"
+#include "TTimeStamp.h"
 #include "TTree.h"
 #include "TVector3.h"
 
@@ -28,6 +29,12 @@ WCSimFitterTree::WCSimFitterTree() {
 	fWCSimTree = 0x0;
 	fGeoTree = 0x0;
 //	fWCSimLikelihoodRecoEvent = 0x0;
+
+	TTimeStamp ts;
+	unsigned int year, month, day, hour, minute, second;
+	ts.GetDate(true, 0, &year, &month, &day);
+	ts.GetTime(true, 0, &hour, &minute, &second);
+	fSaveFileName.Form("fitterTree_%d%d%d_%d%d.root", year, month, day, hour, minute);
 
 	fGeometry = 0x0;
 	fWCSimRootEvent = 0x0;
@@ -65,6 +72,9 @@ WCSimFitterTree::~WCSimFitterTree() {
 }
 
 void WCSimFitterTree::MakeTree() {
+
+	fSaveFile = new TFile(fSaveFileName.Data(), "RECREATE");
+
 	if(fTrueTree != 0x0)
 	{
 		delete fTrueTree;
@@ -77,6 +87,10 @@ void WCSimFitterTree::MakeTree() {
 	{
 		delete fGeoTree;
 	}
+	if(fGeometry != 0x0)
+	{
+		delete fGeometry;
+	}
 	if(fRecoSummaryTree != 0x0)
 	{
 		delete fRecoSummaryTree;
@@ -88,7 +102,7 @@ void WCSimFitterTree::MakeTree() {
 
 	fTrueTree = new TTree("fTruthTree","Truth");
 	fFitTree = new TTree("fFitTree","Fit");
-	fGeoTree = new TTree("fGeoTree","Geometry");
+	fGeoTree = new TTree("wcsimGeoT","Geometry");
 	fRecoSummaryTree = new TTree("fRecoSummaryTree","wcsimReco");
 	fWCSimTree = new TTree("wcsimT","wcsimT");
 
@@ -116,6 +130,8 @@ void WCSimFitterTree::MakeTree() {
 	fFitTree->Branch("energy", &fFitEnergy);
 	fFitTree->Branch("pdg", &fFitPDG);
 
+
+    fGeometry = new WCSimRootGeom();
 	fGeoTree->Branch("wcsimrootgeom", "WCSimRootGeom", &fGeometry, 64000,0);
 	fWCSimTree->Branch("wcsimrootevent", "WCSimRootEvent", &fWCSimRootEvent, 64000,0);
 
@@ -173,7 +189,10 @@ void WCSimFitterTree::Fill(Int_t iEvent, std::vector<WCSimLikelihoodTrack> bestF
 	// Fill the geometry tree
 	if(fGeoTree->GetEntries() == 0)
 	{
-		fGeometry = WCSimGeometry::Instance()->GetWCSimGeometry();
+      
+      *fGeometry = *(WCSimGeometry::Instance()->GetWCSimGeometry());
+      WCSimGeometry::Instance()->PrintGeometry();
+
 		fGeoTree->Fill();
 	}
 
@@ -209,21 +228,24 @@ void WCSimFitterTree::FillFitTrack(WCSimLikelihoodTrack track, Double_t twoLnL) 
 	fFitTree->Fill();
 }
 
-void WCSimFitterTree::SaveTree(TString saveName) {
-	std::cout << saveName << std::endl;
-	std::cout << fTrueTree << std::endl;
+void WCSimFitterTree::SaveTree() {
+
 	TDirectory* tmpd = 0;
 	tmpd = gDirectory;
 	std::cout << " *** WCSimFitter::SaveTree() *** " << std::endl;
-	fTrueTree->Show(0);
-	fFitTree->Show(0);
+	if(fSaveFile == NULL)
+	{
+		fSaveFile = new TFile(fSaveFileName.Data(), "UPDATE");
+	}
 
-	TFile f(saveName.Data(), "UPDATE");
-	fTrueTree->SetDirectory(&f);
-	fFitTree->SetDirectory(&f);
+	fTrueTree->SetDirectory(fSaveFile);
+	fFitTree->SetDirectory(fSaveFile);
+	fWCSimTree->SetDirectory(fSaveFile);
+	fGeoTree->SetDirectory(fSaveFile);
+	fRecoSummaryTree->SetDirectory(fSaveFile);
 
 	// Was it open?
-	f.cd();
+	fSaveFile->cd();
 	fTrueTree->Write();
 	fFitTree->Write();
 
@@ -231,8 +253,8 @@ void WCSimFitterTree::SaveTree(TString saveName) {
 	fWCSimTree->Write();
 	fRecoSummaryTree->Write();
 
-	f.Close();
-
+	fSaveFile->Close();
+	fSaveFile = NULL;
 	tmpd->cd();
 	return;
 }
@@ -255,6 +277,15 @@ void WCSimFitterTree::FillTrueTrack(WCSimLikelihoodTrack track) {
 	fTrueTree->Fill();
 }
 
+void WCSimFitterTree::SetSaveFileName(TString saveName) {
+	fSaveFileName = saveName;
+}
+
+TString WCSimFitterTree::GetSaveFileName() const
+{
+	return fSaveFileName;
+}
+
 void WCSimFitterTree::MakeRecoSummary(
 		std::vector<WCSimLikelihoodTrack> bestFitTracks) {
 	fRecoSummary->ResetValues();
@@ -265,7 +296,7 @@ void WCSimFitterTree::MakeRecoSummary(
 		WCSimLikelihoodTrack * track = &(bestFitTracks.at(iTrack));
 		if(iTrack == 0)
 		{
-			fRecoSummary->SetVertex(track->GetVtx());
+			fRecoSummary->SetVertex( 10*track->GetX(), 10*track->GetY(), 10*track->GetZ() ); // Convert cm to mm
 		}
 		fRecoSummary->AddPrimary(track->GetPDG(), track->GetE(), track->GetDir());
 	}

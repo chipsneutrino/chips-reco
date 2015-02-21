@@ -2,13 +2,14 @@
   gSystem->Load("libGeom");
   gSystem->Load("libEve");
   gSystem->Load("libMinuit.so");
-  gSystem->Load("../WCSim/libWCSimRoot.so");
+  gSystem->Load("$FNU/software/WCSim_github/libWCSimRoot.so");
   gSystem->Load("lib/libWCSimAnalysis.so");
 
   // Load Data
   // =========
   //  WCSimInterface::LoadData("../mcSamples/numi_numu_1_100kT_10pC.root");
   WCSimInterface::LoadData("/unix/fnu/ajperch/WCSim/pions.root");
+  WCSimInterface::LoadData("fitterPlots_2015216_1627.root");
 
   // create viewer: must be called 'viewer'
   // =====================================

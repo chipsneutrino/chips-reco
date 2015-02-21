@@ -24,6 +24,7 @@ WCSimFitterInterface::WCSimFitterInterface() :
 		fFitterPlots(0), fMakeFits(true), fMakeSurfaces(true){
       fFitterPlots = new WCSimFitterPlots();
       fFitterTree = new WCSimFitterTree();
+      fFitterTree->SetSaveFileName(fFitterPlots->GetSaveFileName());
       fFitter = NULL;
       Init();
 	// TODO Auto-generated constructor stub
@@ -235,9 +236,9 @@ void WCSimFitterInterface::Run() {
   if(fMakeFits) { fFitter->RunFits(); }
   std::cout << "  Running surfaces " << std::endl;
   if(fMakeSurfaces) { fFitter->RunSurfaces(); }
+  std::cout << "  Saving tree " << std::endl;
+  fFitterTree->SaveTree();
   std::cout << "  Saving plots " << std::endl;
   fFitterPlots->SavePlots();
-  std::cout << "  Saving tree " << std::endl;
-  fFitterTree->SaveTree(fFitterPlots->GetSaveFileName());
   std::cout << " *********************************** " << std::endl;
 }

@@ -180,8 +180,14 @@ Double_t WCSimLikelihoodTuner::TransmissionFunction(Double_t s, WCSimLikelihoodT
     Double_t r           = (pmtPos - emissionPos).Mag();
 
     // We'll use a triple exponential to parameterise the transmission probability
-    Double_t nu[3]     = {-1.137e-5,-5.212e-4, -4.359e-3}; // nu = 1/Decay length in mm
-    Double_t f[3]      = {0.8827, 0.08162, 0.03515};
+//    Double_t nu[3]     = {-1.137e-5,-5.212e-4, -4.359e-3}; // nu = 1/Decay length in mm
+//    Double_t f[3]      = {0.8827, 0.08162, 0.03515};
+
+    Double_t nu[3] = {-1.01526e-05, -6.67164e-06, -1.41964e-04  };
+    Double_t f[3] = {2.10578e-01, 7.40266e-01, 4.92259e-02 };
+
+
+
     trans = 0.0;
     for(int i = 0; i < 3; ++i){ trans+= f[i]*exp(1.0 * 10 * r * nu[i]);}  //Convert to cm -> factor 10
   }

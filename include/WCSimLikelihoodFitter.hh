@@ -32,7 +32,6 @@ class WCSimLikelihoodFitter
          */
 		WCSimLikelihoodFitter();
         virtual ~WCSimLikelihoodFitter();
-        void Init();
         void SetFitterPlots(WCSimFitterPlots * fitterPlots);
         void SetFitterTree(WCSimFitterTree * fitterTree);
         void RunFits();

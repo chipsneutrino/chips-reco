@@ -53,7 +53,6 @@ public:
 	Double_t GetIntegral(EmissionProfile_t::Type type, WCSimLikelihoodTrack* myTrack,
 			WCSimLikelihoodDigit * myDigit, Int_t sPower, Double_t cutoffS, Bool_t multiplyByWidth);
 	
-  Double_t GetRhoIntegral(WCSimLikelihoodTrack * myTrack, Int_t sPower, Double_t startS, Double_t endS, Bool_t multiplyByWidth = kTRUE);
 	Double_t GetRhoIntegral(Int_t sPower, Double_t energy, Double_t startS, Double_t endS, Bool_t multiplyByWidth = kTRUE);
 	std::vector<Double_t> GetRhoIntegrals(std::vector<Int_t> sPowers, Double_t energy, Double_t startS, Double_t endS, Bool_t multiplyByWidth = kTRUE);
 	Double_t GetRhoGIntegral(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit,
