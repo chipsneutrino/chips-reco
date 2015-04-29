@@ -1,8 +1,11 @@
-void wc_trackfitter_new(){
+void wc_trackfitter_new(const char * infile = ""){
   // Path to WCSim ROOT file
   // =======================
-  TString filename("/unix/fnu/ajperch/software/WCSim_github/muon_lin_recoTest_colEff_5events.root");
-  
+  TString filename(infile);
+  if(filename.EqualTo("") )
+  {
+    filename = TString("localfile.root");
+  }
   gApplication->ProcessLine(".except");
 
   // Load libraries
@@ -21,6 +24,7 @@ void wc_trackfitter_new(){
   // =========
   WCSimInterface::LoadData(filename.Data());
   
+  WCSimFitterInterface::Instance()->SetInputFileName(filename.Data()); // For inclusion in the fitterPlots file
   WCSimFitterInterface::Instance()->SetNumTracks(1);
   WCSimFitterInterface::Instance()->SetTrackType(0, "MuonLike");
 
@@ -29,10 +33,10 @@ void wc_trackfitter_new(){
   WCSimFitterInterface::Instance()->SetParameter(0, "kVtxX", -1200, 1200, 0, false);
   WCSimFitterInterface::Instance()->SetParameter(0, "kVtxY", -1200, 1200, 0, false);
   WCSimFitterInterface::Instance()->SetParameter(0, "kVtxZ", -900, 900, 0, false);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxT", -900, 900, 0, false);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kDirTh", 0, TMath::Pi(), 0, false);
+  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxT", -900, 900, 0, true);
+  WCSimFitterInterface::Instance()->SetParameter(0, "kDirTh", 0, TMath::Pi(), 0.5*TMath::Pi(), false);
   WCSimFitterInterface::Instance()->SetParameter(0, "kDirPhi", -TMath::Pi(), TMath::Pi(), 0.25*TMath::Pi(), false);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kEnergy", 1250, 1700, 1250, false);
+  WCSimFitterInterface::Instance()->SetParameter(0, "kEnergy", 500, 2400, 1500, false);
 
 
   // Plot best-fit results
@@ -63,6 +67,7 @@ void wc_trackfitter_new(){
 
   WCSimFitterInterface::Instance()->Print();
   WCSimFitterInterface::Instance()->SetNumEventsToFit(10);
+  WCSimFitterInterface::Instance()->SetFirstEventToFit(0);
   WCSimFitterInterface::Instance()->Run();
   
   std::cout << "Done!" << std::endl;
