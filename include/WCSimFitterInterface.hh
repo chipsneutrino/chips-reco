@@ -77,6 +77,8 @@ public:
 
 	void Run();
 
+	void SetInputFileName(const char * inputfile);
+
 private:
 	WCSimFitterInterface();
 

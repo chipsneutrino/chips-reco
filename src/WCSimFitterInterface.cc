@@ -224,6 +224,11 @@ void WCSimFitterInterface::PrintSurfaceConfiguration() {
 	fFitterPlots->PrintSurfaces();
 }
 
+void WCSimFitterInterface::SetInputFileName(const char * inputfile)
+{
+	fFitterPlots->SetInputFileName(inputfile);
+}
+
 void WCSimFitterInterface::Run() {
   std::cout << " *** WCSimFitterInterface::Run() *** " << std::endl;
   Init();

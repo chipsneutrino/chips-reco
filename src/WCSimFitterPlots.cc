@@ -18,6 +18,7 @@
 #include <TH1D.h>
 #include <TH2D.h>
 #include <TString.h>
+#include <TSystem.h>
 #include <TTimeStamp.h>
 
 WCSimFitterPlots::WCSimFitterPlots() : fSaveFile(NULL), fNumSurfaceBins(20){
@@ -27,7 +28,9 @@ WCSimFitterPlots::WCSimFitterPlots() : fSaveFile(NULL), fNumSurfaceBins(20){
 	unsigned int year, month, day, hour, minute, second;
 	ts.GetDate(true, 0, &year, &month, &day);
 	ts.GetTime(true, 0, &hour, &minute, &second);
-	fSaveFileName.Form("fitterPlots_%d%d%d_%d%d.root", year, month, day, hour, minute);
+
+	fSaveFileName.Form("fitterPlots_%02d%02d%02d_%02d%02d%02d.root", year, month, day, hour, minute, second);
+	MakeSaveFileName();
 
 }
 
@@ -490,17 +493,20 @@ void WCSimFitterPlots::SetSaveFileName(const char* filename) {
 }
 
 void WCSimFitterPlots::SavePlots() {
+	std::cout << " *** WCSimFitter::SavePlots() *** " << std::endl;
 	TDirectory* tmpd = 0;
-
+	tmpd = gDirectory;
 	if( fSaveFile == NULL )
 	{
-		tmpd = gDirectory;
-	    std::cout << " *** WCSimFitter::SavePlots() *** " << std::endl;
-	    std::cout << "  opening file: " << fSaveFileName.Data() << std::endl;
+		std::cout << "File " << fSaveFileName.Data() << " exists... updating it" << std::endl;
 	    fSaveFile = new TFile(fSaveFileName.Data(), "UPDATE");
 	}
-
+	std::cout << "Saving plots to " << fSaveFileName << std::endl;
 	fSaveFile->cd();
+
+	TNamed inputFile("inputFile", fInputFileName.Data());
+	inputFile.Write();
+
 	fSaveFile->mkdir("Profiles");
 	fSaveFile->cd("Profiles");
 
@@ -555,7 +561,7 @@ void WCSimFitterPlots::SavePlots() {
 	}
 
   fSaveFile->cd();
-  
+
   fSaveFile->Close();
   fSaveFile = NULL;
 	tmpd->cd();
@@ -615,7 +621,6 @@ void WCSimFitterPlots::FillPlots(std::vector<WCSimLikelihoodTrack> bestFits) {
 void WCSimFitterPlots::FillRecoMinusTrue(
 		std::vector<WCSimLikelihoodTrack> bestFits, std::vector<WCSimLikelihoodTrack*> * trueTracks) {
 
-	unsigned int iTrack = 0;
 	// First sort all the tracks by energy
 	std::sort(bestFits.begin(), bestFits.end(), WCSimLikelihoodTrack::EnergyGreaterThanOrEqual);
 	// Make a copy so we don't mess with the pointed vector
@@ -653,4 +658,29 @@ void WCSimFitterPlots::FillRecoMinusTrue(
 
 TString WCSimFitterPlots::GetSaveFileName() const {
 	return fSaveFileName;
+}
+
+void WCSimFitterPlots::SetInputFileName(const char* inputfile) {
+	fInputFileName = TString(inputfile);
+}
+
+void WCSimFitterPlots::MakeSaveFileName() {
+	TDirectory * tmpd = gDirectory;
+    std::cout << " *** WCSimFitter::SavePlots() *** " << std::endl;
+
+    // Check if the file exists first
+    long int tempId, tempSize, tempFlags, tempModtime;
+    Int_t toAdd = 0;
+    TString fileNameCompare = fSaveFileName;
+	fSaveFileName.ReplaceAll(".root","");
+    while( toAdd == 0 || gSystem->GetPathInfo(fileNameCompare.Data(), &tempId, &tempSize, &tempFlags, &tempModtime) == 0)
+    {
+    	fileNameCompare.Form("%s_%03d.root", fSaveFileName.Data(), toAdd++);
+    }
+
+    fSaveFileName = fileNameCompare;
+
+    std::cout << "  Plots to be saved in file: " << fSaveFileName.Data() << std::endl;
+
+    tmpd->cd();
 }

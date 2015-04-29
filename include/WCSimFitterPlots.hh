@@ -71,7 +71,12 @@ public:
 	void Print1DSurfaces();
 	void Print2DSurfaces();
 
+	void SetInputFileName(const char * inputfile);
+
+
 private:
+	void MakeSaveFileName();
+	TString fInputFileName;
 	TString fSaveFileName;
 	TFile * fSaveFile;
 	std::map<std::pair<unsigned int, FitterParameterType::Type>, TH1D*> fSurfaces1D;
