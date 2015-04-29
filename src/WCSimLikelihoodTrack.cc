@@ -63,6 +63,18 @@ void WCSimLikelihoodTrack::Print()
             << "fType   = " << fType   << std::endl << std::endl;
 }
 
+bool WCSimLikelihoodTrack::operator == (const WCSimLikelihoodTrack &b) const
+{
+			return (   fVtx[0] == b.fVtx[0] 
+              && fVtx[1] == b.fVtx[1] 
+              && fVtx[2] == b.fVtx[2]
+              && fT0 == b.fT0
+              && fTheta0 == b.fTheta0
+              && fPhi0 == b.fPhi0
+              && fE0 == b.fE0
+              && fType == b.fType );
+}
+
 ///////////////////////////////////////////////////////////////////////////
 // Setters
 ///////////////////////////////////////////////////////////////////////////

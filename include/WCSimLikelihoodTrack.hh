@@ -116,6 +116,7 @@ class WCSimLikelihoodTrack : public TObject
          */
         TVector3 GetPropagatedPos(Double_t s) const;
         Int_t GetPDG() const;
+        bool operator == (const WCSimLikelihoodTrack &b) const;
  
     protected:
     private:
