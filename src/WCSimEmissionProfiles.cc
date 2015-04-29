@@ -40,6 +40,8 @@ WCSimEmissionProfiles::WCSimEmissionProfiles() {
 	fBinningHistogram = 0x0;
 
 	fRhoInterp = 0x0;
+	fRhoInterpLo = 0x0;
+	fRhoInterpHi = 0x0;
 	fG = 0x0;
 
 }
@@ -47,9 +49,20 @@ WCSimEmissionProfiles::WCSimEmissionProfiles() {
 WCSimEmissionProfiles::~WCSimEmissionProfiles() {
 	if(fProfileFile != 0x0)
 	{
-    fProfileFile->Close();
-    delete fProfileFile;
-    fProfileFile = 0x0;
+		// This also deletes fBinningHisto
+		fProfileFile->Close();
+		delete fProfileFile;
+		fProfileFile = 0x0;
+	}
+	if(fRhoArray != 0x0)
+	{
+		delete fRhoArray;
+		fRhoArray = 0x0;
+	}
+	if(fGArray != 0x0)
+	{
+		delete fGArray;
+		fGArray = 0x0;
 	}
 
 	if( fRhoInterp != 0x0 )
@@ -63,6 +76,19 @@ WCSimEmissionProfiles::~WCSimEmissionProfiles() {
 		delete fG;
 		fG = 0x0;
 	}
+
+	if(fRhoInterpLo != 0x0)
+	{
+		delete fRhoInterpLo;
+		fRhoInterpLo = 0x0;
+	}
+
+	if(fRhoInterpHi != 0x0)
+	{
+		delete fRhoInterpHi;
+		fRhoInterpHi = 0x0;
+	}
+
 }
 
 WCSimEmissionProfiles::WCSimEmissionProfiles(WCSimLikelihoodTrack* myTrack) {
@@ -76,6 +102,11 @@ WCSimEmissionProfiles::WCSimEmissionProfiles(WCSimLikelihoodTrack* myTrack) {
 	fBinningHistogram = 0x0;
 
 	fRhoInterp = 0x0;
+	fG = 0x0;
+
+	fRhoInterp = 0x0;
+	fRhoInterpLo = 0x0;
+	fRhoInterpHi = 0x0;
 	fG = 0x0;
 
 	SetTrack(myTrack);
@@ -193,7 +224,7 @@ UInt_t WCSimEmissionProfiles::GetArrayBin(Double_t energy) const{
 	int iBin = fBinningHistogram->GetXaxis()->FindBin(energy) - 1;
 	if(iBin < 0)
 	{
-		std::cerr << "Warning, array bin number is less than zero - returning 0 instead" << std::endl;
+		std::cerr << "Warning, array bin number is less than zero - returning 0 instead - bin was " << iBin << std::endl;
 		iBin = 0;
 	}
   
@@ -227,7 +258,7 @@ void WCSimEmissionProfiles::LoadFile(WCSimLikelihoodTrack* myTrack) {
 				fProfileFileName.Append("/config/emissionProfilesElectron.root");
 				break;
 			case WCSimLikelihoodTrack::MuonLike:
-				fProfileFileName.Append("/config/emissionProfiles.root");
+				fProfileFileName.Append("/config/emissionProfilesMuon.root");
 				break;
 			default:
 				std::cerr << "Error: unknown track type in WCSimLikelihoodTuner::LoadEmissionProfiles" << std::endl;
@@ -290,7 +321,8 @@ void WCSimEmissionProfiles::InterpolateRho(WCSimLikelihoodTrack* myTrack) {
 		fRhoInterp = 0x0;
 	}
 
-	std::cerr << "Warning: not doing any interpolation, just getting the nearest profile" << std::endl;
+  int bin = GetArrayBin(myTrack->GetE());
+	std::cerr << "Warning: not doing any interpolation, just getting the nearest profile - bin = " << bin << std::endl;
 	fRhoInterp = (TH1D*)(fRhoArray->At(GetArrayBin(myTrack->GetE()))->Clone());
 	fRhoInterp->SetDirectory(0);
 	// std::cout << "Energy = " << myTrack->GetE() << "  integral = " << fRhoInterp->Integral("W");
@@ -546,9 +578,17 @@ void WCSimEmissionProfiles::InterpolateRho(WCSimLikelihoodTrack* myTrack) {
 }
 
 void WCSimEmissionProfiles::InterpolateG(WCSimLikelihoodTrack* myTrack) {
+
+	if(fG != 0x0)
+	{
+		delete fG;
+		fG = 0x0;
+	}
+
 	Double_t energy = myTrack->GetE();
-	std::cerr << "Warning: not doing any interpolation, just getting the nearest profile" << std::endl;
-	fG = (TH2D*)fGArray->At(GetArrayBin(myTrack->GetE()));
+  int bin = GetArrayBin(myTrack->GetE());
+	std::cerr << "Warning: not doing any interpolation, just getting the nearest profile - bin = " << bin << std::endl;
+	fG = (TH2D*)(fGArray->At(GetArrayBin(myTrack->GetE()))->Clone());
 	fG->SetDirectory(0);
 	return;
 
@@ -617,22 +657,17 @@ Double_t WCSimEmissionProfiles::GetLightFlux(
   double fudge = 1.0;
 	switch(type)
 	{
-		case WCSimLikelihoodTrack::MuonLike:
-			// From a linear fit to nPhotons as a function of energy (it's very linear)
-			nPhotons = 246.564/(5.0) * energy - 20700/(5.0);
-			
-      fudge = 1.0/0.699;         //  *furiously waves hands*
-                                 //  m( 0_0 ) m
-                                 //         
-                                 // m ( 0_0 )m
-                                 //
-                                 //  m( 0_0 ) m
-                                 //
-                                 //  This is the factor by which the prediction is "off" from the simulation, on average
-                                 //  We should track it down...
+	case WCSimLikelihoodTrack::MuonLike:
+		// From a linear fit to nPhotons as a function of energy (it's very linear)
+	  // New fit on 10/March/15
+	  nPhotons = 135.247 * energy -14823.6;
 
-      // Things get sketchy at really low energies
-			if(nPhotons > 0){ flux = factorFromG * factorFromSolidAngle * nPhotons; }
+	  // Things get sketchy at really low energies
+	  if(nPhotons > 0){ flux = factorFromG * factorFromSolidAngle * nPhotons; }
+      break;
+    case WCSimLikelihoodTrack::ElectronLike:
+      nPhotons = 116.272 + 123.399 * energy;  // New fit on 10/March/15
+      if(nPhotons > 0){ flux = factorFromG * factorFromSolidAngle * nPhotons; }
       break;
     default:
       assert(0);
@@ -727,3 +762,36 @@ void WCSimEmissionProfiles::SaveProfiles()
 
 }
 
+Double_t WCSimEmissionProfiles::GetStoppingDistance(WCSimLikelihoodTrack * track)
+{
+	SetTrack(track);
+	Int_t bin = fRhoInterp->FindLastBinAbove(0);
+	return (fRhoInterp->GetBinCenter(bin));
+}
+
+TH1D * WCSimEmissionProfiles::GetRho(WCSimLikelihoodTrack::TrackType particle, double energy)
+{
+	WCSimLikelihoodTrack tempTrack;
+	tempTrack.SetType(particle);
+	tempTrack.SetE(energy);
+	SetTrack(&tempTrack);
+	return fRhoInterp;
+}
+
+TH2D * WCSimEmissionProfiles::GetG(WCSimLikelihoodTrack::TrackType particle, double energy)
+{
+	WCSimLikelihoodTrack tempTrack;
+	tempTrack.SetType(particle);
+	tempTrack.SetE(energy);
+	SetTrack(&tempTrack);
+	return fG;
+}
+
+TH1D * WCSimEmissionProfiles::GetEnergyHist(WCSimLikelihoodTrack::TrackType particle)
+{
+	WCSimLikelihoodTrack tempTrack;
+	tempTrack.SetType(particle);
+	tempTrack.SetE(1000.0);
+	SetTrack(&tempTrack);
+	return fBinningHistogram;
+}

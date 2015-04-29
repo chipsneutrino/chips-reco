@@ -36,6 +36,13 @@ public:
     void Print();
     
     /**
+     * Should the charge likelihood cut off the integrals where the particle escapes?
+     * We'll use different, smaller lookup tables if not
+     * @return True if it should truncate them
+     */
+    Bool_t GetTruncateIntegrals() const;
+
+    /**
      * Should the charge likelihood calculate or use tables for integrals?
      * @return True if it should calculate them
      */
@@ -151,6 +158,7 @@ private:
 
     std::string   fConfName;                   ///< Path of a text file containing all the configuration parameters
     Bool_t        fCalculateIntegrals;         ///< True if charge likelihood should calculate integrals, false to look them up
+    Bool_t        fTruncateIntegrals;         ///< True if charge likelihood should use full lookup tabels for integrals, false to use one that doesn't cut off
     Bool_t        fConstrainExtent;            ///< True if integrals should cut off when the particle leaves the detector
     Bool_t        fUseTransmission;            ///< True if we should account for absorption of photons in the water
     Bool_t        fUseAngularEfficiency;       ///< True if we should account for the PMT efficiency as a function of angle

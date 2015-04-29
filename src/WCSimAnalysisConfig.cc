@@ -23,6 +23,7 @@ WCSimAnalysisConfig::WCSimAnalysisConfig()
     // values.  Note that these will be overriden in a 
     // few lines time.
     fCalculateIntegrals        = false;
+    fTruncateIntegrals         = false;
     fConstrainExtent           = true;
     fDigiType                  = "";
     fUseTransmission           = true;
@@ -51,6 +52,7 @@ void WCSimAnalysisConfig::Print()
 {
     std::cout << "*** WCSimAnalysisConfig::Print() *** " << std::endl;
     std::cout << "fCalculateIntegrals = " << fCalculateIntegrals << std::endl
+              << "fTruncateIntegrals  = " << fTruncateIntegrals << std::endl
               << "fConstrainExtent = " << fConstrainExtent << std::endl
               << "fDigiType = " << fDigiType << std::endl
               << "fUseTransmission = " << fUseTransmission << std::endl
@@ -65,6 +67,11 @@ void WCSimAnalysisConfig::Print()
 Bool_t WCSimAnalysisConfig::GetCalculateIntegrals() const
 {
   return fCalculateIntegrals;
+}
+
+Bool_t WCSimAnalysisConfig::GetTruncateIntegrals() const
+{
+  return fTruncateIntegrals;
 }
 
 Bool_t WCSimAnalysisConfig::GetConstrainExtent() const
@@ -256,6 +263,23 @@ void WCSimAnalysisConfig::SetFromMap()
             else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
             {
                 fCalculateIntegrals = false;
+            }
+            else
+            {
+              std::cerr << "Error: " << (*itr).first << " = " << (*itr).second 
+                           << " should equal true/false or 1/0" << std::endl;
+              exit(EXIT_FAILURE);
+            }
+        }
+        if((*itr).first.compare("TruncateIntegrals") == 0)
+        {
+            if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+            {
+                fTruncateIntegrals = true;
+            }
+            else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+            {
+                fTruncateIntegrals = false;
             }
             else
             {

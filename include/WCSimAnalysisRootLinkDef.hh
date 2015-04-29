@@ -79,5 +79,8 @@
 #pragma link C++ enum EmissionProfile_t::Type+;
 #pragma link C++ class WCSimRecoSummary+;
 #pragma link C++ class WCSimRecoEvDisplay+;
+#pragma link C++ class WCSimIntegralLookupMaker+;
+#pragma link C++ class WCSimIntegralLookupMaker3D+;
+#pragma link C++ class WCSimIntegralLookupReader+;
 
 #endif

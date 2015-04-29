@@ -65,7 +65,11 @@ public:
   Double_t GetLightFlux(WCSimLikelihoodTrack * myTrack) const;
 
   std::vector<Double_t> GetProfileEnergies() const;
+  Double_t GetStoppingDistance(WCSimLikelihoodTrack * track);
 
+  TH1D * GetRho(WCSimLikelihoodTrack::TrackType particle, double energy);
+  TH2D * GetG(WCSimLikelihoodTrack::TrackType particle, double energy);
+  TH1D * GetEnergyHist(WCSimLikelihoodTrack::TrackType particle);
 
 private:
 	UInt_t GetArrayBin(Double_t energy) const;

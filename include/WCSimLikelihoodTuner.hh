@@ -20,6 +20,7 @@
 #include "TTree.h"
 
 #include "WCSimEmissionProfiles.hh"
+#include "WCSimIntegralLookup.hh"
 #include "WCSimLikelihoodTrack.hh"
 #include "WCSimLikelihoodDigitArray.hh"
 #include "WCSimRootGeom.hh"
@@ -77,7 +78,11 @@ class WCSimLikelihoodTuner
          */
         Double_t Efficiency(Double_t s, WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit);
 
-        // Double_t QuantumEfficiency(WCSimLikelihoodTrack * myTrack);
+        /**
+         * Apply the wavelength-weighted relative quantum efficiency
+         * @param myTrack Track that emitted the photon
+         */
+        Double_t QuantumEfficiency(WCSimLikelihoodTrack * myTrack);
 
         /**
          * Factor for the solid angle of the PMT as viewed from where the photon was emitted
@@ -108,19 +113,17 @@ class WCSimLikelihoodTuner
         
         /**
          * How far along the track should we integrate to, before the particle escapes a cylindrical detector?
-         * @param vtx Track vertex
-         * @param dir Track direction unit vector
+         * @param myTrack Track object to calculate it for
          * @return Distance in the track direction where the integral should stop
          */
-        Double_t CalculateCylinderCutoff(const TVector3 &vtx, const TVector3 &dir);
+        Double_t CalculateCylinderCutoff(WCSimLikelihoodTrack * myTrack);
 
         /**
          * How far along the track should we integrate to, before the particle escapes a mailbox detector?
-         * @param vtx Track vertex
-         * @param dir Track direction unit vector
+         * @param myTrack Track object to calculate it for
          * @return Distance in the track direction where the integral should stop
          */
-        Double_t CalculateMailBoxCutoff(const TVector3 &vtx, const TVector3 &dir);
+        Double_t CalculateMailBoxCutoff(WCSimLikelihoodTrack * myTrack);
 
         /**
          * Wrapper to calculate the cutoff for the appropriate geometry
@@ -134,12 +137,6 @@ class WCSimLikelihoodTuner
          */
 	      void LoadTabulatedIntegrals(WCSimLikelihoodTrack * myTrack);
 
-	    // Bin lookups:
-	    Int_t GetEBin(Double_t energy);
-        Int_t GetSBin(Double_t sMax);
-        Int_t GetESBin(Double_t energy, Double_t sMax);
-        Int_t GetIntegralBin(Double_t energy, Double_t R0, Double_t cosTheta0, Double_t s);
-       
         // DEBUGGING:
         // By default the tuner will use a config file to determine whether to calculate or lookup the integrals
         // This funtion can be used to override it
@@ -230,29 +227,10 @@ class WCSimLikelihoodTuner
          */
         std::vector<Double_t> CalculateCoefficientsVector(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit);
    
-        /**
-         * Produce a table of direct integrals that can later be loaded and used to look them up
-         * @param myType Particle type
-         * @param filename Where to save the tables
-         */
-        void TabulateIndirectIntegrals( WCSimLikelihoodTrack::TrackType myType, TString filename);
-
-        /**
-         * Produce a table of indirect integrals that can later be loaded and used to look them up
-         * @param myType Particle type
-         * @param filename Where to save the tables
-         */
-        void TabulateDirectIntegrals(WCSimLikelihoodTrack::TrackType myType, TString filename);
-
-        /**
-         * Produce tables of direct and indirect integrals that can later be loaded and used to look them up
-         * @param myType Particle type
-         * @param filename Where to save the tables
-         */
-        void TabulateIntegrals(WCSimLikelihoodTrack::TrackType myType, TString filename);
-
         Double_t GetLightFlux(WCSimLikelihoodTrack * myTrack);        
-    
+
+        double GetTrackLengthForPercentile(WCSimLikelihoodTrack * myTrack, const double &percentile);
+
     protected:
     private:
 
@@ -273,58 +251,14 @@ class WCSimLikelihoodTuner
 
 
         // Work out where to cut off integrals, and cache the last one
-        WCSimLikelihoodTrack * fLastCutoff; ///< The last track we calculated a cutoff for (for cacheing)
+        WCSimLikelihoodTrack fLastCutoff; ///< The last track we calculated a cutoff for (for cacheing)
         Double_t fCutoffIntegral; ///< Distance along the particle's trajectory where it leaves the detector
 
-        // Read in from the emission profile files
-
-	  
-	  	// These are used to speed up reading in the pre-computed integrals
-	  	// by ensuring that if the appropriate file is already open, and the appropriate
-	  	// tree has already been loaded, we don't waste time getting them again
-        // The way integrals are loaded has changed to just use a binary file not a tree
-        // - some of these should be safe to delete now
 	  	Bool_t   fCalculateIntegrals;  ///< True if we should calculate integrals numerically, false to look them up in a table
-	  	TFile  * fRhoIntegralFile;     ///< File containing the integrals of the 1D emission profile
-	  	TFile  * fRhoGIntegralFile;    ///< File containing the integrals of the 2D emission profile
-	  	TTree  * fRhoIntegralTree;     ///< Not used any more
-	  	TTree  * fRhoGIntegralTree;    ///< Not used any more
-        Int_t    fIntegralEnergyBin;   ///< Not used any more
-        Double_t fIntegralSMax;        ///< Not used any more
       
-      
-      // The binning scheme for the table of indirect integrals      
-      Int_t    fNBinsRho;  ///< Total number of bins in all indirect integrals at all energies
-      Int_t    fNSBinsRho; ///< How many bins of s are there for each energy in the indirect table
-      Int_t    fNEBinsRho; ///< How different energies are there tables for
-      Double_t fSMinRho;   ///< Lowest distance along track (should be 0)
-      Double_t fSMaxRho;   ///< Highest distance along track
-      Double_t fEMinRho;   ///< Lowest tabulated energy
-      Double_t fEMaxRho;   ///< Highest tabulated energy
+	  	WCSimLikelihoodTrack::TrackType fIntegralParticleType; ///< The particle type whose table we've already loaded
+	  	WCSimEmissionProfiles fEmissionProfiles; ///< The emission profile handler
 
-
-      // The binning scheme for the table of direct integrals
-      // Co-ordinates are defined in WCSimLikelihoodTuner.cc and follow the MiniBooNE paper
-      Int_t    fNBinsRhoG;      ///< Total number of bins in all direct integrals at all energies
-      Int_t    fNR0Bins;        ///< Number of bins in R0
-      Int_t    fNCosTheta0Bins; ///< Number of bins in cosTheta0
-	  Int_t    fNSBins;         ///< Number of bins in distance along track
-	  Int_t    fNEBins;         ///< Number of track energy bins
-	  Double_t fR0Min;          ///< Minimum value of R0 (should be 0)
-	  Double_t fR0Max;          ///< Maximum value of R0
-	  Double_t fEMin;           ///< Minimum tabulated energy
-	  Double_t fEMax;           ///< Maximum tabulated energy
-      Double_t fSMin;           ///< Lowest distance along track (should be 0)
-	  Double_t fSMax;           ///< Highest distance along track
-      Double_t fCosTheta0Min;   ///< Minimum value of cosTheta0 (should be -1)
-      Double_t fCosTheta0Max;   ///< Maximum value of cosTheta0 (should be +1)
-      
-      // The table of integrals
-	  Double_t * fRhoIntegrals;  ///< Table of indirect integrals flattened to a 1D array
-	  Double_t * fRhoGIntegrals; ///< Table of direct integrals flattened to a 1D array
-
-	  WCSimLikelihoodTrack::TrackType fIntegralParticleType; ///< The particle type whose table we've already loaded
-    WCSimEmissionProfiles fEmissionProfiles; ///< The emission profile handler 	  
 };
 
 #endif // WCSIMLIKELIHOODTUNER_H
