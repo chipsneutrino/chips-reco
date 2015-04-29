@@ -112,9 +112,16 @@ class WCSimLikelihoodFitter
 
         void FillPlots();
         void FillTree();
+        void FillHitComparison();
 
         void Make1DSurface(std::pair<unsigned int, FitterParameterType::Type> trackPar);
         void Make2DSurface(std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > trackPar);
+
+        Bool_t GetTrueTrackEscapes(unsigned int iTrack) const;
+        Bool_t GetFitTrackEscapes( unsigned int iTrack) const;
+        Bool_t GetTrackEscapes(WCSimLikelihoodTrack * track) const;
+
+
 
 
         WCSimTotalLikelihood * fTotalLikelihood; ///< Class used to calculate the total (combined charge and time) likelihood that we minimize
@@ -167,7 +174,7 @@ class WCSimLikelihoodFitter
         WCSimFitterPlots * fFitterPlots;
         WCSimFitterTree * fFitterTree;
 
-
+        int fCalls;
     ClassDef(WCSimLikelihoodFitter,1);
 };
 

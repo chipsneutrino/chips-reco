@@ -9,6 +9,8 @@
 #include "WCSimFitterTree.hh"
 #include "WCSimGeometry.hh"
 #include "WCSimInterface.hh"
+#include "WCSimLikelihoodDigit.hh"
+#include "WCSimLikelihoodDigitArray.hh"
 #include "WCSimRecoSummary.hh"
 #include "WCSimTrueEvent.hh"
 
@@ -28,6 +30,7 @@ WCSimFitterTree::WCSimFitterTree() {
 	fRecoSummaryTree = 0x0;
 	fWCSimTree = 0x0;
 	fGeoTree = 0x0;
+  fHitComparisonTree = 0x0;
 //	fWCSimLikelihoodRecoEvent = 0x0;
 
 	TTimeStamp ts;
@@ -64,6 +67,7 @@ WCSimFitterTree::WCSimFitterTree() {
 	fTrueEnergy = -9999.99;
 	fTruePDG = -999;
 
+  fHitComparison = 0x0;
 }
 
 WCSimFitterTree::~WCSimFitterTree() {
@@ -99,13 +103,19 @@ void WCSimFitterTree::MakeTree() {
 	{
 		delete fWCSimTree;
 	}
+  if(fHitComparisonTree != 0x0)
+  {
+    delete fHitComparisonTree;
+  }
 
 	fTrueTree = new TTree("fTruthTree","Truth");
 	fFitTree = new TTree("fFitTree","Fit");
 	fGeoTree = new TTree("wcsimGeoT","Geometry");
 	fRecoSummaryTree = new TTree("fRecoSummaryTree","wcsimReco");
 	fWCSimTree = new TTree("wcsimT","wcsimT");
-
+  fHitComparisonTree = new TTree("fHitComparisonTree","Hit comparison");
+  
+  fHitComparison = new HitComparison();
 
 	fTrueTree->Branch("event", &fEvent);
 	fTrueTree->Branch("track", &fTrueTrackNum);
@@ -117,6 +127,7 @@ void WCSimFitterTree::MakeTree() {
 	fTrueTree->Branch("phi", &fTrueDirPhi);
 	fTrueTree->Branch("energy", &fTrueEnergy);
 	fTrueTree->Branch("pdg", &fTruePDG);
+	fTrueTree->Branch("escapes", &fTrueEscapes);
 
 	fFitTree->Branch("event", &fEvent);
 	fTrueTree->Branch("track", &fFitTrackNum);
@@ -129,6 +140,7 @@ void WCSimFitterTree::MakeTree() {
 	fFitTree->Branch("phi", &fFitDirPhi);
 	fFitTree->Branch("energy", &fFitEnergy);
 	fFitTree->Branch("pdg", &fFitPDG);
+	fFitTree->Branch("escapes", &fFitEscapes);
 
 
     fGeometry = new WCSimRootGeom();
@@ -137,7 +149,17 @@ void WCSimFitterTree::MakeTree() {
 
 	fRecoSummaryTree->Branch("WCSimRecoSummary","WCSimRecoSummary", &fRecoSummary, 64000, 0);
 
-	fEvent = 0;
+  fHitComparisonTree->Branch("eventID",&fEvent);
+  fHitComparisonTree->Branch("pmtID",&(fHitComparison->pmtID));
+  fHitComparisonTree->Branch("pmtX",&(fHitComparison->pmtX));
+  fHitComparisonTree->Branch("pmtY",&(fHitComparison->pmtY));
+  fHitComparisonTree->Branch("pmtZ",&(fHitComparison->pmtZ));
+  fHitComparisonTree->Branch("predQ",&(fHitComparison->predQ));
+  fHitComparisonTree->Branch("trueQ",&(fHitComparison->trueQ));
+  fHitComparisonTree->Branch("minus2LnL",&(fHitComparison->minus2LnL));
+  fHitComparisonTree->Branch("correctPredQ",&(fHitComparison->correctPredQ));
+  fHitComparisonTree->Branch("correctMinus2LnL",&(fHitComparison->correctMinus2LnL));
+  fEvent = 0;
 
 }
 
@@ -157,8 +179,16 @@ TTree* WCSimFitterTree::GetGeoTree() {
 	return fGeoTree;
 }
 
-void WCSimFitterTree::Fill(Int_t iEvent, std::vector<WCSimLikelihoodTrack> bestFitTracks,
-		std::vector<WCSimLikelihoodTrack*> trueTracks, Double_t minimum) {
+TTree* WCSimFitterTree::GetHitComparisonTree() {
+  return fHitComparisonTree;
+}
+
+void WCSimFitterTree::Fill(Int_t iEvent,
+						   std::vector<WCSimLikelihoodTrack> bestFitTracks,
+						   std::vector<Bool_t> bestFitEscapes,
+						   std::vector<WCSimLikelihoodTrack*> trueTracks,
+						   std::vector<Bool_t> trueTrackEscapes,
+						   Double_t minimum) {
 
 	fEvent = iEvent;
 
@@ -174,16 +204,18 @@ void WCSimFitterTree::Fill(Int_t iEvent, std::vector<WCSimLikelihoodTrack> bestF
 	for(bfIter = bestFitTracks.begin(); bfIter != bestFitTracks.end(); ++bfIter)
 	{
 		fFitTrackNum = std::distance(bestFitTracks.begin(), bfIter);
+		Bool_t escapes = bestFitEscapes.at(fFitTrackNum);
 		WCSimLikelihoodTrack track = (*bfIter);
-		FillFitTrack(track, minimum);
+		FillFitTrack(track, escapes, minimum);
 	}
 
 	std::vector<WCSimLikelihoodTrack*>::iterator truIter;
 	for( truIter = trueTracks.begin(); truIter != trueTracks.end(); ++truIter)
 	{
 		fTrueTrackNum = std::distance(trueTracks.begin(), truIter);
+		Bool_t escapes = trueTrackEscapes.at(fTrueTrackNum);
 		WCSimLikelihoodTrack track = *(*truIter);
-		FillTrueTrack(track);
+		FillTrueTrack(track, escapes);
 	}
 
 	// Fill the geometry tree
@@ -209,7 +241,7 @@ void WCSimFitterTree::Fill(Int_t iEvent, std::vector<WCSimLikelihoodTrack> bestF
 
 }
 
-void WCSimFitterTree::FillFitTrack(WCSimLikelihoodTrack track, Double_t twoLnL) {
+void WCSimFitterTree::FillFitTrack(WCSimLikelihoodTrack track, Bool_t escapes, Double_t twoLnL) {
 
 	track.Print();
 	fFitVtxX     = track.GetX();
@@ -220,6 +252,7 @@ void WCSimFitterTree::FillFitTrack(WCSimLikelihoodTrack track, Double_t twoLnL) 
 	fFitDirPhi   = track.GetPhi();
 	fFitEnergy   = track.GetE();
 	fFitPDG      = track.GetPDG();
+	fFitEscapes = escapes;
 
 	if(fFitTree == 0x0)
 	{
@@ -233,8 +266,10 @@ void WCSimFitterTree::SaveTree() {
 	TDirectory* tmpd = 0;
 	tmpd = gDirectory;
 	std::cout << " *** WCSimFitter::SaveTree() *** " << std::endl;
+	std::cout << "Save file name = " << fSaveFileName << std::endl;
 	if(fSaveFile == NULL)
 	{
+		std::cout << "File " << fSaveFileName.Data() << " already exists... updating" << std::endl;
 		fSaveFile = new TFile(fSaveFileName.Data(), "UPDATE");
 	}
 
@@ -243,6 +278,7 @@ void WCSimFitterTree::SaveTree() {
 	fWCSimTree->SetDirectory(fSaveFile);
 	fGeoTree->SetDirectory(fSaveFile);
 	fRecoSummaryTree->SetDirectory(fSaveFile);
+  fHitComparisonTree->SetDirectory(fSaveFile);
 
 	// Was it open?
 	fSaveFile->cd();
@@ -253,6 +289,7 @@ void WCSimFitterTree::SaveTree() {
 	fWCSimTree->Write();
 	fRecoSummaryTree->Write();
 
+  fHitComparisonTree->Write();
 	fSaveFile->Close();
 	fSaveFile = NULL;
 	tmpd->cd();
@@ -260,7 +297,7 @@ void WCSimFitterTree::SaveTree() {
 }
 
 
-void WCSimFitterTree::FillTrueTrack(WCSimLikelihoodTrack track) {
+void WCSimFitterTree::FillTrueTrack(WCSimLikelihoodTrack track, Bool_t escapes) {
 	fTrueVtxX     = track.GetX();
 	fTrueVtxY     = track.GetY();
 	fTrueVtxZ     = track.GetZ();
@@ -269,6 +306,8 @@ void WCSimFitterTree::FillTrueTrack(WCSimLikelihoodTrack track) {
 	fTrueDirPhi   = track.GetPhi();
 	fTrueEnergy   = track.GetE();
 	fTruePDG      = track.GetPDG();
+
+	fTrueEscapes = escapes;
 
 	if(fTrueTree == 0x0)
 	{
@@ -302,3 +341,26 @@ void WCSimFitterTree::MakeRecoSummary(
 	}
 	return;
 }
+
+void WCSimFitterTree::FillHitComparison(WCSimLikelihoodDigitArray* digitArray,
+		const std::vector<double>& predictedCharges,
+		const std::vector<double>& correctPredictedCharges,
+		const std::vector<double>& measuredCharges,
+		const std::vector<double>& total2LnLs,
+		const std::vector<double>& correct2LnLs) {
+  assert(predictedCharges.size() == measuredCharges.size() && predictedCharges.size() == total2LnLs.size());
+  for(int iPMT = 0; iPMT < predictedCharges.size(); ++iPMT)
+  {
+    WCSimLikelihoodDigit * digit = digitArray->GetDigit(iPMT);
+
+    fHitComparison->Set(iPMT, digit->GetX(), digit->GetY(), digit->GetZ(), 
+                        measuredCharges.at(iPMT),
+                        predictedCharges.at(iPMT),
+                        correctPredictedCharges.at(iPMT),
+                        total2LnLs.at(iPMT),
+                        correct2LnLs.at(iPMT));
+    fHitComparisonTree->Fill();
+  }
+}
+
+

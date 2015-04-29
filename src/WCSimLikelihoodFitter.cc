@@ -123,8 +123,20 @@ void WCSimLikelihoodFitter::Minimize2LnL()
 	  SeedParams();
   }
 
+
   for(UInt_t i = 0; i < nPars; ++i)
   {
+    // Sometimes the fast seed goes outside the allowed range:
+    if(fStartVals[i] < fMinVals[i])
+    {
+      fStartVals[i] = fMinVals[i] + 0.01 * ( fMaxVals[i] - fMinVals[i] );
+    }
+    if(fStartVals[i] > fMaxVals[i])
+    {
+      fStartVals[i] = fMaxVals[i] - 0.01 * (fMaxVals[i] - fMinVals[i]);
+    }
+
+
 	  if( fFixed[i] || fIsEnergy[i])
 	  {
 	  	min->SetFixedVariable(i, fNames[i], fStartVals[i]);
@@ -137,6 +149,7 @@ void WCSimLikelihoodFitter::Minimize2LnL()
   }
 
   // Perform the minimization
+  fCalls = 0;
   if( isAnythingFree )
   {
     min->Minimize();
@@ -243,6 +256,7 @@ void WCSimLikelihoodFitter::Minimize2LnL()
  */
 Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
 {
+  std::cout << "Function evaluated " << ++fCalls << " times for event " << fEvent << std::endl;
   UInt_t nTracks = WCSimFitterConfig::Instance()->GetNumTracks();
   std::vector<FitterParameterType::Type> allTypes = FitterParameterType::GetAllAllowedTypes();
 
@@ -272,19 +286,20 @@ Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
 								  fTypes.at(iTrack)
 								  );
 	  tracksToFit.push_back(track);
+    std::cout << x[0] << " " << x[1] << " " << x[2] << " " << x[3] << std::endl;
   }
 
 
 
-  if(fIsFirstCall || 1) // TEMP: Print it out all the time for now
-  {
-    std::cout << "Tracks used for first call:" << std::endl;
-    std::vector<WCSimLikelihoodTrack>::iterator itr = tracksToFit.begin();
-    for( ; itr < tracksToFit.end(); ++itr)
-    {
-      (*itr).Print();
-    }
-  }
+  // if(fIsFirstCall ) // TEMP: Print it out all the time for now
+  // {
+  //   std::cout << "Tracks used for first call:" << std::endl;
+  //   std::vector<WCSimLikelihoodTrack>::iterator itr = tracksToFit.begin();
+  //   for( ; itr < tracksToFit.end(); ++itr)
+  //   {
+  //     (*itr).Print();
+  //   }
+  // }
 
   Double_t minus2LnL = 0.0;
   fTotalLikelihood->SetTracks(tracksToFit);
@@ -330,7 +345,8 @@ void WCSimLikelihoodFitter::SeedParams()
 	std::cout << " *** WCSimLikelihoodFitter::SeedParams() *** " << std::endl;
 	WCSimReco * myReco = WCSimRecoFactory::Instance()->MakeReco(); // This calls new() - delete when done
 	WCSimRecoEvent* recoEvent = WCSimInterface::RecoEvent();
-	myReco->Run(recoEvent);
+	// myReco->RunFilter(recoEvent); // Might need to do this first, I'm not sure
+	myReco->RunRecoVertex(recoEvent);
 
 	fSeedMap.clear();
 	fSeedMap.insert(std::make_pair(FitterParameterType::kVtxX, recoEvent->GetVtxX()));
@@ -417,14 +433,12 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
 
 	if(WCSimFitterInterface::Instance()->GetMakeFits() ) {
 		WCSimInterface::Instance()->BuildEvent(iEvent);
+    std::cout << "Fitting event " << iEvent << std::endl;
 		Minimize2LnL();
-		std::cout << "Getting true likelihood tracks 2" << std::endl;
 		fTrueLikelihoodTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
-		std::cout << "Fill plots now 3" << std::endl;
 		FillPlots();
-		std::cout << "Plots filled" << std::endl;
 		FillTree();
-		std::cout << "Tree filled" << std::endl;
+		FillHitComparison();
 	}
 
 	return;
@@ -677,7 +691,7 @@ void WCSimLikelihoodFitter::PerformEnergyGridSearch(Double_t& best2LnL,
   for(unsigned int iBin = 0; iBin < energyBinsZero.size(); ++iBin)
 	{
     std::cout << "TrackZeroIndex = " << trackZeroIndex << std::endl;
-    std::cout << "Energby bin " << iBin << " is " << energyBinsZero.at(iBin) << std::endl;
+    std::cout << "Energy bin " << iBin << " is " << energyBinsZero.at(iBin) << std::endl;
   	x[trackZeroIndex] = energyBinsZero.at(iBin);
 
     std::cout << "about to do the loop" << std::endl;
@@ -712,6 +726,28 @@ void WCSimLikelihoodFitter::PerformEnergyGridSearch(Double_t& best2LnL,
 	}
   fMinimum = best2LnL;
   std::cout << "Grid search finished" << std::endl;
+
+}
+
+void WCSimLikelihoodFitter::FillHitComparison() {
+	std::vector<double> predictedCharges = fTotalLikelihood->GetPredictedChargeVector();
+	std::vector<double> measuredCharges = fTotalLikelihood->GetMeasuredChargeVector();
+	std::vector<double> best2LnLs = fTotalLikelihood->GetTotal2LnLVector();
+
+	std::vector<WCSimLikelihoodTrack*> *correctTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
+	std::vector<WCSimLikelihoodTrack> correctTracksNoPtr;
+	for(int i = 0; i < correctTracks->size(); ++i)
+	{
+		correctTracksNoPtr.push_back(*(correctTracks->at(i)));
+	  correctTracksNoPtr.at(i).Print();
+  }
+  
+	fTotalLikelihood->SetTracks(correctTracksNoPtr);
+	fTotalLikelihood->Calc2LnL();
+	std::vector<double> correctPredictedCharges = fTotalLikelihood->GetPredictedChargeVector();
+	std::vector<double> correct2LnLs = fTotalLikelihood->GetTotal2LnLVector();
+	fFitterTree->FillHitComparison(fLikelihoodDigitArray, predictedCharges, correctPredictedCharges, measuredCharges, best2LnLs, correct2LnLs);
+
 
 }
 
@@ -837,7 +873,17 @@ void WCSimLikelihoodFitter::FillPlots() {
 void WCSimLikelihoodFitter::FillTree() {
 	if(fFitterTree != NULL)
 	{
-		fFitterTree->Fill(fEvent, fBestFit, *fTrueLikelihoodTracks, fMinimum);
+		std::vector<Bool_t> bestFitEscapes;
+		std::vector<Bool_t> trueTrackEscapes;
+		for(unsigned int i = 0; i < fBestFit.size(); ++i)
+		{
+			bestFitEscapes.push_back(this->GetFitTrackEscapes(i));
+		}
+		for(unsigned int j = 0; j < fTrueLikelihoodTracks->size(); ++j)
+		{
+			trueTrackEscapes.push_back(this->GetTrueTrackEscapes(j));
+		}
+		fFitterTree->Fill(fEvent, fBestFit, bestFitEscapes, *fTrueLikelihoodTracks, trueTrackEscapes, fMinimum);
 	}
 	return;
 }
@@ -845,4 +891,22 @@ void WCSimLikelihoodFitter::FillTree() {
 void WCSimLikelihoodFitter::SetFitterTree(WCSimFitterTree* fitterTree) {
   std::cout << "Setting fFitterTree" << std::endl;
   fFitterTree = fitterTree;
+}
+
+Bool_t WCSimLikelihoodFitter::GetTrueTrackEscapes(unsigned int iTrack) const{
+	WCSimLikelihoodTrack * track = fTrueLikelihoodTracks->at(iTrack);
+	return GetTrackEscapes(track);
+}
+
+Bool_t WCSimLikelihoodFitter::GetFitTrackEscapes( unsigned int iTrack) const{
+	WCSimLikelihoodTrack track = (fBestFit.at(iTrack));
+	return GetTrackEscapes(&track);
+}
+
+Bool_t WCSimLikelihoodFitter::GetTrackEscapes(WCSimLikelihoodTrack * track) const{
+	Double_t distanceToEdge = WCSimGeometry::Instance()->ForwardProjectionToEdge(track->GetX(), track->GetY(), track->GetZ(),
+																	 	 	 	 track->GetDirX(), track->GetDirY(), track->GetDirZ());
+	WCSimEmissionProfiles ep(track);
+	Double_t stoppingDistance = ep.GetStoppingDistance(track);
+	return (stoppingDistance > distanceToEdge);
 }

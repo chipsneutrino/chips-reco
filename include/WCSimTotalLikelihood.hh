@@ -66,14 +66,27 @@ class WCSimTotalLikelihood : public TObject
       std::vector<Double_t> CalcPredictedCharges(unsigned int iDigit);
 
       void SetLikelihoodDigitArray(WCSimLikelihoodDigitArray * likelihoodDigitArray);
+
+      std::vector<double> GetMeasuredChargeVector() const;
+      std::vector<double> GetPredictedChargeVector() const;
+      std::vector<double> GetTotal2LnLVector() const;
+
  
   protected:
   private:
+      void ClearVectors();
+
       WCSimLikelihoodDigitArray * fLikelihoodDigitArray; ///< Event to build likelihood for
       std::vector<WCSimChargePredictor> fChargeLikelihoodVector; ///< Charge component of likelihood calculation
       WCSimTimeLikelihood fTimeLikelihood; ///< Time component of likelihood calculation
       WCSimDigitizerLikelihood fDigitizerLikelihood;
       std::vector<WCSimLikelihoodTrack> fTracks; ///< Tracks to consider when calculating the likelihood
+
+      bool fSetVectors;
+      std::vector<double> fMeasuredCharges;
+      std::vector<double> fPredictedCharges;
+      std::vector<double> fTotal2LnL;
+
 
 	ClassDef(WCSimTotalLikelihood,1)
 		

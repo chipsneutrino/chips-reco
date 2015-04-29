@@ -215,24 +215,49 @@ void WCSimInterface::ResetTrueLikelihoodTracks()
 {
 	// delete list of tracks
 	// =====================
-	for( UInt_t i=0; i<fTrueLikelihoodTracks->size(); i++ ){
-	    delete (WCSimLikelihoodTrack*)(fTrueLikelihoodTracks->at(i));
+	if(fTrueLikelihoodTracks != 0x0)
+	{
+		for( UInt_t i=0; i<fTrueLikelihoodTracks->size(); i++ ){
+			delete (WCSimLikelihoodTrack*)(fTrueLikelihoodTracks->at(i));
+		}
+		fTrueLikelihoodTracks->clear();
+		delete fTrueLikelihoodTracks;
+		fTrueLikelihoodTracks = 0x0;
 	}
-	fTrueLikelihoodTracks->clear();
 	return;
 }
 
 void WCSimInterface::BuildTrueLikelihoodTracks() {
   std::cout << " *** WCSimInterface::BuildTrueLikelihoodTracks() *** " << std::endl;
 	this->ResetTrueLikelihoodTracks();
-  std::cout << "Size of fTrackList = " << fTrackList->size() << std::endl;
+
+	WCSimTruthSummary sum = fEvent->GetTruthSummary();
 
 	fTrueLikelihoodTracks = new std::vector<WCSimLikelihoodTrack*>;
-	for( unsigned int iTrack = 0 ; iTrack < fTrackList->size(); ++iTrack )
+	if(sum.IsParticleGunEvent())
 	{
-    std::cout << "Pushing back track number " << iTrack << std::endl;
-		WCSimLikelihoodTrack * likeTrack = new WCSimLikelihoodTrack(fTrackList->at(iTrack));
-		fTrueLikelihoodTracks->push_back(likeTrack);
+		double mm_to_cm = 0.1;
+		WCSimLikelihoodTrack * track = new WCSimLikelihoodTrack(sum.GetVertexX() * mm_to_cm, sum.GetVertexY() * mm_to_cm, sum.GetVertexZ() * mm_to_cm,
+																0,
+																sum.GetBeamDir().Theta(),
+																sum.GetBeamDir().Phi(),
+																sum.GetBeamEnergy(),
+																WCSimLikelihoodTrack::GetTypeFromPDG(sum.GetBeamPDG()));
+		fTrueLikelihoodTracks->push_back(track);
+	}
+	else
+	{
+		double mm_to_cm = 0.1;
+		for(int i = 0; i < sum.GetNPrimaries(); ++i)
+		{
+			WCSimLikelihoodTrack * track = new WCSimLikelihoodTrack(sum.GetVertexX() * mm_to_cm, sum.GetVertexY() * mm_to_cm, sum.GetVertexZ() * mm_to_cm,
+									   	   	   	   	   	   	   	   	0,
+									   	   	   	   	   	   	   	   	sum.GetPrimaryDir(0).Theta(),
+									   	   	   	   	   	   	   	   	sum.GetPrimaryDir(0).Phi(),
+									   	   	   	   	   	   	   	   	sum.GetPrimaryEnergy(0),
+									   	   	   	   	   	   	   	   	WCSimLikelihoodTrack::GetTypeFromPDG(sum.GetPrimaryPDG(0)));
+			fTrueLikelihoodTracks->push_back(track);
+		}
 	}
 	std::cout << "BuiltTrueLikelihoodTracks!" << std::endl;
   return;

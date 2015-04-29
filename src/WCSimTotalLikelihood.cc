@@ -23,6 +23,9 @@ WCSimTotalLikelihood::WCSimTotalLikelihood( WCSimLikelihoodDigitArray * myLikeli
 {  
   fChargeLikelihoodVector.push_back(
       WCSimChargePredictor(fLikelihoodDigitArray) );
+
+  ClearVectors();
+
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -72,6 +75,7 @@ void WCSimTotalLikelihood::ResetTracks()
   }
 
   fTimeLikelihood.ClearTracks();
+  ClearVectors();
   fTracks.clear();
 }
 
@@ -82,12 +86,14 @@ Double_t WCSimTotalLikelihood::Calc2LnL()
 {
   // nb. at the moment we're just adding these together
   // may have to account for correlations somewhere
+  ClearVectors();
   Double_t minus2LnL = 0; 
 
   for(int iDigit = 0; iDigit < fLikelihoodDigitArray->GetNDigits(); ++iDigit) {
     minus2LnL += Calc2LnL(iDigit);
   } //for iDigit
 
+  fSetVectors = true;
   std::cout << "-2 ln(Likelihood) = " << minus2LnL << std::endl;
   return minus2LnL;
 }
@@ -98,11 +104,7 @@ Double_t WCSimTotalLikelihood::Calc2LnL()
 Double_t WCSimTotalLikelihood::CalcPredictedCharge(unsigned int iDigit)
 {
   std::vector<Double_t> predictedCharges = CalcPredictedCharges(iDigit);
-  Double_t totalCharge = 0.0;
-  for(unsigned int iTrack = 0; iTrack < predictedCharges.size(); ++iTrack)
-  {
-    totalCharge += predictedCharges.at(iTrack);
-  }
+  double totalCharge = std::accumulate(predictedCharges.begin(), predictedCharges.end(), 0.0);
   return totalCharge;
 }
 
@@ -128,7 +130,7 @@ Double_t WCSimTotalLikelihood::Calc2LnL(int iDigit)
   //  {
   //    std::cout << "predictedCharges[" << i << "] = " << predictedCharges.at(i) << std::endl;
   //  }
-  double totalCharge = std::accumulate(predictedCharges.begin(), predictedCharges.end(), 0.0);
+  double totalCharge = CalcPredictedCharge(iDigit);
 
 
   double minus2LnL = fDigitizerLikelihood.GetMinus2LnL(totalCharge, digit->GetQ());
@@ -139,6 +141,11 @@ Double_t WCSimTotalLikelihood::Calc2LnL(int iDigit)
     minus2LnL += fTimeLikelihood.Calc2LnL(digit, predictedCharges);
   }
   assert( !(TMath::IsNaN(totalCharge)));
+
+  fMeasuredCharges.at(iDigit) = digit->GetQ();
+  fPredictedCharges.at(iDigit) = totalCharge;
+  fTotal2LnL.at(iDigit) = minus2LnL;
+
   return minus2LnL;
 }
 
@@ -151,6 +158,46 @@ void WCSimTotalLikelihood::SetLikelihoodDigitArray(
   fChargeLikelihoodVector.push_back(WCSimChargePredictor(fLikelihoodDigitArray));
 	fTimeLikelihood = WCSimTimeLikelihood(fLikelihoodDigitArray);
   SetTracks(tmpTracks);
+  ClearVectors();
   return;
 }
 
+void WCSimTotalLikelihood::ClearVectors() {
+	  fSetVectors = false;
+	  fMeasuredCharges.clear();
+	  fPredictedCharges.clear();
+	  fTotal2LnL.clear();
+	  fMeasuredCharges.resize(fLikelihoodDigitArray->GetNDigits());
+	  fPredictedCharges.resize(fLikelihoodDigitArray->GetNDigits());
+	  fTotal2LnL.resize(fLikelihoodDigitArray->GetNDigits());
+}
+
+std::vector<double> WCSimTotalLikelihood::GetMeasuredChargeVector() const {
+	if( !fSetVectors )
+	{
+		std::cerr << "Error: You're asking for the measured charge vector, but this hasn't been set" << std::endl;
+		std::cerr << "       Have you reset the tracks or likelihood digit array since calculating the likelihood?" << std::endl;
+		assert(fSetVectors);
+	}
+	return fMeasuredCharges;
+}
+
+std::vector<double> WCSimTotalLikelihood::GetPredictedChargeVector() const {
+	if( !fSetVectors )
+	{
+		std::cerr << "Error: You're asking for the predicted charge vector, but this hasn't been set" << std::endl;
+		std::cerr << "       Have you reset the tracks or likelihood digit array since calculating the likelihood?" << std::endl;
+		assert(fSetVectors);
+	}
+	return fPredictedCharges;
+}
+
+std::vector<double> WCSimTotalLikelihood::GetTotal2LnLVector() const {
+	if( !fSetVectors )
+	{
+		std::cerr << "Error: You're asking for the total 2LnL vector, but this hasn't been set" << std::endl;
+		std::cerr << "       Have you reset the tracks or likelihood digit array since calculating the likelihood?" << std::endl;
+		assert(fSetVectors);
+	}
+	return fTotal2LnL;
+}
