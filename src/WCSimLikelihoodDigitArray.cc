@@ -85,7 +85,6 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myEvent )
   // Now fill all the unhit PMTs with an empty (q = 0) hit
 	for(int arrayIndex = 0; arrayIndex < numPMT; ++arrayIndex)
 	{
-    if(arrayIndex > 5000) std::cout << "arrayIndex = " << arrayIndex << std::endl;
 		if(hitPMT[arrayIndex] == kFALSE)
 		{
       Int_t tubeID = arrayIndex + 1;
