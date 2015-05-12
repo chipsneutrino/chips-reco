@@ -906,7 +906,16 @@ Bool_t WCSimLikelihoodFitter::GetFitTrackEscapes( unsigned int iTrack) const{
 Bool_t WCSimLikelihoodFitter::GetTrackEscapes(WCSimLikelihoodTrack * track) const{
 	Double_t distanceToEdge = WCSimGeometry::Instance()->ForwardProjectionToEdge(track->GetX(), track->GetY(), track->GetZ(),
 																	 	 	 	 track->GetDirX(), track->GetDirY(), track->GetDirZ());
-	WCSimEmissionProfiles ep(track);
-	Double_t stoppingDistance = ep.GetStoppingDistance(track);
+  Double_t stoppingDistance = 0.0;
+  if( track->GetType() != WCSimLikelihoodTrack::Unknown )
+  {
+	  WCSimEmissionProfiles ep(track);
+	  stoppingDistance = ep.GetStoppingDistance(track);
+  }
+  else
+  {
+    std::cerr << "Warning, track was of unknown type" << std::endl;
+    std::cerr << "Will assume it was contained" << std::endl; 
+  }
 	return (stoppingDistance > distanceToEdge);
 }

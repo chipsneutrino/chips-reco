@@ -162,8 +162,7 @@ Int_t WCSimLikelihoodTrack::GetPDG() const {
 	else if( fType == ElectronLike ){ return 11; }
 	else
 	{
-		assert(    (std::cerr << "Could not get track PDG type for " << TrackTypeToString(fType) << std::endl)
-				&& false);
+		/*assert(    (*/std::cerr << "Could not get track PDG type for " << TrackTypeToString(fType) << std::endl ; //));
 	}
 	return -999;
 }

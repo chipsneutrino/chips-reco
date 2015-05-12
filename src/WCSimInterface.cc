@@ -250,14 +250,17 @@ void WCSimInterface::BuildTrueLikelihoodTracks() {
 		double mm_to_cm = 0.1;
 		for(int i = 0; i < sum.GetNPrimaries(); ++i)
 		{
-			WCSimLikelihoodTrack * track = new WCSimLikelihoodTrack(sum.GetVertexX() * mm_to_cm, sum.GetVertexY() * mm_to_cm, sum.GetVertexZ() * mm_to_cm,
+      if(WCSimLikelihoodTrack::GetTypeFromPDG(sum.GetPrimaryPDG(i)) != WCSimLikelihoodTrack::Unknown)
+      {
+			  WCSimLikelihoodTrack * track = new WCSimLikelihoodTrack(sum.GetVertexX() * mm_to_cm, sum.GetVertexY() * mm_to_cm, sum.GetVertexZ() * mm_to_cm,
 									   	   	   	   	   	   	   	   	0,
-									   	   	   	   	   	   	   	   	sum.GetPrimaryDir(0).Theta(),
-									   	   	   	   	   	   	   	   	sum.GetPrimaryDir(0).Phi(),
-									   	   	   	   	   	   	   	   	sum.GetPrimaryEnergy(0),
-									   	   	   	   	   	   	   	   	WCSimLikelihoodTrack::GetTypeFromPDG(sum.GetPrimaryPDG(0)));
-			fTrueLikelihoodTracks->push_back(track);
-		}
+									   	   	   	   	   	   	   	   	sum.GetPrimaryDir(i).Theta(),
+									   	   	   	   	   	   	   	   	sum.GetPrimaryDir(i).Phi(),
+									   	   	   	   	   	   	   	   	sum.GetPrimaryEnergy(i),
+									   	   	   	   	   	   	   	   	WCSimLikelihoodTrack::GetTypeFromPDG(sum.GetPrimaryPDG(i)));
+			  fTrueLikelihoodTracks->push_back(track);
+		  }
+    }
 	}
 	std::cout << "BuiltTrueLikelihoodTracks!" << std::endl;
   return;
