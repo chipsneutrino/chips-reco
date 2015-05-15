@@ -140,7 +140,7 @@ void WCSimFitterPlots::MakePlotsForEachEvent(WCSimFitterConfig* fitterConfig) {
 
 			TString name, title;
 			name.Form("h%s_track%d", parName, iTrack);
-			title.Form("Value of %s for track %d, for each of %d fitted events",
+			title.Form("Value of %s for track %d, for each of %d fitted tracks",
 					   parName, iTrack, fitterConfig->GetNumTracks());
 
 			int numBins = 20;
