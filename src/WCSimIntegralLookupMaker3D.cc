@@ -188,7 +188,7 @@ void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
 				fIntegrals.GetRhoGInt()->Fill(vars, runningTotal[0]);
 				fIntegrals.GetRhoGSInt()->Fill(vars, runningTotal[1]);
 				fIntegrals.GetRhoGSSInt()->Fill(vars, runningTotal[2]);
-				if(runningTotal[0] > 0) { std::cout << "E = " << vars[0] << "  R0 = " << vars[1] << "  cosTh0 = " << vars[2] << "  rhogint = " << runningTotal[0] << std::endl;
+				if(runningTotal[0] > 0) { // std::cout << "E = " << vars[0] << "  R0 = " << vars[1] << "  cosTh0 = " << vars[2] << "  rhogint = " << runningTotal[0] << std::endl;
 					++binsFilled;
 				}
 			}

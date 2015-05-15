@@ -91,7 +91,7 @@ void WCSimLikelihoodFitter::Minimize2LnL()
    }
 
    min->SetMaxFunctionCalls(100);
-   min->SetMaxIterations(9);
+   min->SetMaxIterations(1);
    min->SetPrintLevel(3);
    min->SetTolerance(200);
    min->SetStrategy(2);
@@ -436,14 +436,19 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
     std::cout << "Fitting event " << iEvent << std::endl;
 		Minimize2LnL();
 		fTrueLikelihoodTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
-		FillPlots();
-		FillTree();
-		FillHitComparison();
+    if( fMinimum > 0 )
+    {
+		  FillPlots();
+		  FillTree();
+		  FillHitComparison();
+    }
+    else
+    {
+      fFitterTree->FillRecoFailures(iEvent);
+    }
 	}
 
 	return;
-
-
 }
 
 void WCSimLikelihoodFitter::CreateParameterArrays() {
@@ -746,7 +751,7 @@ void WCSimLikelihoodFitter::FillHitComparison() {
 	fTotalLikelihood->Calc2LnL();
 	std::vector<double> correctPredictedCharges = fTotalLikelihood->GetPredictedChargeVector();
 	std::vector<double> correct2LnLs = fTotalLikelihood->GetTotal2LnLVector();
-	fFitterTree->FillHitComparison(fLikelihoodDigitArray, predictedCharges, correctPredictedCharges, measuredCharges, best2LnLs, correct2LnLs);
+	fFitterTree->FillHitComparison(fEvent, fLikelihoodDigitArray, predictedCharges, correctPredictedCharges, measuredCharges, best2LnLs, correct2LnLs);
 
 
 }
@@ -797,6 +802,7 @@ void WCSimLikelihoodFitter::RunFits() {
 	{
 		SetParameterArrays();
 		FitEventNumber(iEvent);
+    WCSimFitterInterface::Instance()->SaveResults();
 	}
 
 	DeleteParameterArrays();
@@ -836,6 +842,7 @@ void WCSimLikelihoodFitter::RunSurfaces() {
 	{
 			Make2DSurface(*itr2D);
 	}
+  WCSimFitterInterface::Instance()->SaveProfiles();
 
   DeleteParameterArrays();
 	return;

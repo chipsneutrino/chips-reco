@@ -12,6 +12,7 @@
 #include <map>
 #include <vector>
 #include <TObjArray.h>
+#include <TString.h>
 class TFile;
 class TH1D;
 class TH2D;
@@ -22,7 +23,7 @@ class WCSimFitterPlots {
 
 
 public:
-	WCSimFitterPlots();
+	WCSimFitterPlots(const TString &saveFileName);
 	virtual ~WCSimFitterPlots();
 
 	void SetSaveFileName(const char * filename);
@@ -63,6 +64,7 @@ public:
   double Get2DSurfaceBinCenterY(std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > theProfile, int binNumY);
 	void Fill2DProfile( std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > theProfile, int binNumX, int binNumY, double minus2LnL);
 	void SavePlots();
+  void SaveProfiles();
 
 	void Print();
 	void PrintVariables();
