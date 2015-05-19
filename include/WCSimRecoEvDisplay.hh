@@ -16,6 +16,7 @@ class TPad;
 class TPolyMarker;
 class TGWindow;
 class TPaveText;
+class TLegend;
 
 
 class WCSimRecoEvDisplay: public WCSimEvDisplay {
