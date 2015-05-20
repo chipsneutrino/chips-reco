@@ -42,7 +42,7 @@ WCSIM_LIBS += -lWCSim
 .PHONY: 
 	all
 
-all: rootcint lib shared libWCSimAnalysis.a
+all: rootcint shared libWCSimAnalysis.a
 
 ROOTSO := $(LIBDIR)/libWCSimAnalysis.so
 
@@ -56,10 +56,12 @@ ROOTEXTOBJS := $(WCSIM_LIBDIR)/WCSimRootEvent.o $(WCSIM_LIBDIR)/WCSimRootGeom.o 
 
 $(TMPDIR)/%.o : $(SRCDIR)/%.cc
 	@echo "<**Compiling $@**>"
+	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) $(WCSIM_INCLUDES) -c $< -o $@
 
 $(TMPDIR)/%.d: $(SRCDIR)/%.cc
 	@echo "<**Depend $@**>"
+	@mkdir -p $(@D)
 	set -e; $(CXX) $(CXXDEPEND) $(CXXFLAGS) $(INCLUDES) $(WCSIM_INCLUDES) $< \
 	| sed 's!$*\.o!& $@!' >$@;\
 	[ -s $@ ] || rm -f $@
@@ -71,6 +73,7 @@ rootcint: $(ROOTDICT)
 
 shared: $(ROOTDICT) $(ROOTSRC) $(ROOTOBJS)
 	@echo "<**Shared**>"
+	@mkdir -p lib
 	g++ -shared $(ROOTLIBS) $(ROOTGLIBS) -O $(ROOTOBJS) -o $(ROOTSO)
 
 libWCSimAnalysis.a : $(ROOTOBJS)
