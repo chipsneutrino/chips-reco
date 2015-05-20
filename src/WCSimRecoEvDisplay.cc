@@ -199,6 +199,17 @@ void WCSimRecoEvDisplay::CreateMainButtonBar() {
 	TGTextButton *next = new TGTextButton(hframe, "&Next");
 	next->Connect("Clicked()", "WCSimRecoEvDisplay", this, "NextEvent()");
 	hframe->AddFrame(next, new TGLayoutHints(kLHintsCenterX, 5, 5, 3, 4));
+
+  // Numeric entry field for choosing events
+  fEventInput = new TGNumberEntry(hframe,0,9,999,TGNumberFormat::kNESInteger,
+                               TGNumberFormat::kNEANonNegative);
+  fEventInput->Connect("ValueSet(Long_t)","WCSimRecoEvDisplay",this,"SetEvent()");
+  (fEventInput->GetNumberEntry())->Connect("ReturnPressed()","WCSimEvDisplay",this,"SetEvent()");
+  // Make a label to go along side it
+  TGLabel *eventLabel = new TGLabel(hframe,"Event:");
+	hframe->AddFrame(eventLabel, new TGLayoutHints(kLHintsCenterX&&kLHintsCenterY,5,5,3,4));
+	hframe->AddFrame(fEventInput, new TGLayoutHints(kLHintsCenterX,5,5,3,4)); 
+
 	TGTextButton *save = new TGTextButton(hframe, "&Save");
 	save->Connect("Clicked()", "WCSimRecoEvDisplay", this, "SaveEvent()");
 	hframe->AddFrame(save, new TGLayoutHints(kLHintsCenterX, 5, 5, 3, 4));
@@ -379,6 +390,10 @@ int WCSimRecoEvDisplay::GetFitRingColour(int ring) const {
 	if(ring == 3) { return kOrange+1; }
 	if(ring == 4) { return kGreen+1; }
 	return kBlack;
+}
+
+void WCSimRecoEvDisplay::SetInputFile(std::string name){
+	this->OpenFile(name);
 }
 
 void WCSimRecoEvDisplay::OpenFile(std::string name) {
@@ -826,6 +841,60 @@ void WCSimRecoEvDisplay::UpdateCanvases() {
   }
 	canvas->Modified();
 	canvas->Update();
+}
+
+void WCSimRecoEvDisplay::NextEvent() {
+	if(fChain->GetEntries() > 0){
+		if(fCurrentEvent < fMaxEvent){
+			++fCurrentEvent;
+			std::cout << "Moving to event " << fCurrentEvent << std::endl;
+			this->FillPlots();
+      fEventInput->GetNumberEntry()->SetNumber(fCurrentEvent);
+		}
+		else{
+			std::cout << "Already at the final event" << std::endl;
+		}
+	}
+	else{
+		std::cout << "Can't change event without a file loaded!" << std::endl;
+	}
+}
+
+void WCSimRecoEvDisplay::PrevEvent(){
+
+	if(fChain->GetEntries() > 0){
+		if(fCurrentEvent > fMinEvent){
+			--fCurrentEvent;
+			std::cout << "Moving to event " << fCurrentEvent << std::endl;
+			this->FillPlots();
+      fEventInput->GetNumberEntry()->SetNumber(fCurrentEvent);
+		}
+		else{
+			std::cout << "Already at the first event" << std::endl;
+		}
+	}
+	else{
+		std::cout << "Can't change event without a file loaded!" << std::endl;
+	}
+}
+
+void WCSimRecoEvDisplay::SetEvent(){
+	if(fChain->GetEntries() > 0){
+    int newEvt = (int)fEventInput->GetNumberEntry()->GetNumber();
+    if(newEvt == fCurrentEvent){
+      std::cout << "Already displaying event " << fCurrentEvent << std::endl;
+    }
+    else if(newEvt >= fMinEvent && newEvt <= fMaxEvent){
+      fCurrentEvent = newEvt;
+      this->FillPlots();
+    }
+    else{
+      std::cout << "Event number " << newEvt << " is out of range" << std::endl;
+    }
+	}
+	else{
+		std::cout << "Can't change event without a file loaded!" << std::endl;
+	}
 }
 
 void WCSimRecoEvDisplay::DrawFitOverlays() {

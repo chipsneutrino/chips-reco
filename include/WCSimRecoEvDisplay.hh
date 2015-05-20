@@ -29,6 +29,7 @@ public:
 	// All "slot" commands, ie those that are called by buttons
 	// need to be public.
 	// Open the file to display events from
+	void SetInputFile(std::string name);
 	void OpenFile(std::string name);
 	void OpenWCSimRecoFile(std::string name);
 
@@ -36,6 +37,12 @@ public:
 	// Button to show truth or reco
 	void ShowFit();
 	void ShowFitOverlay();
+
+  // Can't use the inherited functions for switching events otherwise
+  // the reco-ring drawing won't work properly
+  void NextEvent();
+  void PrevEvent();
+  void SetEvent();
 
 
 protected:
