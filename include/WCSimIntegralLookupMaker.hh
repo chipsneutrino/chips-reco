@@ -15,7 +15,7 @@
 #include "TString.h"
 
 
-class TH1D;
+class TH1F;
 
 class WCSimIntegralLookupMaker : public TObject{
 public:
@@ -71,7 +71,7 @@ private:
 	double fSMin;
 	double fSMax;
 
-	TH1D * fCutoffS;
+	TH1F * fCutoffS;
 
 	ClassDef(WCSimIntegralLookupMaker,1)
 

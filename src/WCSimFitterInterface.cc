@@ -229,6 +229,14 @@ void WCSimFitterInterface::SetInputFileName(const char * inputfile)
 	fFitterPlots->SetInputFileName(inputfile);
 }
 
+void WCSimFitterInterface::SaveResults()
+{
+  std::cout << "  Saving tree " << std::endl;
+  fFitterTree->SaveTree();
+  std::cout << "  Saving plots " << std::endl;
+  fFitterPlots->SavePlots();
+}
+
 void WCSimFitterInterface::Run() {
   std::cout << " *** WCSimFitterInterface::Run() *** " << std::endl;
   Init();
@@ -241,9 +249,6 @@ void WCSimFitterInterface::Run() {
   if(fMakeFits) { fFitter->RunFits(); }
   std::cout << "  Running surfaces " << std::endl;
   if(fMakeSurfaces) { fFitter->RunSurfaces(); }
-  std::cout << "  Saving tree " << std::endl;
-  fFitterTree->SaveTree();
-  std::cout << "  Saving plots " << std::endl;
-  fFitterPlots->SavePlots();
+  SaveResults();
   std::cout << " *********************************** " << std::endl;
 }

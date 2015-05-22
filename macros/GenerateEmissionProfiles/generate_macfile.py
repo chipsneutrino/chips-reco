@@ -89,33 +89,6 @@ def MakeScript(particle, energy, name, seed1, seed2, num):
   /tracking/verbose 0
   /hits/verbose 0
   
-  ## select the geometry
-  /WCSim/WCgeom GiantPhotonTest
-  
-  # uncomment to use Leigh's pmt simulation
-  #/WCSim/PMTSim chips
-  
-  #Added for the PMT QE option 08/17/10 (XQ)
-  # 1. Stacking only mean when the photon is generated
-  # the QE is applied to reduce the total number of photons
-  # 2. Stacking and sensitivity detector
-  # In the stacking part, the maximum QE is applied to reduce 
-  # the total number of photons
-  # On the detector side, the rest of QE are applied according to QE/QE_max
-  # distribution. This option is in particular important for the WLS
-  # 3. The last option means all the QE are applied at the detector
-  # Good for the low energy running. 
-  /WCSim/PMTQEMethod     Stacking_Only 
-  #/WCSim/PMTQEMethod     Stacking_And_SensitiveDetector
-  #/WCSim/PMTQEMethod     SensitiveDetector_Only
-  
-  ## Whether to use the PMT collection efficiency (as a function of
-  # the angle at which the incoming optical photon strikes the PMT)
-  # Options: "on" or "off"
-  /WCSim/PMTCollEff on
-  
-  /WCSim/Construct
-  
   # command to choose save or not save the pi0 info 07/03/10 (XQ)
   #/WCSim/SavePi0 true
   

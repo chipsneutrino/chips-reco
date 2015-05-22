@@ -9,8 +9,8 @@
 #include "WCSimIntegralLookupMaker3D.hh"
 #include <TCanvas.h>
 #include <TFile.h>
-#include <TH1D.h>
-#include <TH2D.h>
+#include <TH1F.h>
+#include <TH2F.h>
 #include <TMath.h>
 
 #ifndef REFLEX_DICTIONARY
@@ -32,8 +32,8 @@ WCSimIntegralLookupMaker3D::WCSimIntegralLookupMaker3D( WCSimLikelihoodTrack::Tr
 	fRhoGSSInt = 0x0;
 	fType = particle;
 
-	TH1D * binningHist = fEmissionProfiles.GetEnergyHist(particle);
-	TH1D * hRhoTemp = fEmissionProfiles.GetRho(particle, binningHist->GetXaxis()->GetXmin());
+	TH1F * binningHist = fEmissionProfiles.GetEnergyHist(particle);
+	TH1F * hRhoTemp = fEmissionProfiles.GetRho(particle, binningHist->GetXaxis()->GetXmin());
 
 	TCanvas * can1=  new TCanvas("can1","can1",800,600);
 	binningHist->Draw();
@@ -105,14 +105,14 @@ void WCSimIntegralLookupMaker3D::MakeLookupTables() {
 void WCSimIntegralLookupMaker3D::MakeRhoTables() {
 	std::cout << "*** Making tables for rho *** " << std::endl;
 	int binsFilled = 0;
-    TH1D * binningHisto = fEmissionProfiles.GetEnergyHist(fType);
+    TH1F * binningHisto = fEmissionProfiles.GetEnergyHist(fType);
 
     for( int iEBin = 1; iEBin <= binningHisto->GetXaxis()->GetNbins(); ++iEBin)
     {
       std::cout << "Energy bin = " << iEBin << "/" << binningHisto->GetXaxis()->GetNbins() << std::endl;
       Double_t runningTotal[3] = {0.0, 0.0, 0.0};
 	  Double_t ELowEdge[1] = {binningHisto->GetXaxis()->GetBinLowEdge(iEBin)}; // E and s for each bin - THnSparseF needs an array
-	  TH1D * hRho = fEmissionProfiles.GetRho(fType, ELowEdge[0]);
+	  TH1F * hRho = fEmissionProfiles.GetRho(fType, ELowEdge[0]);
 	  for(int iSBin = 1; iSBin <= hRho->GetXaxis()->GetNbins(); ++iSBin)
 	  {
 		  double s = hRho->GetXaxis()->GetBinCenter(iSBin);
@@ -138,7 +138,7 @@ void WCSimIntegralLookupMaker3D::MakeRhoTables() {
 
 void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
 	std::cout << " *** MakeRhoGTables *** " << std::endl;
-    TH1D * binningHisto = fEmissionProfiles.GetEnergyHist(fType);
+    TH1F * binningHisto = fEmissionProfiles.GetEnergyHist(fType);
 
     TAxis axisR0(fNR0Bins, fR0Min, fR0Max);
     TAxis axisCosTh0(fNCosTh0Bins, fCosTh0Min, fCosTh0Max);
@@ -150,8 +150,8 @@ void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
 		std::cout << "Energy bin = " << iEBin << "/" << binningHisto->GetXaxis()->GetNbins() << std::endl;
 		Double_t vars[3] = { binningHisto->GetXaxis()->GetBinLowEdge(iEBin), 0.0, 0.0 };
 		// Entries are E, s, R0, cosTh0
-		TH1D * hRho = fEmissionProfiles.GetRho(fType, vars[0]);
-		TH2D * hG = fEmissionProfiles.GetG(fType, vars[0]);
+		TH1F * hRho = fEmissionProfiles.GetRho(fType, vars[0]);
+		std::pair<TH2F*, TH2F*> hG = fEmissionProfiles.GetG(fType, vars[0]);
 
 		for( Int_t iR0Bin = 1; iR0Bin <= fNR0Bins; ++iR0Bin)
 		{
@@ -175,7 +175,21 @@ void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
 					Double_t cosTh = (R0*cosTh0 - s)/TMath::Sqrt(R0*R0 + s*s - 2*R0*s*cosTh0);
 
 					// Now get the values of the emission profiles
-					double toAdd = hRho->GetBinContent(iSBin) * hG->GetBinContent(hG->GetXaxis()->FindBin(cosTh), iSBin) * sWidth;
+					int thetaBin = 0;
+					double toAdd = 0.0;
+					if( cosTh < hG.second->GetXaxis()->GetXmin())
+					{
+						thetaBin = hG.first->GetXaxis()->FindBin(cosTh);
+						toAdd = hRho->GetBinContent(iSBin) * hG.first->GetBinContent(thetaBin, iSBin) * sWidth
+								* hG.first->GetXaxis()->GetBinWidth(thetaBin);
+					}
+					else
+					{
+						thetaBin = hG.second->GetXaxis()->FindBin(cosTh);
+						toAdd = hRho->GetBinContent(iSBin) * hG.second->GetBinContent(thetaBin, iSBin) * sWidth
+								* hG.second->GetXaxis()->GetBinWidth(thetaBin);
+					}
+
 					if( toAdd > 0.0 )
 					{
 						runningTotal[0] += toAdd;
@@ -188,7 +202,8 @@ void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
 				fIntegrals.GetRhoGInt()->Fill(vars, runningTotal[0]);
 				fIntegrals.GetRhoGSInt()->Fill(vars, runningTotal[1]);
 				fIntegrals.GetRhoGSSInt()->Fill(vars, runningTotal[2]);
-				if(runningTotal[0] > 0) { std::cout << "E = " << vars[0] << "  R0 = " << vars[1] << "  cosTh0 = " << vars[2] << "  rhogint = " << runningTotal[0] << std::endl;
+				if(runningTotal[0] > 0) {
+					//std::cout << "E = " << vars[0] << "  R0 = " << vars[1] << "  cosTh0 = " << vars[2] << "  rhogint = " << runningTotal[0] << std::endl;
 					++binsFilled;
 				}
 			}

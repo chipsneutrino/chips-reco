@@ -8,8 +8,8 @@
 #include <stdexcept>
 #include "WCSimIntegralLookupMaker.hh"
 #include "TFile.h"
-#include "TH1D.h"
-#include "TH2D.h"
+#include "TH1F.h"
+#include "TH2F.h"
 #include "THnSparse.h"
 #include "TMath.h"
 #include "TString.h"
@@ -33,8 +33,8 @@ WCSimIntegralLookupMaker::WCSimIntegralLookupMaker( WCSimLikelihoodTrack::TrackT
 	fCutoffS = 0x0;
 	fType = particle;
 
-	TH1D * binningHist = fEmissionProfiles.GetEnergyHist(particle);
-	TH1D * hRhoTemp = fEmissionProfiles.GetRho(particle, binningHist->GetXaxis()->GetXmin());
+	TH1F * binningHist = fEmissionProfiles.GetEnergyHist(particle);
+	TH1F * hRhoTemp = fEmissionProfiles.GetRho(particle, binningHist->GetXaxis()->GetXmin());
 
 	TCanvas * can1=  new TCanvas("can1","can1",800,600);
 	binningHist->Draw();
@@ -113,7 +113,7 @@ void WCSimIntegralLookupMaker::SetBins(const int &nEBins, const double &eMin, co
 	fRhoGSSInt = new THnSparseF("fRhoGSSInt","Integral of #rho(s) #times g(s, cos#theta) #times s^{2}", 4, binsG, minG, maxG);
 
 
-	fCutoffS = new TH1D("fCutoffS","Distance after which there is no more emission", fNEBins, fEMin, fEMax);
+	fCutoffS = new TH1F("fCutoffS","Distance after which there is no more emission", fNEBins, fEMin, fEMax);
 	fIntegrals.SetHists(fRhoInt, fRhoSInt, fRhoSSInt, fRhoGInt, fRhoGSInt, fRhoGSSInt, fCutoffS);
 }
 
@@ -127,7 +127,7 @@ void WCSimIntegralLookupMaker::MakeCutoffS() {
 	for( int iEBin = 1; iEBin <= fCutoffS->GetXaxis()->GetNbins(); ++iEBin)
 	{
 		std::cout << "Filling cutoff histogram" << std::endl;
-		TH1D * hRho = fEmissionProfiles.GetRho(fType, fCutoffS->GetXaxis()->GetBinLowEdge(iEBin));
+		TH1F * hRho = fEmissionProfiles.GetRho(fType, fCutoffS->GetXaxis()->GetBinLowEdge(iEBin));
 		int bin = hRho->FindLastBinAbove(0);
 		std::cout << "Energy = " << fCutoffS->GetXaxis()->GetBinLowEdge(iEBin) << " cutoff = " << hRho->GetXaxis()->GetBinCenter(bin) << std::endl;
 		fCutoffS->SetBinContent(iEBin, hRho->GetBinCenter(bin));
@@ -137,14 +137,14 @@ void WCSimIntegralLookupMaker::MakeCutoffS() {
 void WCSimIntegralLookupMaker::MakeRhoTables() {
 	std::cout << "*** Making tables for rho *** " << std::endl;
 	int binsFilled = 0;
-    TH1D * binningHisto = fEmissionProfiles.GetEnergyHist(fType);
+    TH1F * binningHisto = fEmissionProfiles.GetEnergyHist(fType);
 
     for( int iEBin = 1; iEBin <= binningHisto->GetXaxis()->GetNbins(); ++iEBin)
     {
       std::cout << "Energy bin = " << iEBin << "/" << binningHisto->GetXaxis()->GetNbins() << std::endl;
       Double_t runningTotal[3] = {0.0, 0.0, 0.0};
 	  Double_t EandS[2] = {binningHisto->GetXaxis()->GetBinLowEdge(iEBin), 0.0}; // E and s for each bin - THnSparseF needs an array
-	  TH1D * hRho = fEmissionProfiles.GetRho(fType, EandS[0]);
+	  TH1F * hRho = fEmissionProfiles.GetRho(fType, EandS[0]);
 	  double cutoffS = fCutoffS->GetBinContent(iEBin);
 
 	  for(int iSBin = 1; iSBin <= hRho->GetXaxis()->GetNbins(); ++iSBin)
@@ -173,7 +173,7 @@ void WCSimIntegralLookupMaker::MakeRhoTables() {
 
 void WCSimIntegralLookupMaker::MakeRhoGTables() {
 	std::cout << " *** MakeRhoGTables *** " << std::endl;
-    TH1D * binningHisto = fEmissionProfiles.GetEnergyHist(fType);
+    TH1F * binningHisto = fEmissionProfiles.GetEnergyHist(fType);
 
     TAxis axisR0(fNR0Bins, fR0Min, fR0Max);
     TAxis axisCosTh0(fNCosTh0Bins, fCosTh0Min, fCosTh0Max);
@@ -185,8 +185,8 @@ void WCSimIntegralLookupMaker::MakeRhoGTables() {
 		std::cout << "Energy bin = " << iEBin << "/" << binningHisto->GetXaxis()->GetNbins() << std::endl;
 		Double_t vars[4] = { binningHisto->GetXaxis()->GetBinLowEdge(iEBin), 0.0, 0.0, 0.0 };
 		// Entries are E, s, R0, cosTh0
-		TH1D * hRho = fEmissionProfiles.GetRho(fType, vars[0]);
-		TH2D * hG = fEmissionProfiles.GetG(fType, vars[0]);
+		TH1F * hRho = fEmissionProfiles.GetRho(fType, vars[0]);
+		std::pair<TH2F *, TH2F *> hG = fEmissionProfiles.GetG(fType, vars[0]);
 		double cutoffS = fCutoffS->GetBinContent(iEBin);
 
 		for( Int_t iR0Bin = 1; iR0Bin <= fNR0Bins; ++iR0Bin)
@@ -216,7 +216,21 @@ void WCSimIntegralLookupMaker::MakeRhoGTables() {
 					Double_t cosTh = (R0*cosTh0 - s)/TMath::Sqrt(R0*R0 + s*s - 2*R0*s*cosTh0);
 
 					// Now get the values of the emission profiles
-					double toAdd = hRho->GetBinContent(iSBin) * hG->GetBinContent(hG->GetXaxis()->FindBin(cosTh), iSBin) * sWidth;
+					int thetaBin = 0;
+					double toAdd = 0.0;
+					if( cosTh < hG.second->GetXaxis()->GetXmin())
+					{
+						thetaBin = hG.first->GetXaxis()->FindBin(cosTh);
+						toAdd = hRho->GetBinContent(iSBin) * hG.first->GetBinContent(thetaBin, iSBin) * sWidth
+								* hG.first->GetXaxis()->GetBinWidth(thetaBin);
+					}
+					else
+					{
+						thetaBin = hG.second->GetXaxis()->FindBin(cosTh);
+						toAdd = hRho->GetBinContent(iSBin) * hG.second->GetBinContent(thetaBin, iSBin) * sWidth
+								* hG.second->GetXaxis()->GetBinWidth(thetaBin);;
+					}
+
 					if( toAdd > 0.0 )
 					{
 						runningTotal[0] += toAdd;

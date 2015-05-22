@@ -7,7 +7,7 @@
 
 #include "WCSimIntegralLookupReader.hh"
 #include "WCSimAnalysisConfig.hh"
-#include "TH1D.h"
+#include "TH1F.h"
 #include "TH2D.h"
 
 #ifndef REFLEX_DICTIONARY

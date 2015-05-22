@@ -11,8 +11,8 @@
 #include "WCSimLikelihoodTrack.hh"
 #include <string>
 
-class TH1D;
-class TH2D;
+class TH1F;
+class TH2F;
 class TFile;
 class TObjArray;
 class WCSimLikelihoodDigit;
@@ -67,9 +67,11 @@ public:
   std::vector<Double_t> GetProfileEnergies() const;
   Double_t GetStoppingDistance(WCSimLikelihoodTrack * track);
 
-  TH1D * GetRho(WCSimLikelihoodTrack::TrackType particle, double energy);
-  TH2D * GetG(WCSimLikelihoodTrack::TrackType particle, double energy);
-  TH1D * GetEnergyHist(WCSimLikelihoodTrack::TrackType particle);
+  TH1F * GetRho(WCSimLikelihoodTrack::TrackType particle, double energy);
+  std::pair<TH2F*,TH2F*> GetG(WCSimLikelihoodTrack::TrackType particle, double energy);
+  TH2F * GetGCoarse(WCSimLikelihoodTrack::TrackType particle, double energy);
+  TH2F * GetGFine(WCSimLikelihoodTrack::TrackType particle, double energy);
+  TH1F * GetEnergyHist(WCSimLikelihoodTrack::TrackType particle);
 
 private:
 	UInt_t GetArrayBin(Double_t energy) const;
@@ -91,15 +93,17 @@ private:
 	TFile * fProfileFile;
 
 	TObjArray * fRhoArray;
-	TObjArray * fGArray;
-	TH1D * fBinningHistogram;
+	TObjArray * fGCoarseArray;
+	TObjArray * fGFineArray;
+	TH1F * fBinningHistogram;
 
-	TH1D * fRhoInterp;
-	TH2D * fG;
+	TH1F * fRhoInterp;
+	TH2F * fGCoarse;
+	TH2F * fGFine;
 
   Bool_t fDebug;
-	TH1D * fRhoInterpLo;
-	TH1D * fRhoInterpHi;
+	TH1F * fRhoInterpLo;
+	TH1F * fRhoInterpHi;
 
 
   ClassDef(WCSimEmissionProfiles,1)

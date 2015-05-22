@@ -797,6 +797,7 @@ void WCSimLikelihoodFitter::RunFits() {
 	{
 		SetParameterArrays();
 		FitEventNumber(iEvent);
+    WCSimFitterInterface::Instance()->SaveResults();
 	}
 
 	DeleteParameterArrays();

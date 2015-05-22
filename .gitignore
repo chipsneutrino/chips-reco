@@ -17,3 +17,5 @@ tmp/
 *.sh.e*
 *.root
 *.so
+*.sh.o*
+*.sh.e*

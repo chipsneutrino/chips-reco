@@ -14,8 +14,9 @@
 #include <TString.h>
 #include <TFile.h>
 #include <TObjArray.h>
-#include <TH1D.h>
-#include <TH2D.h>
+#include <TObject.h>
+#include <TH1F.h>
+#include <TH2F.h>
 #include <TCanvas.h>
 #include <cassert>
 #include <iostream>
@@ -36,14 +37,15 @@ WCSimEmissionProfiles::WCSimEmissionProfiles() {
 	fProfileFile = 0x0;
 
 	fRhoArray = 0x0;
-	fGArray = 0x0;
+	fGCoarseArray = 0x0;
+	fGFineArray = 0x0;
 	fBinningHistogram = 0x0;
 
 	fRhoInterp = 0x0;
 	fRhoInterpLo = 0x0;
 	fRhoInterpHi = 0x0;
-	fG = 0x0;
-
+	fGCoarse = 0x0;
+	fGFine = 0x0;
 }
 
 WCSimEmissionProfiles::~WCSimEmissionProfiles() {
@@ -59,10 +61,15 @@ WCSimEmissionProfiles::~WCSimEmissionProfiles() {
 		delete fRhoArray;
 		fRhoArray = 0x0;
 	}
-	if(fGArray != 0x0)
+	if(fGCoarseArray != 0x0)
 	{
-		delete fGArray;
-		fGArray = 0x0;
+		delete fGCoarseArray;
+		fGCoarseArray = 0x0;
+	}
+	if(fGFineArray != 0x0)
+	{
+		delete fGFineArray;
+		fGFineArray = 0x0;
 	}
 
 	if( fRhoInterp != 0x0 )
@@ -71,10 +78,16 @@ WCSimEmissionProfiles::~WCSimEmissionProfiles() {
 		fRhoInterp = 0x0;
 	}
 
-	if(	fG != 0x0 )
+	if(	fGCoarse != 0x0 )
 	{
-		delete fG;
-		fG = 0x0;
+		delete fGCoarse;
+		fGCoarse = 0x0;
+	}
+
+	if(	fGFine != 0x0 )
+	{
+		delete fGFine;
+		fGFine = 0x0;
 	}
 
 	if(fRhoInterpLo != 0x0)
@@ -98,16 +111,17 @@ WCSimEmissionProfiles::WCSimEmissionProfiles(WCSimLikelihoodTrack* myTrack) {
 	fProfileFile = 0x0;
 
 	fRhoArray = 0x0;
-	fGArray = 0x0;
+	fGCoarseArray = 0x0;
+	fGFineArray = 0x0;
 	fBinningHistogram = 0x0;
 
 	fRhoInterp = 0x0;
-	fG = 0x0;
+	fGCoarse = 0x0;
+	fGFine= 0x0;
 
 	fRhoInterp = 0x0;
 	fRhoInterpLo = 0x0;
 	fRhoInterpHi = 0x0;
-	fG = 0x0;
 
 	SetTrack(myTrack);
 
@@ -126,7 +140,12 @@ Double_t WCSimEmissionProfiles::GetRho(Double_t s) {
 }
 
 Double_t WCSimEmissionProfiles::GetG(Double_t s, Double_t cosTheta) {
-	return fG->GetBinContent(fG->GetXaxis()->FindBin(cosTheta), fG->GetYaxis()->FindBin(s));
+	TH2F * hist = fGFine;
+	if(cosTheta < fGFine->GetXaxis()->GetXmin())
+	{
+		hist = fGCoarse;
+	}
+	return hist->GetBinContent(hist->GetXaxis()->FindBin(cosTheta), hist->GetYaxis()->FindBin(s));
 }
 
 
@@ -210,7 +229,7 @@ std::vector<Double_t> WCSimEmissionProfiles::GetRhoGIntegrals(WCSimLikelihoodTra
 			if(fRhoInterp->GetBinContent(iBin) == 0) { continue; }
 			integrals.at(iPower) += binWidth
 									* fRhoInterp->GetBinContent(iBin)
-									* fG->GetBinContent(fG->GetXaxis()->FindBin(cosTheta), iBin)
+									* GetG(s, cosTheta)
 									* pow(fRhoInterp->GetBinCenter(iBin), sPowers.at(iPower));
 			// std::cout << "Now integrals.at(" << iPower << ") = " << integrals.at(iPower) <<  " sPower = " << sPowers.at(iPower) << std::endl;
 		}
@@ -252,13 +271,14 @@ void WCSimEmissionProfiles::LoadFile(WCSimLikelihoodTrack* myTrack) {
 	{
 
 		fProfileFileName = TString(getenv("WCSIMANAHOME"));
+		fProfileFileName = "";
 		switch( myTrack->GetType() )
 		{
 			case WCSimLikelihoodTrack::ElectronLike:
-				fProfileFileName.Append("/config/emissionProfilesElectron9Mar.root");
+				fProfileFileName.Append("/home/ajperch/CHIPS/WCSim_fixGeneration/rootfiles/sum/emissionProfilesElectronsCoarseFine.root");
 				break;
 			case WCSimLikelihoodTrack::MuonLike:
-				fProfileFileName.Append("/config/emissionProfilesMuonSmooth9Mar.root");
+				fProfileFileName.Append("/home/ajperch/CHIPS/WCSim_fixGeneration/rootfiles/sum/emissionProfilesMuonsCoarseFine.root");
 				break;
 			default:
         myTrack->Print();
@@ -271,17 +291,25 @@ void WCSimEmissionProfiles::LoadFile(WCSimLikelihoodTrack* myTrack) {
 		{
 			delete fProfileFile;
 			delete fRhoArray;
-			delete fGArray;
+			delete fGCoarseArray;
+			delete fGFineArray;
 		}
 
 		fProfileFile      = new TFile(fProfileFileName.Data(),"READ");
+		fProfileFile->ls();
 		fLastType         = myTrack->GetType();
 		fRhoArray         = (TObjArray *) fProfileFile->Get("histArray");
-		fGArray 		  = (TObjArray *) fProfileFile->Get("angHistArray");
-		fBinningHistogram = (TH1D*) fProfileFile->Get("hWhichHisto");
+    std::cout << fGFineArray << std::endl;
+    TObjArray * arr = new TObjArray();
+    fProfileFile->GetObject("angHistFineArray", arr);
+    std::cout << arr << std::endl;
+		fGFineArray 	  = (TObjArray *) fProfileFile->Get("angHistFineArray");
+		fGCoarseArray 	  = (TObjArray *) fProfileFile->Get("angHistCoarseArray");
+		fBinningHistogram = (TH1F*) fProfileFile->Get("hWhichHisto");
 
 		fRhoArray->SetOwner(kTRUE);
-		fGArray->SetOwner(kTRUE);
+		fGCoarseArray->SetOwner(kTRUE);
+		fGFineArray->SetOwner(kTRUE);
 		std::cout << "Loaded array" << std::endl;
 	}
 
@@ -324,7 +352,7 @@ void WCSimEmissionProfiles::InterpolateRho(WCSimLikelihoodTrack* myTrack) {
 
   int bin = GetArrayBin(myTrack->GetE());
 	std::cerr << "Warning: not doing any interpolation, just getting the nearest profile - bin = " << bin << std::endl;
-	fRhoInterp = (TH1D*)(fRhoArray->At(GetArrayBin(myTrack->GetE()))->Clone());
+	fRhoInterp = (TH1F*)(fRhoArray->At(GetArrayBin(myTrack->GetE()))->Clone());
 	fRhoInterp->SetDirectory(0);
 	// std::cout << "Energy = " << myTrack->GetE() << "  integral = " << fRhoInterp->Integral("W");
 	return;
@@ -342,8 +370,8 @@ void WCSimEmissionProfiles::InterpolateRho(WCSimLikelihoodTrack* myTrack) {
 	// Get the emission profiles for the energy bin below and above our current energy
 	Double_t energy = myTrack->GetE();
   // std::cout << "Getting profiles from array bin " << GetArrayBin(energy) << std::endl;
-	TH1D * profileLo = (TH1D*)fRhoArray->At(GetArrayBin(energy));
-	TH1D * profileHi = (TH1D*)fRhoArray->At(GetArrayBin(energy)+1);
+	TH1F * profileLo = (TH1F*)fRhoArray->At(GetArrayBin(energy));
+	TH1F * profileHi = (TH1F*)fRhoArray->At(GetArrayBin(energy)+1);
 
 	// Get the energies these two profiles correspond to
 	Double_t upEnergy = fBinningHistogram->GetXaxis()->GetBinUpEdge(GetArrayBin(energy)+1);
@@ -359,15 +387,15 @@ void WCSimEmissionProfiles::InterpolateRho(WCSimLikelihoodTrack* myTrack) {
   }
 
   // Now make some histograms to add together in these fractions
-  fRhoInterpLo = (TH1D*)profileLo->Clone(); // Clone to steal the binning
-  fRhoInterpHi = (TH1D*)profileHi->Clone();
+  fRhoInterpLo = (TH1F*)profileLo->Clone(); // Clone to steal the binning
+  fRhoInterpHi = (TH1F*)profileHi->Clone();
   fRhoInterpLo->Reset();
   fRhoInterpHi->Reset();
   fRhoInterpLo->SetDirectory(0);
   fRhoInterpHi->SetDirectory(0);
   
 	// This will be our final interpolated histogram
-	fRhoInterp = new TH1D("fRho","fRho", profileLo->GetNbinsX(), profileLo->GetXaxis()->GetXmin(), profileLo->GetXaxis()->GetXmax());
+	fRhoInterp = new TH1F("fRho","fRho", profileLo->GetNbinsX(), profileLo->GetXaxis()->GetXmin(), profileLo->GetXaxis()->GetXmax());
   fRhoInterp->SetDirectory(0);
 
   // Get the distances to the shoulder for each of the three energies
@@ -379,8 +407,6 @@ void WCSimEmissionProfiles::InterpolateRho(WCSimLikelihoodTrack* myTrack) {
   // std::cout << "truDist  = " << truDist << std::endl;
 
   // Work out which bins to steal from the higher energy profile
-  int nBinsToSteal = 1;     // number of bins to get from the energy above
-  int firstBinToSteal = 1;  // where to start stealing from
   double distanceToSteal = truDist - loDist;
   double distanceToSkip = hiDist - distanceToSteal;
   double exactNumBins = distanceToSteal / (fRhoInterpHi->GetXaxis()->GetBinWidth(1));
@@ -580,35 +606,42 @@ void WCSimEmissionProfiles::InterpolateRho(WCSimLikelihoodTrack* myTrack) {
 
 void WCSimEmissionProfiles::InterpolateG(WCSimLikelihoodTrack* myTrack) {
 
-	if(fG != 0x0)
+	if(fGCoarse != 0x0)
 	{
-		delete fG;
-		fG = 0x0;
+		delete fGCoarse;
+		fGCoarse = 0x0;
 	}
 
-	Double_t energy = myTrack->GetE();
+	if(fGFine != 0x0)
+	{
+		delete fGFine;
+		fGFine = 0x0;
+	}
+
   int bin = GetArrayBin(myTrack->GetE());
 	std::cerr << "Warning: not doing any interpolation, just getting the nearest profile - bin = " << bin << std::endl;
-	fG = (TH2D*)(fGArray->At(GetArrayBin(myTrack->GetE()))->Clone());
-	fG->SetDirectory(0);
+	fGCoarse = (TH2F*)(fGCoarseArray->At(GetArrayBin(myTrack->GetE()))->Clone());
+	fGCoarse->SetDirectory(0);
+	fGFine = (TH2F*)(fGFineArray->At(GetArrayBin(myTrack->GetE()))->Clone());
+	fGFine->SetDirectory(0);
 	return;
 
-
-    TH2D * hGLo = (TH2D*)fGArray->At(GetArrayBin(energy));
-    TH2D * hGHi = (TH2D*)fGArray->At(GetArrayBin(energy)+1);
+/*
+    TH2F * hGLo = (TH2F*)fGArray->At(GetArrayBin(energy));
+    TH2F * hGHi = (TH2F*)fGArray->At(GetArrayBin(energy)+1);
 
     Double_t fracHi =  (myTrack->GetE() - fBinningHistogram->GetXaxis()->GetBinLowEdge(GetArrayBin(energy)+1))
     		 	            /(fBinningHistogram->GetXaxis()->GetBinWidth(GetArrayBin(energy)+1));
     Double_t fracLo = (1.0 - fracHi);
 
     if( fG != 0x0 ){ std::cout << "fG = " << fG << std::endl; std::cout << "Name = " << fG->GetName() << std::endl; delete fG; fG = 0x0;}
-    fG = new TH2D("fG","fG", hGLo->GetNbinsX(), hGLo->GetXaxis()->GetXmin(), hGLo->GetXaxis()->GetXmax(),
+    fG = new TH2F("fG","fG", hGLo->GetNbinsX(), hGLo->GetXaxis()->GetXmin(), hGLo->GetXaxis()->GetXmax(),
     						 hGLo->GetNbinsY(), hGLo->GetYaxis()->GetXmin(), hGLo->GetYaxis()->GetXmax());
     fG->Add(hGLo, hGHi, fracLo, fracHi);
     fG->SetDirectory(0);
 
     return;
-
+*/
 }
 
 
@@ -740,20 +773,34 @@ void WCSimEmissionProfiles::SaveProfiles()
   canRhoHi->SaveAs( (rhoHiTitle + TString(".png")).Data());
   canRhoHi->SaveAs( (rhoHiTitle + TString(".C")).Data());
 
+
+
   TCanvas * canG = new TCanvas("canG", "canG", 800, 600);
-  fG->Draw("COLZ");
-  fG->GetXaxis()->SetTitle("cos#theta");
-  fG->GetYaxis()->SetTitle("s (cm)");
-  fG->GetXaxis()->CenterTitle();
-  fG->GetYaxis()->CenterTitle();
+  fGCoarse->Draw("COLZ");
+  fGCoarse->GetXaxis()->SetTitle("cos#theta");
+  fGCoarse->GetYaxis()->SetTitle("s (cm)");
+  fGCoarse->GetXaxis()->CenterTitle();
+  fGCoarse->GetYaxis()->CenterTitle();
   TString gTitle("");
-  gTitle.Form("g_%d_", (int)fLastEnergy);
+  gTitle.Form("gCoarse_%d_", (int)fLastEnergy);
   gTitle += WCSimLikelihoodTrack::TrackTypeToString(fLastType);
-  fG->SetTitle(gTitle.Data());
+  fGCoarse->SetTitle(gTitle.Data());
 
   canG->SaveAs( (gTitle + TString(".png")).Data());
   canG->SaveAs( (gTitle + TString(".C")).Data());
 
+
+  fGFine->Draw("COLZ");
+  fGFine->GetXaxis()->SetTitle("cos#theta");
+  fGFine->GetYaxis()->SetTitle("s (cm)");
+  fGFine->GetXaxis()->CenterTitle();
+  fGFine->GetYaxis()->CenterTitle();
+  gTitle.Form("gFine_%d_", (int)fLastEnergy);
+  gTitle += WCSimLikelihoodTrack::TrackTypeToString(fLastType);
+  fGFine->SetTitle(gTitle.Data());
+
+  canG->SaveAs( (gTitle + TString(".png")).Data());
+  canG->SaveAs( (gTitle + TString(".C")).Data());
   delete canRho;
   delete canG;
   delete canRhoHi;
@@ -770,7 +817,7 @@ Double_t WCSimEmissionProfiles::GetStoppingDistance(WCSimLikelihoodTrack * track
 	return (fRhoInterp->GetBinCenter(bin));
 }
 
-TH1D * WCSimEmissionProfiles::GetRho(WCSimLikelihoodTrack::TrackType particle, double energy)
+TH1F * WCSimEmissionProfiles::GetRho(WCSimLikelihoodTrack::TrackType particle, double energy)
 {
 	WCSimLikelihoodTrack tempTrack;
 	tempTrack.SetType(particle);
@@ -779,16 +826,26 @@ TH1D * WCSimEmissionProfiles::GetRho(WCSimLikelihoodTrack::TrackType particle, d
 	return fRhoInterp;
 }
 
-TH2D * WCSimEmissionProfiles::GetG(WCSimLikelihoodTrack::TrackType particle, double energy)
+TH2F * WCSimEmissionProfiles::GetGCoarse(WCSimLikelihoodTrack::TrackType particle, double energy)
+{
+	return GetG(particle, energy).first;
+}
+
+TH2F * WCSimEmissionProfiles::GetGFine(WCSimLikelihoodTrack::TrackType particle, double energy)
+{
+	return GetG(particle, energy).second;
+}
+
+std::pair<TH2F *, TH2F* > WCSimEmissionProfiles::GetG(WCSimLikelihoodTrack::TrackType particle, double energy)
 {
 	WCSimLikelihoodTrack tempTrack;
 	tempTrack.SetType(particle);
 	tempTrack.SetE(energy);
 	SetTrack(&tempTrack);
-	return fG;
+	return std::make_pair(fGCoarse, fGFine);
 }
 
-TH1D * WCSimEmissionProfiles::GetEnergyHist(WCSimLikelihoodTrack::TrackType particle)
+TH1F * WCSimEmissionProfiles::GetEnergyHist(WCSimLikelihoodTrack::TrackType particle)
 {
 	WCSimLikelihoodTrack tempTrack;
 	tempTrack.SetType(particle);

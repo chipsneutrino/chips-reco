@@ -12,7 +12,7 @@
 #include "THnSparse.h"
 #include <exception>
 
-class TH1D;
+class TH1F;
 class TFile;
 
 
@@ -21,7 +21,7 @@ public:
 	WCSimIntegralLookupHists();
 	WCSimIntegralLookupHists( THnSparseF * rhoInt,  THnSparseF * rhoSInt,  THnSparseF * rhoSSInt,
 			   	   	   	   	  THnSparseF * rhoGInt, THnSparseF * rhoGSInt, THnSparseF * rhoGSSInt,
-			   	   	   	   	  TH1D * cutoffS );
+			   	   	   	   	  TH1F * cutoffS );
 
 	THnSparseF * GetRhoInt() const;
 	THnSparseF * GetRhoSInt() const;
@@ -29,11 +29,11 @@ public:
 	THnSparseF * GetRhoGInt() const;
 	THnSparseF * GetRhoGSInt() const;
 	THnSparseF * GetRhoGSSInt() const;
-	TH1D * GetCutoffS() const;
+	TH1F * GetCutoffS() const;
 
 	void SetHists( THnSparseF * rhoInt,  THnSparseF * rhoSInt,  THnSparseF * rhoSSInt,
 				   THnSparseF * rhoGInt, THnSparseF * rhoGSInt, THnSparseF * rhoGSSInt,
-				   TH1D * cutoffS );
+				   TH1F * cutoffS );
 
 private:
 	THnSparseF * fRhoInt;
@@ -44,7 +44,7 @@ private:
 	THnSparseF * fRhoGSInt;
 	THnSparseF * fRhoGSSInt;
 
-	TH1D * fCutoffS;
+	TH1F * fCutoffS;
 };
 
 class WCSimIntegralLookup {

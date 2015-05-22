@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include "WCSimIntegralLookup3D.hh"
 #include <TFile.h>
-#include <TH1D.h>
+#include <TH1F.h>
 #include <THnSparse.h>
 
 WCSimIntegralLookup3D::WCSimIntegralLookup3D(TString fileName) {

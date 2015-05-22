@@ -8,7 +8,7 @@
 #include "WCSimIntegralLookup.hh"
 #include "THnSparse.h"
 #include "TFile.h"
-#include "TH1D.h"
+#include "TH1F.h"
 #include "TH2D.h"
 #include "TString.h"
 #include <stdexcept>
@@ -29,7 +29,7 @@ WCSimIntegralLookupHists::WCSimIntegralLookupHists() {
 }
 
 WCSimIntegralLookupHists::WCSimIntegralLookupHists(THnSparseF* rhoInt, THnSparseF* rhoSInt, THnSparseF* rhoSSInt,
-		THnSparseF* rhoGInt, THnSparseF* rhoGSInt, THnSparseF* rhoGSSInt, TH1D* cutoffS) {
+		THnSparseF* rhoGInt, THnSparseF* rhoGSInt, THnSparseF* rhoGSSInt, TH1F* cutoffS) {
 	SetHists(rhoInt, rhoSInt, rhoSSInt, rhoGInt, rhoGSInt, rhoGSSInt, cutoffS);
 
 }
@@ -58,12 +58,12 @@ THnSparseF* WCSimIntegralLookupHists::GetRhoGSSInt() const {
 	return fRhoGSSInt;
 }
 
-TH1D* WCSimIntegralLookupHists::GetCutoffS() const {
+TH1F* WCSimIntegralLookupHists::GetCutoffS() const {
 	return fCutoffS;
 }
 
 void WCSimIntegralLookupHists::SetHists(THnSparseF* rhoInt, THnSparseF* rhoSInt, THnSparseF* rhoSSInt,
-		THnSparseF* rhoGInt, THnSparseF* rhoGSInt, THnSparseF* rhoGSSInt, TH1D* cutoffS) {
+		THnSparseF* rhoGInt, THnSparseF* rhoGSInt, THnSparseF* rhoGSSInt, TH1F* cutoffS) {
 
 	fRhoInt = rhoInt;
 	fRhoSInt = rhoSInt;
@@ -108,7 +108,7 @@ WCSimIntegralLookup::WCSimIntegralLookup(TString fileName) {
 	THnSparseF * rhoGInt = 0x0;
 	THnSparseF * rhoGSInt = 0x0;
 	THnSparseF * rhoGSSInt = 0x0;
-	TH1D * cutoffS = 0x0;
+	TH1F * cutoffS = 0x0;
 
 	fHistFile->GetObject("fRhoInt",rhoInt);
 	fHistFile->GetObject("fRhoSInt",rhoSInt);
