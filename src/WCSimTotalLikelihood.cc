@@ -90,7 +90,12 @@ Double_t WCSimTotalLikelihood::Calc2LnL()
   Double_t minus2LnL = 0; 
 
   for(int iDigit = 0; iDigit < fLikelihoodDigitArray->GetNDigits(); ++iDigit) {
-    minus2LnL += Calc2LnL(iDigit);
+    double digit2LnL = Calc2LnL(iDigit);
+    if(digit2LnL < 0) { return -99999; }
+    else
+    {
+		  minus2LnL += Calc2LnL(iDigit);
+	  }
   } //for iDigit
 
   fSetVectors = true;
@@ -131,6 +136,10 @@ Double_t WCSimTotalLikelihood::Calc2LnL(int iDigit)
   //    std::cout << "predictedCharges[" << i << "] = " << predictedCharges.at(i) << std::endl;
   //  }
   double totalCharge = CalcPredictedCharge(iDigit);
+  if( TMath::IsNaN( totalCharge ) )
+  {
+    return -99999;
+  }
 
 
   double minus2LnL = fDigitizerLikelihood.GetMinus2LnL(totalCharge, digit->GetQ());
@@ -140,7 +149,7 @@ Double_t WCSimTotalLikelihood::Calc2LnL(int iDigit)
   {
     minus2LnL += fTimeLikelihood.Calc2LnL(digit, predictedCharges);
   }
-  assert( !(TMath::IsNaN(totalCharge)));
+  
 
   fMeasuredCharges.at(iDigit) = digit->GetQ();
   fPredictedCharges.at(iDigit) = totalCharge;

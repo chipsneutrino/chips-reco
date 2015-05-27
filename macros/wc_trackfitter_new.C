@@ -1,20 +1,32 @@
+<<<<<<< HEAD
 #include "WCSimFitterInterface.hh"
 #include "TString.h"
 #include <iostream>
 #include <gperftools/profiler.h>
 
 
-void PrintHelp();
 
-void wc_trackfitter_new(const char * infile = ""){
-
+void wc_trackfitter_new(const char * infile = "", int start=0, int fit=100){
   // Path to WCSim ROOT file
   // =======================
   TString filename(infile);
-  if(filename.EqualTo("") )
+  if(filename.CompareTo("") == 0 )
   {
     filename = TString("localfile.root");
   }
+  gApplication->ProcessLine(".except");
+
+  // Load libraries
+  // ==============
+  gSystem->Load("libGeom");
+  gSystem->Load("libEve");
+  gSystem->Load("libMinuit");
+
+  TString libWCSimRoot = TString::Format("%s%s",gSystem->Getenv("WCSIMHOME"), "/libWCSimRoot.so");
+  TString libWCSimAnalysis = TString::Format("%s%s",gSystem->Getenv("WCSIMANAHOME"), "/lib/libWCSimAnalysis.so");
+  gSystem->Load(libWCSimRoot.Data());
+  gSystem->Load(libWCSimAnalysis.Data());
+
 
   // Load Data
   // =========
@@ -31,8 +43,8 @@ void wc_trackfitter_new(const char * infile = ""){
   WCSimFitterInterface::Instance()->SetParameter(0, "kVtxZ", -900, 900, 0, false);
   WCSimFitterInterface::Instance()->SetParameter(0, "kVtxT", -900, 900, 0, true);
   WCSimFitterInterface::Instance()->SetParameter(0, "kDirTh", 0, TMath::Pi(), 0.5*TMath::Pi(), false);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kDirPhi", -TMath::Pi(), TMath::Pi(), 0.25*TMath::Pi(), false);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kEnergy", 800, 3000, 1500, false);
+  WCSimFitterInterface::Instance()->SetParameter(0, "kDirPhi", -TMath::Pi(), TMath::Pi(), 0.0*TMath::Pi(), false);
+  WCSimFitterInterface::Instance()->SetParameter(0, "kEnergy", 500, 2400, 1500, false);
 
 
   // Plot best-fit results
@@ -62,20 +74,10 @@ void wc_trackfitter_new(const char * infile = ""){
 
 
   WCSimFitterInterface::Instance()->Print();
-  WCSimFitterInterface::Instance()->SetNumEventsToFit(0);
-  WCSimFitterInterface::Instance()->SetFirstEventToFit(0);
-  ProfilerStart("profileFitter");
+  WCSimFitterInterface::Instance()->SetNumEventsToFit(fit);
+  WCSimFitterInterface::Instance()->SetFirstEventToFit(start);
   WCSimFitterInterface::Instance()->Run();
-  ProfilerStop();
   
   std::cout << "Done!" << std::endl;
 
-}
-
-void PrintHelp(){
-	std::cout << "Usage instructions for fitterTest" << std::endl;
-  std::cout << "This program is supposed to run the fitter over a single file so it can be profiled" << std::endl;
-  std::cout << "It basically wraps around the macros/wc_trackfitter_new.C macro - normally you just want that" << std::endl;
-	std::cout << "\t-h Displays the help message" << std::endl;
-	std::cout << "\t-f <filename> Supply an input file" << std::endl;
 }

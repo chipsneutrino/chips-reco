@@ -21,15 +21,10 @@
 #include <TSystem.h>
 #include <TTimeStamp.h>
 
-WCSimFitterPlots::WCSimFitterPlots() : fSaveFile(NULL), fNumSurfaceBins(20){
+WCSimFitterPlots::WCSimFitterPlots(const TString &saveFileName) : fSaveFile(NULL), fNumSurfaceBins(20){
 
 	// TODO Auto-generated constructor stub
-	TTimeStamp ts;
-	unsigned int year, month, day, hour, minute, second;
-	ts.GetDate(true, 0, &year, &month, &day);
-	ts.GetTime(true, 0, &hour, &minute, &second);
-
-	fSaveFileName.Form("fitterPlots_%02d%02d%02d_%02d%02d%02d.root", year, month, day, hour, minute, second);
+	fSaveFileName.Form("%s_plots.root", saveFileName.Data());
 	MakeSaveFileName();
 
 }
@@ -145,7 +140,7 @@ void WCSimFitterPlots::MakePlotsForEachEvent(WCSimFitterConfig* fitterConfig) {
 
 			TString name, title;
 			name.Form("h%s_track%d", parName, iTrack);
-			title.Form("Value of %s for track %d, for each of %d fitted events",
+			title.Form("Value of %s for track %d, for each of %d fitted tracks",
 					   parName, iTrack, fitterConfig->GetNumTracks());
 
 			int numBins = 20;
@@ -492,6 +487,45 @@ void WCSimFitterPlots::SetSaveFileName(const char* filename) {
 	fSaveFileName = TString(filename);
 }
 
+void WCSimFitterPlots::SaveProfiles(){
+  std::cout << " *** WCSimFitterPlots::SaveProfiles() *** " << std::endl;
+	TDirectory* tmpd = 0;
+	tmpd = gDirectory;
+	if( fSaveFile == NULL )
+	{
+		std::cout << "File " << fSaveFileName.Data() << " exists... updating it" << std::endl;
+	    fSaveFile = new TFile(fSaveFileName.Data(), "UPDATE");
+	}
+	std::cout << "Saving plots to " << fSaveFileName << std::endl;
+	fSaveFile->cd();
+
+	fSaveFile->mkdir("Profiles");
+	fSaveFile->cd("Profiles");
+
+	std::map<std::pair<unsigned int, FitterParameterType::Type>, TH1D*>::iterator surf1DItr = fSurfaces1D.begin();
+	for( ; surf1DItr != fSurfaces1D.end() ; ++surf1DItr)
+	{
+    std::cout << "Saving plot" << std::endl;
+    TH1D * hist = (TH1D*)((*surf1DItr).second);
+    std::cout << "Plot " << hist->GetName() << " has " << hist->GetNbinsX() << " bins" << std::endl;
+		hist->Write("",TObject::kOverwrite);
+	}
+	std::map<std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> >, TH2D*>::iterator surf2DItr = fSurfaces2D.begin();
+	for( ; surf2DItr != fSurfaces2D.end() ; ++surf2DItr)
+	{
+    std::cout << "Saving plot" << std::endl;
+    TH2D * hist = (TH2D*)((*surf2DItr).second);
+    std::cout << "Plot " << hist->GetName() << " has " << hist->GetNbinsX() * hist->GetNbinsY() << " bins" << std::endl;
+		hist->Write("",TObject::kOverwrite);
+	}
+
+  fSaveFile->cd();
+
+//  fSaveFile->Close();
+//  fSaveFile = NULL;
+	tmpd->cd();
+}
+
 void WCSimFitterPlots::SavePlots() {
 	std::cout << " *** WCSimFitter::SavePlots() *** " << std::endl;
 	TDirectory* tmpd = 0;
@@ -505,27 +539,8 @@ void WCSimFitterPlots::SavePlots() {
 	fSaveFile->cd();
 
 	TNamed inputFile("inputFile", fInputFileName.Data());
-	inputFile.Write();
+	inputFile.Write("", TObject::kOverwrite);
 
-	fSaveFile->mkdir("Profiles");
-	fSaveFile->cd("Profiles");
-
-	std::map<std::pair<unsigned int, FitterParameterType::Type>, TH1D*>::iterator surf1DItr = fSurfaces1D.begin();
-	for( ; surf1DItr != fSurfaces1D.end() ; ++surf1DItr)
-	{
-    std::cout << "Saving plot" << std::endl;
-    TH1D * hist = (TH1D*)((*surf1DItr).second);
-    std::cout << "Plot " << hist->GetName() << " has " << hist->GetNbinsX() << " bins" << std::endl;
-		hist->Write();
-	}
-	std::map<std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> >, TH2D*>::iterator surf2DItr = fSurfaces2D.begin();
-	for( ; surf2DItr != fSurfaces2D.end() ; ++surf2DItr)
-	{
-    std::cout << "Saving plot" << std::endl;
-    TH2D * hist = (TH2D*)((*surf2DItr).second);
-    std::cout << "Plot " << hist->GetName() << " has " << hist->GetNbinsX() * hist->GetNbinsY() << " bins" << std::endl;
-    hist->Write();
-	}
 
 	fSaveFile->cd();
 	fSaveFile->mkdir("FitResults");
@@ -539,7 +554,7 @@ void WCSimFitterPlots::SavePlots() {
       std::cout << "Saving plot" << std::endl;
 			TH1D * hist = (TH1D*)(*plotItr);
       std::cout << "Plot " << hist->GetName() << " has " << hist->GetNbinsX() << " bins" << std::endl;
-      hist->Write();
+      hist->Write("", TObject::kOverwrite);
 		}
 	}
 
@@ -556,14 +571,14 @@ void WCSimFitterPlots::SavePlots() {
       std::cout << "Saving plot" << std::endl;
       TH1D * hist = (TH1D*)(*plotItr);
       std::cout << "Plot " << hist->GetName() << " has " << hist->GetNbinsX() << " bins" << std::endl;
-      hist->Write();
+      hist->Write("", TObject::kOverwrite);
 		}
 	}
 
   fSaveFile->cd();
 
-  fSaveFile->Close();
-  fSaveFile = NULL;
+//  fSaveFile->Close();
+//  fSaveFile = NULL;
 	tmpd->cd();
 	return;
 }

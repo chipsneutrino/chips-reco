@@ -52,7 +52,7 @@ class HitComparison {
 
 class WCSimFitterTree {
 public:
-	WCSimFitterTree();
+	WCSimFitterTree(const TString &saveFileName);
 	virtual ~WCSimFitterTree();
 
 	void MakeTree();
@@ -73,15 +73,18 @@ public:
 			  Double_t minimum);
 	void FillFitTrack(WCSimLikelihoodTrack track, Bool_t escapes, Double_t twoLnL);
 	void FillTrueTrack(WCSimLikelihoodTrack track, Bool_t escapes);
-	void FillHitComparison(WCSimLikelihoodDigitArray * digitArray,
+	void FillHitComparison(
+               const int &event, 
+               WCSimLikelihoodDigitArray * digitArray,
 						   const std::vector<double> &predictedCharges,
 			   	   	   	   const std::vector<double> &correctPredictedCharges,
 						   const std::vector<double> &measuredCharges,
 						   const std::vector<double> &total2LnLs,
 						   const std::vector<double> &correct2LnLs);
+  void FillRecoFailures(const int &event);
 
 private:
-
+  	  void MakeSaveFileName();
 	void MakeRecoSummary(std::vector<WCSimLikelihoodTrack> bestFitTracks);
 
 	TFile * fSaveFile;
@@ -93,6 +96,10 @@ private:
 	TTree * fGeoTree;
 	TTree * fComparisonTree;
   TTree * fHitComparisonTree;
+  TTree * fRecoFailureTree;
+
+  // Failed reco events
+  int fFailedEvent;
 
 	// The best-fit variables
 	Int_t fEvent;

@@ -12,6 +12,7 @@
 #include "WCSimFitterPlots.hh"
 #include "WCSimFitterTree.hh"
 #include <TString.h>
+#include <TTimeStamp.h>
 #include <cassert>
 
 ClassImp(WCSimFitterInterface)
@@ -22,9 +23,16 @@ static WCSimFitterInterface * fgFitterInterface = NULL;
 WCSimFitterInterface::WCSimFitterInterface() :
 		fFileName(""), fNumTracks(0), fFitter(0),
 		fFitterPlots(0), fMakeFits(true), fMakeSurfaces(true){
-      fFitterPlots = new WCSimFitterPlots();
-      fFitterTree = new WCSimFitterTree();
-      fFitterTree->SetSaveFileName(fFitterPlots->GetSaveFileName());
+
+
+	TTimeStamp ts;
+	unsigned int year, month, day, hour, minute, second;
+	ts.GetDate(true, 0, &year, &month, &day);
+	ts.GetTime(true, 0, &hour, &minute, &second);
+	TString saveName = Form("fitterPlots_%02d%02d%02d_%02d%02d%02d", year, month, day, hour, minute, second);
+
+      fFitterPlots = new WCSimFitterPlots(saveName);
+      fFitterTree = new WCSimFitterTree(saveName);
       fFitter = NULL;
       Init();
 	// TODO Auto-generated constructor stub
@@ -249,6 +257,5 @@ void WCSimFitterInterface::Run() {
   if(fMakeFits) { fFitter->RunFits(); }
   std::cout << "  Running surfaces " << std::endl;
   if(fMakeSurfaces) { fFitter->RunSurfaces(); }
-  SaveResults();
   std::cout << " *********************************** " << std::endl;
 }
