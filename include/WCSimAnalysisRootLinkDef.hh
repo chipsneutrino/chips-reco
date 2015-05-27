@@ -82,5 +82,6 @@
 #pragma link C++ class WCSimIntegralLookupMaker+;
 #pragma link C++ class WCSimIntegralLookupMaker3D+;
 #pragma link C++ class WCSimIntegralLookupReader+;
+#pragma link C++ class WCSimFitterTrackParMap+;
 
 #endif

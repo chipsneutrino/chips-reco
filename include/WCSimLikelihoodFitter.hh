@@ -16,6 +16,7 @@
 #include "WCSimRecoDigit.hh"
 #include "WCSimRootEvent.hh"
 #include "WCSimTotalLikelihood.hh"
+#include "WCSimFitterTrackParMap.hh"
 
 #include <vector>
 #include <map>
@@ -42,10 +43,14 @@ class WCSimLikelihoodFitter
     protected:
     private:
 
-        void CreateParameterArrays();
-        void SetParameterArrays();
-        void DeleteParameterArrays();
-        void SetTrackParameterMap();
+        void SeedEvent();
+        void FixVertex();
+        void FreeVertex();
+        void FixEnergy();
+        void FreeEnergy();
+
+        void FitEnergy();
+        void FitVertex();
 
         void FitEventNumber(Int_t iEvent);
         void ResetEvent();
@@ -152,27 +157,18 @@ class WCSimLikelihoodFitter
                                            Double_t th, Double_t phi, Double_t E,
                                            WCSimLikelihoodTrack::TrackType type);
         
-        Double_t * fStartVals;
-        Double_t * fMinVals;
-        Double_t * fMaxVals;
-        Double_t * fStepSizes;
-        Bool_t * fFixed;
-        Bool_t * fIsEnergy;
-        std::string * fNames;
-
         Bool_t fUseHoughFitterForSeed;
-        std::map<FitterParameterType::Type, Double_t> fSeedMap;
 
         Int_t fEvent; ///< Number of the event currently being fitted
         Double_t fMinimum; ///< Value of -2 log(likelihood) at the best-fit point
 
         Bool_t fIsFirstCall; ///< Flags whether this is the first time the minimizer had calculated a likelihood (to print the seed)
         Int_t fStatus; ///< Minimizer convergence status
-        std::map<std::pair<UInt_t, FitterParameterType::Type>, UInt_t > fTrackParMap;
 
 
         WCSimFitterPlots * fFitterPlots;
         WCSimFitterTree * fFitterTree;
+        WCSimFitterTrackParMap fFitterTrackParMap;
 
         int fCalls;
     ClassDef(WCSimLikelihoodFitter,1);

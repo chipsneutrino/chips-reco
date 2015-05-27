@@ -286,7 +286,8 @@ Double_t WCSimEmissionProfiles::GetFractionThroughBin(Double_t energy) const{
 
 void WCSimEmissionProfiles::LoadFile(WCSimLikelihoodTrack* myTrack) {
 	std::cout << " *** WCSimEmissionProfiles::LoadFile - Loading profile" << std::endl;
-	// std::cout << "Track type is " << WCSimLikelihoodTrack::TrackTypeToString(myTrack->GetType()) << std::endl;
+	std::cout << "Track type is " << WCSimLikelihoodTrack::TrackTypeToString(myTrack->GetType()) << std::endl;
+  myTrack->Print();
 	if( myTrack->GetType() != fLastType )
 	{
 
@@ -305,7 +306,6 @@ void WCSimEmissionProfiles::LoadFile(WCSimLikelihoodTrack* myTrack) {
 				std::cerr << "Error: unknown track type in WCSimLikelihoodTuner::LoadEmissionProfiles" << std::endl;
 				exit(EXIT_FAILURE);
 		}
-
 
 		if( fProfileFile != NULL )
 		{
@@ -338,6 +338,7 @@ void WCSimEmissionProfiles::LoadFile(WCSimLikelihoodTrack* myTrack) {
 	InterpolateProfiles(myTrack);
 
 	if(fDebug) { SaveProfiles(); }
+  std::cout << "Loaded!" << std::endl;
 	return;
 
 }

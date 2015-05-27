@@ -129,6 +129,7 @@ Double_t WCSimTotalLikelihood::Calc2LnL(int iDigit)
 {
   // std::cout << "iDigit = " << iDigit << std::endl;
   WCSimLikelihoodDigit *digit = fLikelihoodDigitArray->GetDigit(iDigit);
+  // if(digit->GetQ() == 0) { return 0; }
   std::vector<Double_t> predictedCharges = CalcPredictedCharges(iDigit);
   // std::cout << "Size of predicted charge vector = " << predictedCharges.size() << std::endl;
   //  for(unsigned int i = 0; i<predictedCharges.size(); ++i)
