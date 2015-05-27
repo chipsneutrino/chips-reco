@@ -79,7 +79,6 @@ public:
 
   void SaveResults();
   void SaveProfiles();
-
 	void SetInputFileName(const char * inputfile);
 
 private:

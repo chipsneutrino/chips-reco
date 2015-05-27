@@ -257,5 +257,9 @@ void WCSimFitterInterface::Run() {
   if(fMakeFits) { fFitter->RunFits(); }
   std::cout << "  Running surfaces " << std::endl;
   if(fMakeSurfaces) { fFitter->RunSurfaces(); }
+  std::cout << "  Saving tree " << std::endl;
+  fFitterTree->SaveTree();
+  std::cout << "  Saving plots " << std::endl;
+  fFitterPlots->SavePlots();
   std::cout << " *********************************** " << std::endl;
 }

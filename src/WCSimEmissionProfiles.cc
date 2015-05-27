@@ -135,17 +135,31 @@ void WCSimEmissionProfiles::SetTrack(WCSimLikelihoodTrack* myTrack) {
 	return;
 }
 
-Double_t WCSimEmissionProfiles::GetRho(Double_t s) {
+Double_t WCSimEmissionProfiles::GetRho(const Double_t &s) {
 	return fRhoInterp->GetBinContent(fRhoInterp->GetXaxis()->FindBin(s));
 }
 
-Double_t WCSimEmissionProfiles::GetG(Double_t s, Double_t cosTheta) {
+Double_t WCSimEmissionProfiles::GetRhoWidth(const Double_t &s) {
+  return fRhoInterp->GetBinWidth(fRhoInterp->GetXaxis()->FindBin(s));
+}
+
+Double_t WCSimEmissionProfiles::GetG(const Double_t &s, const Double_t &cosTheta) {
 	TH2F * hist = fGFine;
 	if(cosTheta < fGFine->GetXaxis()->GetXmin())
 	{
 		hist = fGCoarse;
 	}
 	return hist->GetBinContent(hist->GetXaxis()->FindBin(cosTheta), hist->GetYaxis()->FindBin(s));
+}
+
+Double_t WCSimEmissionProfiles::GetGWidth(const Double_t &cosTheta)
+{
+  TH2F * hist = fGFine;
+  if(cosTheta < fGFine->GetXaxis()->GetXmin())
+  {
+    hist = fGCoarse;
+  }
+  return hist->GetXaxis()->GetBinWidth(hist->GetXaxis()->FindBin(cosTheta));
 }
 
 
@@ -218,7 +232,11 @@ std::vector<Double_t> WCSimEmissionProfiles::GetRhoGIntegrals(WCSimLikelihoodTra
 		TVector3 toPMT = pmtPos - myTrack->GetPropagatedPos(s);
 		Double_t cosTheta = TMath::Cos(vtxDir.Angle( toPMT ));
 
-		Double_t binWidth = multiplyByWidth ? fRhoInterp->GetXaxis()->GetBinWidth(iBin) : 1;
+		Double_t binWidthS = multiplyByWidth ? GetRhoWidth(s) : 1;
+		Double_t binWidthTh = multiplyByWidth ?  GetGWidth(cosTheta) : 1;
+
+    // std::cout << "S width = " << binWidthS << "   theta width = " << binWidthTh << "   total = " << binWidthS * binWidthTh << std::endl;
+
     
 		for(UInt_t iPower = 0 ; iPower < sPowers.size() ; ++iPower)
 		{
@@ -227,7 +245,9 @@ std::vector<Double_t> WCSimEmissionProfiles::GetRhoGIntegrals(WCSimLikelihoodTra
 			//           << "fG         = " << fG->GetBinContent(fG->GetXaxis()->FindBin(cosTheta), iBin) << std::endl;
 
 			if(fRhoInterp->GetBinContent(iBin) == 0) { continue; }
-			integrals.at(iPower) += binWidth
+			integrals.at(iPower) += 
+                    binWidthS
+                  //* binWidthTh
 									* fRhoInterp->GetBinContent(iBin)
 									* GetG(s, cosTheta)
 									* pow(fRhoInterp->GetBinCenter(iBin), sPowers.at(iPower));
@@ -275,10 +295,10 @@ void WCSimEmissionProfiles::LoadFile(WCSimLikelihoodTrack* myTrack) {
 		switch( myTrack->GetType() )
 		{
 			case WCSimLikelihoodTrack::ElectronLike:
-				fProfileFileName.Append("/home/ajperch/CHIPS/WCSim_fixGeneration/rootfiles/sum/emissionProfilesElectronsCoarseFine.root");
+				fProfileFileName.Append("/home/ajperch/CHIPS/WCSim_fixGeneration/rootfiles/sum/emissionProfilesElectronsCoarseFineNorm.root");
 				break;
 			case WCSimLikelihoodTrack::MuonLike:
-				fProfileFileName.Append("/home/ajperch/CHIPS/WCSim_fixGeneration/rootfiles/sum/emissionProfilesMuonsCoarseFine.root");
+				fProfileFileName.Append("/home/ajperch/CHIPS/WCSim_fixGeneration/rootfiles/sum/emissionProfilesMuonsCoarseFineNorm.root");
 				break;
 			default:
         myTrack->Print();

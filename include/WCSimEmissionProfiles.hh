@@ -47,8 +47,10 @@ public:
 	WCSimEmissionProfiles(WCSimLikelihoodTrack * myTrack);
   void SaveProfiles();
 	void SetTrack(WCSimLikelihoodTrack * myTrack);
-	Double_t GetRho(Double_t s);
-	Double_t GetG(Double_t s, Double_t cosTheta);
+	Double_t GetRho(const Double_t &s);
+  Double_t GetRhoWidth(const Double_t &s);
+	Double_t GetG(const Double_t &s, const Double_t &cosTheta);
+  Double_t GetGWidth(const Double_t &cosTheta);
 
 	Double_t GetIntegral(EmissionProfile_t::Type type, WCSimLikelihoodTrack* myTrack,
 			WCSimLikelihoodDigit * myDigit, Int_t sPower, Double_t cutoffS, Bool_t multiplyByWidth);

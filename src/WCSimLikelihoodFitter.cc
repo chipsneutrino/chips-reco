@@ -735,6 +735,8 @@ void WCSimLikelihoodFitter::PerformEnergyGridSearch(Double_t& best2LnL,
 }
 
 void WCSimLikelihoodFitter::FillHitComparison() {
+  fTotalLikelihood->SetTracks(fBestFit);
+  fTotalLikelihood->Calc2LnL();
 	std::vector<double> predictedCharges = fTotalLikelihood->GetPredictedChargeVector();
 	std::vector<double> measuredCharges = fTotalLikelihood->GetMeasuredChargeVector();
 	std::vector<double> best2LnLs = fTotalLikelihood->GetTotal2LnLVector();
