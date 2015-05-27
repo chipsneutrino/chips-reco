@@ -162,6 +162,13 @@ void WCSimLikelihoodFitter::Minimize2LnL()
 
   // This is what we ought to do:
   const Double_t * outPar = min->X();
+  // Future tracks need to start from this best fit
+  for( int i = 0; i < nPars; ++i)
+  {
+    fStartVals[i] = outPar[i]; 
+  }
+
+
   for(UInt_t i = 0; i < nPars; ++i)
   {
     if(fIsEnergy[i] && !fFixed[i])
@@ -731,6 +738,7 @@ void WCSimLikelihoodFitter::PerformEnergyGridSearch(Double_t& best2LnL,
 	}
   fMinimum = best2LnL;
   std::cout << "Grid search finished" << std::endl;
+  std::cout << "Best 2 Ln(L) = " << fMinimum << std::endl;
 
 }
 
