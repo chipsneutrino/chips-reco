@@ -1,11 +1,3 @@
-<<<<<<< HEAD
-#include "WCSimFitterInterface.hh"
-#include "TString.h"
-#include <iostream>
-#include <gperftools/profiler.h>
-
-
-
 void wc_trackfitter_new(const char * infile = "", int start=0, int fit=100){
   // Path to WCSim ROOT file
   // =======================
