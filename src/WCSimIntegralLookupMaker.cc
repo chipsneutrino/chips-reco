@@ -215,20 +215,26 @@ void WCSimIntegralLookupMaker::MakeRhoGTables() {
 					Double_t sWidth = hRho->GetBinWidth(iSBin); // +1 is array numbering vs. bin numbering
 					Double_t cosTh = (R0*cosTh0 - s)/TMath::Sqrt(R0*R0 + s*s - 2*R0*s*cosTh0);
 
+          // Work out cos(theta) as a function of R0, s and cosTh0
+          // I've broken down the fraction into part to save computations but
+          // this is just applying cosine rule twice an rearranging
+          double twoS = 2 * s;
+          double sMinuR0CosTh0 = s - R0*cosTh0;
+          double R0SqMinusSSq = (R0+s)*(R0-s);
+          cosTh = (twoS * sMinuR0CosTh0) / ( R0SqMinusSSq + twoS*sMinuR0CosTh0);
+
 					// Now get the values of the emission profiles
 					int thetaBin = 0;
 					double toAdd = 0.0;
 					if( cosTh < hG.second->GetXaxis()->GetXmin())
 					{
 						thetaBin = hG.first->GetXaxis()->FindBin(cosTh);
-						toAdd = hRho->GetBinContent(iSBin) * hG.first->GetBinContent(thetaBin, iSBin) * sWidth
-								* hG.first->GetXaxis()->GetBinWidth(thetaBin);
+						toAdd = hRho->GetBinContent(iSBin) * hG.first->GetBinContent(thetaBin, iSBin) * sWidth;
 					}
 					else
 					{
 						thetaBin = hG.second->GetXaxis()->FindBin(cosTh);
-						toAdd = hRho->GetBinContent(iSBin) * hG.second->GetBinContent(thetaBin, iSBin) * sWidth
-								* hG.second->GetXaxis()->GetBinWidth(thetaBin);;
+						toAdd = hRho->GetBinContent(iSBin) * hG.second->GetBinContent(thetaBin, iSBin) * sWidth;
 					}
 
 					if( toAdd > 0.0 )

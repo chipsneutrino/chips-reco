@@ -235,9 +235,11 @@ std::vector<Double_t> WCSimEmissionProfiles::GetRhoGIntegrals(WCSimLikelihoodTra
 		Double_t binWidthS = multiplyByWidth ? GetRhoWidth(s) : 1;
 		Double_t binWidthTh = multiplyByWidth ?  GetGWidth(cosTheta) : 1;
 
-    // std::cout << "S width = " << binWidthS << "   theta width = " << binWidthTh << "   total = " << binWidthS * binWidthTh << std::endl;
-
-    
+//    if( myDigit->GetTubeId() == 3364)
+//    {
+//      std::cout << "s = " << s << "   toPMT = "  << toPMT.Mag() << "   costheta = " << cosTheta << std::endl;
+//    }
+    double adding = 0; 
 		for(UInt_t iPower = 0 ; iPower < sPowers.size() ; ++iPower)
 		{
 			// std::cout << "Binwidth   = " << binWidth << std::endl
@@ -245,14 +247,19 @@ std::vector<Double_t> WCSimEmissionProfiles::GetRhoGIntegrals(WCSimLikelihoodTra
 			//           << "fG         = " << fG->GetBinContent(fG->GetXaxis()->FindBin(cosTheta), iBin) << std::endl;
 
 			if(fRhoInterp->GetBinContent(iBin) == 0) { continue; }
-			integrals.at(iPower) += 
-                    binWidthS
-                  //* binWidthTh
-									* fRhoInterp->GetBinContent(iBin)
-									* GetG(s, cosTheta)
-									* pow(fRhoInterp->GetBinCenter(iBin), sPowers.at(iPower));
+      adding =
+                binWidthS
+							* fRhoInterp->GetBinContent(iBin)
+							* GetG(s, cosTheta);
+      integrals.at(iPower) += adding * pow(s, sPowers.at(iPower));
 			// std::cout << "Now integrals.at(" << iPower << ") = " << integrals.at(iPower) <<  " sPower = " << sPowers.at(iPower) << std::endl;
 		}
+//
+//    if( myDigit->GetTubeId() == 3364)
+//    {
+//      std::cout << "adding " << adding << "   now integrals[0] = " << integrals.at(0) << "  integrals[1] = " << integrals.at(1) << "  integrals[2] = " << integrals.at(2) << std::endl;
+//    }
+//
 	}
 	return integrals;
 

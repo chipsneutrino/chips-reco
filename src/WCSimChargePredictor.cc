@@ -249,7 +249,7 @@ double WCSimChargePredictor::GetMuDirect(Int_t trackIndex)
   // Get the coefficients to multiply the integral
   if(fGotTrackParameters != trackIndex) { this->GetTrackParameters(trackIndex); }
 
-  if(fGotTrackParameters == trackIndex) //FIXME: no longer necessary?
+  if(fGotTrackParameters == trackIndex)
   {
     double lightFlux = this->GetLightFlux(trackIndex);
     std::vector<Double_t> integrals
@@ -259,8 +259,8 @@ double WCSimChargePredictor::GetMuDirect(Int_t trackIndex)
     // std::cout << " **** CALCULATING COEFFICIENTS ***** " << std::endl;
     // fTuner->CalculateCoefficients(fTracks[trackIndex], fDigit);
 
-//    std::cout << "fDigit = " << fDigit->GetTubeId() << "   integrals[0] = " << integrals[0] << "  integrals[1] = " << integrals[1] << "   integrals[2] = " << integrals[2] << std::endl
-//              << "fCoeffsCh = " << fCoeffsCh[0] << "," << fCoeffsCh[1] << "," << fCoeffsCh[2] << std::endl;
+//   std::cout << "Digit = " << fDigit->GetTubeId() << "   charge = " << fDigit->GetQ() << "   integrals[0] = " << integrals[0] << "  integrals[1] = " << integrals[1] << "   integrals[2] = " << integrals[2] << std::endl
+//           << "fCoeffsCh = " << fCoeffsCh[0] << "," << fCoeffsCh[1] << "," << fCoeffsCh[2] << std::endl;
 
     muDirect = lightFlux * ( integrals[0] * fCoeffsCh[0] + integrals[1] * fCoeffsCh[1] + integrals[2] * fCoeffsCh[2] );
     if(muDirect < 0)
@@ -268,8 +268,6 @@ double WCSimChargePredictor::GetMuDirect(Int_t trackIndex)
         // std::cout << "muDir is NEGATIVE! " << "  i0 = " << integrals[0] << "   i1 = " << integrals[1] << "   i2 = " << integrals[2] << "    fCoeffsInd = " << fCoeffsInd[0] << "," << fCoeffsInd[1] << "," << fCoeffsInd[2] << std::endl;
         muDirect = 0;
     }
-
-
   }
   else
   {

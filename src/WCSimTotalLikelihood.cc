@@ -94,7 +94,7 @@ Double_t WCSimTotalLikelihood::Calc2LnL()
     if(digit2LnL < 0) { return -99999; }
     else
     {
-		  minus2LnL += Calc2LnL(iDigit);
+		  minus2LnL += digit2LnL;
 	  }
   } //for iDigit
 

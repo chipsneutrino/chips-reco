@@ -148,46 +148,50 @@ void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
 	{
 		//if(iEBin != binningHisto->GetXaxis()->GetNbins() ) { continue; }
 		std::cout << "Energy bin = " << iEBin << "/" << binningHisto->GetXaxis()->GetNbins() << std::endl;
+    // std::cout << fIntegrals.GetRhoGSSInt()->GetBinContent(1613039);
 		Double_t vars[3] = { binningHisto->GetXaxis()->GetBinLowEdge(iEBin), 0.0, 0.0 };
-		// Entries are E, s, R0, cosTh0
+		// Entries are E, R0, cosTh0
 		TH1F * hRho = fEmissionProfiles.GetRho(fType, vars[0]);
 		std::pair<TH2F*, TH2F*> hG = fEmissionProfiles.GetG(fType, vars[0]);
 
 		for( Int_t iR0Bin = 1; iR0Bin <= fNR0Bins; ++iR0Bin)
 		{
-			Double_t R0 = axisR0.GetBinCenter(iR0Bin);
+			Double_t R0 = axisR0.GetBinLowEdge(iR0Bin);
 			vars[1] = R0;
 
 			for( Int_t iCosTh0Bin = 1; iCosTh0Bin <= fNCosTh0Bins; ++iCosTh0Bin)
 			{
-				Double_t cosTh0 = axisCosTh0.GetBinCenter(iCosTh0Bin);
+				Double_t cosTh0 = axisCosTh0.GetBinLowEdge(iCosTh0Bin);
 				vars[2] = cosTh0;
 
 				// Three entries are powers of s = 0,1,2
 			    Double_t runningTotal[3] = {0.0, 0.0, 0.0};
 
-				for( Int_t iSBin = 0; iSBin < hRho->GetNbinsX(); ++iSBin)
+				for( Int_t iSBin = 1; iSBin <= hRho->GetNbinsX(); ++iSBin)
 				{
 					// Work out the co-ordinates needed to look up the emission profiles at this step
 					Double_t s = hRho->GetBinCenter(iSBin);
 
+          // Work out cos(theta) as a function of R0, s and cosTh0
+          // I've broken down the fraction into part to save computations but
+          // this is just applying cosine rule twice an rearranging
+          double R0CosTh0 = R0 * cosTh0;
+          double cosTh = (R0CosTh0 - s) / TMath::Sqrt(s*s + R0*R0 - 2*s*R0CosTh0);
 					Double_t sWidth = hRho->GetBinWidth(iSBin); // +1 is array numbering vs. bin numbering
-					Double_t cosTh = (R0*cosTh0 - s)/TMath::Sqrt(R0*R0 + s*s - 2*R0*s*cosTh0);
 
 					// Now get the values of the emission profiles
 					int thetaBin = 0;
 					double toAdd = 0.0;
 					if( cosTh < hG.second->GetXaxis()->GetXmin())
 					{
+
 						thetaBin = hG.first->GetXaxis()->FindBin(cosTh);
-						toAdd = hRho->GetBinContent(iSBin) * hG.first->GetBinContent(thetaBin, iSBin) * sWidth
-								* hG.first->GetXaxis()->GetBinWidth(thetaBin);
+						toAdd = hRho->GetBinContent(iSBin) * hG.first->GetBinContent(thetaBin, iSBin) * sWidth;
 					}
 					else
 					{
 						thetaBin = hG.second->GetXaxis()->FindBin(cosTh);
-						toAdd = hRho->GetBinContent(iSBin) * hG.second->GetBinContent(thetaBin, iSBin) * sWidth
-								* hG.second->GetXaxis()->GetBinWidth(thetaBin);
+						toAdd = hRho->GetBinContent(iSBin) * hG.second->GetBinContent(thetaBin, iSBin) * sWidth;
 					}
 
 					if( toAdd > 0.0 )
@@ -195,11 +199,15 @@ void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
 						runningTotal[0] += toAdd;
 						runningTotal[1] += toAdd * s;
 						runningTotal[2] += toAdd * s * s;
-						// std::cout << "vars = " << vars[0] << " " << vars[1] << " " << vars[2] << " " << vars[3] << " bin = " << fIntegrals.GetRhoGInt()->GetBin(vars) << std::endl;
 					}
-					else if(hRho->GetBinContent(iSBin) > 0) {break;}
+					else if(hRho->GetBinContent(iSBin) == 0 && iSBin > 10) {break;} // Stop adding if we've reached the end of the profile
+//          if( vars[0] == 1000 && 1285 <= vars[1] && 1290 >= vars[1] && 0.784 <= vars[2] && 0.786 > vars[2] )
+//          {
+//            std::cout << "s = " << s << "  cosTh = " << cosTh << " - adding " << toAdd << "  integral[0] = " << runningTotal[0] << "  integral[1] = " << runningTotal[1] << "   integral[2] = " << runningTotal[2] << std::endl;
+//					std::cout << "vars = " << vars[0] << " " << vars[1] << " " << vars[2] << " bin = " << fIntegrals.GetRhoGInt()->GetBin(vars, false) << std::endl;
+//          }
 				}
-				fIntegrals.GetRhoGInt()->Fill(vars, runningTotal[0]);
+        fIntegrals.GetRhoGInt()->Fill(vars, runningTotal[0]);
 				fIntegrals.GetRhoGSInt()->Fill(vars, runningTotal[1]);
 				fIntegrals.GetRhoGSSInt()->Fill(vars, runningTotal[2]);
 				if(runningTotal[0] > 0) {

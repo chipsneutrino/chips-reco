@@ -426,7 +426,7 @@ void WCSimLikelihoodTuner::CalculateCutoff( WCSimLikelihoodTrack * myTrack )
   if(*myTrack == fLastCutoff) { return; }
   
   Double_t cutoff = fEmissionProfiles.GetStoppingDistance(myTrack);
-  std::cout << "From profile, cutoff = " << cutoff << std::endl;
+  // std::cout << "From profile, cutoff = " << cutoff << std::endl;
 
   if( fConstrainExtent )
   {
@@ -443,7 +443,7 @@ void WCSimLikelihoodTuner::CalculateCutoff( WCSimLikelihoodTrack * myTrack )
     else assert(false);
 
   }
-  std::cout << "Energy = " << myTrack->GetE() << "   Cutoff = " << cutoff << ".... returning" << std::endl;
+  // std::cout << "Energy = " << myTrack->GetE() << "   Cutoff = " << cutoff << ".... returning" << std::endl;
   fCutoffIntegral = cutoff;
   fLastCutoff     = *myTrack;
   return;
@@ -637,9 +637,13 @@ double WCSimLikelihoodTuner::LookupChIntegrals(WCSimLikelihoodTrack * myTrack, W
 std::vector<Double_t> WCSimLikelihoodTuner::LookupChIntegrals(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit)
 {
     // std::cout << "*** WCSimLikelihoodTuner::LookupChIntegrals() *** Looking up the tabulated integrals for direct Cherenkov light" << std::endl;
- 	TVector3 pmtPos(myDigit->GetX(), myDigit->GetY(), myDigit->GetZ());
- 	Double_t R0 = (pmtPos - (myTrack->GetVtx())).Mag();
- 	Double_t cosTheta0 = myTrack->GetDir().Dot(pmtPos - myTrack->GetVtx()) / (R0);
+  TVector3 pmtPos = myDigit->GetPos();
+  TVector3 vtxPos = myTrack->GetVtx();
+  TVector3 vtxDir = myTrack->GetDir();
+
+	TVector3 toPMT = pmtPos - vtxPos;
+  Double_t R0 = toPMT.Mag();
+	Double_t cosTheta0 = TMath::Cos(vtxDir.Angle( toPMT ));
  	
  	WCSimIntegralLookupReader * myReader = WCSimIntegralLookupReader::Instance();
  	double E = myTrack->GetE();

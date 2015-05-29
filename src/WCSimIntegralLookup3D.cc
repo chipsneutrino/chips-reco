@@ -92,8 +92,8 @@ double WCSimIntegralLookup3D::GetIntegral3D(const double& E, const double& R0, c
 	int bin = hist->GetBin(x, false); // false -> don't allocate bin if it's empty
 
 //	if(0.7 < cosTh0 && cosTh0 < 0.8){
-//		std::cout << "Getting integral for:  E = " << E << "  R0 = " << R0 << "   cosTh0 = " << cosTh0 << "  " << std::endl;
-//		std::cout << " bin = " << bin;
+//	std::cout << "Getting integral for:  E = " << E << "  R0 = " << R0 << "   cosTh0 = " << cosTh0 << "  " << std::endl;
+//	std::cout << " bin = " << bin << std::endl;
 //		if(bin != -1) {std::cout << "  int = " << hist->GetBinContent(bin) << std::endl;}
 //	}
 	if( bin != -1) { return (hist->GetBinContent(bin) ); }
