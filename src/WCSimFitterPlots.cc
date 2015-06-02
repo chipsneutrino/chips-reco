@@ -4,6 +4,7 @@
  *  Created on: 3 Nov 2014
  *      Author: andy
  */
+#include "TCanvas.h"
 
 #include "WCSimFitterConfig.hh"
 #include "WCSimFitterPlots.hh"
@@ -411,7 +412,13 @@ void WCSimFitterPlots::Fill1DProfile(std::pair<unsigned int, FitterParameterType
     std::cout << "Profile = " << profile << std::endl; 
     std::cout << "Profile title = " << profile->GetTitle() << std::endl;
 		profile->SetBinContent(binNum, minus2LnL);
+    TCanvas * can1 = new TCanvas("can1","can1",800,600);
+    profile->Draw();
+    can1->SaveAs("can1.png");
+
+    profile = 0x0;
 	}
+  std::cout << "Done!" << std::endl;
 }
 
 void WCSimFitterPlots::Get2DSurfaceBinCenters(std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > theProfile, int binNumX, int binNumY, double &x, double &y)

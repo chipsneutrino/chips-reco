@@ -59,6 +59,7 @@ class WCSimLikelihoodFitter
          * Perform the minimization
          */
         void Minimize2LnL();
+        void UpdateBestFits();
 
         /**
          * Work out how many free parameters Minuit needs to run over
@@ -157,6 +158,7 @@ class WCSimLikelihoodFitter
                                            Double_t th, Double_t phi, Double_t E,
                                            WCSimLikelihoodTrack::TrackType type);
         
+
         Bool_t fUseHoughFitterForSeed;
 
         Int_t fEvent; ///< Number of the event currently being fitted

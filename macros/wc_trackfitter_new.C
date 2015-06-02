@@ -34,9 +34,9 @@ void wc_trackfitter_new(const char * infile = "", int start=0, int fit=100){
   WCSimFitterInterface::Instance()->SetParameter(0, "kVtxY", -1200, 1200, 0, false);
   WCSimFitterInterface::Instance()->SetParameter(0, "kVtxZ", -900, 900, 0, false);
   WCSimFitterInterface::Instance()->SetParameter(0, "kVtxT", -900, 900, 0, true);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kDirTh", 0, TMath::Pi(), 0.5*TMath::Pi(), false);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kDirPhi", -TMath::Pi(), TMath::Pi(), 0.0*TMath::Pi(), false);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kEnergy", 500, 2400, 1500, false);
+  WCSimFitterInterface::Instance()->SetParameter(0, "kDirTh", 0, TMath::Pi(), 0.0, false);
+  WCSimFitterInterface::Instance()->SetParameter(0, "kDirPhi", -TMath::Pi(), TMath::Pi(), 0.0, false);
+  WCSimFitterInterface::Instance()->SetParameter(0, "kEnergy", 900, 3100, 1000, false);
 
 
   // Plot best-fit results
@@ -58,8 +58,9 @@ void wc_trackfitter_new(const char * infile = "", int start=0, int fit=100){
   WCSimFitterInterface::Instance()->PlotRecoMinusTrue("kEnergy");
 
   // Sweep out one variable
-  WCSimFitterInterface::Instance()->SetNumSurfaceBins(50);
+  WCSimFitterInterface::Instance()->SetNumSurfaceBins(22);
   WCSimFitterInterface::Instance()->Make1DSurface(0, "kEnergy");
+  //WCSimFitterInterface::Instance()->Make2DSurface(0, "kVtxX", 0, "kVtxY");
   WCSimFitterInterface::Instance()->SetMakeFits(kTRUE);
   WCSimFitterInterface::Instance()->SetMakeSurfaces(kFALSE);
 

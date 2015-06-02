@@ -80,7 +80,7 @@ void WCSimFitterTrackParMap::SetArrays()
 				fCurrentValues[iParam] = WCSimFitterConfig::Instance()->GetParStart(jTrack,name);
 				fMinValues[iParam]   = WCSimFitterConfig::Instance()->GetParMin(jTrack,name);
 				fMaxValues[iParam]   = WCSimFitterConfig::Instance()->GetParMax(jTrack,name);
-				fSteps[iParam] = (WCSimFitterConfig::Instance()->GetParMax(jTrack,name) - WCSimFitterConfig::Instance()->GetParMin(jTrack, name)) / 10.0;
+				fSteps[iParam] = (WCSimFitterConfig::Instance()->GetParMax(jTrack,name) - WCSimFitterConfig::Instance()->GetParMin(jTrack, name)) / 20.0;
 				fAlwaysFixed[iParam] = WCSimFitterConfig::Instance()->GetIsFixedParameter(jTrack,name);
 				fCurrentlyFixed[iParam] = fAlwaysFixed[iParam];
 				TString parName = Form("%s_track%d", name, jTrack);

@@ -228,9 +228,11 @@ void WCSimLikelihoodFitter::Make1DSurface(TrackAndType trackPar) {
   {
 	  double stepVal = min + (max - min) * iBin / (double)fFitterPlots->GetNumSurfaceBins();
 	  startVals.at(fFitterTrackParMap.GetIndex(trackPar)) = stepVal;
-	  fFitterPlots->Fill1DProfile(trackPar, iBin, WrapFunc(x));
+    double lnL = WrapFunc(x);
+    std::cout << "Bin = " << iBin << "   StepVal = " << stepVal << "   -2LnL = " << lnL <<std::endl;
+
+	  fFitterPlots->Fill1DProfile(trackPar, iBin, lnL);
   }
-  delete [] x;
 }
 
 void WCSimLikelihoodFitter::Make2DSurface(
@@ -348,6 +350,7 @@ void WCSimLikelihoodFitter::RunFits() {
 void WCSimLikelihoodFitter::RunSurfaces() {
 	fRootEvent = WCSimInterface::Instance()->GetWCSimEvent(WCSimFitterConfig::Instance()->GetFirstEventToFit());
 	fLikelihoodDigitArray = WCSimInterface::Instance()->GetWCSimLikelihoodDigitArray(WCSimFitterConfig::Instance()->GetFirstEventToFit());
+  fFitterTrackParMap.Set();
 	std::cout << "There are " << fLikelihoodDigitArray->GetNDigits() << " digits" << std::endl;
 	if(fTotalLikelihood != NULL)
 	{
@@ -368,7 +371,6 @@ void WCSimLikelihoodFitter::RunSurfaces() {
 	{
 		Make1DSurface(*itr1D);
 	}
-
 
 	std::vector<std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > > all2DProfile = fFitterPlots->GetAll2DSurfaceKeys();
 	for(std::vector<std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > >::iterator itr2D = all2DProfile.begin() ;
@@ -611,6 +613,7 @@ void WCSimLikelihoodFitter::FitEnergy()
       }
 			Double_t * x = &(startVals[0]);
 			double tempMin = WrapFunc(x);
+      std::cout << "Energy = " << energyBinsZero.at(iBin) << "    -2LnL = " << tempMin << "   Best (till now) = " << best2LnL << std::endl;
 			if( tempMin < best2LnL || isFirstLoop )
 			{
 				best2LnL = tempMin;
@@ -640,7 +643,7 @@ void WCSimLikelihoodFitter::FitEnergy()
 
 	std::cout << "Grid search finished" << std::endl;
 	std::cout << "Best 2 Ln(L) = " << fMinimum << std::endl;
-
+  UpdateBestFits();
 
 	return;
 }
@@ -654,10 +657,11 @@ void WCSimLikelihoodFitter::FitVertex()
 	// ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "GSLSimAn");
 
 
-	min->SetMaxFunctionCalls(100);
+	min->SetMaxFunctionCalls(500);
 	min->SetMaxIterations(1);
 	min->SetPrintLevel(3);
-	min->SetTolerance(200);
+	//min->SetTolerance(0.);
+  min->SetErrorDef(1.0);
 	min->SetStrategy(2);
 	std::cout << " Tolerance = " << min->Tolerance() << std::endl;
 
@@ -725,7 +729,12 @@ void WCSimLikelihoodFitter::FitVertex()
 	  // Get and print the fit results
 	  // std::cout << "Best fit track: " << std::endl;
 	  // RescaleParams(outPar2[0],  outPar2[1],  outPar2[2],  outPar2[3],  outPar2[4],  outPar2[5],  outPar2[6], fType).Print();
+    UpdateBestFits();
+	  return;
+}
 
+void WCSimLikelihoodFitter::UpdateBestFits()
+{
 	  // Now save the best-fit tracks
 	  fBestFit.clear();
 	  for(UInt_t iTrack = 0; iTrack < WCSimFitterConfig::Instance()->GetNumTracks(); ++iTrack)
@@ -751,5 +760,4 @@ void WCSimLikelihoodFitter::FitVertex()
 		  track.Print();
 		  fBestFit.push_back(track);
 	  }
-	  return;
 }

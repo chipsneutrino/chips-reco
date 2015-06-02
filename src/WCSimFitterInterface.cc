@@ -245,6 +245,13 @@ void WCSimFitterInterface::SaveResults()
   fFitterPlots->SavePlots();
 }
 
+void WCSimFitterInterface::SaveProfiles()
+{
+  std::cout << "  Saving profiles " << std::endl;
+  fFitterPlots->SaveProfiles();
+  std::cout << "  Saved profiles" << std::endl;
+}
+
 void WCSimFitterInterface::Run() {
   std::cout << " *** WCSimFitterInterface::Run() *** " << std::endl;
   Init();
