@@ -327,9 +327,6 @@ void WCSimEmissionProfiles::LoadFile(WCSimLikelihoodTrack* myTrack) {
 		fLastType         = myTrack->GetType();
 		fRhoArray         = (TObjArray *) fProfileFile->Get("histArray");
     std::cout << fGFineArray << std::endl;
-    TObjArray * arr = new TObjArray();
-    fProfileFile->GetObject("angHistFineArray", arr);
-    std::cout << arr << std::endl;
 		fGFineArray 	  = (TObjArray *) fProfileFile->Get("angHistFineArray");
 		fGCoarseArray 	  = (TObjArray *) fProfileFile->Get("angHistCoarseArray");
 		fBinningHistogram = (TH1F*) fProfileFile->Get("hWhichHisto");

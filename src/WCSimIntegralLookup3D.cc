@@ -50,6 +50,8 @@ WCSimIntegralLookup3D::WCSimIntegralLookup3D(TString fileName) {
 }
 
 WCSimIntegralLookup3D::~WCSimIntegralLookup3D() {
+  fHistFile->Close();
+  delete fHistFile;
 }
 
 double WCSimIntegralLookup3D::GetRhoIntegral(const double& E, const double &s) {
