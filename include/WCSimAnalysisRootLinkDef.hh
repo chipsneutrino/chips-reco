@@ -57,7 +57,10 @@
 #pragma link C++ class WCSimLikelihoodDigit+;
 #pragma link C++ class WCSimLikelihoodDigitArray+;
 #pragma link C++ class WCSimLikelihoodTrack+;
+#pragma link C++ class TrackType+;
 #pragma link C++ enum TrackType::Type;
+#pragma link C++ class FitterParameterType+;
+#pragma link C++ enum FitterParameterType::Type;
 #pragma link C++ class WCSimTimeLikelihood+;
 #pragma link C++ class WCSimDigitizerLikelihood+;
 #pragma link C++ class vector<WCSimLikelihoodTrack>;
@@ -73,10 +76,9 @@
 #pragma link C++ class WCSimFitterParameter+;
 #pragma link C++ class WCSimFitterSingleTrackParameters+;
 #pragma link C++ class WCSimFitterParameters+;
-#pragma link C++ enum FitterParameterType::Type+;
 #pragma link C++ class vector<WCSimFitterSingleTrackParameters>+;
 #pragma link C++ class WCSimEmissionProfiles+;
-#pragma link C++ enum EmissionProfile_t::Type+;
+#pragma link C++ enum EmissionProfile_t::Type;
 #pragma link C++ class WCSimRecoSummary+;
 #pragma link C++ class WCSimRecoEvDisplay+;
 #pragma link C++ class WCSimIntegralLookupMaker+;
