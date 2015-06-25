@@ -57,7 +57,7 @@
 #pragma link C++ class WCSimLikelihoodDigit+;
 #pragma link C++ class WCSimLikelihoodDigitArray+;
 #pragma link C++ class WCSimLikelihoodTrack+;
-#pragma link C++ enum WCSimLikelihoodTrack::TrackType;
+#pragma link C++ enum TrackType::Type;
 #pragma link C++ class WCSimTimeLikelihood+;
 #pragma link C++ class WCSimDigitizerLikelihood+;
 #pragma link C++ class vector<WCSimLikelihoodTrack>;
@@ -83,5 +83,8 @@
 #pragma link C++ class WCSimIntegralLookupMaker3D+;
 #pragma link C++ class WCSimIntegralLookupReader+;
 #pragma link C++ class WCSimFitterTrackParMap+;
+#pragma link C++ class WCSimLikelihoodTrackBase+;
+#pragma link C++ class WCSimLikelihoodPhotonTrack+;
+#pragma link C++ class WCSimLikelihoodTrackFactory+;
 
 #endif

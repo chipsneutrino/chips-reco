@@ -8,8 +8,10 @@
 #ifndef WCSIMEMISSIONPROFILES_H_
 #define WCSIMEMISSIONPROFILES_H_
 
-#include "WCSimLikelihoodTrack.hh"
+#include "WCSimLikelihoodTrackBase.hh"
+#include "WCSimTrackParameterEnums.hh"
 #include <string>
+
 
 class TH1F;
 class TH2F;
@@ -44,52 +46,52 @@ struct EmissionProfile_t{
 class WCSimEmissionProfiles {
 public:
 	WCSimEmissionProfiles();
-	WCSimEmissionProfiles(WCSimLikelihoodTrack * myTrack);
+	WCSimEmissionProfiles(WCSimLikelihoodTrackBase * myTrack);
   void SaveProfiles();
-	void SetTrack(WCSimLikelihoodTrack * myTrack);
+	void SetTrack(WCSimLikelihoodTrackBase * myTrack);
 	Double_t GetRho(const Double_t &s);
   Double_t GetRhoWidth(const Double_t &s);
 	Double_t GetG(const Double_t &s, const Double_t &cosTheta);
   Double_t GetGWidth(const Double_t &cosTheta);
 
-	Double_t GetIntegral(EmissionProfile_t::Type type, WCSimLikelihoodTrack* myTrack,
+	Double_t GetIntegral(EmissionProfile_t::Type type, WCSimLikelihoodTrackBase* myTrack,
 			WCSimLikelihoodDigit * myDigit, Int_t sPower, Double_t cutoffS, Bool_t multiplyByWidth);
 	
 	Double_t GetRhoIntegral(Int_t sPower, Double_t energy, Double_t startS, Double_t endS, Bool_t multiplyByWidth = kTRUE);
 	std::vector<Double_t> GetRhoIntegrals(std::vector<Int_t> sPowers, Double_t energy, Double_t startS, Double_t endS, Bool_t multiplyByWidth = kTRUE);
-	Double_t GetRhoGIntegral(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit,
+	Double_t GetRhoGIntegral(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit,
 			                     Int_t sPower, Double_t cutoffS, Bool_t multiplyByWidth);
-	std::vector<Double_t> GetRhoGIntegrals(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit,
+	std::vector<Double_t> GetRhoGIntegrals(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit,
 			                                  std::vector<Int_t> sPowers, Double_t cutoffS, Bool_t multiplyByWidth);
   Double_t GetTrackLengthForPercentile(Double_t percentile);
 
 	virtual ~WCSimEmissionProfiles();
-  Double_t GetLightFlux(WCSimLikelihoodTrack * myTrack) const;
+  Double_t GetLightFlux(WCSimLikelihoodTrackBase * myTrack) const;
 
   std::vector<Double_t> GetProfileEnergies() const;
-  Double_t GetStoppingDistance(WCSimLikelihoodTrack * track);
+  Double_t GetStoppingDistance(WCSimLikelihoodTrackBase * track);
 
-  TH1F * GetRho(WCSimLikelihoodTrack::TrackType particle, double energy);
-  std::pair<TH2F*,TH2F*> GetG(WCSimLikelihoodTrack::TrackType particle, double energy);
-  TH2F * GetGCoarse(WCSimLikelihoodTrack::TrackType particle, double energy);
-  TH2F * GetGFine(WCSimLikelihoodTrack::TrackType particle, double energy);
-  TH1F * GetEnergyHist(WCSimLikelihoodTrack::TrackType particle);
+  TH1F * GetRho(TrackType::Type particle, double energy);
+  std::pair<TH2F*,TH2F*> GetG(TrackType::Type particle, double energy);
+  TH2F * GetGCoarse(TrackType::Type particle, double energy);
+  TH2F * GetGFine(TrackType::Type particle, double energy);
+  TH1F * GetEnergyHist(TrackType::Type particle);
 
 private:
 	UInt_t GetArrayBin(Double_t energy) const;
 	UInt_t GetHistBin(Double_t energy) const;
 	Double_t GetFractionThroughBin(Double_t energy) const;
 
-	void LoadFile(WCSimLikelihoodTrack * myTrack);
-	void InterpolateProfiles(WCSimLikelihoodTrack * myTrack);
-	void InterpolateRho(WCSimLikelihoodTrack * myTrack);
-	void InterpolateG(WCSimLikelihoodTrack * myTrack);
+	void LoadFile(WCSimLikelihoodTrackBase * myTrack);
+	void InterpolateProfiles(WCSimLikelihoodTrackBase * myTrack);
+	void InterpolateRho(WCSimLikelihoodTrackBase * myTrack);
+	void InterpolateG(WCSimLikelihoodTrackBase * myTrack);
 
-	Double_t GetCriticalDistance(WCSimLikelihoodTrack::TrackType type, Double_t energy) const;
-	Double_t GetLightFlux(WCSimLikelihoodTrack::TrackType type, Double_t energy) const;
+	Double_t GetCriticalDistance(TrackType::Type type, Double_t energy) const;
+	Double_t GetLightFlux(TrackType::Type type, Double_t energy) const;
 
 	Double_t fLastEnergy;
-	WCSimLikelihoodTrack::TrackType fLastType;
+	TrackType::Type fLastType;
 
 	TString fProfileFileName;
 	TFile * fProfileFile;

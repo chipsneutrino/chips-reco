@@ -95,6 +95,11 @@ unsigned int WCSimFitterInterface::GetNumTracks() const {
 	return WCSimFitterConfig::Instance()->GetNumTracks();
 }
 
+TrackType::Type WCSimFitterInterface::GetTrackType(const unsigned int &numTrack)
+{
+  return WCSimFitterConfig::Instance()->GetTrackType(numTrack);
+}
+
 void WCSimFitterInterface::SetParameter(unsigned int numTrack, const char * name, double min, double max, double start, bool fixIt)
 {
   WCSimFitterConfig::Instance()->SetParameter(numTrack, name, min, max, start, fixIt);

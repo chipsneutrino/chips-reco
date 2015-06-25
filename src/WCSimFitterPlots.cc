@@ -384,7 +384,7 @@ void WCSimFitterPlots::CreateNtuple(WCSimFitterConfig* fitterConfig) {
 }
 
 void WCSimFitterPlots::FillNtuple(WCSimFitterConfig* fitterConfig,
-		std::vector<WCSimLikelihoodTrack> bestFits) {
+		std::vector<WCSimLikelihoodTrackBase*> bestFits) {
 }
 
 double WCSimFitterPlots::Get1DSurfaceBinCenter(std::pair<unsigned int, FitterParameterType::Type> theProfile, int iBin)
@@ -622,7 +622,7 @@ void WCSimFitterPlots::Print2DSurfaces()
   std::cout << " -------------------------------------------------- " << std::endl;
 }
 
-void WCSimFitterPlots::FillPlots(std::vector<WCSimLikelihoodTrack> bestFits) {
+void WCSimFitterPlots::FillPlots(std::vector<WCSimLikelihoodTrackBase*> bestFits) {
 	std::map<FitterParameterType::Type, std::vector<TH1D*> >::iterator plotVecItr = fForEachEvent.begin();
 	for(unsigned int iTrack = 0; iTrack < bestFits.size(); ++iTrack)
 	{
@@ -633,7 +633,7 @@ void WCSimFitterPlots::FillPlots(std::vector<WCSimLikelihoodTrack> bestFits) {
 			FitterParameterType::Type type = (*plotVecItr).first;
 			TH1D * hist = (*plotVecItr).second.at(iTrack);
 
-			double bestFitParam = bestFits.at(iTrack).GetTrackParameter(type);
+			double bestFitParam = bestFits.at(iTrack)->GetTrackParameter(type);
 			hist->Fill(bestFitParam);
 		}
 	}
@@ -641,13 +641,13 @@ void WCSimFitterPlots::FillPlots(std::vector<WCSimLikelihoodTrack> bestFits) {
 }
 
 void WCSimFitterPlots::FillRecoMinusTrue(
-		std::vector<WCSimLikelihoodTrack> bestFits, std::vector<WCSimLikelihoodTrack*> * trueTracks) {
+		std::vector<WCSimLikelihoodTrackBase*> bestFits, std::vector<WCSimLikelihoodTrackBase*> * trueTracks) {
 
 	// First sort all the tracks by energy
-	std::sort(bestFits.begin(), bestFits.end(), WCSimLikelihoodTrack::EnergyGreaterThanOrEqual);
+	std::sort(bestFits.begin(), bestFits.end(), WCSimLikelihoodTrackBase::EnergyGreaterThanOrEqualPtrs);
 	// Make a copy so we don't mess with the pointed vector
-	std::vector<WCSimLikelihoodTrack *> trueTracksSorted = *trueTracks;
-	std::sort(trueTracksSorted.begin(), trueTracksSorted.end(), WCSimLikelihoodTrack::EnergyGreaterThanOrEqualPtrs);
+	std::vector<WCSimLikelihoodTrackBase *> trueTracksSorted = *trueTracks;
+	std::sort(trueTracksSorted.begin(), trueTracksSorted.end(), WCSimLikelihoodTrackBase::EnergyGreaterThanOrEqualPtrs);
 
 	unsigned int maxTracksToPlot = trueTracksSorted.size();
 	if( trueTracksSorted.size() > bestFits.size() )
@@ -662,8 +662,8 @@ void WCSimFitterPlots::FillRecoMinusTrue(
 
 	for(unsigned int iTrack = 0; iTrack < maxTracksToPlot; ++iTrack)
 	{
-		WCSimLikelihoodTrack bft = (bestFits.at(iTrack));
-		WCSimLikelihoodTrack trt = *(trueTracksSorted.at(iTrack));
+		WCSimLikelihoodTrackBase *bft = (bestFits.at(iTrack));
+		WCSimLikelihoodTrackBase *trt = (trueTracksSorted.at(iTrack));
 
 		std::map<FitterParameterType::Type, std::vector<TH1D*> >::iterator plotVecItr = fRecoMinusTrue.begin();
 		for( ; plotVecItr != fRecoMinusTrue.end() ; ++plotVecItr )
@@ -671,7 +671,7 @@ void WCSimFitterPlots::FillRecoMinusTrue(
 			FitterParameterType::Type type = (*plotVecItr).first;
 			TH1D * hist = (*plotVecItr).second.at(iTrack);
 
-			double rmt = bft.GetTrackParameter(type) - trt.GetTrackParameter(type);
+			double rmt = bft->GetTrackParameter(type) - trt->GetTrackParameter(type);
 			hist->Fill(rmt);
 		}
 	}

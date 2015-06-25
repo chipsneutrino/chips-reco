@@ -8,7 +8,7 @@
 #ifndef WCSIMFITTERPLOTS_HH_
 #define WCSIMFITTERPLOTS_HH_
 #include "WCSimFitterParameters.hh"
-#include "WCSimLikelihoodTrack.hh"
+#include "WCSimLikelihoodTrackBase.hh"
 #include <map>
 #include <vector>
 #include <TObjArray.h>
@@ -54,9 +54,9 @@ public:
 
 
 	void CreateNtuple(WCSimFitterConfig * fitterConfig);
-	void FillNtuple(WCSimFitterConfig * fitterConfig, std::vector<WCSimLikelihoodTrack> bestFits);
-	void FillPlots(std::vector<WCSimLikelihoodTrack> bestFits);
-	void FillRecoMinusTrue(std::vector<WCSimLikelihoodTrack> bestFits, std::vector<WCSimLikelihoodTrack*> * trueTracks);
+	void FillNtuple(WCSimFitterConfig * fitterConfig, std::vector<WCSimLikelihoodTrackBase*> bestFits);
+	void FillPlots(std::vector<WCSimLikelihoodTrackBase*> bestFits);
+	void FillRecoMinusTrue(std::vector<WCSimLikelihoodTrackBase*> bestFits, std::vector<WCSimLikelihoodTrackBase*> * trueTracks);
   double Get1DSurfaceBinCenter(std::pair<unsigned int, FitterParameterType::Type> theProfile, int binNum);
 	void Fill1DProfile( std::pair<unsigned int, FitterParameterType::Type> theProfile, int binNum, double minus2LnL);
   void Get2DSurfaceBinCenters(std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > theProfile, int binNumX, int binNumY, double &x, double &y);

@@ -3,6 +3,7 @@
 #include "WCSimParameters.hh"
 
 #include "WCSimLikelihoodDigitArray.hh"
+#include "WCSimLikelihoodTrackFactory.hh"
 
 #include "WCSimTrueEvent.hh"
 #include "WCSimTrueTrack.hh"
@@ -102,7 +103,7 @@ WCSimInterface::WCSimInterface()
 
   fDigitList = new std::vector<WCSimRecoDigit*>;
   fTrackList = new std::vector<WCSimTrueTrack*>;  
-  fTrueLikelihoodTracks = new std::vector<WCSimLikelihoodTrack*>;
+  fTrueLikelihoodTracks = new std::vector<WCSimLikelihoodTrackBase*>;
   fLikelihoodDigitArray = NULL;
 
   fTrigger = 0;
@@ -218,7 +219,7 @@ void WCSimInterface::ResetTrueLikelihoodTracks()
 	if(fTrueLikelihoodTracks != 0x0)
 	{
 		for( UInt_t i=0; i<fTrueLikelihoodTracks->size(); i++ ){
-			delete (WCSimLikelihoodTrack*)(fTrueLikelihoodTracks->at(i));
+			delete (WCSimLikelihoodTrackBase*)(fTrueLikelihoodTracks->at(i));
 		}
 		fTrueLikelihoodTracks->clear();
 		delete fTrueLikelihoodTracks;
@@ -233,16 +234,19 @@ void WCSimInterface::BuildTrueLikelihoodTracks() {
 
 	WCSimTruthSummary sum = fEvent->GetTruthSummary();
 
-	fTrueLikelihoodTracks = new std::vector<WCSimLikelihoodTrack*>;
+	fTrueLikelihoodTracks = new std::vector<WCSimLikelihoodTrackBase*>;
 	if(sum.IsParticleGunEvent())
 	{
 		double mm_to_cm = 0.1;
-		WCSimLikelihoodTrack * track = new WCSimLikelihoodTrack(sum.GetVertexX() * mm_to_cm, sum.GetVertexY() * mm_to_cm, sum.GetVertexZ() * mm_to_cm,
-																0,
-																sum.GetBeamDir().Theta(),
-																sum.GetBeamDir().Phi(),
-																sum.GetBeamEnergy(),
-																WCSimLikelihoodTrack::GetTypeFromPDG(sum.GetBeamPDG()));
+		WCSimLikelihoodTrackBase * track = WCSimLikelihoodTrackFactory::MakeTrack(
+											TrackType::GetTypeFromPDG(sum.GetBeamPDG()),
+											sum.GetVertexX() * mm_to_cm,
+											sum.GetVertexY() * mm_to_cm,
+											sum.GetVertexZ() * mm_to_cm,
+											0,
+											sum.GetBeamDir().Theta(),
+											sum.GetBeamDir().Phi(),
+											sum.GetBeamEnergy());
 		fTrueLikelihoodTracks->push_back(track);
 	}
 	else
@@ -250,14 +254,16 @@ void WCSimInterface::BuildTrueLikelihoodTracks() {
 		double mm_to_cm = 0.1;
 		for(int i = 0; i < sum.GetNPrimaries(); ++i)
 		{
-      if(WCSimLikelihoodTrack::GetTypeFromPDG(sum.GetPrimaryPDG(i)) != WCSimLikelihoodTrack::Unknown)
+      if(TrackType::GetTypeFromPDG(sum.GetPrimaryPDG(i)) != TrackType::Unknown)
       {
-			  WCSimLikelihoodTrack * track = new WCSimLikelihoodTrack(sum.GetVertexX() * mm_to_cm, sum.GetVertexY() * mm_to_cm, sum.GetVertexZ() * mm_to_cm,
-									   	   	   	   	   	   	   	   	0,
-									   	   	   	   	   	   	   	   	sum.GetPrimaryDir(i).Theta(),
-									   	   	   	   	   	   	   	   	sum.GetPrimaryDir(i).Phi(),
-									   	   	   	   	   	   	   	   	sum.GetPrimaryEnergy(i),
-									   	   	   	   	   	   	   	   	WCSimLikelihoodTrack::GetTypeFromPDG(sum.GetPrimaryPDG(i)));
+			  WCSimLikelihoodTrackBase * track = WCSimLikelihoodTrackFactory::MakeTrack(
+					  	  	  	  	  	  		TrackType::GetTypeFromPDG(sum.GetPrimaryPDG(i)),
+			  	  	  	  	  	  	  	  		sum.GetVertexX() * mm_to_cm, sum.GetVertexY() * mm_to_cm, sum.GetVertexZ() * mm_to_cm,
+			  	  	  	  	  	  	  	  		0,
+												sum.GetPrimaryDir(i).Theta(),
+												sum.GetPrimaryDir(i).Phi(),
+												sum.GetPrimaryEnergy(i)
+												);
 			  fTrueLikelihoodTracks->push_back(track);
 		  }
     }

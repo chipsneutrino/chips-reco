@@ -39,28 +39,27 @@ WCSimTotalLikelihood::~WCSimTotalLikelihood()
 ///////////////////////////////////////////////////////////////////////////
 //  Add some tracks
 ///////////////////////////////////////////////////////////////////////////
-void WCSimTotalLikelihood::SetTracks( std::vector<WCSimLikelihoodTrack> &myTracks)
+void WCSimTotalLikelihood::SetTracks( std::vector<WCSimLikelihoodTrackBase*> &myTracks)
 {
   this->ResetTracks();
   fTracks = myTracks;
 
-  std::vector<WCSimLikelihoodTrack *> myTrackPtrs;
-  std::vector<WCSimLikelihoodTrack>::iterator trackIter;
+  std::vector<WCSimLikelihoodTrackBase*> myTrackPtrs;
+  std::vector<WCSimLikelihoodTrackBase*>::iterator trackIter;
   //FIXME This is a really ugly solution to the new idea
   //  of one Charge Likelihood object for one track...
   int i = 0;
   for(trackIter = fTracks.begin(); trackIter != fTracks.end(); ++trackIter)
   {
     std::cout << "TrackIter -> " << std::endl;
-    myTrackPtrs.push_back(&(*trackIter)); 
     if (i > 0) {
       fChargeLikelihoodVector.push_back(
           WCSimChargePredictor(fLikelihoodDigitArray) );
     }
-    fChargeLikelihoodVector[i].AddTrack(&(*trackIter));
+    fChargeLikelihoodVector[i].AddTrack(*trackIter);
     i++;
   }
-  fTimeLikelihood.SetTracks(myTrackPtrs);
+  fTimeLikelihood.SetTracks(myTracks);
 
   return;
 }
@@ -164,7 +163,7 @@ void WCSimTotalLikelihood::SetLikelihoodDigitArray(
 	fLikelihoodDigitArray = likelihoodDigitArray;
 
   fChargeLikelihoodVector.clear();
-  std::vector<WCSimLikelihoodTrack> tmpTracks = fTracks;
+  std::vector<WCSimLikelihoodTrackBase*> tmpTracks = fTracks;
   fChargeLikelihoodVector.push_back(WCSimChargePredictor(fLikelihoodDigitArray));
 	fTimeLikelihood = WCSimTimeLikelihood(fLikelihoodDigitArray);
   SetTracks(tmpTracks);

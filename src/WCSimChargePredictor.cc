@@ -9,7 +9,7 @@
 #include "WCSimRecoDigit.hh"
 #include "WCSimLikelihoodDigit.hh"
 #include "WCSimLikelihoodDigitArray.hh"
-#include "WCSimLikelihoodTrack.hh"
+#include "WCSimLikelihoodTrackBase.hh"
 #include "WCSimLikelihoodTuner.hh"
 
 #include "TAxis.h"
@@ -118,7 +118,7 @@ void WCSimChargePredictor::ClearTracks()
 
 
 
-void WCSimChargePredictor::SetTracks( std::vector<WCSimLikelihoodTrack*> myTracks )
+void WCSimChargePredictor::SetTracks( std::vector<WCSimLikelihoodTrackBase*> myTracks )
 {
   // std::cout << " *** WCSimChargeLikelihood::SetTracks() *** " << std::endl;
   fTracks = myTracks;
@@ -126,7 +126,7 @@ void WCSimChargePredictor::SetTracks( std::vector<WCSimLikelihoodTrack*> myTrack
   fGotTrackParameters = -1; //false
 }
 
-void WCSimChargePredictor::AddTrack( WCSimLikelihoodTrack * myTrack )
+void WCSimChargePredictor::AddTrack( WCSimLikelihoodTrackBase * myTrack )
 {
   // std::cout << " *** WCSimChargeLikelihood::AddTrack() *** " << std::endl;
   fTracks.push_back(myTrack);

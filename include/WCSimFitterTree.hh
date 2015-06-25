@@ -8,7 +8,7 @@
 #ifndef INCLUDE_WCSIMFITTERTREE_HH_
 #define INCLUDE_WCSIMFITTERTREE_HH_
 
-#include "WCSimLikelihoodTrack.hh"
+#include "WCSimLikelihoodTrackBase.hh"
 #include <vector>
 class TFile;
 class TString;
@@ -66,13 +66,13 @@ public:
   TTree * GetHitComparisonTree();
 
 	void Fill(Int_t iEvent,
-			  std::vector<WCSimLikelihoodTrack> bestFitTracks,
+			  std::vector<WCSimLikelihoodTrackBase*> bestFitTracks,
 			  std::vector<Bool_t> bestFitEscapes,
-			  std::vector<WCSimLikelihoodTrack*> trueTracks,
+			  std::vector<WCSimLikelihoodTrackBase*> trueTracks,
 			  std::vector<Bool_t> trueTrackEscapes,
 			  Double_t minimum);
-	void FillFitTrack(WCSimLikelihoodTrack track, Bool_t escapes, Double_t twoLnL);
-	void FillTrueTrack(WCSimLikelihoodTrack track, Bool_t escapes);
+	void FillFitTrack(WCSimLikelihoodTrackBase * track, Bool_t escapes, Double_t twoLnL);
+	void FillTrueTrack(WCSimLikelihoodTrackBase * track, Bool_t escapes);
 	void FillHitComparison(
                const int &event, 
                WCSimLikelihoodDigitArray * digitArray,
@@ -85,7 +85,7 @@ public:
 
 private:
   	  void MakeSaveFileName();
-	void MakeRecoSummary(std::vector<WCSimLikelihoodTrack> bestFitTracks);
+	void MakeRecoSummary(std::vector<WCSimLikelihoodTrackBase *> bestFitTracks);
 
 	TFile * fSaveFile;
 	TString fSaveFileName;
@@ -132,8 +132,8 @@ private:
 	WCSimRootEvent * fWCSimRootEvent;
 
 
-	std::vector<WCSimLikelihoodTrack> fFitTracks;
-	std::vector<WCSimLikelihoodTrack> fTruthTracks;
+	std::vector<WCSimLikelihoodTrackBase *> fFitTracks;
+	std::vector<WCSimLikelihoodTrackBase *> fTruthTracks;
   HitComparison * fHitComparison;
 
 };

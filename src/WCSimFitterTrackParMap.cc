@@ -8,6 +8,7 @@
 #include "WCSimFitterTrackParMap.hh"
 #include "WCSimFitterInterface.hh"
 #include "WCSimFitterConfig.hh"
+#include "WCSimTrackParameterEnums.hh"
 #include <cassert>
 
 #ifndef REFLEX_DICTIONARY
@@ -25,20 +26,24 @@ WCSimFitterTrackParMap::~WCSimFitterTrackParMap() {
 
 void WCSimFitterTrackParMap::Set() {
 	fTrackAndTypeIndexMap.clear();
-	UInt_t nTracks = WCSimFitterConfig::Instance()->GetNumTracks();
-	std::vector<FitterParameterType::Type> allTypes = FitterParameterType::GetAllAllowedTypes();
+	unsigned int nTracks = WCSimFitterConfig::Instance()->GetNumTracks();
+  std::cout << "Number of tracks in ::Set is " << nTracks << std::endl;
 
-	UInt_t arrayCounter = 0; // How many unique track parameters there are
-	for (UInt_t iTrack = 0; iTrack < nTracks; ++iTrack) {
-		for (UInt_t iParam = 0; iParam < allTypes.size(); ++iParam) {
+	unsigned int arrayCounter = 0; // How many unique track parameters there are
+	for (unsigned int iTrack = 0; iTrack < nTracks; ++iTrack) {
+
+	  std::vector<FitterParameterType::Type> allTypes = 
+        FitterParameterType::GetAllAllowedTypes(WCSimFitterInterface::Instance()->GetTrackType(iTrack));
+		for (unsigned int iParam = 0; iParam < allTypes.size(); ++iParam) {
 			// Is it joined?
 			TrackAndType trackPar(iTrack, allTypes.at(iParam));
-			UInt_t isJoinedWith =
+			unsigned int isJoinedWith =
 					WCSimFitterConfig::Instance()->GetTrackIsJoinedWith(iTrack,
 							FitterParameterType::AsString(trackPar.second).c_str());
 			if (isJoinedWith == iTrack) // Itself, i.e. not joined with any other track
 			{
 				// Then set it to the value from the first track
+        std::cout << "Array counter = " << arrayCounter << "  " << "Independent params = " << WCSimFitterConfig::Instance()->GetNumIndependentParameters() << std::endl; 
 				assert(arrayCounter	< WCSimFitterConfig::Instance()->GetNumIndependentParameters());
 				fTrackAndTypeIndexMap[trackPar] = arrayCounter;
 				arrayCounter++;
@@ -56,16 +61,17 @@ void WCSimFitterTrackParMap::Set() {
 
 void WCSimFitterTrackParMap::SetArrays()
 {
+  std::cout << "SetArrays" << std::endl;
 	ResizeVectors();
 
 	Int_t iParam = 0;
-	UInt_t numTracks = WCSimFitterConfig::Instance()->GetNumTracks();
+	unsigned int numTracks = WCSimFitterConfig::Instance()->GetNumTracks();
 
 
-	for(UInt_t jTrack = 0; jTrack < numTracks; ++jTrack)
+	for(unsigned int jTrack = 0; jTrack < numTracks; ++jTrack)
 	{
 		fTypes.at(jTrack) = (WCSimFitterConfig::Instance()->GetTrackType(jTrack));
-		std::vector<FitterParameterType::Type> paramTypes = FitterParameterType::GetAllAllowedTypes();
+		std::vector<FitterParameterType::Type> paramTypes = FitterParameterType::GetAllAllowedTypes(fTypes.at(jTrack));
 		std::vector<FitterParameterType::Type>::const_iterator typeItr = paramTypes.begin();
 
 		for( ; typeItr != paramTypes.end(); ++typeItr)
@@ -93,6 +99,7 @@ void WCSimFitterTrackParMap::SetArrays()
 }
 void WCSimFitterTrackParMap::ResizeVectors()
 {
+  std::cout << "Resize vectors" << std::endl;
 	unsigned int arraySize = fTrackAndTypeIndexMap.size();
 	fCurrentValues.clear();
 	fMinValues.clear();
@@ -113,6 +120,7 @@ void WCSimFitterTrackParMap::ResizeVectors()
 	fSteps.resize(arraySize);
 	fNames.resize(arraySize);
 	fTypes.resize(WCSimFitterInterface::Instance()->GetNumTracks());
+  std::cout << "WCSimFitterInterface::ResizeVectors() = " << WCSimFitterInterface::Instance()->GetNumTracks() << std::endl;
 
 
 }
@@ -211,7 +219,7 @@ void WCSimFitterTrackParMap::SetCurrentValue(int trackNum,
 }
 
 void WCSimFitterTrackParMap::SetCurrentValue(int arrayIndex, double value) {
-	assert(arrayIndex >= 0 && UInt_t(arrayIndex) < fCurrentValues.size());
+	assert(arrayIndex >= 0 && static_cast<unsigned int>(arrayIndex) < fCurrentValues.size());
 	fCurrentValues.at(arrayIndex) = value;
 }
 
@@ -221,7 +229,7 @@ int WCSimFitterTrackParMap::GetIndex(int track, FitterParameterType type) {
 }
 
 int WCSimFitterTrackParMap::GetIndex(TrackAndType trackAndType) {
-	std::map<TrackAndType, UInt_t>::iterator findIndex = fTrackAndTypeIndexMap.find(trackAndType);
+	std::map<TrackAndType, unsigned int>::iterator findIndex = fTrackAndTypeIndexMap.find(trackAndType);
 	assert(findIndex != fTrackAndTypeIndexMap.end());
 	return (*findIndex).second;
 }
@@ -257,8 +265,9 @@ double WCSimFitterTrackParMap::GetCurrentValue(TrackAndType trackAndType) {
 	return fCurrentValues[index];
 }
 
-WCSimLikelihoodTrack::TrackType WCSimFitterTrackParMap::GetTrackType(
+TrackType::Type WCSimFitterTrackParMap::GetTrackType(
 		int track) {
-	assert(track >= 0 && UInt_t(track) < fTypes.size());
+  std::cout << "Track = " << track << "   " << "Size = " << fTypes.size() << std::endl;
+	assert(track >= 0 && static_cast<unsigned int>(track) < fTypes.size());
 	return fTypes.at(track);
 }

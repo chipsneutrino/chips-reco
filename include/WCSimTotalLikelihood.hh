@@ -11,7 +11,7 @@
 #include "WCSimChargePredictor.hh"
 #include "WCSimTimeLikelihood.hh"
 #include "WCSimLikelihoodDigitArray.hh"
-#include "WCSimLikelihoodTrack.hh"
+#include "WCSimLikelihoodTrackBase.hh"
 
 #include "TObject.h"
 #include <vector>
@@ -31,7 +31,7 @@ class WCSimTotalLikelihood : public TObject
        * Specify the tracks used to calculate the likelihood
        * @param myTracks Vector of all the tracks to consider
        */
-      void SetTracks(std::vector<WCSimLikelihoodTrack> &myTracks);
+      void SetTracks(std::vector<WCSimLikelihoodTrackBase*> &myTracks);
 
       /**
        * Clear the vector of tracks being considered
@@ -80,7 +80,7 @@ class WCSimTotalLikelihood : public TObject
       std::vector<WCSimChargePredictor> fChargeLikelihoodVector; ///< Charge component of likelihood calculation
       WCSimTimeLikelihood fTimeLikelihood; ///< Time component of likelihood calculation
       WCSimDigitizerLikelihood fDigitizerLikelihood;
-      std::vector<WCSimLikelihoodTrack> fTracks; ///< Tracks to consider when calculating the likelihood
+      std::vector<WCSimLikelihoodTrackBase*> fTracks; ///< Tracks to consider when calculating the likelihood
 
       bool fSetVectors;
       std::vector<double> fMeasuredCharges;

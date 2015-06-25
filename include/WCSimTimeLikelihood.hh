@@ -12,7 +12,7 @@
 #include "WCSimRecoDigit.hh"
 #include "WCSimLikelihoodDigit.hh"
 #include "WCSimLikelihoodDigitArray.hh"
-#include "WCSimLikelihoodTrack.hh"
+#include "WCSimLikelihoodTrackBase.hh"
 #include "WCSimRecoEvent.hh"
 
 #include "TMath.h"
@@ -36,13 +36,13 @@ class WCSimTimeLikelihood : public TObject
      * Add another track to calculate the likelihood for several particles at once
      * @param myTrack Track object to add
      */
-    void AddTrack( WCSimLikelihoodTrack * myTrack);
+    void AddTrack( WCSimLikelihoodTrackBase * myTrack);
 
     /**
      * Set all the tracks that contribute to the likelihood at once
      * @param myTracks Vector of all the track objects to consider
      */
-    void SetTracks( std::vector<WCSimLikelihoodTrack*> myTracks );
+    void SetTracks( std::vector<WCSimLikelihoodTrackBase*> myTracks );
 
     /// Remove all the tracks currently loaded
     void ClearTracks();
@@ -120,7 +120,7 @@ class WCSimTimeLikelihood : public TObject
     TF1 *fEnergyParameterFunction;
 
     // The track and event parameters for which we calculate the likelihood
-    std::vector<WCSimLikelihoodTrack *>   fTracks;     ///< Vector of simultaneous tracks contributing to the likelihood
+    std::vector<WCSimLikelihoodTrackBase *>   fTracks;     ///< Vector of simultaneous tracks contributing to the likelihood
     WCSimLikelihoodDigitArray           * fDigitArray; ///< Response for all the detector's PMTs for this event
     WCSimLikelihoodDigit                * fDigit;      ///< The PMT being considered
 

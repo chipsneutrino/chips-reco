@@ -192,9 +192,9 @@ TTree* WCSimFitterTree::GetHitComparisonTree() {
 }
 
 void WCSimFitterTree::Fill(Int_t iEvent,
-						   std::vector<WCSimLikelihoodTrack> bestFitTracks,
+						   std::vector<WCSimLikelihoodTrackBase*> bestFitTracks,
 						   std::vector<Bool_t> bestFitEscapes,
-						   std::vector<WCSimLikelihoodTrack*> trueTracks,
+						   std::vector<WCSimLikelihoodTrackBase*> trueTracks,
 						   std::vector<Bool_t> trueTrackEscapes,
 						   Double_t minimum) {
 
@@ -207,22 +207,22 @@ void WCSimFitterTree::Fill(Int_t iEvent,
 	}
 
 	// Now fill the truth and best-fit trees themselves
-	std::vector<WCSimLikelihoodTrack>::iterator bfIter;
+	std::vector<WCSimLikelihoodTrackBase*>::iterator bfIter;
 	f2LnL = minimum;
 	for(bfIter = bestFitTracks.begin(); bfIter != bestFitTracks.end(); ++bfIter)
 	{
 		fFitTrackNum = std::distance(bestFitTracks.begin(), bfIter);
 		Bool_t escapes = bestFitEscapes.at(fFitTrackNum);
-		WCSimLikelihoodTrack track = (*bfIter);
+		WCSimLikelihoodTrackBase * track = (*bfIter);
 		FillFitTrack(track, escapes, minimum);
-	}
+  }
 
-	std::vector<WCSimLikelihoodTrack*>::iterator truIter;
+	std::vector<WCSimLikelihoodTrackBase*>::iterator truIter;
 	for( truIter = trueTracks.begin(); truIter != trueTracks.end(); ++truIter)
 	{
 		fTrueTrackNum = std::distance(trueTracks.begin(), truIter);
 		Bool_t escapes = trueTrackEscapes.at(fTrueTrackNum);
-		WCSimLikelihoodTrack track = *(*truIter);
+		WCSimLikelihoodTrackBase* track = (*truIter);
 		FillTrueTrack(track, escapes);
 	}
 
@@ -250,17 +250,17 @@ void WCSimFitterTree::Fill(Int_t iEvent,
 
 }
 
-void WCSimFitterTree::FillFitTrack(WCSimLikelihoodTrack track, Bool_t escapes, Double_t twoLnL) {
+void WCSimFitterTree::FillFitTrack(WCSimLikelihoodTrackBase * track, Bool_t escapes, Double_t twoLnL) {
 
-	track.Print();
-	fFitVtxX     = track.GetX();
-	fFitVtxY     = track.GetY();
-	fFitVtxZ     = track.GetZ();
-	fFitVtxT     = track.GetT();
-	fFitDirTheta = track.GetTheta();
-	fFitDirPhi   = track.GetPhi();
-	fFitEnergy   = track.GetE();
-	fFitPDG      = track.GetPDG();
+	track->Print();
+	fFitVtxX     = track->GetX();
+	fFitVtxY     = track->GetY();
+	fFitVtxZ     = track->GetZ();
+	fFitVtxT     = track->GetT();
+	fFitDirTheta = track->GetTheta();
+	fFitDirPhi   = track->GetPhi();
+	fFitEnergy   = track->GetE();
+	fFitPDG      = track->GetPDG();
 	fFitEscapes = escapes;
 
 	if(fFitTree == 0x0)
@@ -297,17 +297,17 @@ void WCSimFitterTree::SaveTree() {
 }
 
 
-void WCSimFitterTree::FillTrueTrack(WCSimLikelihoodTrack track, Bool_t escapes) {
+void WCSimFitterTree::FillTrueTrack(WCSimLikelihoodTrackBase * track, Bool_t escapes) {
 	std::cout << "Filling true tree" << std::endl;
-	track.Print();
-	fTrueVtxX     = track.GetX();
-	fTrueVtxY     = track.GetY();
-	fTrueVtxZ     = track.GetZ();
-	fTrueVtxT     = track.GetT();
-	fTrueDirTheta = track.GetTheta();
-	fTrueDirPhi   = track.GetPhi();
-	fTrueEnergy   = track.GetE();
-	fTruePDG      = track.GetPDG();
+	track->Print();
+	fTrueVtxX     = track->GetX();
+	fTrueVtxY     = track->GetY();
+	fTrueVtxZ     = track->GetZ();
+	fTrueVtxT     = track->GetT();
+	fTrueDirTheta = track->GetTheta();
+	fTrueDirPhi   = track->GetPhi();
+	fTrueEnergy   = track->GetE();
+	fTruePDG      = track->GetPDG();
 
 	fTrueEscapes = escapes;
 
@@ -330,13 +330,13 @@ TString WCSimFitterTree::GetSaveFileName() const
 }
 
 void WCSimFitterTree::MakeRecoSummary(
-		std::vector<WCSimLikelihoodTrack> bestFitTracks) {
+		std::vector<WCSimLikelihoodTrackBase*> bestFitTracks) {
 	fRecoSummary->ResetValues();
-	std::sort(bestFitTracks.begin(), bestFitTracks.end(), WCSimLikelihoodTrack::EnergyGreaterThanOrEqual);
+	std::sort(bestFitTracks.begin(), bestFitTracks.end(), WCSimLikelihoodTrackBase::EnergyGreaterThanOrEqualPtrs);
 
 	for(unsigned int iTrack = 0; iTrack < bestFitTracks.size() ; ++iTrack )
 	{
-		WCSimLikelihoodTrack * track = &(bestFitTracks.at(iTrack));
+		WCSimLikelihoodTrackBase * track = (bestFitTracks.at(iTrack));
 		if(iTrack == 0)
 		{
 			fRecoSummary->SetVertex( 10*track->GetX(), 10*track->GetY(), 10*track->GetZ() ); // Convert cm to mm
@@ -357,7 +357,7 @@ void WCSimFitterTree::FillHitComparison(
   assert(predictedCharges.size() == measuredCharges.size() && predictedCharges.size() == total2LnLs.size());
   fEvent = event;
   std::cout << "Event = " << fEvent << std::endl;
-  for(int iPMT = 0; iPMT < predictedCharges.size(); ++iPMT)
+  for(unsigned int iPMT = 0; iPMT < predictedCharges.size(); ++iPMT)
   {
     WCSimLikelihoodDigit * digit = digitArray->GetDigit(iPMT);
 

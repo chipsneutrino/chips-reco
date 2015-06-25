@@ -11,12 +11,13 @@
 #include "WCSimFitterParameters.hh"
 #include "WCSimFitterPlots.hh"
 #include "WCSimLikelihoodDigitArray.hh"
-#include "WCSimLikelihoodTrack.hh"
+#include "WCSimLikelihoodTrackBase.hh"
 #include "WCSimReco.hh"
 #include "WCSimRecoDigit.hh"
 #include "WCSimRootEvent.hh"
 #include "WCSimTotalLikelihood.hh"
 #include "WCSimFitterTrackParMap.hh"
+#include "WCSimTrackParameterEnums.hh"
 
 #include <vector>
 #include <map>
@@ -98,13 +99,13 @@ class WCSimLikelihoodFitter
          * Get a vector containing the track(s) at the best-fit point
          * @return Best-fit track(s) for this event
          */
-        std::vector<WCSimLikelihoodTrack> GetBestFit();
+        std::vector<WCSimLikelihoodTrackBase*> GetBestFit();
 
         /**
          * Create a track object using the seed parameters
          * @return Track object at the seed value
          */
-        WCSimLikelihoodTrack GetSeedParams();
+        WCSimLikelihoodTrackBase* GetSeedParams();
 
         /**
          * As a temporary measure to get results out of the fit, we'll perform
@@ -125,7 +126,7 @@ class WCSimLikelihoodFitter
 
         Bool_t GetTrueTrackEscapes(unsigned int iTrack) const;
         Bool_t GetFitTrackEscapes( unsigned int iTrack) const;
-        Bool_t GetTrackEscapes(WCSimLikelihoodTrack * track) const;
+        Bool_t GetTrackEscapes(WCSimLikelihoodTrackBase * track) const;
 
 
 
@@ -133,10 +134,10 @@ class WCSimLikelihoodFitter
         WCSimTotalLikelihood * fTotalLikelihood; ///< Class used to calculate the total (combined charge and time) likelihood that we minimize
         WCSimRootEvent * fRootEvent; ///< Simulated event from WCSim to be reconstructed
         WCSimLikelihoodDigitArray * fLikelihoodDigitArray; ///< Array of PMT responses
-        std::vector<WCSimLikelihoodTrack::TrackType> fTypes; ///< Particle type to fit for
+        std::vector<TrackType::Type> fTypes; ///< Particle type to fit for
         std::map<Int_t, Int_t> fParMap; ///< Map relating the number of tracks (key) to the number of Minuit parameters (value)
-        std::vector<WCSimLikelihoodTrack> fBestFit;  ///< The best-fit track or tracks
-        std::vector<WCSimLikelihoodTrack*> * fTrueLikelihoodTracks; ///< The MC-truth tracks for this event
+        std::vector<WCSimLikelihoodTrackBase*> fBestFit;  ///< The best-fit track or tracks
+        std::vector<WCSimLikelihoodTrackBase*> * fTrueLikelihoodTracks; ///< The MC-truth tracks for this event
 
         /**
          * Used to rescale all the track parameters from the range 0 to 1
@@ -154,9 +155,9 @@ class WCSimLikelihoodFitter
          * @param type Particle type
          * @return A track object created with the rescaled values
          */
-        WCSimLikelihoodTrack RescaleParams(Double_t x, Double_t y, Double_t z, Double_t t,
+        WCSimLikelihoodTrackBase * RescaleParams(Double_t x, Double_t y, Double_t z, Double_t t,
                                            Double_t th, Double_t phi, Double_t E,
-                                           WCSimLikelihoodTrack::TrackType type);
+                                           TrackType::Type type);
         
 
         Bool_t fUseHoughFitterForSeed;

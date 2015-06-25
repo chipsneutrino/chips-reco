@@ -113,8 +113,8 @@ public:
 	WCSimFitterParameters();
 	virtual ~WCSimFitterParameters();
   void SetNumTracks(unsigned int nTracks);
-  void SetTrackType(unsigned int nTrack, WCSimLikelihoodTrack::TrackType trackType);
-  WCSimLikelihoodTrack::TrackType GetTrackType(const unsigned int &nTrack) const;
+  void SetTrackType(unsigned int nTrack, TrackType::Type trackType);
+  TrackType::Type GetTrackType(const unsigned int &nTrack) const;
 	unsigned int GetNumTracks() const { return fNumTracks;};
 	unsigned int GetNumParameters() const;
 	unsigned int GetNumIndependentParameters() const;
@@ -131,7 +131,7 @@ private:
 	unsigned int fNumParameters;
 	std::vector<WCSimFitterSingleTrackParameters> fTrackPars;
 	std::map<std::pair<unsigned int, unsigned int>, std::vector<FitterParameterType::Type> > fJoinedParams;
-	std::vector<WCSimLikelihoodTrack::TrackType> fTrackTypes;
+	std::vector<TrackType::Type> fTrackTypes;
 };
 
 #endif /* WCSIMFITTERPARAMETERS_HH_ */

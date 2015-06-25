@@ -9,6 +9,7 @@
 #define WCSIMINTEGRALLOOKUPMAKER_HH_
 
 #include "WCSimIntegralLookup.hh"
+#include "WCSimTrackParameterEnums.hh"
 #include "WCSimLikelihoodTrack.hh"
 #include "THnSparse.h"
 #include "TObject.h"
@@ -19,7 +20,7 @@ class TH1F;
 
 class WCSimIntegralLookupMaker : public TObject{
 public:
-	WCSimIntegralLookupMaker( WCSimLikelihoodTrack::TrackType particle,
+	WCSimIntegralLookupMaker( TrackType::Type particle,
 							  int nR0Bins, double R0Min, double R0Max,
 							  int nCosTh0Bins, double cosTh0Min, double cosTh0Max );
 	WCSimIntegralLookupMaker();
@@ -53,7 +54,7 @@ protected:
 	double fCosTh0Min;
 	double fCosTh0Max;
 
-	WCSimLikelihoodTrack::TrackType fType;
+	TrackType::Type fType;
 	WCSimEmissionProfiles fEmissionProfiles;
 
 	// The integral histograms:

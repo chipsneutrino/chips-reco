@@ -13,7 +13,7 @@
 #include "WCSimRecoDigit.hh"
 #include "WCSimLikelihoodDigit.hh"
 #include "WCSimLikelihoodDigitArray.hh"
-#include "WCSimLikelihoodTrack.hh"
+#include "WCSimLikelihoodTrackBase.hh"
 #include "WCSimLikelihoodTuner.hh"
 #include "WCSimRecoEvent.hh"
 
@@ -46,13 +46,13 @@ class WCSimChargePredictor
          * Add another track to calculate the likelihood for several particles at once
          * @param myTrack Track object to add
          */
-        void AddTrack( WCSimLikelihoodTrack * myTrack);
+        void AddTrack( WCSimLikelihoodTrackBase * myTrack);
 
         /**
          * Set all the tracks that contribute to the likelihood at once
          * @param myTrack Vector of all the track objects to consider
          */
-        void SetTracks( std::vector<WCSimLikelihoodTrack*> myTrack );
+        void SetTracks( std::vector<WCSimLikelihoodTrackBase*> myTrack );
 
         /// Remove all the tracks currently loaded
         void ClearTracks();
@@ -167,7 +167,7 @@ class WCSimChargePredictor
         Double_t fPhi;       ///< For scattering table: Angle between plane containing tank centre, PMT and source, and plane containing the track and the tank centre
 
       // The track and event parameters for which we calculate the likelihood
-        std::vector<WCSimLikelihoodTrack *>   fTracks;     ///< Vector of simultaneous tracks contributing to the likelihood
+        std::vector<WCSimLikelihoodTrackBase *>   fTracks;     ///< Vector of simultaneous tracks contributing to the likelihood
         WCSimLikelihoodDigitArray           * fDigitArray; ///< Response for all the detector's PMTs for this event
         WCSimLikelihoodDigit                * fDigit;      ///< The PMT being considered
         WCSimLikelihoodTuner                * fTuner;      ///< Class to calculate effects of absorption, geometry, etc. and perform integrals

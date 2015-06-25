@@ -2,7 +2,7 @@
 #include "WCSimRecoDigit.hh"
 #include "WCSimLikelihoodDigit.hh"
 #include "WCSimLikelihoodDigitArray.hh"
-#include "WCSimLikelihoodTrack.hh"
+#include "WCSimLikelihoodTrackBase.hh"
 
 #include "TCollection.h"
 #include "TMath.h"
@@ -78,14 +78,14 @@ void WCSimTimeLikelihood::ClearTracks()
   fTracks.clear();
 }
 
-void WCSimTimeLikelihood::SetTracks( std::vector<WCSimLikelihoodTrack*> myTracks )
+void WCSimTimeLikelihood::SetTracks( std::vector<WCSimLikelihoodTrackBase*> myTracks )
 {
   // std::cout << " *** WCSimTimeLikelihood::SetTracks() *** " << std::endl;
   fTracks = myTracks;
   fGotTrackParameters = -1; //false
 }
 
-void WCSimTimeLikelihood::AddTrack( WCSimLikelihoodTrack * myTrack )
+void WCSimTimeLikelihood::AddTrack( WCSimLikelihoodTrackBase * myTrack )
 {
   // std::cout << " *** WCSimTimeLikelihood::AddTrack() *** " << std::endl;
   fTracks.push_back(myTrack);

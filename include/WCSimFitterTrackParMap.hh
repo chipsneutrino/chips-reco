@@ -13,7 +13,7 @@
 #include <TObject.h>
 #include "WCSimLikelihoodTrack.hh"
 #include "WCSimTrackParameterEnums.hh"
-typedef std::pair<UInt_t, FitterParameterType::Type> TrackAndType;
+typedef std::pair<unsigned int, FitterParameterType::Type> TrackAndType;
 
 class WCSimFitterTrackParMap : public TObject {
 public:
@@ -46,7 +46,7 @@ public:
 	double GetMaxValue(TrackAndType trackAndType);
 	double GetCurrentValue(int track, FitterParameterType type);
 	double GetCurrentValue(TrackAndType trackAndType);
-	WCSimLikelihoodTrack::TrackType GetTrackType(int track);
+	TrackType::Type GetTrackType(int track);
 
 
 private:
@@ -54,7 +54,7 @@ private:
 	void ResizeVectors();
 	void FixOrFreeVertex(bool fixIt, int track = -1);
 	void FixOrFreeEnergy(bool fixIt, int track = -1);
-	std::map<TrackAndType, UInt_t> fTrackAndTypeIndexMap;
+	std::map<TrackAndType, unsigned int> fTrackAndTypeIndexMap;
 	std::vector<double> fCurrentValues;
 	std::vector<double> fMinValues;
 	std::vector<double> fMaxValues;
@@ -63,7 +63,7 @@ private:
 	std::vector<bool> fIsEnergy;
 	std::vector<double> fSteps;
 	std::vector<std::string> fNames;
-	std::vector<WCSimLikelihoodTrack::TrackType> fTypes;
+	std::vector<TrackType::Type> fTypes;
 	int fNumParameters;
 
 ClassDef(WCSimFitterTrackParMap,1)

@@ -7,8 +7,10 @@
 #include "TString.h"
 
 #include "WCSimEmissionProfiles.hh"
-#include "WCSimLikelihoodTrack.hh"
+#include "WCSimLikelihoodTrackBase.hh"
+#include "WCSimLikelihoodTrackFactory.hh"
 #include "WCSimLikelihoodDigit.hh"
+#include "WCSimTrackParameterEnums.hh"
 #include <TVector3.h>
 #include <TMath.h>
 #include <TString.h>
@@ -30,7 +32,7 @@ WCSimEmissionProfiles::WCSimEmissionProfiles() {
   fDebug = kFALSE;
   
 	fLastEnergy = -999.9;
-	fLastType = WCSimLikelihoodTrack::Unknown;
+	fLastType = TrackType::Unknown;
 
 	fProfileFileName = TString("");
 
@@ -104,7 +106,7 @@ WCSimEmissionProfiles::~WCSimEmissionProfiles() {
 
 }
 
-WCSimEmissionProfiles::WCSimEmissionProfiles(WCSimLikelihoodTrack* myTrack) {
+WCSimEmissionProfiles::WCSimEmissionProfiles(WCSimLikelihoodTrackBase* myTrack) {
 
 	fProfileFileName = TString("");
 
@@ -127,7 +129,7 @@ WCSimEmissionProfiles::WCSimEmissionProfiles(WCSimLikelihoodTrack* myTrack) {
 
 }
 
-void WCSimEmissionProfiles::SetTrack(WCSimLikelihoodTrack* myTrack) {
+void WCSimEmissionProfiles::SetTrack(WCSimLikelihoodTrackBase* myTrack) {
 	if( myTrack->GetE() != fLastEnergy || myTrack->GetType() != fLastType)
 	{
 		LoadFile(myTrack);
@@ -163,7 +165,7 @@ Double_t WCSimEmissionProfiles::GetGWidth(const Double_t &cosTheta)
 }
 
 
-Double_t WCSimEmissionProfiles::GetIntegral(EmissionProfile_t::Type type, WCSimLikelihoodTrack* myTrack,
+Double_t WCSimEmissionProfiles::GetIntegral(EmissionProfile_t::Type type, WCSimLikelihoodTrackBase* myTrack,
 		WCSimLikelihoodDigit * myDigit, Int_t sPower, Double_t cutoffS, Bool_t multiplyByWidth) {
 	if( myTrack->GetType() != fLastType || myTrack->GetE() != fLastEnergy )
 	{
@@ -205,13 +207,13 @@ std::vector<Double_t> WCSimEmissionProfiles::GetRhoIntegrals(std::vector<Int_t> 
 }
 
 
-Double_t WCSimEmissionProfiles::GetRhoGIntegral(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit,
+Double_t WCSimEmissionProfiles::GetRhoGIntegral(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit,
 		Int_t sPower, Double_t cutoffS, Bool_t multiplyByWidth) {
   std::vector<Int_t> sVec(1, sPower);
   return GetRhoGIntegrals(myTrack, myDigit, sVec, cutoffS, multiplyByWidth).at(0);
 }
 
-std::vector<Double_t> WCSimEmissionProfiles::GetRhoGIntegrals(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit,
+std::vector<Double_t> WCSimEmissionProfiles::GetRhoGIntegrals(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit,
 		std::vector<Int_t> sPowers, Double_t cutoffS, Bool_t multiplyByWidth) {
 
 	// std::cout << "WCSimEmissionProfiles::GetRhoGIntegrals()" << std::endl;
@@ -291,9 +293,9 @@ Double_t WCSimEmissionProfiles::GetFractionThroughBin(Double_t energy) const{
 	return fraction;
 }
 
-void WCSimEmissionProfiles::LoadFile(WCSimLikelihoodTrack* myTrack) {
+void WCSimEmissionProfiles::LoadFile(WCSimLikelihoodTrackBase* myTrack) {
 	std::cout << " *** WCSimEmissionProfiles::LoadFile - Loading profile" << std::endl;
-	std::cout << "Track type is " << WCSimLikelihoodTrack::TrackTypeToString(myTrack->GetType()) << std::endl;
+	std::cout << "Track type is " << TrackType::AsString(myTrack->GetType()) << std::endl;
   myTrack->Print();
 	if( myTrack->GetType() != fLastType )
 	{
@@ -302,10 +304,10 @@ void WCSimEmissionProfiles::LoadFile(WCSimLikelihoodTrack* myTrack) {
 		fProfileFileName = "";
 		switch( myTrack->GetType() )
 		{
-			case WCSimLikelihoodTrack::ElectronLike:
+			case TrackType::ElectronLike:
 				fProfileFileName.Append("/home/ajperch/CHIPS/WCSim_fixGeneration/rootfiles/sum/emissionProfilesElectronsCoarseFineNorm.root");
 				break;
-			case WCSimLikelihoodTrack::MuonLike:
+			case TrackType::MuonLike:
 				fProfileFileName.Append("/home/ajperch/CHIPS/WCSim_fixGeneration/rootfiles/sum/emissionProfilesMuonsCoarseFineNorm.root");
 				break;
 			default:
@@ -348,11 +350,11 @@ void WCSimEmissionProfiles::LoadFile(WCSimLikelihoodTrack* myTrack) {
 }
 
 Double_t WCSimEmissionProfiles::GetCriticalDistance(
-		WCSimLikelihoodTrack::TrackType type, Double_t energy) const {
-	assert(type == WCSimLikelihoodTrack::MuonLike || type == WCSimLikelihoodTrack::ElectronLike);
+		TrackType::Type type, Double_t energy) const {
+	assert(type == TrackType::MuonLike || type == TrackType::ElectronLike);
 	switch(type)
 	{
-	case WCSimLikelihoodTrack::MuonLike:
+	case TrackType::MuonLike:
 		return -398 + 0.756*energy - 8e-5 * energy * energy;
     break;
   default:
@@ -361,12 +363,12 @@ Double_t WCSimEmissionProfiles::GetCriticalDistance(
   return 0;
 }
 
-void WCSimEmissionProfiles::InterpolateProfiles(WCSimLikelihoodTrack* myTrack) {
+void WCSimEmissionProfiles::InterpolateProfiles(WCSimLikelihoodTrackBase* myTrack) {
 	InterpolateRho(myTrack);
 	InterpolateG(myTrack);
 }
 
-void WCSimEmissionProfiles::InterpolateRho(WCSimLikelihoodTrack* myTrack) {
+void WCSimEmissionProfiles::InterpolateRho(WCSimLikelihoodTrackBase* myTrack) {
 	if(fRhoInterp != 0x0)
 	{
     // std::cout << fRhoInterp << std::endl;
@@ -629,7 +631,7 @@ void WCSimEmissionProfiles::InterpolateRho(WCSimLikelihoodTrack* myTrack) {
   return;
 }
 
-void WCSimEmissionProfiles::InterpolateG(WCSimLikelihoodTrack* myTrack) {
+void WCSimEmissionProfiles::InterpolateG(WCSimLikelihoodTrackBase* myTrack) {
 
 	if(fGCoarse != 0x0)
 	{
@@ -671,11 +673,11 @@ void WCSimEmissionProfiles::InterpolateG(WCSimLikelihoodTrack* myTrack) {
 
 
 
-Double_t WCSimEmissionProfiles::GetLightFlux(WCSimLikelihoodTrack * myTrack) const
+Double_t WCSimEmissionProfiles::GetLightFlux(WCSimLikelihoodTrackBase * myTrack) const
 {
   //std::cout << "*** WCSimChargeLikelihood::GetLightFlux() *** Getting the light flux as a function of the track KE" << std::endl;
   Double_t energy      = myTrack->GetE();
-  WCSimLikelihoodTrack::TrackType type = myTrack->GetType();
+  TrackType::Type type = myTrack->GetType();
   return this->GetLightFlux(type, energy);
 
 }
@@ -701,8 +703,8 @@ std::vector<Double_t> WCSimEmissionProfiles::GetProfileEnergies() const
 }
 
 Double_t WCSimEmissionProfiles::GetLightFlux(
-		WCSimLikelihoodTrack::TrackType type, Double_t energy) const {
-	assert(type == WCSimLikelihoodTrack::MuonLike || type == WCSimLikelihoodTrack::ElectronLike);
+		TrackType::Type type, Double_t energy) const {
+	assert(type == TrackType::MuonLike || type == TrackType::ElectronLike);
 	Double_t flux = 0.0;
 	Double_t factorFromG = 1/(4.0*TMath::Pi()); // We want solid angle fraction
 
@@ -716,7 +718,7 @@ Double_t WCSimEmissionProfiles::GetLightFlux(
   double fudge = 1.0;
 	switch(type)
 	{
-	case WCSimLikelihoodTrack::MuonLike:
+	case TrackType::MuonLike:
 		// From a linear fit to nPhotons as a function of energy (it's very linear)
 	  // New fit on 10/March/15
 	  nPhotons = 135.247 * energy -14823.6;
@@ -724,7 +726,7 @@ Double_t WCSimEmissionProfiles::GetLightFlux(
 	  // Things get sketchy at really low energies
 	  if(nPhotons > 0){ flux = factorFromG * factorFromSolidAngle * nPhotons; }
       break;
-    case WCSimLikelihoodTrack::ElectronLike:
+    case TrackType::ElectronLike:
       nPhotons = 116.272 + 123.399 * energy;  // New fit on 10/March/15
       if(nPhotons > 0){ flux = factorFromG * factorFromSolidAngle * nPhotons; }
       break;
@@ -762,7 +764,7 @@ void WCSimEmissionProfiles::SaveProfiles()
   fRhoInterp->GetYaxis()->CenterTitle();
   TString rhoTitle("");
   rhoTitle.Form("rho_%d_", (int)fLastEnergy);
-  rhoTitle += WCSimLikelihoodTrack::TrackTypeToString(fLastType);
+  rhoTitle += TrackType::AsString(fLastType);
   fRhoInterp->SetTitle(rhoTitle.Data());
 
   canRho->SaveAs( (rhoTitle + TString(".png")).Data());
@@ -778,7 +780,7 @@ void WCSimEmissionProfiles::SaveProfiles()
   fRhoInterpLo->GetYaxis()->CenterTitle();
   TString rhoLoTitle("");
   rhoLoTitle.Form("rhoLo_%d_", (int)fLastEnergy);
-  rhoLoTitle += WCSimLikelihoodTrack::TrackTypeToString(fLastType);
+  rhoLoTitle += TrackType::AsString(fLastType);
   fRhoInterpLo->SetTitle(rhoLoTitle.Data());
   canRhoLo->SaveAs( (rhoLoTitle + TString(".png")).Data());
   canRhoLo->SaveAs( (rhoLoTitle + TString(".C")).Data());
@@ -793,7 +795,7 @@ void WCSimEmissionProfiles::SaveProfiles()
   fRhoInterpHi->GetYaxis()->CenterTitle();
   TString rhoHiTitle("");
   rhoHiTitle.Form("rhoHi_%d_", (int)fLastEnergy);
-  rhoHiTitle += WCSimLikelihoodTrack::TrackTypeToString(fLastType);
+  rhoHiTitle += TrackType::AsString(fLastType);
   fRhoInterpHi->SetTitle(rhoHiTitle.Data());
   canRhoHi->SaveAs( (rhoHiTitle + TString(".png")).Data());
   canRhoHi->SaveAs( (rhoHiTitle + TString(".C")).Data());
@@ -808,7 +810,7 @@ void WCSimEmissionProfiles::SaveProfiles()
   fGCoarse->GetYaxis()->CenterTitle();
   TString gTitle("");
   gTitle.Form("gCoarse_%d_", (int)fLastEnergy);
-  gTitle += WCSimLikelihoodTrack::TrackTypeToString(fLastType);
+  gTitle += TrackType::AsString(fLastType);
   fGCoarse->SetTitle(gTitle.Data());
 
   canG->SaveAs( (gTitle + TString(".png")).Data());
@@ -821,7 +823,7 @@ void WCSimEmissionProfiles::SaveProfiles()
   fGFine->GetXaxis()->CenterTitle();
   fGFine->GetYaxis()->CenterTitle();
   gTitle.Form("gFine_%d_", (int)fLastEnergy);
-  gTitle += WCSimLikelihoodTrack::TrackTypeToString(fLastType);
+  gTitle += TrackType::AsString(fLastType);
   fGFine->SetTitle(gTitle.Data());
 
   canG->SaveAs( (gTitle + TString(".png")).Data());
@@ -835,46 +837,43 @@ void WCSimEmissionProfiles::SaveProfiles()
 
 }
 
-Double_t WCSimEmissionProfiles::GetStoppingDistance(WCSimLikelihoodTrack * track)
+Double_t WCSimEmissionProfiles::GetStoppingDistance(WCSimLikelihoodTrackBase * track)
 {
 	SetTrack(track);
 	Int_t bin = fRhoInterp->FindLastBinAbove(0);
 	return (fRhoInterp->GetBinCenter(bin));
 }
 
-TH1F * WCSimEmissionProfiles::GetRho(WCSimLikelihoodTrack::TrackType particle, double energy)
+TH1F * WCSimEmissionProfiles::GetRho(TrackType::Type particle, double energy)
 {
-	WCSimLikelihoodTrack tempTrack;
-	tempTrack.SetType(particle);
-	tempTrack.SetE(energy);
-	SetTrack(&tempTrack);
+	WCSimLikelihoodTrackBase * tempTrack = WCSimLikelihoodTrackFactory::MakeTrack(particle);
+	tempTrack->SetE(energy);
+	SetTrack(tempTrack);
 	return fRhoInterp;
 }
 
-TH2F * WCSimEmissionProfiles::GetGCoarse(WCSimLikelihoodTrack::TrackType particle, double energy)
+TH2F * WCSimEmissionProfiles::GetGCoarse(TrackType::Type particle, double energy)
 {
 	return GetG(particle, energy).first;
 }
 
-TH2F * WCSimEmissionProfiles::GetGFine(WCSimLikelihoodTrack::TrackType particle, double energy)
+TH2F * WCSimEmissionProfiles::GetGFine(TrackType::Type particle, double energy)
 {
 	return GetG(particle, energy).second;
 }
 
-std::pair<TH2F *, TH2F* > WCSimEmissionProfiles::GetG(WCSimLikelihoodTrack::TrackType particle, double energy)
+std::pair<TH2F *, TH2F* > WCSimEmissionProfiles::GetG(TrackType::Type particle, double energy)
 {
-	WCSimLikelihoodTrack tempTrack;
-	tempTrack.SetType(particle);
-	tempTrack.SetE(energy);
-	SetTrack(&tempTrack);
+	WCSimLikelihoodTrackBase * tempTrack = WCSimLikelihoodTrackFactory::MakeTrack(particle);
+	tempTrack->SetE(energy);
+	SetTrack(tempTrack);
 	return std::make_pair(fGCoarse, fGFine);
 }
 
-TH1F * WCSimEmissionProfiles::GetEnergyHist(WCSimLikelihoodTrack::TrackType particle)
+TH1F * WCSimEmissionProfiles::GetEnergyHist(TrackType::Type particle)
 {
-	WCSimLikelihoodTrack tempTrack;
-	tempTrack.SetType(particle);
-	tempTrack.SetE(1000.0);
-	SetTrack(&tempTrack);
+	WCSimLikelihoodTrackBase * tempTrack = WCSimLikelihoodTrackFactory::MakeTrack(particle);
+	tempTrack->SetE(1000.0);
+	SetTrack(tempTrack);
 	return fBinningHistogram;
 }

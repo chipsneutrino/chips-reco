@@ -1,4 +1,5 @@
 #include "WCSimLikelihoodTrack.hh"
+#include "WCSimTrackParameterEnums.hh"
 #include "WCSimTrueTrack.hh"
 #include "TMath.h"
 #include "TVector3.h"
@@ -12,21 +13,12 @@ ClassImp(WCSimLikelihoodTrack)
 /*
  * Constructors
  */
-WCSimLikelihoodTrack::WCSimLikelihoodTrack()
-{   
-	fVtx[0] = 0;
-	fVtx[1] = 0;
-	fVtx[2] = 0;
-	fT0 = 0;
-	fTheta0 = 0;
-	fPhi0 = 0;
-	fE0 = 0;	
-    fType = WCSimLikelihoodTrack::Unknown;
-	return;
+WCSimLikelihoodTrack::WCSimLikelihoodTrack() : WCSimLikelihoodTrackBase()
+{
 }
 
-WCSimLikelihoodTrack::WCSimLikelihoodTrack( double x, double y, double z, double t, double theta, double phi, double E, WCSimLikelihoodTrack::TrackType myType )
-{   
+WCSimLikelihoodTrack::WCSimLikelihoodTrack( double x, double y, double z, double t, double theta, double phi, double E, TrackType::Type myType )
+{
 	fVtx[0] = x;
 	fVtx[1] = y;
 	fVtx[2] = z;
@@ -36,18 +28,6 @@ WCSimLikelihoodTrack::WCSimLikelihoodTrack( double x, double y, double z, double
 	fE0     = E;
     fType   = myType;
 	return;
-}
-
-WCSimLikelihoodTrack::WCSimLikelihoodTrack(WCSimTrueTrack* trueTrack) {
-	fVtx[0] = trueTrack->GetG4VtxX();
-	fVtx[1] = trueTrack->GetG4VtxY();
-	fVtx[2] = trueTrack->GetG4VtxZ();
-	fT0 = 0;
-	fTheta0 = TMath::ACos( trueTrack->GetDirZ() );
-	fPhi0 = TMath::ATan2(trueTrack->GetDirY(), trueTrack->GetDirX());
-	fE0 = trueTrack->GetEnergy();
-	fType = GetTypeFromPDG(trueTrack->GetTrackPDG());
-
 }
 
 void WCSimLikelihoodTrack::Print()
@@ -63,52 +43,8 @@ void WCSimLikelihoodTrack::Print()
             << "fType   = " << fType   << std::endl << std::endl;
 }
 
-bool WCSimLikelihoodTrack::operator == (const WCSimLikelihoodTrack &b) const
-{
-			return (   fVtx[0] == b.fVtx[0] 
-              && fVtx[1] == b.fVtx[1] 
-              && fVtx[2] == b.fVtx[2]
-              && fT0 == b.fT0
-              && fTheta0 == b.fTheta0
-              && fPhi0 == b.fPhi0
-              && fE0 == b.fE0
-              && fType == b.fType );
-}
-
-///////////////////////////////////////////////////////////////////////////
-// Setters
-///////////////////////////////////////////////////////////////////////////
-void WCSimLikelihoodTrack::SetX(double x){ fVtx[0] = x; }
-void WCSimLikelihoodTrack::SetY(double y){ fVtx[1] = y; }
-void WCSimLikelihoodTrack::SetZ(double z){ fVtx[2] = z; }
-void WCSimLikelihoodTrack::SetT(double t){ fT0     = t; }
-void WCSimLikelihoodTrack::SetTheta(double th){ fTheta0 = th; }
-void WCSimLikelihoodTrack::SetPhi(double phi){ fPhi0 = phi; }
-void WCSimLikelihoodTrack::SetE(double E){ fE0 = E; }
-void WCSimLikelihoodTrack::SetType(WCSimLikelihoodTrack::TrackType type){ fType = type; }
-
-///////////////////////////////////////////////////////////////////////////
-// Getters
-///////////////////////////////////////////////////////////////////////////
-double WCSimLikelihoodTrack::GetX() const {return fVtx[0]; }
-double WCSimLikelihoodTrack::GetY() const {return fVtx[1]; }
-double WCSimLikelihoodTrack::GetZ() const {return fVtx[2]; }
-TVector3 WCSimLikelihoodTrack::GetVtx() const { return TVector3(fVtx[0], fVtx[1], fVtx[2]); }
-
-double WCSimLikelihoodTrack::GetT() const {return fT0; }
-double WCSimLikelihoodTrack::GetTheta() const {return fTheta0; }
-double WCSimLikelihoodTrack::GetPhi() const {return fPhi0; }
-double WCSimLikelihoodTrack::GetE() const {return fE0; }
-
-double WCSimLikelihoodTrack::GetDirX() const { return (TMath::Sin(fTheta0) * TMath::Cos(fPhi0)); }
-double WCSimLikelihoodTrack::GetDirY() const { return (TMath::Sin(fTheta0) * TMath::Sin(fPhi0)); }
-double WCSimLikelihoodTrack::GetDirZ() const { return (TMath::Cos(fTheta0)); }
-TVector3 WCSimLikelihoodTrack::GetDir() const { return TVector3( this->GetDirX(), this->GetDirY(), this->GetDirZ()); }
-
-WCSimLikelihoodTrack::TrackType WCSimLikelihoodTrack::GetType() const { return fType;}
-
 double WCSimLikelihoodTrack::GetTrackParameter(
-		FitterParameterType::Type type) const {
+		const FitterParameterType::Type &type) const {
 	if( type == FitterParameterType::kVtxX ){ return GetX(); }
 	if( type == FitterParameterType::kVtxY ){ return GetY(); }
 	if( type == FitterParameterType::kVtxZ ){ return GetZ(); }
@@ -120,59 +56,23 @@ double WCSimLikelihoodTrack::GetTrackParameter(
 	return -99999;
 }
 
-///////////////////////////////////////////////////////////////////////////
-// Destructor
-///////////////////////////////////////////////////////////////////////////
-WCSimLikelihoodTrack::~WCSimLikelihoodTrack()
-{
-}
-
-/**
- * Output strings of our tracktype enums
- * @param myType The particle type of the track
- * @return A string corresponding the the particle type of the track
- */
-std::string WCSimLikelihoodTrack::TrackTypeToString( WCSimLikelihoodTrack::TrackType myType )
-{
-  std::string type;
-
-  switch(myType)
-  {
-    case WCSimLikelihoodTrack::ElectronLike:
-      type = "electron";
-      break;
-    case WCSimLikelihoodTrack::MuonLike:
-      type = "muon";
-      break;
-    default:
-      type = "UNKOWN";
-      break;
-  }
-  return type;
-}
-
-
-TVector3 WCSimLikelihoodTrack::GetPropagatedPos(Double_t s) const
+TVector3 WCSimLikelihoodTrack::GetPropagatedPos(const Double_t &s) const
 {
 	return (this->GetVtx() + s * this->GetDir());
 }
 
-Int_t WCSimLikelihoodTrack::GetPDG() const {
-	if( fType == MuonLike ){ return 13; }
-	else if( fType == ElectronLike ){ return 11; }
+void WCSimLikelihoodTrack::SetType(const TrackType::Type &type)
+{
+	if(		type == TrackType::ElectronLike
+		||	type == TrackType::MuonLike )
+	{
+		fType = type;
+	}
 	else
 	{
-		/*assert(    (*/std::cerr << "Could not get track PDG type for " << TrackTypeToString(fType) << std::endl ; //));
+		std::cerr << "Error in WCSimLikelihoodTrack::SetType: track type must be ElectronLike or MuonLike" << std::endl;
+		assert(		type == TrackType::ElectronLike
+				||	type == TrackType::MuonLike );
 	}
-	return -999;
 }
 
-Bool_t WCSimLikelihoodTrack::EnergyGreaterThanOrEqual(const WCSimLikelihoodTrack &a, const WCSimLikelihoodTrack &b)
-{
-  return (a.GetE() >= b.GetE());
-}
-
-Bool_t WCSimLikelihoodTrack::EnergyGreaterThanOrEqualPtrs(WCSimLikelihoodTrack *a, WCSimLikelihoodTrack *b)
-{
-  return (a->GetE() >= b->GetE());
-}

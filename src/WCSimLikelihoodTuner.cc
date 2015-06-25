@@ -24,7 +24,7 @@
 
 #include "WCSimChargePredictor.hh"
 #include "WCSimIntegralLookupReader.hh"
-#include "WCSimLikelihoodTrack.hh"
+#include "WCSimLikelihoodTrackBase.hh"
 #include "WCSimLikelihoodTuner.hh"
 #include "WCSimRootGeom.hh"
 #include "WCSimGeometry.hh"
@@ -45,6 +45,7 @@ WCSimLikelihoodTuner::WCSimLikelihoodTuner()
   	fExtent[1] = -1.0;
   	fExtent[2] = -1.0;
     fGeomType  = WCSimLikelihoodDigitArray::kUnknown;
+    fLastCutoff = 0x0;
   
   
   
@@ -81,7 +82,7 @@ void WCSimLikelihoodTuner::Initialize()
   // Pointer to the last track for which we calculated the cutoff, to prevent repetition
 
   // The binning scheme for the direct integral tables
-  fIntegralParticleType = WCSimLikelihoodTrack::Unknown;
+  fIntegralParticleType = TrackType::Unknown;
 
   return;
 }
@@ -116,7 +117,7 @@ void WCSimLikelihoodTuner::UpdateDigitArray( WCSimLikelihoodDigitArray * myDigit
 ////////////////////////////////////////////////////////////////////////
 // Load the appropriate emission profiles for this track's particle type
 ////////////////////////////////////////////////////////////////////////
-void WCSimLikelihoodTuner::LoadEmissionProfiles( WCSimLikelihoodTrack * myTrack )
+void WCSimLikelihoodTuner::LoadEmissionProfiles( WCSimLikelihoodTrackBase * myTrack )
 {
   fEmissionProfiles.SetTrack(myTrack);
   return;
@@ -125,7 +126,7 @@ void WCSimLikelihoodTuner::LoadEmissionProfiles( WCSimLikelihoodTrack * myTrack 
 /////////////////////////////////////////////////////////////////////////////////////////
 // Work out the probability of light surviving to the PMT as it travels through the water
 /////////////////////////////////////////////////////////////////////////////////////////
-Double_t WCSimLikelihoodTuner::TransmissionFunction(Double_t s, WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit)
+Double_t WCSimLikelihoodTuner::TransmissionFunction(Double_t s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit)
 {
 	if( s== 0 ) { return 1.0; }
 
@@ -161,7 +162,7 @@ Double_t WCSimLikelihoodTuner::TransmissionFunction(Double_t s, WCSimLikelihoodT
 // This uses the same formula as WCSim.  Quantum efficiency (QE) is accounted for here.
 // Efficiency of digitization is handled elsewhere
 ///////////////////////////////////////////////////////////////////////////////////////
-Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit)
+Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit)
 {
   Double_t glassReflect = 0.0;
   if(WCSimAnalysisConfig::Instance()->GetUseGlassCathodeReflection()) { glassReflect = 0.24; }
@@ -225,11 +226,11 @@ Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrack * myT
 // constant by averaging the QE over the wavelength spectrum for all emitted photons
 // and scaling the predicted charge by this number
 //////////////////////////////////////////////////////////////////////////////////////////
-Double_t WCSimLikelihoodTuner::QuantumEfficiency(WCSimLikelihoodTrack * myTrack)
+Double_t WCSimLikelihoodTuner::QuantumEfficiency(WCSimLikelihoodTrackBase * myTrack)
 {
-	WCSimLikelihoodTrack::TrackType type = myTrack->GetType();
-	if(type == WCSimLikelihoodTrack::MuonLike) return 0.05;
-	else if(type == WCSimLikelihoodTrack::ElectronLike) return 1.0;
+	WCSimTrackParameterEnums::TrackType type = myTrack->GetType();
+	if(type == TrackType::MuonLike) return 0.05;
+	else if(type == TrackType::ElectronLike) return 1.0;
 	else return 1.0;
 }
 */
@@ -237,7 +238,7 @@ Double_t WCSimLikelihoodTuner::QuantumEfficiency(WCSimLikelihoodTrack * myTrack)
 //////////////////////////////////////////////////////////////////////////////////////////
 // Work out the effect of solid angle on the probability of photon incidenc; pure geometry
 //////////////////////////////////////////////////////////////////////////////////////////
-Double_t WCSimLikelihoodTuner::SolidAngle(Double_t s, WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit)
+Double_t WCSimLikelihoodTuner::SolidAngle(Double_t s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit)
 {
   // Now some physical parameters of the phototube
 	Double_t WCSimPMTRadius = WCSimGeometry::Instance()->GetPMTRadius();
@@ -278,7 +279,7 @@ Double_t WCSimLikelihoodTuner::ScatteringTable(Double_t s)
 //  also the scattering table for indirect light).  However we need it to be zero once the
 //  particle has exited the detector, so we check for that before calling the other functions
 /////////////////////////////////////////////////////////////////////////////////////////////
-std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ( Double_t s, WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit ) 
+std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ( Double_t s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit ) 
 {
   std::vector<Double_t> J;
 
@@ -318,7 +319,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ( Double_t s, WCSimLikelih
 // This just leaves integrals over emission profiles that can be tabulated in advance.  This function gives
 // the coefficients of these quadratics
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////// 
-void WCSimLikelihoodTuner::CalculateCoefficients(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit )
+void WCSimLikelihoodTuner::CalculateCoefficients(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit )
 {
     
     // std::cout << "*** WCSimLikelihoodTuner::CalculateCoefficients() *** Calculating the coefficients for the integrals from tuning info" << std::endl; 
@@ -404,7 +405,7 @@ void WCSimLikelihoodTuner::CalculateCoefficients(WCSimLikelihoodTrack * myTrack,
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Same as the function above, but returns a vector of the coefficients as well as updating the class member variables
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-std::vector<Double_t> WCSimLikelihoodTuner::CalculateCoefficientsVector(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit )
+std::vector<Double_t> WCSimLikelihoodTuner::CalculateCoefficientsVector(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit )
 {
     this->CalculateCoefficients(myTrack, myDigit);
     
@@ -420,10 +421,10 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateCoefficientsVector(WCSimLik
 // Here, we input the track and work out how far it has to travel before it reaches the edge of the
 // detector volume, and return that value
 // ////////////////////////////////////////////////////////////////////////////////////////////////
-void WCSimLikelihoodTuner::CalculateCutoff( WCSimLikelihoodTrack * myTrack )
+void WCSimLikelihoodTuner::CalculateCutoff( WCSimLikelihoodTrackBase * myTrack )
 {
   //  std::cout << "Calculating the cutoff" << std::endl;
-  if(*myTrack == fLastCutoff) { return; }
+  if(fLastCutoff != 0x0 && myTrack->IsSameTrack(fLastCutoff)) { return; }
   
   Double_t cutoff = fEmissionProfiles.GetStoppingDistance(myTrack);
   // std::cout << "From profile, cutoff = " << cutoff << std::endl;
@@ -445,12 +446,12 @@ void WCSimLikelihoodTuner::CalculateCutoff( WCSimLikelihoodTrack * myTrack )
   }
   // std::cout << "Energy = " << myTrack->GetE() << "   Cutoff = " << cutoff << ".... returning" << std::endl;
   fCutoffIntegral = cutoff;
-  fLastCutoff     = *myTrack;
+  fLastCutoff     = myTrack;
   return;
 }
 
 /// Calculate where the integral should be cut off if the detector is a cylinder
-Double_t WCSimLikelihoodTuner::CalculateCylinderCutoff(WCSimLikelihoodTrack * myTrack)
+Double_t WCSimLikelihoodTuner::CalculateCylinderCutoff(WCSimLikelihoodTrackBase * myTrack)
 {
     TVector3 vtx     = myTrack->GetVtx();
     TVector3 dir     = myTrack->GetDir();
@@ -504,7 +505,7 @@ Double_t WCSimLikelihoodTuner::CalculateCylinderCutoff(WCSimLikelihoodTrack * my
 }
 
 /// Calculate where the integral should be cut off if the detector is a box
-Double_t WCSimLikelihoodTuner::CalculateMailBoxCutoff(WCSimLikelihoodTrack * myTrack)
+Double_t WCSimLikelihoodTuner::CalculateMailBoxCutoff(WCSimLikelihoodTrackBase * myTrack)
 {
     TVector3 vtx     = myTrack->GetVtx();
     TVector3 dir     = myTrack->GetDir();
@@ -548,7 +549,7 @@ Double_t WCSimLikelihoodTuner::CalculateMailBoxCutoff(WCSimLikelihoodTrack * myT
 // tabulate this in advance.  This function opens the file containing those
 // tables
 ///////////////////////////////////////////////////////////////////////////
-void WCSimLikelihoodTuner::LoadTabulatedIntegrals( WCSimLikelihoodTrack * myTrack )
+void WCSimLikelihoodTuner::LoadTabulatedIntegrals( WCSimLikelihoodTrackBase * myTrack )
 {
   WCSimIntegralLookupReader::Instance()->LoadIntegrals(myTrack);
 
@@ -561,7 +562,7 @@ void WCSimLikelihoodTuner::LoadTabulatedIntegrals( WCSimLikelihoodTrack * myTrac
 //  they should be looked-up or calculated numerically
 ///////////////////////////////////////////////////////////////////////////
 // First the contribution from Cherenkov light
-double WCSimLikelihoodTuner::GetChIntegrals(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit, Int_t sPower)
+double WCSimLikelihoodTuner::GetChIntegrals(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit, Int_t sPower)
 {
     // Get the integral with a single power of s under the integral sign
     if(fCalculateIntegrals == true)
@@ -576,7 +577,7 @@ double WCSimLikelihoodTuner::GetChIntegrals(WCSimLikelihoodTrack * myTrack, WCSi
     }
 }
 
-std::vector<Double_t> WCSimLikelihoodTuner::GetChIntegrals(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit)
+std::vector<Double_t> WCSimLikelihoodTuner::GetChIntegrals(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit)
 {
     // If we want all 3 powers it's quicker to get them all at once as it only involves one loop
     if(fCalculateIntegrals == true)
@@ -592,7 +593,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::GetChIntegrals(WCSimLikelihoodTrack 
 }
 
 // Now the same for indirect light
-double WCSimLikelihoodTuner::GetIndIntegrals(WCSimLikelihoodTrack * myTrack, Int_t sPower)
+double WCSimLikelihoodTuner::GetIndIntegrals(WCSimLikelihoodTrackBase * myTrack, Int_t sPower)
 {
     // Get the integral with a single power of s under the integral sign
     if(fCalculateIntegrals == true)
@@ -602,7 +603,7 @@ double WCSimLikelihoodTuner::GetIndIntegrals(WCSimLikelihoodTrack * myTrack, Int
     else return this->LookupIndIntegrals(myTrack, sPower);
 }
 
-std::vector<Double_t> WCSimLikelihoodTuner::GetIndIntegrals(WCSimLikelihoodTrack * myTrack)
+std::vector<Double_t> WCSimLikelihoodTuner::GetIndIntegrals(WCSimLikelihoodTrackBase * myTrack)
 {
     // If we want all 3 powers it's quicker to get them all at once as it only involves one loop
     if(fCalculateIntegrals == true)
@@ -616,7 +617,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::GetIndIntegrals(WCSimLikelihoodTrack
 ///////////////////////////////////////////////////////////////////////////
 //	Look up the tabulated integrals - just return 1 power of s
 ///////////////////////////////////////////////////////////////////////////
-double WCSimLikelihoodTuner::LookupChIntegrals(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit, Int_t sPower)
+double WCSimLikelihoodTuner::LookupChIntegrals(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit, Int_t sPower)
 {
     if( !(sPower < 3 && sPower >= 0) )
     {
@@ -634,7 +635,7 @@ double WCSimLikelihoodTuner::LookupChIntegrals(WCSimLikelihoodTrack * myTrack, W
 // Look up the tabulated integrals: return a vector of all 3 powers of s
 // (this is the fastest way to work out the likelihood)
 ///////////////////////////////////////////////////////////////////////////
-std::vector<Double_t> WCSimLikelihoodTuner::LookupChIntegrals(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit)
+std::vector<Double_t> WCSimLikelihoodTuner::LookupChIntegrals(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit)
 {
     // std::cout << "*** WCSimLikelihoodTuner::LookupChIntegrals() *** Looking up the tabulated integrals for direct Cherenkov light" << std::endl;
   TVector3 pmtPos = myDigit->GetPos();
@@ -647,7 +648,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::LookupChIntegrals(WCSimLikelihoodTra
  	
  	WCSimIntegralLookupReader * myReader = WCSimIntegralLookupReader::Instance();
  	double E = myTrack->GetE();
- 	WCSimLikelihoodTrack::TrackType type = myTrack->GetType();
+ 	TrackType::Type type = myTrack->GetType();
 
 	std::vector<Double_t> integralsVec;
 	integralsVec.push_back(myReader->GetRhoGIntegral(type, E, fCutoffIntegral, R0, cosTheta0));
@@ -665,7 +666,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::LookupChIntegrals(WCSimLikelihoodTra
 ///////////////////////////////////////////////////////////////////////////
 //	Look up the tabulated integrals
 ///////////////////////////////////////////////////////////////////////////
-Double_t WCSimLikelihoodTuner::LookupIndIntegrals(WCSimLikelihoodTrack * myTrack, Int_t sPower)
+Double_t WCSimLikelihoodTuner::LookupIndIntegrals(WCSimLikelihoodTrackBase * myTrack, Int_t sPower)
 {
 	if( !(sPower < 3 && sPower >= 0) )
     {
@@ -678,12 +679,12 @@ Double_t WCSimLikelihoodTuner::LookupIndIntegrals(WCSimLikelihoodTrack * myTrack
 	return integralsVec.at(sPower);
 }
 
-std::vector<Double_t> WCSimLikelihoodTuner::LookupIndIntegrals(WCSimLikelihoodTrack * myTrack)
+std::vector<Double_t> WCSimLikelihoodTuner::LookupIndIntegrals(WCSimLikelihoodTrackBase * myTrack)
 {
     // std::cout << "*** WCSimLikelihoodTuner::LookupChIntegrals() *** Looking up the tabulated integrals for direct Cherenkov light" << std::endl;
  	WCSimIntegralLookupReader * myReader = WCSimIntegralLookupReader::Instance();
  	double E = myTrack->GetE();
- 	WCSimLikelihoodTrack::TrackType type = myTrack->GetType();
+ 	TrackType::Type type = myTrack->GetType();
 
 	std::vector<Double_t> integralsVec;
 	integralsVec.push_back(myReader->GetRhoIntegral(type, E, fCutoffIntegral));
@@ -698,7 +699,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::LookupIndIntegrals(WCSimLikelihoodTr
 // Work out the integrals over the emission profiles numerically.  This is slow and only good for testing - 
 // eventually they'll be tabulated and looked-up
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-Double_t WCSimLikelihoodTuner::CalculateChIntegrals(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit, int i)
+Double_t WCSimLikelihoodTuner::CalculateChIntegrals(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit, int i)
 {
 	std::vector<Double_t> integrals = this->CalculateChIntegrals(myTrack, myDigit);
 	if( i < 0 || i > 2) 
@@ -709,7 +710,7 @@ Double_t WCSimLikelihoodTuner::CalculateChIntegrals(WCSimLikelihoodTrack * myTra
     return integrals.at(i);
 }
 
-std::vector<Double_t> WCSimLikelihoodTuner::CalculateChIntegrals(WCSimLikelihoodTrack * myTrack, WCSimLikelihoodDigit * myDigit)
+std::vector<Double_t> WCSimLikelihoodTuner::CalculateChIntegrals(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit)
 {
     // std::cout << "*** WCSimLikelihoodTuner::CalculateChIntegrals() ***" << std::endl;
     this->LoadEmissionProfiles(myTrack);
@@ -732,7 +733,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateChIntegrals(WCSimLikelihood
 ///////////////////////////////////////////////////////////////////////////////////////////
 // As for the previous function, but now we're calculating the integrals for indirect light
 ///////////////////////////////////////////////////////////////////////////////////////////
-Double_t WCSimLikelihoodTuner::CalculateIndIntegrals(WCSimLikelihoodTrack * myTrack, int i)
+Double_t WCSimLikelihoodTuner::CalculateIndIntegrals(WCSimLikelihoodTrackBase * myTrack, int i)
 {
   
 	std::vector<Double_t> integrals = this->CalculateIndIntegrals(myTrack);
@@ -744,7 +745,7 @@ Double_t WCSimLikelihoodTuner::CalculateIndIntegrals(WCSimLikelihoodTrack * myTr
     return integrals.at(i);
 }
 
-std::vector<Double_t> WCSimLikelihoodTuner::CalculateIndIntegrals(WCSimLikelihoodTrack * myTrack)
+std::vector<Double_t> WCSimLikelihoodTuner::CalculateIndIntegrals(WCSimLikelihoodTrackBase * myTrack)
 { 
 
     this->LoadEmissionProfiles(myTrack);
@@ -776,12 +777,12 @@ Bool_t WCSimLikelihoodTuner::IsOutsideDetector(const TVector3 &pos)
     return (fabs(pos.X()) > fExtent[0] || fabs(pos.Y()) > fExtent[1] || fabs(pos.Z()) > fExtent[2]);
 }
 
-Double_t WCSimLikelihoodTuner::GetLightFlux(WCSimLikelihoodTrack * myTrack)
+Double_t WCSimLikelihoodTuner::GetLightFlux(WCSimLikelihoodTrackBase * myTrack)
 {
   return fEmissionProfiles.GetLightFlux(myTrack);
 }
 
-Double_t WCSimLikelihoodTuner::GetTrackLengthForPercentile(WCSimLikelihoodTrack * myTrack, const double &percentile)
+Double_t WCSimLikelihoodTuner::GetTrackLengthForPercentile(WCSimLikelihoodTrackBase * myTrack, const double &percentile)
 {
   double length = -999.9;
   if(fCalculateIntegrals || !(WCSimAnalysisConfig::Instance()->GetTruncateIntegrals())) { 
@@ -796,12 +797,12 @@ Double_t WCSimLikelihoodTuner::GetTrackLengthForPercentile(WCSimLikelihoodTrack 
   return length;
 }
 
-Double_t WCSimLikelihoodTuner::QuantumEfficiency(WCSimLikelihoodTrack* myTrack) {
+Double_t WCSimLikelihoodTuner::QuantumEfficiency(WCSimLikelihoodTrackBase* myTrack) {
 	double qe=  0.0;
-	if(myTrack->GetType() == WCSimLikelihoodTrack::MuonLike || myTrack->GetType() == WCSimLikelihoodTrack::ElectronLike)
+	if(myTrack->GetType() == TrackType::MuonLike || myTrack->GetType() == TrackType::ElectronLike)
 	{
 		qe = 0.436129;
 	}
-	else assert(myTrack->GetType() == WCSimLikelihoodTrack::ElectronLike || myTrack->GetType() == WCSimLikelihoodTrack::MuonLike);
+	else assert(myTrack->GetType() == TrackType::ElectronLike || myTrack->GetType() == TrackType::MuonLike);
 	return qe;
 }

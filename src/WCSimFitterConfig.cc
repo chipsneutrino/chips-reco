@@ -7,6 +7,7 @@
 #include "WCSimLikelihoodTrack.hh"
 #include "WCSimFitterConfig.hh"
 #include "WCSimInterface.hh"
+#include "WCSimTrackParameterEnums.hh"
 
 static WCSimFitterConfig * fgFitterConfig = 0;
 
@@ -202,11 +203,11 @@ void WCSimFitterConfig::SetTrackType(unsigned int numTrack,
 		const char* typeName)
 {
   std::cout << "WCSimFitterConfig::SetTrackType(" << numTrack << ", " << typeName << ")" << std::endl;
-	WCSimLikelihoodTrack::TrackType type = WCSimLikelihoodTrack::GetTypeFromName(typeName);
+	TrackType::Type type = TrackType::FromName(typeName);
 	fFitterParameters.SetTrackType(numTrack, type);
 }
 
-WCSimLikelihoodTrack::TrackType WCSimFitterConfig::GetTrackType(const unsigned int &numTrack) const
+TrackType::Type WCSimFitterConfig::GetTrackType(const unsigned int &numTrack) const
 {
 	return fFitterParameters.GetTrackType(numTrack);
 }

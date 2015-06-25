@@ -7,6 +7,7 @@
 
 #include "WCSimIntegralLookupReader.hh"
 #include "WCSimAnalysisConfig.hh"
+#include "WCSimTrackParameterEnums.hh"
 #include "TH1F.h"
 #include "TH2D.h"
 
@@ -29,11 +30,11 @@ WCSimIntegralLookupReader* WCSimIntegralLookupReader::Instance() {
 	  return fgIntegralLookupReader;
 }
 
-void WCSimIntegralLookupReader::LoadIntegrals(WCSimLikelihoodTrack* myTrack) {
+void WCSimIntegralLookupReader::LoadIntegrals(WCSimLikelihoodTrackBase* myTrack) {
 	LoadIntegrals(myTrack->GetType());
 }
 
-WCSimIntegralLookup3D* WCSimIntegralLookupReader::GetIntegralLookup3D(WCSimLikelihoodTrack::TrackType type) {
+WCSimIntegralLookup3D* WCSimIntegralLookupReader::GetIntegralLookup3D(TrackType::Type type) {
 	if( fLookupMap.find( type ) != fLookupMap.end())
 	{
 		return fLookupMap[type];
@@ -47,7 +48,7 @@ WCSimIntegralLookup3D* WCSimIntegralLookupReader::GetIntegralLookup3D(WCSimLikel
 		}
 		else
 		{
-			std::cerr << "Could not open an integral file for track type " << WCSimLikelihoodTrack::TrackTypeToString(type) << std::endl;
+			std::cerr << "Could not open an integral file for track type " << TrackType::AsString(type) << std::endl;
 			assert(0);
 		}
 	}
@@ -58,13 +59,13 @@ WCSimIntegralLookup3D* WCSimIntegralLookupReader::GetIntegralLookup3D(WCSimLikel
 WCSimIntegralLookupReader::WCSimIntegralLookupReader() {
 	// TODO Auto-generated constructor stub
   fLastPercentileLength = -999.9;
-  fLastPercentileType = WCSimLikelihoodTrack::Unknown;
+  fLastPercentileType = TrackType::Unknown;
   fLastPercentileEnergy = -999.9;
 }
 
 WCSimIntegralLookupReader::~WCSimIntegralLookupReader() {
 	// TODO Auto-generated destructor stub
-	std::map<WCSimLikelihoodTrack::TrackType, WCSimIntegralLookup3D*>:: iterator mapItr;
+	std::map<TrackType::Type, WCSimIntegralLookup3D*>:: iterator mapItr;
 	for( mapItr = fLookupMap.begin(); mapItr != fLookupMap.end(); ++mapItr)
 	{
 		delete mapItr->second;
@@ -73,11 +74,11 @@ WCSimIntegralLookupReader::~WCSimIntegralLookupReader() {
 	fLookupMap.clear();
 }
 
-TString WCSimIntegralLookupReader::GetLookupFilename(WCSimLikelihoodTrack* track) {
+TString WCSimIntegralLookupReader::GetLookupFilename(WCSimLikelihoodTrackBase* track) {
 	return GetLookupFilename(track->GetType());
 }
 
-void WCSimIntegralLookupReader::LoadIntegrals(const WCSimLikelihoodTrack::TrackType& type) {
+void WCSimIntegralLookupReader::LoadIntegrals(const TrackType::Type& type) {
 	if( fLookupMap.find( type ) == fLookupMap.end())
 	{
 		if(WCSimAnalysisConfig::Instance()->GetTruncateIntegrals())
@@ -93,7 +94,7 @@ void WCSimIntegralLookupReader::LoadIntegrals(const WCSimLikelihoodTrack::TrackT
 	}
 }
 
-double WCSimIntegralLookupReader::GetRhoIntegral(const WCSimLikelihoodTrack::TrackType& type, const double& E,
+double WCSimIntegralLookupReader::GetRhoIntegral(const TrackType::Type& type, const double& E,
 		const double& s) {
 	if(fLookupMap.find(type) == fLookupMap.end())
 	{
@@ -102,16 +103,13 @@ double WCSimIntegralLookupReader::GetRhoIntegral(const WCSimLikelihoodTrack::Tra
 
 	if(fLookupMap.find(type) == fLookupMap.end())
 	{
-		std::cerr << "Could not find a table of integrals for type " << WCSimLikelihoodTrack::TrackTypeToString(type) << std::endl;
+		std::cerr << "Could not find a table of integrals for type " << TrackType::AsString(type) << std::endl;
 		assert(fLookupMap.find(type) != fLookupMap.end());
 	}
-	else
-	{
-		return fLookupMap[type]->GetRhoIntegral(E, s);
-	}
+  return fLookupMap[type]->GetRhoIntegral(E, s);
 }
 
-double WCSimIntegralLookupReader::GetRhoSIntegral(const WCSimLikelihoodTrack::TrackType& type, const double& E,
+double WCSimIntegralLookupReader::GetRhoSIntegral(const TrackType::Type& type, const double& E,
 		const double& s) {
 	if(fLookupMap.find(type) == fLookupMap.end())
 	{
@@ -120,13 +118,13 @@ double WCSimIntegralLookupReader::GetRhoSIntegral(const WCSimLikelihoodTrack::Tr
 
 	if(fLookupMap.find(type) == fLookupMap.end())
 	{
-		std::cerr << "Could not find a table of integrals for type " << WCSimLikelihoodTrack::TrackTypeToString(type) << std::endl;
+		std::cerr << "Could not find a table of integrals for type " << TrackType::AsString(type) << std::endl;
 		assert(fLookupMap.find(type) != fLookupMap.end());
 	}
 	return fLookupMap[type]->GetRhoSIntegral(E, s);
 }
 
-double WCSimIntegralLookupReader::GetRhoSSIntegral(const WCSimLikelihoodTrack::TrackType& type, const double& E,
+double WCSimIntegralLookupReader::GetRhoSSIntegral(const TrackType::Type& type, const double& E,
 		const double& s) {
 	if(fLookupMap.find(type) == fLookupMap.end())
 	{
@@ -135,13 +133,13 @@ double WCSimIntegralLookupReader::GetRhoSSIntegral(const WCSimLikelihoodTrack::T
 
 	if(fLookupMap.find(type) == fLookupMap.end())
 	{
-		std::cerr << "Could not find a table of integrals for type " << WCSimLikelihoodTrack::TrackTypeToString(type) << std::endl;
+		std::cerr << "Could not find a table of integrals for type " << TrackType::AsString(type) << std::endl;
 		assert(fLookupMap.find(type) != fLookupMap.end());
 	}
 	return fLookupMap[type]->GetRhoSSIntegral(E, s);
 }
 
-double WCSimIntegralLookupReader::GetRhoGIntegral(const WCSimLikelihoodTrack::TrackType& type, const double& E,
+double WCSimIntegralLookupReader::GetRhoGIntegral(const TrackType::Type& type, const double& E,
 		const double& s, const double& R0, const double& cosTh0) {
 	if(fLookupMap.find(type) == fLookupMap.end())
 	{
@@ -150,13 +148,13 @@ double WCSimIntegralLookupReader::GetRhoGIntegral(const WCSimLikelihoodTrack::Tr
 
 	if(fLookupMap.find(type) == fLookupMap.end())
 	{
-		std::cerr << "Could not find a table of integrals for type " << WCSimLikelihoodTrack::TrackTypeToString(type) << std::endl;
+		std::cerr << "Could not find a table of integrals for type " << TrackType::AsString(type) << std::endl;
 		assert(fLookupMap.find(type) != fLookupMap.end());
 	}
 	return fLookupMap[type]->GetRhoGIntegral(E, s, R0, cosTh0);
 }
 
-double WCSimIntegralLookupReader::GetRhoGSIntegral(const WCSimLikelihoodTrack::TrackType& type, const double& E,
+double WCSimIntegralLookupReader::GetRhoGSIntegral(const TrackType::Type& type, const double& E,
 		const double& s, const double& R0, const double& cosTh0) {
 	if(fLookupMap.find(type) == fLookupMap.end())
 	{
@@ -165,13 +163,13 @@ double WCSimIntegralLookupReader::GetRhoGSIntegral(const WCSimLikelihoodTrack::T
 
 	if(fLookupMap.find(type) == fLookupMap.end())
 	{
-		std::cerr << "Could not find a table of integrals for type " << WCSimLikelihoodTrack::TrackTypeToString(type) << std::endl;
+		std::cerr << "Could not find a table of integrals for type " << TrackType::AsString(type) << std::endl;
 		assert(fLookupMap.find(type) != fLookupMap.end());
 	}
 	return fLookupMap[type]->GetRhoGSIntegral(E, s, R0, cosTh0);
 }
 
-double WCSimIntegralLookupReader::GetRhoGSSIntegral(const WCSimLikelihoodTrack::TrackType& type, const double& E,
+double WCSimIntegralLookupReader::GetRhoGSSIntegral(const TrackType::Type& type, const double& E,
 		const double& s, const double& R0, const double& cosTh0) {
 	if(fLookupMap.find(type) == fLookupMap.end())
 	{
@@ -180,15 +178,15 @@ double WCSimIntegralLookupReader::GetRhoGSSIntegral(const WCSimLikelihoodTrack::
 
 	if(fLookupMap.find(type) == fLookupMap.end())
 	{
-		std::cerr << "Could not find a table of integrals for type " << WCSimLikelihoodTrack::TrackTypeToString(type) << std::endl;
+		std::cerr << "Could not find a table of integrals for type " << TrackType::AsString(type) << std::endl;
 		assert(fLookupMap.find(type) != fLookupMap.end());
 	}
 	return fLookupMap[type]->GetRhoGSSIntegral(E, s, R0, cosTh0);
 }
 
-TString WCSimIntegralLookupReader::GetLookupFilename(const WCSimLikelihoodTrack::TrackType& type) {
+TString WCSimIntegralLookupReader::GetLookupFilename(const TrackType::Type& type) {
 	TString str;
-	if( type == WCSimLikelihoodTrack::MuonLike)
+	if( type == TrackType::MuonLike)
 	{
 		if(WCSimAnalysisConfig::Instance()->GetTruncateIntegrals())
 		{
@@ -199,7 +197,7 @@ TString WCSimIntegralLookupReader::GetLookupFilename(const WCSimLikelihoodTrack:
 			str = "config/muonIntegralsSmall.root";
 		}
 	}
-	else if( type == WCSimLikelihoodTrack::ElectronLike)
+	else if( type == TrackType::ElectronLike)
 	{
 		if(WCSimAnalysisConfig::Instance()->GetTruncateIntegrals())
 		{
@@ -212,14 +210,14 @@ TString WCSimIntegralLookupReader::GetLookupFilename(const WCSimLikelihoodTrack:
 	}
 	else
 	{
-		std::cerr << "I don't know the filename for a track of type " << WCSimLikelihoodTrack::TrackTypeToString(type) << std::endl;
-		assert( type == WCSimLikelihoodTrack::MuonLike || type == WCSimLikelihoodTrack::ElectronLike);
+		std::cerr << "I don't know the filename for a track of type " << TrackType::AsString(type) << std::endl;
+		assert( type == TrackType::MuonLike || type == TrackType::ElectronLike);
 	}
 	std::cout << "Lookup file name = " << str << std::endl;
 	return str;
 }
 
-double WCSimIntegralLookupReader::GetTrackLengthForPercentile(const WCSimLikelihoodTrack::TrackType &type, const double &E, const double &percentile)
+double WCSimIntegralLookupReader::GetTrackLengthForPercentile(const TrackType::Type &type, const double &E, const double &percentile)
 {
   double dist = fLastPercentileLength;
   if(type != fLastPercentileType || E != fLastPercentileEnergy)
@@ -232,7 +230,7 @@ double WCSimIntegralLookupReader::GetTrackLengthForPercentile(const WCSimLikelih
 
 	  if(fLookupMap.find(type) == fLookupMap.end())
 	  {
-	  	std::cerr << "Could not find a table of integrals for type " << WCSimLikelihoodTrack::TrackTypeToString(type) << std::endl;
+	  	std::cerr << "Could not find a table of integrals for type " << TrackType::AsString(type) << std::endl;
 	  	assert(fLookupMap.find(type) != fLookupMap.end());
 	  }
 

@@ -9,6 +9,7 @@
 #define WCSIMFITTERINTERFACE_HH_
 
 #include <TString.h>
+#include "WCSimTrackParameterEnums.hh"
 class WCSimLikelihoodFitter;
 class WCSimFitterConfig;
 class WCSimFitterPlots;
@@ -26,6 +27,7 @@ public:
 	unsigned int GetNumTracks() const;
 
 	void SetTrackType( unsigned int numTrack, const char * typeName);
+  TrackType::Type GetTrackType(const unsigned int &numTrack);
 
 
 	void FixParameter(  unsigned int numTrack, const char * name, bool doIt = true );

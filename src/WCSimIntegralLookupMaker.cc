@@ -7,6 +7,7 @@
 
 #include <stdexcept>
 #include "WCSimIntegralLookupMaker.hh"
+#include "WCSimTrackParameterEnums.hh"
 #include "TFile.h"
 #include "TH1F.h"
 #include "TH2F.h"
@@ -19,11 +20,11 @@
 ClassImp(WCSimIntegralLookupMaker)
 #endif
 
-WCSimIntegralLookupMaker::WCSimIntegralLookupMaker( WCSimLikelihoodTrack::TrackType particle,
+WCSimIntegralLookupMaker::WCSimIntegralLookupMaker( TrackType::Type particle,
 													int nR0Bins, double R0Min, double R0Max,
 													int nCosTh0Bins, double cosTh0Min, double cosTh0Max )
 {
-	std::cout << " *** WCSimIntegralLookupMaker for track type = " << WCSimLikelihoodTrack::TrackTypeToString(particle) << " *** " << std::endl;
+	std::cout << " *** WCSimIntegralLookupMaker for track type = " << TrackType::AsString(particle) << " *** " << std::endl;
 	fRhoInt = 0x0;
 	fRhoSInt = 0x0;
 	fRhoSSInt = 0x0;

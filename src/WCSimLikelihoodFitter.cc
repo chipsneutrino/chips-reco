@@ -9,7 +9,8 @@
 #include "WCSimInterface.hh"
 #include "WCSimLikelihoodDigitArray.hh"
 #include "WCSimLikelihoodFitter.hh"
-#include "WCSimLikelihoodTrack.hh"
+#include "WCSimLikelihoodTrackBase.hh"
+#include "WCSimLikelihoodTrackFactory.hh"
 #include "WCSimReco.hh"
 #include "WCSimRecoDigit.hh"
 #include "WCSimRecoEvent.hh"
@@ -83,15 +84,16 @@ Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
 {
   std::cout << "Function evaluated " << ++fCalls << " times for event " << fEvent << std::endl;
   UInt_t nTracks = WCSimFitterConfig::Instance()->GetNumTracks();
-  std::vector<FitterParameterType::Type> allTypes = FitterParameterType::GetAllAllowedTypes();
 
   // If we've fixed some track parameters together, then our array of fit parameters won't just be of size
   // n tracks * m parameters per track, and we need to work out which entry corresponds to which parameter
   // of which track(s) - this is probably expensive, so we'll do it once and look it up in a map thereafter
 
-  std::vector<WCSimLikelihoodTrack> tracksToFit;
+  std::vector<WCSimLikelihoodTrackBase*> tracksToFit;
   for(UInt_t iTrack = 0 ; iTrack < nTracks; ++iTrack)
   {
+    TrackType::Type trackType = fFitterTrackParMap.GetTrackType(iTrack);
+    std::vector<FitterParameterType::Type> allTypes = FitterParameterType::GetAllAllowedTypes(trackType);
 	  TrackAndType trackParX = std::make_pair(iTrack, FitterParameterType::kVtxX);
 	  TrackAndType trackParY = std::make_pair(iTrack, FitterParameterType::kVtxY);
 	  TrackAndType trackParZ = std::make_pair(iTrack, FitterParameterType::kVtxZ);
@@ -100,18 +102,18 @@ Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
 	  TrackAndType trackParPhi = std::make_pair(iTrack, FitterParameterType::kDirPhi);
 	  TrackAndType trackParE = std::make_pair(iTrack, FitterParameterType::kEnergy);
 
-	  WCSimLikelihoodTrack track(
-								  x[fFitterTrackParMap.GetIndex(trackParX)],
-								  x[fFitterTrackParMap.GetIndex(trackParY)],
-								  x[fFitterTrackParMap.GetIndex(trackParZ)],
-								  x[fFitterTrackParMap.GetIndex(trackParT)],
-								  x[fFitterTrackParMap.GetIndex(trackParTh)],
-								  x[fFitterTrackParMap.GetIndex(trackParPhi)],
-								  x[fFitterTrackParMap.GetIndex(trackParE)],
-								  fFitterTrackParMap.GetTrackType(iTrack)
-								  );
+	  WCSimLikelihoodTrackBase * track = WCSimLikelihoodTrackFactory::MakeTrack(
+			  	  	  	  	  	  fFitterTrackParMap.GetTrackType(iTrack),
+			  	  	  	  	  	  x[fFitterTrackParMap.GetIndex(trackParX)],
+		          						  x[fFitterTrackParMap.GetIndex(trackParY)],
+		          						  x[fFitterTrackParMap.GetIndex(trackParZ)],
+		          						  x[fFitterTrackParMap.GetIndex(trackParT)],
+		          						  x[fFitterTrackParMap.GetIndex(trackParTh)],
+		          						  x[fFitterTrackParMap.GetIndex(trackParPhi)],
+		          						  x[fFitterTrackParMap.GetIndex(trackParE)]
+		          						  );
 	  tracksToFit.push_back(track);
-    std::cout << x[0] << " " << x[1] << " " << x[2] << " " << x[3] << "  " << WCSimLikelihoodTrack::TrackTypeToString(track.GetType()) << std::endl;
+    std::cout << x[0] << " " << x[1] << " " << x[2] << " " << x[3] << "  " << TrackType::AsString(track->GetType()) << std::endl;
   }
 
 
@@ -119,7 +121,7 @@ Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
   // if(fIsFirstCall ) // TEMP: Print it out all the time for now
   // {
   //   std::cout << "Tracks used for first call:" << std::endl;
-  //   std::vector<WCSimLikelihoodTrack>::iterator itr = tracksToFit.begin();
+  //   std::vector<WCSimLikelihoodTrackBase>::iterator itr = tracksToFit.begin();
   //   for( ; itr < tracksToFit.end(); ++itr)
   //   {
   //     (*itr).Print();
@@ -130,6 +132,15 @@ Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
   fTotalLikelihood->SetTracks(tracksToFit);
   minus2LnL = fTotalLikelihood->Calc2LnL();
 
+  std::cout << "deleting tracks" << std::endl;
+  for(size_t iTrack = 0; iTrack < tracksToFit.size(); ++iTrack)
+  {
+    std::cout << iTrack << "/" << tracksToFit.size() << std::endl;
+	  delete (tracksToFit.at(iTrack));
+  }
+  std::cout << "Clearing" << std::endl;
+  tracksToFit.clear();
+  std::cout << "Done" << std::endl;
   return minus2LnL;
 }
 
@@ -140,7 +151,7 @@ void WCSimLikelihoodFitter::SeedParams()
 }
 
 
-std::vector<WCSimLikelihoodTrack> WCSimLikelihoodFitter::GetBestFit()
+std::vector<WCSimLikelihoodTrackBase*> WCSimLikelihoodFitter::GetBestFit()
 {
   return fBestFit;
 }
@@ -282,15 +293,9 @@ void WCSimLikelihoodFitter::FillHitComparison() {
 	std::vector<double> measuredCharges = fTotalLikelihood->GetMeasuredChargeVector();
 	std::vector<double> best2LnLs = fTotalLikelihood->GetTotal2LnLVector();
 
-	std::vector<WCSimLikelihoodTrack*> *correctTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
-	std::vector<WCSimLikelihoodTrack> correctTracksNoPtr;
-	for(int i = 0; i < correctTracks->size(); ++i)
-	{
-		correctTracksNoPtr.push_back(*(correctTracks->at(i)));
-	  correctTracksNoPtr.at(i).Print();
-  }
+	std::vector<WCSimLikelihoodTrackBase*> *correctTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
   
-	fTotalLikelihood->SetTracks(correctTracksNoPtr);
+	fTotalLikelihood->SetTracks(*correctTracks);
 	fTotalLikelihood->Calc2LnL();
 	std::vector<double> correctPredictedCharges = fTotalLikelihood->GetPredictedChargeVector();
 	std::vector<double> correct2LnLs = fTotalLikelihood->GetTotal2LnLVector();
@@ -299,13 +304,13 @@ void WCSimLikelihoodFitter::FillHitComparison() {
 
 }
 
-WCSimLikelihoodTrack WCSimLikelihoodFitter::RescaleParams(Double_t x, Double_t y, Double_t z, Double_t t,
+WCSimLikelihoodTrackBase * WCSimLikelihoodFitter::RescaleParams(Double_t x, Double_t y, Double_t z, Double_t t,
                                                           Double_t th, Double_t phi, Double_t E, 
-                                                          WCSimLikelihoodTrack::TrackType type)
+                                                          TrackType::Type type)
 {
   // Currently do nothing...
-  return WCSimLikelihoodTrack(x,y,z,t,th,phi,E,type);
-
+  return WCSimLikelihoodTrackFactory::MakeTrack(type, x,y,z,t,th,phi,E);
+/*
   // But could do this - scale variables in the range (0,1) up to proper track parameers:
   double pi = TMath::Pi();
   double x2,y2,z2,t2,th2,phi2,E2;
@@ -325,8 +330,10 @@ WCSimLikelihoodTrack WCSimLikelihoodFitter::RescaleParams(Double_t x, Double_t y
   std::cout << "theta2 = " << th2 << std::endl;
   phi2 = 2*pi*phi - pi;
   E2 = 1500*E;
-  WCSimLikelihoodTrack myTrack(x2,y2,z2,t2,th2,phi2,E2,type);
+  WCSimLikelihoodTrackBase myTrack(x2,y2,z2,t2,th2,phi2,E2,type);
+
   return myTrack;
+*/
 }
 
 Int_t WCSimLikelihoodFitter::GetStatus()
@@ -434,20 +441,20 @@ void WCSimLikelihoodFitter::SetFitterTree(WCSimFitterTree* fitterTree) {
 }
 
 Bool_t WCSimLikelihoodFitter::GetTrueTrackEscapes(unsigned int iTrack) const{
-	WCSimLikelihoodTrack * track = fTrueLikelihoodTracks->at(iTrack);
+	WCSimLikelihoodTrackBase * track = fTrueLikelihoodTracks->at(iTrack);
 	return GetTrackEscapes(track);
 }
 
 Bool_t WCSimLikelihoodFitter::GetFitTrackEscapes( unsigned int iTrack) const{
-	WCSimLikelihoodTrack track = (fBestFit.at(iTrack));
-	return GetTrackEscapes(&track);
+	WCSimLikelihoodTrackBase * track = (fBestFit.at(iTrack));
+	return GetTrackEscapes(track);
 }
 
-Bool_t WCSimLikelihoodFitter::GetTrackEscapes(WCSimLikelihoodTrack * track) const{
+Bool_t WCSimLikelihoodFitter::GetTrackEscapes(WCSimLikelihoodTrackBase * track) const{
 	Double_t distanceToEdge = WCSimGeometry::Instance()->ForwardProjectionToEdge(track->GetX(), track->GetY(), track->GetZ(),
 																	 	 	 	 track->GetDirX(), track->GetDirY(), track->GetDirZ());
   Double_t stoppingDistance = 0.0;
-  if( track->GetType() != WCSimLikelihoodTrack::Unknown )
+  if( track->GetType() != TrackType::Unknown )
   {
 	  WCSimEmissionProfiles ep(track);
 	  stoppingDistance = ep.GetStoppingDistance(track);
@@ -521,6 +528,7 @@ void WCSimLikelihoodFitter::FreeEnergy()
 
 void WCSimLikelihoodFitter::FitEnergy()
 {
+  std::cout << "FITTING ENERGY" << std::endl;
 	TrackAndType trackAndEnergy;
 	if( WCSimFitterConfig::Instance()->GetNumTracks() > 2 )
 	{
@@ -532,11 +540,10 @@ void WCSimLikelihoodFitter::FitEnergy()
 	// We have to make an emission profile using a temporary track set to this energy
 	// Then get the energy bins for this track into a vector, and delete the track
 	TrackAndType trackZeroEnergy(0, FitterParameterType::kEnergy);
-	WCSimLikelihoodTrack::TrackType trackZeroType = WCSimFitterConfig::Instance()->GetTrackType(0);
+	TrackType::Type trackZeroType = WCSimFitterConfig::Instance()->GetTrackType(0);
 
-	std::cout << "Track zero type should be " << WCSimLikelihoodTrack::TrackTypeToString(trackZeroType) << std::endl;
-	WCSimLikelihoodTrack * tempTrack = new WCSimLikelihoodTrack();
-	tempTrack->SetType(trackZeroType);
+	std::cout << "Track zero type should be " << TrackType::AsString(trackZeroType) << std::endl;
+	WCSimLikelihoodTrackBase * tempTrack = WCSimLikelihoodTrackFactory::MakeTrack(trackZeroType);
 	tempTrack->SetE(fFitterTrackParMap.GetMinValue(0, FitterParameterType::kEnergy));
 
 	std::cout << "Making empty emission profile" << std::endl;
@@ -565,14 +572,13 @@ void WCSimLikelihoodFitter::FitEnergy()
 	delete tempProfileZero;
 
 	// Now we have to do the same thing to get the energy bins for the second track
-	WCSimLikelihoodTrack::TrackType trackOneType = WCSimLikelihoodTrack::Unknown;
+	TrackType::Type trackOneType = TrackType::Unknown;
 	std::pair<UInt_t, FitterParameterType::Type> trackOneEnergy = std::make_pair(1,FitterParameterType::kEnergy);
 	std::vector<Double_t> energyBinsOne;
 	if( WCSimFitterConfig::Instance()->GetNumTracks() > 1)
 	{
 		trackOneType = WCSimFitterConfig::Instance()->GetTrackType(1);
-		WCSimLikelihoodTrack * tempTrack = new WCSimLikelihoodTrack();
-		tempTrack->SetType(trackOneType);
+		WCSimLikelihoodTrackBase * tempTrack = WCSimLikelihoodTrackFactory::MakeTrack(trackOneType);
 		tempTrack->SetE(WCSimFitterConfig::Instance()->GetParStart(1, "kEnergy"));
 		WCSimEmissionProfiles * tempProfileOne = new WCSimEmissionProfiles();
 		tempProfileOne->SetTrack(tempTrack);
@@ -612,6 +618,7 @@ void WCSimLikelihoodFitter::FitEnergy()
         std::cout << startVals.at(i) << std::endl;
       }
 			Double_t * x = &(startVals[0]);
+      std::cout << "GETTING TEMPMIN" << std::endl;
 			double tempMin = WrapFunc(x);
       std::cout << "Energy = " << energyBinsZero.at(iBin) << "    -2LnL = " << tempMin << "   Best (till now) = " << best2LnL << std::endl;
 			if( tempMin < best2LnL || isFirstLoop )
@@ -710,6 +717,12 @@ void WCSimLikelihoodFitter::FitVertex()
 	  fCalls = 0;
 	  if( isAnythingFree )
 	  {
+  Double_t * x = &(startVals[0]);
+  std::cout << "First" << std::endl;
+  WrapFunc(x);
+  std::cout << "Again" << std::endl;
+  WrapFunc(x);
+  std::cout << "Now min" << std::endl;
 	    min->Minimize();
 	    fMinimum = min->MinValue();
 	    fStatus = min->Status();
@@ -747,17 +760,17 @@ void WCSimLikelihoodFitter::UpdateBestFits()
 		  TrackAndType trackParPhi = std::make_pair(iTrack, FitterParameterType::kDirPhi);
 		  TrackAndType trackParE = std::make_pair(iTrack, FitterParameterType::kEnergy);
 
-		  WCSimLikelihoodTrack track(
-	  	  	  	  	  fFitterTrackParMap.GetCurrentValue(trackParX),
+		  WCSimLikelihoodTrackBase * track = WCSimLikelihoodTrackFactory::MakeTrack(
+		  	  	  	      fFitterTrackParMap.GetTrackType(iTrack),
+	  	  	  	  	    fFitterTrackParMap.GetCurrentValue(trackParX),
   	  	  	  	  	  fFitterTrackParMap.GetCurrentValue(trackParY),
   	  	  	  	  	  fFitterTrackParMap.GetCurrentValue(trackParZ),
   	  	  	  	  	  fFitterTrackParMap.GetCurrentValue(trackParT),
   	  	  	  	  	  fFitterTrackParMap.GetCurrentValue(trackParTh),
   	  	  	  	  	  fFitterTrackParMap.GetCurrentValue(trackParPhi),
-  	  	  	  	  	  fFitterTrackParMap.GetCurrentValue(trackParE),
-		  	  	  	  fFitterTrackParMap.GetTrackType(iTrack));
+  	  	  	  	  	  fFitterTrackParMap.GetCurrentValue(trackParE));
 		  std::cout << "Best-fit track number " << iTrack << std::endl;
-		  track.Print();
+		  track->Print();
 		  fBestFit.push_back(track);
 	  }
 }

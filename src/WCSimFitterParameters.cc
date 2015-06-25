@@ -7,6 +7,7 @@
 
 #include "WCSimFitterParameters.hh"
 #include "WCSimLikelihoodTrack.hh"
+#include "WCSimTrackParameterEnums.hh"
 #include "TMath.h"
 #include <algorithm>
 #include <cassert>
@@ -184,7 +185,7 @@ void WCSimFitterParameters::SetNumTracks(unsigned int nTracks)
     {
       WCSimFitterSingleTrackParameters trackPars;
       AddTrack(trackPars);
-      fTrackTypes.push_back(WCSimLikelihoodTrack::Unknown);
+      fTrackTypes.push_back(TrackType::Unknown);
     }
   }
   else if(fNumTracks > nTracks)
@@ -304,13 +305,13 @@ bool WCSimFitterParameters::GetIsParameterJoined(unsigned int track,
 	return false;
 }
 
-void WCSimFitterParameters::SetTrackType(unsigned int nTrack, WCSimLikelihoodTrack::TrackType trackType)
+void WCSimFitterParameters::SetTrackType(unsigned int nTrack, TrackType::Type trackType)
 {
-  std::cout << "WCSimFitterParameters::SetTrackType(" << nTrack << ", " << WCSimLikelihoodTrack::TrackTypeToString(trackType) << std::endl;
+  std::cout << "WCSimFitterParameters::SetTrackType(" << nTrack << ", " << TrackType::AsString(trackType) << std::endl;
 	fTrackTypes.at(nTrack) = trackType;
 }
 
-WCSimLikelihoodTrack::TrackType WCSimFitterParameters::GetTrackType(const unsigned int &nTrack) const
+TrackType::Type WCSimFitterParameters::GetTrackType(const unsigned int &nTrack) const
 {
 	return fTrackTypes.at(nTrack);
 }

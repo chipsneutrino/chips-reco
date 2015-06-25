@@ -8,10 +8,11 @@
 #ifndef WCSIMINTEGRALLOOKUPMAKER3D_HH_
 #define WCSIMINTEGRALLOOKUPMAKER3D_HH_
 #include "WCSimIntegralLookupMaker.hh"
+#include "WCSimTrackParameterEnums.hh"
 
 class WCSimIntegralLookupMaker3D : public WCSimIntegralLookupMaker {
 public:
-	WCSimIntegralLookupMaker3D( WCSimLikelihoodTrack::TrackType particle,
+	WCSimIntegralLookupMaker3D( TrackType::Type particle,
 							  int nR0Bins, double R0Min, double R0Max,
 							  int nCosTh0Bins, double cosTh0Min, double cosTh0Max );
 

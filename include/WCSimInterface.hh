@@ -5,7 +5,7 @@
 #include "TObject.h"
 #include "TChain.h"
 
-#include "WCSimLikelihoodTrack.hh"
+#include "WCSimLikelihoodTrackBase.hh"
 #include "WCSimRootEvent.hh"
 #include "WCSimRootGeom.hh"
 
@@ -54,7 +54,7 @@ class WCSimInterface : public TObject {
   WCSimLikelihoodDigitArray * GetWCSimLikelihoodDigitArray(int ievent);
   WCSimLikelihoodDigitArray * GetWCSimLikelihoodDigitArray() { return fLikelihoodDigitArray;};
 
-  std::vector<WCSimLikelihoodTrack*> * GetTrueLikelihoodTracks(){ return fTrueLikelihoodTracks; }
+  std::vector<WCSimLikelihoodTrackBase*> * GetTrueLikelihoodTracks(){ return fTrueLikelihoodTracks; }
 
   WCSimTrueEvent* GetTrueEvent(){ return fTrueEvent; }
   WCSimRecoEvent* GetRecoEvent(){ return fRecoEvent; }
@@ -103,7 +103,7 @@ class WCSimInterface : public TObject {
   WCSimRootEvent* fEvent;
   WCSimRootGeom* fGeometry;
   WCSimLikelihoodDigitArray * fLikelihoodDigitArray;
-  std::vector<WCSimLikelihoodTrack*> * fTrueLikelihoodTracks;
+  std::vector<WCSimLikelihoodTrackBase*> * fTrueLikelihoodTracks;
 
   Double_t fEnergyThreshold;
   Double_t fRangeThreshold;
