@@ -7,6 +7,7 @@
 
 #ifndef WCSIMTRACKPARAMETERENUMS_HH_
 #define WCSIMTRACKPARAMETERENUMS_HH_
+#include <cstdlib>
 #include <cassert>
 #include <string>
 #include <iostream>
