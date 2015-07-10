@@ -609,6 +609,7 @@ void WCSimLikelihoodFitter::FitEnergy()
 
 	bool isFirstLoop = true;
 	for(unsigned int iBin = 0; iBin < energyBinsZero.size(); ++iBin)
+//	for(unsigned int iBin = 0; iBin < energyBinsZero.size(); iBin += 4) // LEIGH
 	{
 		std::cout << "Energy bin " << iBin << " is " << energyBinsZero.at(iBin) << std::endl;
     std::cout << "Setting initial energy to " << energyBinsZero.at(iBin) << std::endl;
@@ -618,7 +619,8 @@ void WCSimLikelihoodFitter::FitEnergy()
 		unsigned int jBin = 0;
 		do
 		{
-		  std::cout << "jBin = " << jBin << std::endl;
+//		  std::cout << "jBin = " << jBin << std::endl;
+		  std::cout << "Current energy bin " << iBin << "," << jBin << std::endl; // LEIGH
 			if( WCSimFitterConfig::Instance()->GetNumTracks() > 1)
 			{
 				fFitterTrackParMap.SetCurrentValue(1, FitterParameterType::kEnergy, energyBinsOne.at(jBin));
@@ -644,8 +646,9 @@ void WCSimLikelihoodFitter::FitEnergy()
 						std::cout << "And for jBin = " << std::endl;
 						bestEnergies.push_back(energyBinsOne.at(jBin));
 				}
-				jBin++;
 			}
+			jBin++;
+//			jBin+=4; // LEIGH
 		} while(jBin < energyBinsOne.size());
 
 
