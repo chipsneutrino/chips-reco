@@ -47,8 +47,6 @@ WCSimLikelihoodTuner::WCSimLikelihoodTuner()
     fGeomType  = WCSimLikelihoodDigitArray::kUnknown;
     fLastCutoff = 0x0;
   
-  
-  
   	fCalculateIntegrals = WCSimAnalysisConfig::Instance()->GetCalculateIntegrals();
   	this->Initialize();
 
@@ -62,6 +60,7 @@ WCSimLikelihoodTuner::WCSimLikelihoodTuner()
  */
 WCSimLikelihoodTuner::WCSimLikelihoodTuner(WCSimLikelihoodDigitArray * myDigitArray)
 {
+    fLastCutoff = 0x0;
   	fCalculateIntegrals = WCSimAnalysisConfig::Instance()->GetCalculateIntegrals();
     this->UpdateDigitArray(myDigitArray);
   	this->Initialize();
@@ -423,6 +422,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateCoefficientsVector(WCSimLik
 // ////////////////////////////////////////////////////////////////////////////////////////////////
 void WCSimLikelihoodTuner::CalculateCutoff( WCSimLikelihoodTrackBase * myTrack )
 {
+
   //  std::cout << "Calculating the cutoff" << std::endl;
   if(fLastCutoff != 0x0 && myTrack->IsSameTrack(fLastCutoff)) { return; }
   
