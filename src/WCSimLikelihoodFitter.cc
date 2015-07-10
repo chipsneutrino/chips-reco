@@ -496,11 +496,22 @@ void WCSimLikelihoodFitter::SeedEvent()
 	// and set them to the corresponding seed parameter
 	for(int iTrack = 0; iTrack < WCSimFitterInterface::Instance()->GetNumTracks(); ++iTrack)
 	{
-		fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxX, seedX);
-		fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxY, seedY);
-		fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxZ, seedZ);
-		fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kDirTh, seedTheta);
-		fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kDirPhi, seedPhi);
+    // Only see the parameters if they are not requested to be fixed:
+    if(!fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kVtxX)){
+		  fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxX, seedX);
+    }
+    if(!fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kVtxY)){
+		  fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxY, seedY);
+    }
+    if(!fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kVtxZ)){
+		  fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxZ, seedZ);
+    }
+    if(!fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kDirTh)){
+		  fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kDirTh, seedTheta);
+    }
+    if(!fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kDirPhi)){
+		  fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kDirPhi, seedPhi);
+    }
 	}
 	delete myReco;
 }

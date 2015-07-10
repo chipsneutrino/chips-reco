@@ -271,3 +271,16 @@ TrackType::Type WCSimFitterTrackParMap::GetTrackType(
 	assert(track >= 0 && static_cast<unsigned int>(track) < fTypes.size());
 	return fTypes.at(track);
 }
+
+bool WCSimFitterTrackParMap::GetIsFixed(int track, FitterParameterType type){
+  TrackAndType myPair(track, type);
+  return GetIsFixed(myPair);
+}
+
+bool WCSimFitterTrackParMap::GetIsFixed(TrackAndType trackAndType){
+  int index = GetIndex(trackAndType);
+  return fCurrentlyFixed[index];
+}
+
+
+

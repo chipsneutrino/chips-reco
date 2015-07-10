@@ -48,6 +48,8 @@ public:
 	double GetCurrentValue(TrackAndType trackAndType);
 	TrackType::Type GetTrackType(int track);
 
+  bool GetIsFixed(int track, FitterParameterType type);
+  bool GetIsFixed(TrackAndType trackAndType);
 
 private:
 	void SetArrays();
