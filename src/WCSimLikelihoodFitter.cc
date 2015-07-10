@@ -506,10 +506,10 @@ void WCSimLikelihoodFitter::SeedEvent()
     if(!fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kVtxZ)){
 		  fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxZ, seedZ);
     }
-    if(!fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kDirTh)){
+    if(iTrack==0 && !fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kDirTh)){
 		  fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kDirTh, seedTheta);
     }
-    if(!fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kDirPhi)){
+    if(iTrack==0 && !fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kDirPhi)){
 		  fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kDirPhi, seedPhi);
     }
 	}
