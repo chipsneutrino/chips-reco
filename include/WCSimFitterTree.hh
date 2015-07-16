@@ -22,16 +22,18 @@ class WCSimRecoSummary;
 
 class HitComparison {
   public:
-    HitComparison() : pmtID(-999), pmtX(-999.9), pmtY(-999.9), pmtZ(-999.9), trueQ(-999.9), predQ(-999.9), correctPredQ(-999.9), minus2LnL(-999.9), correctMinus2LnL(-999.9) {};
-    HitComparison(int pmt, double x, double y, double z, double truth, double pred, double correctPred, double m2LnL, double correctm2LnL) :
-    pmtID(pmt), pmtX(x), pmtY(y), pmtZ(z), trueQ(truth), predQ(pred), correctPredQ(correctPred), minus2LnL(m2LnL), correctMinus2LnL(correctm2LnL) {};
-    void Set(int pmt, double x, double y, double z, double truth, double pred, double correctPred, double m2LnL, double correctm2LnL) {
+    HitComparison() : pmtID(-999), pmtX(-999.9), pmtY(-999.9), pmtZ(-999.9), trueT(-999.9), predT(-999.9), trueQ(-999.9), predQ(-999.9), correctPredQ(-999.9), minus2LnL(-999.9), correctMinus2LnL(-999.9) {};
+    HitComparison(int pmt, double x, double y, double z, double truthT, double predictT, double truthQ, double predictQ, double correctPred, double m2LnL, double correctm2LnL) :
+    pmtID(pmt), pmtX(x), pmtY(y), pmtZ(z), trueT(truthT), predT(predictT), trueQ(truthQ), predQ(predictQ), correctPredQ(correctPred), minus2LnL(m2LnL), correctMinus2LnL(correctm2LnL) {};
+    void Set(int pmt, double x, double y, double z, double truthT, double predictT, double truthQ, double predictQ, double correctPred, double m2LnL, double correctm2LnL) {
       pmtID = pmt;
       pmtX = x;
       pmtY = y;
       pmtZ = z;
-      trueQ = truth;
-      predQ = pred;
+      trueQ = truthQ;
+      predQ = predictQ;
+      trueT = truthT;
+      predT = predictT;
       correctPredQ = correctPred;
       minus2LnL = m2LnL;
       correctMinus2LnL = correctm2LnL;
@@ -43,6 +45,8 @@ class HitComparison {
     double pmtX;
     double pmtY;
     double pmtZ;
+    double trueT;
+    double predT;
     double trueQ;
     double predQ;
     double correctPredQ;
@@ -79,6 +83,7 @@ public:
 						   const std::vector<double> &predictedCharges,
 			   	   	   	   const std::vector<double> &correctPredictedCharges,
 						   const std::vector<double> &measuredCharges,
+               const std::vector<double> &predictedTimes,
 						   const std::vector<double> &total2LnLs,
 						   const std::vector<double> &correct2LnLs);
   void FillRecoFailures(const int &event);

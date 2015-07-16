@@ -132,15 +132,15 @@ Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
   fTotalLikelihood->SetTracks(tracksToFit);
   minus2LnL = fTotalLikelihood->Calc2LnL();
 
-  std::cout << "deleting tracks" << std::endl;
+  // std::cout << "deleting tracks" << std::endl;
   for(size_t iTrack = 0; iTrack < tracksToFit.size(); ++iTrack)
   {
-    std::cout << iTrack << "/" << tracksToFit.size() << std::endl;
+    // std::cout << iTrack << "/" << tracksToFit.size() << std::endl;
 	  delete (tracksToFit.at(iTrack));
   }
-  std::cout << "Clearing" << std::endl;
+  // std::cout << "Clearing" << std::endl;
   tracksToFit.clear();
-  std::cout << "Done" << std::endl;
+  // std::cout << "Done" << std::endl;
   return minus2LnL;
 }
 
@@ -215,7 +215,7 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
       fFitterTree->FillRecoFailures(iEvent);
     }
 	}
-
+  std::cout << "Fitted event numbet " << iEvent << std::endl;
 	return;
 }
 
@@ -292,6 +292,7 @@ void WCSimLikelihoodFitter::FillHitComparison() {
 	std::vector<double> predictedCharges = fTotalLikelihood->GetPredictedChargeVector();
 	std::vector<double> measuredCharges = fTotalLikelihood->GetMeasuredChargeVector();
 	std::vector<double> best2LnLs = fTotalLikelihood->GetTotal2LnLVector();
+  std::vector<double> predictedTimes = fTotalLikelihood->GetPredictedTimeVector();
 
 	std::vector<WCSimLikelihoodTrackBase*> *correctTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
   
@@ -299,7 +300,7 @@ void WCSimLikelihoodFitter::FillHitComparison() {
 	fTotalLikelihood->Calc2LnL();
 	std::vector<double> correctPredictedCharges = fTotalLikelihood->GetPredictedChargeVector();
 	std::vector<double> correct2LnLs = fTotalLikelihood->GetTotal2LnLVector();
-	fFitterTree->FillHitComparison(fEvent, fLikelihoodDigitArray, predictedCharges, correctPredictedCharges, measuredCharges, best2LnLs, correct2LnLs);
+	fFitterTree->FillHitComparison(fEvent, fLikelihoodDigitArray, predictedCharges, correctPredictedCharges, measuredCharges, predictedTimes, best2LnLs, correct2LnLs);
 
 
 }
@@ -482,6 +483,7 @@ void WCSimLikelihoodFitter::SeedEvent()
 	double seedX = recoEvent->GetVtxX();
 	double seedY = recoEvent->GetVtxY();
 	double seedZ = recoEvent->GetVtxZ();
+  double seedT = recoEvent->GetVtxTime();
 
 	// Convert the direction into (theta, phi) coordinates
 	Double_t recoDirX = recoEvent->GetDirX();
@@ -501,6 +503,7 @@ void WCSimLikelihoodFitter::SeedEvent()
 		fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxZ, seedZ);
 		fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kDirTh, seedTheta);
 		fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kDirPhi, seedPhi);
+    fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxT, seedT);
 	}
 	delete myReco;
 }

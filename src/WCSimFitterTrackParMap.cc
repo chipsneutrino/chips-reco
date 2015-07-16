@@ -144,12 +144,14 @@ void WCSimFitterTrackParMap::FixOrFreeVertex(bool fixIt, int track) {
 		TrackAndType myVtxX(iTrack, FitterParameterType::kVtxX);
 		TrackAndType myVtxY(iTrack, FitterParameterType::kVtxY);
 		TrackAndType myVtxZ(iTrack, FitterParameterType::kVtxZ);
+		TrackAndType myVtxT(iTrack, FitterParameterType::kVtxT);
 		TrackAndType myDirTh(iTrack, FitterParameterType::kDirTh);
 		TrackAndType myDirPhi(iTrack, FitterParameterType::kDirPhi);
 
 		fCurrentlyFixed.at(fTrackAndTypeIndexMap[myVtxX]) = fixIt;
 		fCurrentlyFixed.at(fTrackAndTypeIndexMap[myVtxY]) = fixIt;
 		fCurrentlyFixed.at(fTrackAndTypeIndexMap[myVtxZ]) = fixIt;
+		fCurrentlyFixed.at(fTrackAndTypeIndexMap[myVtxT]) = fixIt;
 		fCurrentlyFixed.at(fTrackAndTypeIndexMap[myDirTh]) = fixIt;
 		fCurrentlyFixed.at(fTrackAndTypeIndexMap[myDirPhi]) = fixIt;
 	}

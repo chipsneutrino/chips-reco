@@ -9,7 +9,7 @@
 #define WCSIMTOTALLIKELIHOOD_H
 
 #include "WCSimChargePredictor.hh"
-#include "WCSimTimeLikelihood.hh"
+#include "WCSimTimeLikelihood2.hh"
 #include "WCSimLikelihoodDigitArray.hh"
 #include "WCSimLikelihoodTrackBase.hh"
 
@@ -70,6 +70,7 @@ class WCSimTotalLikelihood : public TObject
       std::vector<double> GetMeasuredChargeVector() const;
       std::vector<double> GetPredictedChargeVector() const;
       std::vector<double> GetTotal2LnLVector() const;
+      std::vector<double> GetPredictedTimeVector() const;
 
  
   protected:
@@ -78,7 +79,7 @@ class WCSimTotalLikelihood : public TObject
 
       WCSimLikelihoodDigitArray * fLikelihoodDigitArray; ///< Event to build likelihood for
       std::vector<WCSimChargePredictor> fChargeLikelihoodVector; ///< Charge component of likelihood calculation
-      WCSimTimeLikelihood fTimeLikelihood; ///< Time component of likelihood calculation
+      WCSimTimeLikelihood2 * fTimeLikelihood; ///< Time component of likelihood calculation
       WCSimDigitizerLikelihood fDigitizerLikelihood;
       std::vector<WCSimLikelihoodTrackBase*> fTracks; ///< Tracks to consider when calculating the likelihood
 
@@ -86,6 +87,7 @@ class WCSimTotalLikelihood : public TObject
       std::vector<double> fMeasuredCharges;
       std::vector<double> fPredictedCharges;
       std::vector<double> fTotal2LnL;
+      WCSimEmissionProfiles * fEmissionProfiles;
 
 
 	ClassDef(WCSimTotalLikelihood,1)

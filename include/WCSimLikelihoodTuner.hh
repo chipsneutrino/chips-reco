@@ -25,6 +25,7 @@
 #include "WCSimLikelihoodDigitArray.hh"
 #include "WCSimRootGeom.hh"
 #include "WCSimTrackParameterEnums.hh"
+#include "WCSimPMTManager.hh"
 
 
 
@@ -38,7 +39,7 @@ class WCSimLikelihoodTuner
          * Constructor using the detector settings from a given event
          * @param myDigitArray PMT response for an event
          */
-        WCSimLikelihoodTuner(WCSimLikelihoodDigitArray * myDigitArray);
+        WCSimLikelihoodTuner(WCSimLikelihoodDigitArray * myDigitArray, WCSimEmissionProfiles * myEmissionProfiles);
 
         /**
          * Called by both constructors to set up internal variables
@@ -232,6 +233,8 @@ class WCSimLikelihoodTuner
 
         double GetTrackLengthForPercentile(WCSimLikelihoodTrackBase * myTrack, const double &percentile);
 
+        double GetCutoff(WCSimLikelihoodTrackBase * myTrack);
+
     protected:
     private:
 
@@ -258,7 +261,8 @@ class WCSimLikelihoodTuner
 	  	Bool_t   fCalculateIntegrals;  ///< True if we should calculate integrals numerically, false to look them up in a table
       
 	  	TrackType::Type fIntegralParticleType; ///< The particle type whose table we've already loaded
-	  	WCSimEmissionProfiles fEmissionProfiles; ///< The emission profile handler
+	  	WCSimEmissionProfiles * fEmissionProfiles; ///< The emission profile handler
+	  	WCSimPMTManager * fPMTManager;
 
 };
 

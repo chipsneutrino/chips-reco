@@ -12,6 +12,9 @@
 #include <iostream>
 #include <cmath>
 
+#ifndef REFLEX_DICTIONARY
+ClassImp(WCSimTimeLikelihood)
+#endif
 
 
 ///////////////////////////////////////////////////////////////////////////

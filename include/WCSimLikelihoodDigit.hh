@@ -13,6 +13,7 @@
 #include "TClonesArray.h"
 #include "TObject.h"
 #include "TVector3.h"
+#include "TString.h"
 
 class WCSimLikelihoodDigit: public TObject
 {
@@ -32,7 +33,7 @@ public:
      */
     WCSimLikelihoodDigit(Double_t x, Double_t y, Double_t z, Double_t t,
             Double_t Q, Int_t tubeId, Double_t faceX, Double_t faceY,
-            Double_t faceZ);
+            Double_t faceZ, TString name);
 
     /**
      * Constructor
@@ -61,6 +62,8 @@ public:
     double GetFaceY() const;
     double GetFaceZ() const;
 
+    TString GetPMTName() const;
+
     void Print() const;
 
 protected:
@@ -70,6 +73,8 @@ private:
     Double_t fT;       ///< Time of hit
     Double_t fPos[3];  ///< (x,y,z) co-ordinates of the PMT location
     Double_t fFace[3]; ///< (x,y,z) components of the direction normal to the PMT
+    TString fPMTName; ///< Name of PMT type, e.g. 3_inch_HQE
+
 
 ClassDef(WCSimLikelihoodDigit,1)
 

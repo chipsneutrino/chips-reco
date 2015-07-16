@@ -181,8 +181,9 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myRootEve
     	Double_t faceX = myPMT.GetOrientation(0);
     	Double_t faceY = myPMT.GetOrientation(1);
     	Double_t faceZ = myPMT.GetOrientation(2);
+      TString name = myPMT.GetPMTName();
 	  	hitPMT[arrayIndex] = kTRUE; 
-	  	new(digitArray[arrayIndex]) WCSimLikelihoodDigit( posX, posY, posZ, t, Q, tubeID, faceX, faceY, faceZ  );
+	  	new(digitArray[arrayIndex]) WCSimLikelihoodDigit( posX, posY, posZ, t, Q, tubeID, faceX, faceY, faceZ, name );
 	}
 	
 

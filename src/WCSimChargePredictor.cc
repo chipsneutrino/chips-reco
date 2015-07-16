@@ -6,6 +6,7 @@
 
 #include "WCSimChargePredictor.hh"
 #include "WCSimDigitizerLikelihood.hh"
+#include "WCSimEmissionProfiles.hh"
 #include "WCSimRecoDigit.hh"
 #include "WCSimLikelihoodDigit.hh"
 #include "WCSimLikelihoodDigitArray.hh"
@@ -34,22 +35,23 @@ WCSimChargePredictor::WCSimChargePredictor()
   fDigit = NULL;
   fNumCalculations = 0;
   fTuner = NULL;
+  fEmissionProfiles=  NULL;
 }
 
 //
-WCSimChargePredictor::WCSimChargePredictor(WCSimLikelihoodDigitArray * myDigitArray)
+WCSimChargePredictor::WCSimChargePredictor(WCSimLikelihoodDigitArray * myDigitArray, WCSimEmissionProfiles * myProfiles)
 {
     // std::cout << "*** WCSimChargeLikelihood::WCSimChargeLikelihood() *** Created charge likelihood object" << std::endl;
     fTuner = NULL;
     fDigitArray = NULL;
     fDigit = NULL;
-    this->Initialize( myDigitArray );
+    this->Initialize( myDigitArray, myProfiles );
     fNumCalculations = 0;
 }
 
 
 
-void WCSimChargePredictor::Initialize( WCSimLikelihoodDigitArray * myDigitArray)
+void WCSimChargePredictor::Initialize( WCSimLikelihoodDigitArray * myDigitArray, WCSimEmissionProfiles * myEmissionProfiles)
 {
     // std::cout << "*** WCSimChargeLikelihood::Initialize() *** Initializing charge likelihood with tuned values" << std::endl;
 
@@ -63,8 +65,8 @@ void WCSimChargePredictor::Initialize( WCSimLikelihoodDigitArray * myDigitArray)
 
     fGotTrackParameters = -1; //false
     fDigitArray = myDigitArray;
-
-    fTuner = new WCSimLikelihoodTuner(fDigitArray);
+    fEmissionProfiles = myEmissionProfiles;
+    fTuner = new WCSimLikelihoodTuner(fDigitArray, myEmissionProfiles);
 
     return;
 }
@@ -77,7 +79,7 @@ WCSimChargePredictor::WCSimChargePredictor(const WCSimChargePredictor &other)
   fTuner = NULL;
   fDigitArray = NULL;
   fDigit = NULL;
-  this->Initialize( other.fDigitArray );
+  this->Initialize( other.fDigitArray, other.fEmissionProfiles );
 }
 
 
@@ -88,7 +90,7 @@ WCSimChargePredictor& WCSimChargePredictor::operator=(const WCSimChargePredictor
   fTuner      = rhs.fTuner;;
   fDigitArray = rhs.fDigitArray;;
   fDigit      = rhs.fDigit;;
-  this->Initialize( rhs.fDigitArray );
+  this->Initialize( rhs.fDigitArray, rhs.fEmissionProfiles );
   return *this;
 }
 

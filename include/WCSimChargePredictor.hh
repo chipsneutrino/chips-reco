@@ -21,6 +21,7 @@
 #include "TH2D.h"
 #include "TMath.h"
 #include "TTree.h"
+class WCSimEmissionProfiles;
 
 class WCSimChargePredictor
 {
@@ -29,7 +30,7 @@ class WCSimChargePredictor
          * Constructor
          * @param myDigitArray The PMT responses for a single event
          */
-        WCSimChargePredictor( WCSimLikelihoodDigitArray * myDigitArray);
+        WCSimChargePredictor( WCSimLikelihoodDigitArray * myDigitArray, WCSimEmissionProfiles * myEmissionProfiles);
 
         //ROOT requires a default ctor to generate dictionary
         //for a vector of charge likelihood objects - do not use
@@ -139,7 +140,7 @@ class WCSimChargePredictor
          * the WCSimLikelihoodTuner and WCSimDigitizerLikelihood member variables
          * @param myDigitArray PMT responses for this event
          */
-        void Initialize( WCSimLikelihoodDigitArray * myDigitArray);
+        void Initialize( WCSimLikelihoodDigitArray * myDigitArray, WCSimEmissionProfiles * myEmissionProfiles);
 
         /** Parameters from a parabolic fit to solid angle * transmission * PMT acceptance
          * as a function of distance travelled by particle.  This is for direct Cherenkov light,
@@ -171,6 +172,7 @@ class WCSimChargePredictor
         WCSimLikelihoodDigitArray           * fDigitArray; ///< Response for all the detector's PMTs for this event
         WCSimLikelihoodDigit                * fDigit;      ///< The PMT being considered
         WCSimLikelihoodTuner                * fTuner;      ///< Class to calculate effects of absorption, geometry, etc. and perform integrals
+        WCSimEmissionProfiles * fEmissionProfiles;
 
       // The fitted functions are defined using various variables that relate the track to the
       // PMT hit in question.  I calculate these in GetTrackParameters() and set a flag when

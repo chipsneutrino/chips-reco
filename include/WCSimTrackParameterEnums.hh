@@ -95,7 +95,18 @@ class TrackType : public TObject{
     }
     ClassDef(TrackType, 1);
 
+    friend std::ostream & operator<<(std::ostream &os, const TrackType& tt)
+    {
+      std::string name = TrackType(tt).AsString();
+      return os << name;
+    }
+    friend std::ostream & operator<<(std::ostream &os, const Type& tt)
+    {
+      return os << TrackType(tt).AsString();
+    }
 };
+
+
 
 class FitterParameterType : public TObject{
 

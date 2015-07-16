@@ -11,7 +11,7 @@ ClassImp(WCSimLikelihoodDigit)
 
 WCSimLikelihoodDigit::WCSimLikelihoodDigit(Double_t x, Double_t y, Double_t z,
         Double_t t, Double_t Q, Int_t tubeId, Double_t faceX, Double_t faceY,
-        Double_t faceZ)
+        Double_t faceZ, TString pmtName)
 {
     if (tubeId == 0)
     {
@@ -28,6 +28,7 @@ WCSimLikelihoodDigit::WCSimLikelihoodDigit(Double_t x, Double_t y, Double_t z,
     fFace[0] = faceX;
     fFace[1] = faceY;
     fFace[2] = faceZ;
+    fPMTName = pmtName;
 }
 
 WCSimLikelihoodDigit::WCSimLikelihoodDigit( WCSimRootCherenkovDigiHit * myDigiHit)
@@ -44,6 +45,7 @@ WCSimLikelihoodDigit::WCSimLikelihoodDigit( WCSimRootCherenkovDigiHit * myDigiHi
     fFace[0] = myPMT.GetOrientation(0);
     fFace[1] = myPMT.GetOrientation(1);
     fFace[2] = myPMT.GetOrientation(2);
+    fPMTName = myPMT.GetPMTName();
 }
 
 WCSimLikelihoodDigit::WCSimLikelihoodDigit(const WCSimLikelihoodDigit &otherLikelihoodDigit)
@@ -59,6 +61,8 @@ WCSimLikelihoodDigit::WCSimLikelihoodDigit(const WCSimLikelihoodDigit &otherLike
   fFace[0] = otherLikelihoodDigit.fFace[0];
   fFace[1] = otherLikelihoodDigit.fFace[1];
   fFace[2] = otherLikelihoodDigit.fFace[2];
+
+  fPMTName = otherLikelihoodDigit.fPMTName;
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -118,6 +122,7 @@ double WCSimLikelihoodDigit::GetFaceZ() const
     return fFace[2];
 }
 
+
 void WCSimLikelihoodDigit::Print() const
 {
     std::cout << "WCSimLikelihoodDigit::Print()" << std::endl
@@ -128,4 +133,8 @@ void WCSimLikelihoodDigit::Print() const
             << "     fFace   = " << "(" << fFace[0] << ", " << fFace[1] << ", " << fFace[2] << ")"
             << std::endl << std::endl;
     return;
+}
+
+TString WCSimLikelihoodDigit::GetPMTName() const {
+	return fPMTName;
 }
