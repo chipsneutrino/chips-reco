@@ -41,8 +41,7 @@ void WCSimLikelihoodPhotonTrack::SetConversionDistance(const double& convDist) {
 
 void WCSimLikelihoodPhotonTrack::Print() {
 
-	  std::cout << "WCSimLikelihoodPhotonTrack::Print():" << std::endl;
-	  printf("Vertex = (%.02fcm,%.02fcm,%.02fcm,%.02fns)   Dir = (%.04f,%.04f)   E = %.03f  Type = %s  Conv. dist = %.02f",
+	  printf("Vertex = (%.02fcm,%.02fcm,%.02fcm,%.02fns)   Dir = (%.04f,%.04f)   E = %.03f  Type = %s  Conv. dist = %.02f\n",
            fVtx[0], fVtx[1], fVtx[2], fT0, fTheta0, fPhi0, fE0, TrackType::AsString(fType).c_str(), fConversionDistance);
 }
 

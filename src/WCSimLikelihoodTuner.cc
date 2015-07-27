@@ -469,10 +469,10 @@ Double_t WCSimLikelihoodTuner::CalculateCylinderCutoff(WCSimLikelihoodTrackBase 
     TVector3 dir     = myTrack->GetDir();
 
     // std::cout << "Vertex is " << std::endl;
-    vtx.Print();
+    // vtx.Print();
 
     // std::cout << "Direction is " << std::endl;
-    dir.Print();
+    // dir.Print();
     Double_t cutoff = fEmissionProfiles->GetStoppingDistance(myTrack);
 
   // std::cout << "cutoff = fSMax = " << fSMax << std::endl;
@@ -523,12 +523,12 @@ Double_t WCSimLikelihoodTuner::CalculateMailBoxCutoff(WCSimLikelihoodTrackBase *
     TVector3 dir     = myTrack->GetDir();
 
     // std::cout << "Vertex is " << std::endl;
-    vtx.Print();
+    // vtx.Print();
 
     // std::cout << "Direction is " << std::endl;
-    dir.Print();
+    // dir.Print();
     Double_t cutoff = fEmissionProfiles->GetStoppingDistance(myTrack);
-  Double_t sMax[3] = {0., 0.,0.};
+    Double_t sMax[3] = {0., 0.,0.};
   
   // Escapes in r
   for(Int_t i = 0 ; i < 3; ++i )

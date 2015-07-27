@@ -295,7 +295,6 @@ Double_t WCSimEmissionProfiles::GetFractionThroughBin(Double_t energy) const{
 
 void WCSimEmissionProfiles::LoadFile(WCSimLikelihoodTrackBase* myTrack) {
 	std::cout << " *** WCSimEmissionProfiles::LoadFile - Loading profile" << std::endl;
-	std::cout << "Track type is " << TrackType::AsString(myTrack->GetType()) << std::endl;
   myTrack->Print();
 	if( myTrack->GetType() != fLastType )
 	{
@@ -308,7 +307,7 @@ void WCSimEmissionProfiles::LoadFile(WCSimLikelihoodTrackBase* myTrack) {
 				fProfileFileName.Append("/home/ajperch/CHIPS/WCSim_fixGeneration/rootfiles/sum/emissionProfilesElectronsCoarseFineNorm.root");
 				break;
 			case TrackType::MuonLike:
-				fProfileFileName.Append("/home/ajperch/CHIPS/WCSim_fixGeneration/rootfiles/sum/emissionProfilesMuonsCoarseFineNorm.root");
+				fProfileFileName.Append("/home/ajperch/CHIPS/WCSim_fixGeneration/rootfiles/newsums/emissionProfilesMuon.root");
 				break;
 			default:
         myTrack->Print();
@@ -325,18 +324,17 @@ void WCSimEmissionProfiles::LoadFile(WCSimLikelihoodTrackBase* myTrack) {
 		}
 
 		fProfileFile      = new TFile(fProfileFileName.Data(),"READ");
-		fProfileFile->ls();
+		// fProfileFile->ls();
 		fLastType         = myTrack->GetType();
-		fRhoArray         = (TObjArray *) fProfileFile->Get("histArray");
-    std::cout << fGFineArray << std::endl;
-		fGFineArray 	  = (TObjArray *) fProfileFile->Get("angHistFineArray");
-		fGCoarseArray 	  = (TObjArray *) fProfileFile->Get("angHistCoarseArray");
-		fBinningHistogram = (TH1F*) fProfileFile->Get("hWhichHisto");
+
+    fProfileFile->GetObject("histArray",fRhoArray);
+    fProfileFile->GetObject("angHistFineArray",fGFineArray);
+    fProfileFile->GetObject("angHistCoarseArray",fGCoarseArray);
+    fProfileFile->GetObject("hWhichHisto",fBinningHistogram);
 
 		fRhoArray->SetOwner(kTRUE);
 		fGCoarseArray->SetOwner(kTRUE);
 		fGFineArray->SetOwner(kTRUE);
-		std::cout << "Loaded array" << std::endl;
 	}
 
 	fLastEnergy = myTrack->GetE();
@@ -344,7 +342,6 @@ void WCSimEmissionProfiles::LoadFile(WCSimLikelihoodTrackBase* myTrack) {
 	InterpolateProfiles(myTrack);
 
 	if(fDebug) { SaveProfiles(); }
-  std::cout << "Loaded!" << std::endl;
 	return;
 
 }

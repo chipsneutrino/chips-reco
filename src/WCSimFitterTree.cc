@@ -360,7 +360,6 @@ void WCSimFitterTree::FillHitComparison(
 		const std::vector<double>& correct2LnLs) {
   assert(predictedCharges.size() == measuredCharges.size() && predictedCharges.size() == total2LnLs.size() && predictedTimes.size() == predictedCharges.size());
   fEvent = event;
-  std::cout << "Event = " << fEvent << std::endl;
   for(unsigned int iPMT = 0; iPMT < predictedCharges.size(); ++iPMT)
   {
     WCSimLikelihoodDigit * digit = digitArray->GetDigit(iPMT);

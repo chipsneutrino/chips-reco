@@ -9,6 +9,7 @@
 #include "WCSimLikelihoodDigitArray.hh"
 #include "WCSimLikelihoodTrackBase.hh"
 #include "WCSimLikelihoodDigit.hh"
+#include "WCSimLikelihoodTuner.hh"
 #include "WCSimEmissionProfiles.hh"
 #include "WCSimLikelihoodTuner.hh"
 
@@ -18,15 +19,21 @@ ClassImp(WCSimTimePredictor)
 
 WCSimTimePredictor::WCSimTimePredictor() {
 	fDigitArray = 0x0;
+  fTuner = 0x0;
 }
 
 WCSimTimePredictor::WCSimTimePredictor(WCSimLikelihoodDigitArray* myArray, WCSimEmissionProfiles * myEmissionProfiles) {
 	fDigitArray = myArray;
   fEmissionProfiles = myEmissionProfiles;
+  fTuner = new WCSimLikelihoodTuner(myArray, myEmissionProfiles);
 }
 
 WCSimTimePredictor::~WCSimTimePredictor() {
 	// TODO Auto-generated destructor stub
+  if(fTuner != 0x0) { 
+    delete fTuner;
+    fTuner = 0x0;
+  }
 }
 
 void WCSimTimePredictor::AddTrack(WCSimLikelihoodTrackBase* myTrack) {
@@ -131,7 +138,7 @@ double WCSimTimePredictor::GetTravelDistance(WCSimLikelihoodTrackBase* myTrack,
 }
 
 std::vector<double> WCSimTimePredictor::GetAllPredictedTimes() {
-  std::cout << "GetAllPredictedTimes" << std::endl;
+  // std::cout << "GetAllPredictedTimes" << std::endl;
 
 	std::vector<double> allPredictedTimes;
 
@@ -146,7 +153,7 @@ std::vector<double> WCSimTimePredictor::GetAllPredictedTimes() {
 		survivalDistances.push_back(GetSurvivalDistance(*trackItr));
 		escapeDistances.push_back(GetEscapeDistance(*trackItr));
 	}
-  std::cout << "Size of fTracks = " << fTracks.size() << std::endl;
+  // std::cout << "Size of fTracks = " << fTracks.size() << std::endl;
   int nonDefaultCounter = 0;
 	for(int iDigit = 0; iDigit < fDigitArray->GetNDigits(); ++iDigit)
 	{
@@ -167,7 +174,7 @@ std::vector<double> WCSimTimePredictor::GetAllPredictedTimes() {
 		allPredictedTimes.push_back(earliestArrival);
     if(earliestArrival > -999.9){ nonDefaultCounter++; }
 	}
-  std::cout << "Non -999.9 times = " << nonDefaultCounter << std::endl;
+  // std::cout << "Non -999.9 times = " << nonDefaultCounter << std::endl;
 	return allPredictedTimes;
 }
 
@@ -193,8 +200,10 @@ double WCSimTimePredictor::GetHitTime(WCSimLikelihoodTrackBase* myTrack,
 }
 
 double WCSimTimePredictor::GetEscapeDistance(WCSimLikelihoodTrackBase* myTrack) {
-	WCSimLikelihoodTuner * tuner = new WCSimLikelihoodTuner(fDigitArray, fEmissionProfiles);
-	double cutoff = tuner->GetCutoff(myTrack);
-	delete tuner;
+  if(fTuner == 0x0)
+  {
+    fTuner = new WCSimLikelihoodTuner(fDigitArray, fEmissionProfiles);
+  }
+	double cutoff = fTuner->GetCutoff(myTrack);
 	return cutoff;
 }

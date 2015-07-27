@@ -46,7 +46,9 @@ WCSimIntegralLookup3D::WCSimIntegralLookup3D(TString fileName) {
 	if( rhoGSInt == 0x0 ) { throw std::runtime_error("Could not get rhoGSInt from file"); }
 	if( rhoGSSInt == 0x0 ) { throw std::runtime_error("Could not get rhoGSSInt from file"); }
 
+  std::cout << "Setting hists" << std::endl;
 	fIntegrals.SetHists(rhoInt, rhoSInt, rhoSSInt, rhoGInt, rhoGSInt, rhoGSSInt, 0);
+  std::cout << "Set hists" << std::endl;
 }
 
 WCSimIntegralLookup3D::~WCSimIntegralLookup3D() {
@@ -83,6 +85,7 @@ THnSparseF* WCSimIntegralLookup3D::GetRhoIntegralHist() {
 }
 
 double WCSimIntegralLookup3D::GetIntegral1D(const double& E, THnSparseF* hist) {
+  // std::cout << "GetIntegral1D" << std::endl;
 	double x[1] = {E};
 	int bin = hist->GetBin(x, false); // Don't allocate it if it's empty
 	if( bin != -1){ return ( hist->GetBinContent(bin) ); }
@@ -91,13 +94,20 @@ double WCSimIntegralLookup3D::GetIntegral1D(const double& E, THnSparseF* hist) {
 
 double WCSimIntegralLookup3D::GetIntegral3D(const double& E, const double& R0, const double& cosTh0, THnSparseF* hist) {
 	double x[3] = {E, R0, cosTh0};
+  // std::cout << "GetIntegral3D" << std::endl;
+  // std::cout << "hist = " << hist << "  " << hist->GetEntries() << std::endl;
+	// std::cout << "Getting integral for:  E = " << E << "  R0 = " << R0 << "   cosTh0 = " << cosTh0 << "  " << std::endl;
+  // std::cout << "It has " << hist->GetNdimensions() << " dimensions" << std::endl;
+  // std::cout << "Axis 0 goes from " << hist->GetAxis(0)->GetXmin() << " to " << hist->GetAxis(0)->GetXmax() << std::endl;
+  // std::cout << "Axis 1 goes from " << hist->GetAxis(1)->GetXmin() << " to " << hist->GetAxis(1)->GetXmax() << std::endl;
+  // std::cout << "Axis 2 goes from " << hist->GetAxis(2)->GetXmin() << " to " << hist->GetAxis(2)->GetXmax() << std::endl;
 	int bin = hist->GetBin(x, false); // false -> don't allocate bin if it's empty
 
 //	if(0.7 < cosTh0 && cosTh0 < 0.8){
-//	std::cout << "Getting integral for:  E = " << E << "  R0 = " << R0 << "   cosTh0 = " << cosTh0 << "  " << std::endl;
-//	std::cout << " bin = " << bin << std::endl;
-//		if(bin != -1) {std::cout << "  int = " << hist->GetBinContent(bin) << std::endl;}
-//	}
+	// std::cout << "Getting integral for:  E = " << E << "  R0 = " << R0 << "   cosTh0 = " << cosTh0 << "  " << std::endl;
+	// std::cout << " bin = " << bin << std::endl;
+	// if(bin != -1) {std::cout << "  int = " << hist->GetBinContent(bin) << std::endl;}
+  // std::cout << "Done" << std::endl;
 	if( bin != -1) { return (hist->GetBinContent(bin) ); }
 	else { return 0; }
 }

@@ -15,6 +15,7 @@
 #include "WCSimTimeLikelihood2.hh"
 #include "TString.h"
 #include <cmath>
+#include <map>
 
 #ifndef REFLEX_DICTIONARY
 ClassImp(WCSimTimeLikelihood2)
@@ -23,6 +24,7 @@ WCSimTimeLikelihood2::WCSimTimeLikelihood2() {
 	// TODO Auto-generated constructor stub
 	fTimePredictor = 0x0;
 	fLikelihoodDigitArray = 0x0;
+  fEmissionProfiles = 0x0;
 	fPMTManager = new WCSimPMTManager();
 }
 
@@ -116,9 +118,16 @@ double WCSimTimeLikelihood2::GetPMTTimeResolution(const unsigned int& iDigit) {
 
 double WCSimTimeLikelihood2::GetPMTTimeResolution(WCSimLikelihoodDigit * myDigit)
 {
-	WCSimPMTConfig config = fPMTManager->GetPMTByName(std::string(myDigit->GetPMTName().Data()));
-	double timeConstant = config.GetTimeConstant();
-	return 0.33 + sqrt(timeConstant / myDigit->GetQ()); // This is what WCSim does...
+  TString pmtName = myDigit->GetPMTName();
+  double timeConstant = 0.0;
+  if( fPMTTimeConstantMap.find(pmtName) == fPMTTimeConstantMap.end())
+  {
+	  WCSimPMTConfig config = fPMTManager->GetPMTByName(std::string(myDigit->GetPMTName().Data()));
+	  timeConstant = config.GetTimeConstant();
+    fPMTTimeConstantMap[pmtName] = timeConstant;
+  }
+
+	return 0.33 + sqrt(fPMTTimeConstantMap[pmtName] / myDigit->GetQ()); // This is what WCSim does...
 }
 
 double WCSimTimeLikelihood2::GetGaussianMinusTwoLnL(const double& x,

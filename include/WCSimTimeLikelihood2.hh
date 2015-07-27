@@ -8,6 +8,8 @@
 #ifndef INCLUDE_WCSIMTIMELIKELIHOOD2_HH_
 #define INCLUDE_WCSIMTIMELIKELIHOOD2_HH_
 
+#include "TString.h"
+#include <map>
 class WCSimEmissionProfiles;
 class WCSimPMTManager;
 class WCSimLikelihoodTrackBase;
@@ -60,6 +62,7 @@ private:
     WCSimPMTManager * fPMTManager;
     WCSimEmissionProfiles * fEmissionProfiles;
     std::vector<double> fAllPreds;
+    std::map<TString, double> fPMTTimeConstantMap;
     ClassDef(WCSimTimeLikelihood2,0)
 };
 

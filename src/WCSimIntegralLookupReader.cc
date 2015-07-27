@@ -79,19 +79,23 @@ TString WCSimIntegralLookupReader::GetLookupFilename(WCSimLikelihoodTrackBase* t
 }
 
 void WCSimIntegralLookupReader::LoadIntegrals(const TrackType::Type& type) {
+  std::cout << "Loading integrals" << std::endl;
 	if( fLookupMap.find( type ) == fLookupMap.end())
 	{
 		if(WCSimAnalysisConfig::Instance()->GetTruncateIntegrals())
 		{
+      std::cout << "Making new truncated integral lookup" << std::endl;
 			WCSimIntegralLookup * myLookup = new WCSimIntegralLookup(GetLookupFilename(type));
 			fLookupMap.insert(std::make_pair(type, (WCSimIntegralLookup3D*)myLookup));
 		}
 		else
 		{
+      std::cout << "Making new truncated integral lookup" << std::endl;
 			WCSimIntegralLookup3D * myLookup = new WCSimIntegralLookup3D(GetLookupFilename(type));
 			fLookupMap.insert(std::make_pair(type, myLookup));
 		}
 	}
+  std::cout << "Loaded integrals" << std::endl;
 }
 
 double WCSimIntegralLookupReader::GetRhoIntegral(const TrackType::Type& type, const double& E,
@@ -156,16 +160,27 @@ double WCSimIntegralLookupReader::GetRhoGIntegral(const TrackType::Type& type, c
 
 double WCSimIntegralLookupReader::GetRhoGSIntegral(const TrackType::Type& type, const double& E,
 		const double& s, const double& R0, const double& cosTh0) {
+  // std::cout << "Looking for type " << type << std::endl;
 	if(fLookupMap.find(type) == fLookupMap.end())
 	{
+    // std::cout << "Need to load them" << std::endl;
 		LoadIntegrals(type);
+    // std::cout << "Loaded" << std::endl;
 	}
+  else
+  {
+    // std::cout << "Already exists" << std::endl;
+  }
 
 	if(fLookupMap.find(type) == fLookupMap.end())
 	{
 		std::cerr << "Could not find a table of integrals for type " << TrackType::AsString(type) << std::endl;
 		assert(fLookupMap.find(type) != fLookupMap.end());
 	}
+  // std::cout << fLookupMap.size() << std::endl;
+  // std::cout << fLookupMap[type] << std::endl;
+  // std::cout << fLookupMap[type]->GetRhoGIntegral(E, s, R0, cosTh0) << std::endl;
+  // std::cout << "Trying to return the thing" << std::endl;
 	return fLookupMap[type]->GetRhoGSIntegral(E, s, R0, cosTh0);
 }
 
@@ -240,7 +255,7 @@ double WCSimIntegralLookupReader::GetTrackLengthForPercentile(const TrackType::T
     dist = tempRhoInt1D->GetBinCenter(tempRhoInt1D->FindFirstBinAbove(percentile));
     delete tempRhoInt1D;
     delete tempRhoInt;
-    std::cout << "Length (last) = " << dist << " (" << fLastPercentileLength << ")" << std::endl;
+    // std::cout << "Length (last) = " << dist << " (" << fLastPercentileLength << ")" << std::endl;
     fLastPercentileType = type;
     fLastPercentileLength = dist;
     fLastPercentileEnergy = E;

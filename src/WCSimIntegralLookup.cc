@@ -51,6 +51,9 @@ THnSparseF* WCSimIntegralLookupHists::GetRhoGInt() const {
 }
 
 THnSparseF* WCSimIntegralLookupHists::GetRhoGSInt() const {
+  // std::cout << fRhoGSInt << std::endl;
+  // std::cout << fRhoGSInt->GetEntries() << std::endl;
+  // std::cout << "Returning fRhoGSInt" << std::endl;
 	return fRhoGSInt;
 }
 
@@ -74,6 +77,7 @@ void WCSimIntegralLookupHists::SetHists(THnSparseF* rhoInt, THnSparseF* rhoSInt,
 	fRhoGSSInt = rhoGSSInt;
 
 	fCutoffS = cutoffS;
+  // std::cout << "Finished setting hists" << std::endl;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////

@@ -747,7 +747,7 @@ void WCSimInterface::BuildRecoEvent(WCSimRootTrigger* myTrigger)
     Double_t y = WCSimGeometry::Instance()->GetY(tube);
     Double_t z = WCSimGeometry::Instance()->GetZ(tube);
 
-    WCSimRecoDigit* recoDigit = new WCSimRecoDigit(region,
+    WCSimRecoDigit* recoDigit = new WCSimRecoDigit(region, tube,
                                                    x, y, z,
                                                    rawT, rawQ,
                                                    calT, calQ);

@@ -13,6 +13,7 @@ class WCSimLikelihoodDigitArray;
 class WCSimLikelihoodTrackBase;
 class WCSimLikelihoodDigit;
 class WCSimEmissionProfiles;
+class WCSimLikelihoodTuner;
 
 class WCSimTimePredictor : public TObject {
 public:
@@ -55,6 +56,7 @@ private:
 	std::vector<WCSimLikelihoodTrackBase *> fTracks;
 	WCSimLikelihoodDigitArray * fDigitArray;
   WCSimEmissionProfiles * fEmissionProfiles;
+  WCSimLikelihoodTuner * fTuner;
     ClassDef(WCSimTimePredictor,0)
 };
 

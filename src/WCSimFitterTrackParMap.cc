@@ -269,7 +269,7 @@ double WCSimFitterTrackParMap::GetCurrentValue(TrackAndType trackAndType) {
 
 TrackType::Type WCSimFitterTrackParMap::GetTrackType(
 		int track) {
-  std::cout << "Track = " << track << "   " << "Size = " << fTypes.size() << std::endl;
+  //std::cout << "Track = " << track << "   " << "Size = " << fTypes.size() << std::endl;
 	assert(track >= 0 && static_cast<unsigned int>(track) < fTypes.size());
 	return fTypes.at(track);
 }

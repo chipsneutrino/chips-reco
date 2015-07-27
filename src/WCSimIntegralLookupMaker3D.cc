@@ -134,7 +134,7 @@ void WCSimIntegralLookupMaker3D::MakeRhoTables() {
 	  fIntegrals.GetRhoSInt()->Fill(ELowEdge, runningTotal[1]);
 	  fIntegrals.GetRhoSSInt()->Fill(ELowEdge, runningTotal[2]);
    }
-   std::cout << "Rho bins filled=  " << binsFilled << std::endl;
+   // std::cout << "Rho bins filled=  " << binsFilled << std::endl;
 }
 
 void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
@@ -148,7 +148,7 @@ void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
 	for( int iEBin = 1; iEBin <= binningHisto->GetXaxis()->GetNbins(); ++iEBin)
 	{
 		//if(iEBin != binningHisto->GetXaxis()->GetNbins() ) { continue; }
-		std::cout << "Energy bin = " << iEBin << "/" << binningHisto->GetXaxis()->GetNbins() << std::endl;
+		// std::cout << "Energy bin = " << iEBin << "/" << binningHisto->GetXaxis()->GetNbins() << std::endl;
     // std::cout << fIntegrals.GetRhoGSSInt()->GetBinContent(1613039);
 		Double_t vars[3] = { binningHisto->GetXaxis()->GetBinLowEdge(iEBin), 0.0, 0.0 };
 		// Entries are E, R0, cosTh0
@@ -204,7 +204,7 @@ void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
 					else if(hRho->GetBinContent(iSBin) == 0 && iSBin > 10) {break;} // Stop adding if we've reached the end of the profile
 //          if( vars[0] == 1000 && 1285 <= vars[1] && 1290 >= vars[1] && 0.784 <= vars[2] && 0.786 > vars[2] )
 //          {
-//            std::cout << "s = " << s << "  cosTh = " << cosTh << " - adding " << toAdd << "  integral[0] = " << runningTotal[0] << "  integral[1] = " << runningTotal[1] << "   integral[2] = " << runningTotal[2] << std::endl;
+// //            std::cout << "s = " << s << "  cosTh = " << cosTh << " - adding " << toAdd << "  integral[0] = " << runningTotal[0] << "  integral[1] = " << runningTotal[1] << "   integral[2] = " << runningTotal[2] << std::endl;
 //					std::cout << "vars = " << vars[0] << " " << vars[1] << " " << vars[2] << " bin = " << fIntegrals.GetRhoGInt()->GetBin(vars, false) << std::endl;
 //          }
 				}
@@ -218,9 +218,9 @@ void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
 			}
 		}
 	}
-	std::cout << "g bins filled = " << binsFilled << std::endl;
+	// std::cout << "g bins filled = " << binsFilled << std::endl;
 	std::cout << "Fraction of bins = " << fIntegrals.GetRhoGInt()->GetSparseFractionBins() << " and of memory " << fIntegrals.GetRhoGInt()->GetSparseFractionMem() << std::endl;
-	std::cout << fIntegrals.GetRhoGInt()->GetNbins() << std::endl << std::endl;
+	// std::cout << fIntegrals.GetRhoGInt()->GetNbins() << std::endl << std::endl;
 }
 
 void WCSimIntegralLookupMaker3D::Run(TString fileName) {

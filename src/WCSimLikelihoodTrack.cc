@@ -32,8 +32,8 @@ WCSimLikelihoodTrack::WCSimLikelihoodTrack( double x, double y, double z, double
 
 void WCSimLikelihoodTrack::Print()
 {
-	  std::cout << "WCSimLikelihoodTrack::Print():" << std::endl;
-	  printf("Vertex = (%.02fcm,%.02fcm,%.02fcm,%.02fns)   Dir = (%.04f,%.04f)   E = %.03f  Type = %s",
+	  // std::cout << "WCSimLikelihoodTrack::Print():" << std::endl;
+	  printf("Vertex = (%.02fcm,%.02fcm,%.02fcm,%.02fns)   Dir = (%.04f,%.04f)   E = %.03f  Type = %s \n",
            fVtx[0], fVtx[1], fVtx[2], fT0, fTheta0, fPhi0, fE0, TrackType::AsString(fType).c_str());
 
 }

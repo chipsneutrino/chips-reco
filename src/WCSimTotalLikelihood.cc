@@ -54,7 +54,7 @@ void WCSimTotalLikelihood::SetTracks( std::vector<WCSimLikelihoodTrackBase*> &my
   int i = 0;
   for(trackIter = fTracks.begin(); trackIter != fTracks.end(); ++trackIter)
   {
-    std::cout << "TrackIter -> " << std::endl;
+    // std::cout << "TrackIter -> " << std::endl;
     if (i > 0) {
       fChargeLikelihoodVector.push_back(
           WCSimChargePredictor(fLikelihoodDigitArray, fEmissionProfiles) );
@@ -101,7 +101,7 @@ Double_t WCSimTotalLikelihood::Calc2LnL()
   } //for iDigit
 
   fSetVectors = true;
-  std::cout << "-2 ln(Likelihood) = " << minus2LnL << std::endl;
+  // std::cout << "-2 ln(Likelihood) = " << minus2LnL << std::endl;
   return minus2LnL;
 }
 
@@ -152,6 +152,7 @@ Double_t WCSimTotalLikelihood::Calc2LnL(int iDigit)
     timePart = fTimeLikelihood->Calc2LnL(iDigit);
   }
   minus2LnL += timePart;
+  std::cout << "Charge component = " << chargePart << " and time component = " << timePart << std::endl;
   
   //std::cout << "Recorded charge = " << digit->GetQ() << " and predicted charge = " << totalCharge << " so charge adds " << chargePart << " to -2LnL and time adds " << timePart << std::endl;
 
@@ -211,10 +212,21 @@ std::vector<double> WCSimTotalLikelihood::GetPredictedChargeVector() const {
 std::vector<double> WCSimTotalLikelihood::GetPredictedTimeVector() const {
 	if( !fSetVectors )
 	{
-		std::cerr << "Error: You're asking for the predicted charge vector, but this hasn't been set" << std::endl;
+		std::cerr << "Error: You're asking for the predicted time vector, but this hasn't been set" << std::endl;
 		std::cerr << "       Have you reset the tracks or likelihood digit array since calculating the likelihood?" << std::endl;
 		assert(fSetVectors);
 	}
+  if(! WCSimAnalysisConfig::Instance()->GetUseChargeAndTime())
+  {
+    std::cerr << "You're asking for the predicted time vector, but the time component of the likelihood is switched off" << std::endl;
+    std::cerr << "Returning a vector of zeroes" << std::endl;
+    std::vector<double> zeroes;
+    for(int i  = 0; i < fLikelihoodDigitArray->GetNDigits(); ++i)
+    {
+      zeroes.push_back(0.0);
+    }
+    return zeroes;
+  }
 	return fTimeLikelihood->GetAllPredictedTimes();
 }
 

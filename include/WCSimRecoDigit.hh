@@ -6,13 +6,14 @@
 class WCSimRecoDigit : public TObject {
 
  public:
-  WCSimRecoDigit( Int_t region,
+  WCSimRecoDigit( Int_t region, Int_t tubeID,
                   Double_t x, Double_t y, Double_t z,
                   Double_t rawT, Double_t rawQ, 
                   Double_t calT, Double_t calQ );
   ~WCSimRecoDigit();
 
   Int_t GetRegion(){ return fRegion; }
+  Int_t GetTubeID(){ return fTubeID; } 
 
   Double_t GetX() { return fX; }
   Double_t GetY() { return fY; }
@@ -33,6 +34,7 @@ class WCSimRecoDigit : public TObject {
  private:
 
   Int_t fRegion;
+  Int_t fTubeID;
 
   Double_t fX;
   Double_t fY;

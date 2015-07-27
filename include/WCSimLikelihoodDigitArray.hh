@@ -59,6 +59,13 @@ class WCSimLikelihoodDigitArray : public TObject
          */
         Int_t GetNDigits();
 
+
+        /** 
+         * @return Total number of digits in the array with a non-zero hit (that
+         * passed the filtering step)
+         * */
+        Int_t GetNHits();
+
         /**
          * @return True if detector is a cylinder
          */
@@ -84,6 +91,7 @@ class WCSimLikelihoodDigitArray : public TObject
     private:
         TClonesArray * fLikelihoodDigitArray; ///< Array with every PMT and its hit information
         Int_t fNLikelihoodDigits; ///< Total number of PMTs
+        Int_t fNumHitPMTs; ///< Total number of hit PMTs, ie. ones with Q>0 that weren't filtered out
         GeomType_t fGeomType;  ///< Detector geometry type
         Double_t fExtent[3];  ///< Maximum (x, y, z) or (r,r,z)  in the detector
 

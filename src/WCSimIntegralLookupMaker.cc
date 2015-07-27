@@ -130,7 +130,7 @@ void WCSimIntegralLookupMaker::MakeCutoffS() {
 		std::cout << "Filling cutoff histogram" << std::endl;
 		TH1F * hRho = fEmissionProfiles.GetRho(fType, fCutoffS->GetXaxis()->GetBinLowEdge(iEBin));
 		int bin = hRho->FindLastBinAbove(0);
-		std::cout << "Energy = " << fCutoffS->GetXaxis()->GetBinLowEdge(iEBin) << " cutoff = " << hRho->GetXaxis()->GetBinCenter(bin) << std::endl;
+		// std::cout << "Energy = " << fCutoffS->GetXaxis()->GetBinLowEdge(iEBin) << " cutoff = " << hRho->GetXaxis()->GetBinCenter(bin) << std::endl;
 		fCutoffS->SetBinContent(iEBin, hRho->GetBinCenter(bin));
 	}
 }
