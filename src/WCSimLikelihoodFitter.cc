@@ -89,6 +89,7 @@ Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
   // of which track(s) - this is probably expensive, so we'll do it once and look it up in a map thereafter
 
   std::vector<WCSimLikelihoodTrackBase*> tracksToFit;
+  std::cout << "There are " << nTracks << " tracks" << std::endl;
   for(UInt_t iTrack = 0 ; iTrack < nTracks; ++iTrack)
   {
     TrackType::Type trackType = fFitterTrackParMap.GetTrackType(iTrack);
@@ -189,13 +190,13 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
     FixVertex();
     FitEnergy();
     
-    FixEnergy();
-    FreeVertex();
-    FitVertex();
-    
-    FixVertex();
-    FreeEnergy();
-    FitEnergy();
+    // FixEnergy();
+    // FreeVertex();
+    // FitVertex();
+    // 
+    // FixVertex();
+    // FreeEnergy();
+    // FitEnergy();
 /*
 
 
@@ -458,8 +459,7 @@ Bool_t WCSimLikelihoodFitter::GetTrackEscapes(WCSimLikelihoodTrackBase * track) 
   Double_t stoppingDistance = 0.0;
   if( track->GetType() != TrackType::Unknown )
   {
-	  WCSimEmissionProfiles ep(track);
-	  stoppingDistance = ep.GetStoppingDistance(track);
+    fTotalLikelihood->GetEmissionProfileManager()->GetStoppingDistance(track);
   }
   else
   {
@@ -499,12 +499,22 @@ void WCSimLikelihoodFitter::SeedEvent()
 	// and set them to the corresponding seed parameter
 	for(int iTrack = 0; iTrack < WCSimFitterInterface::Instance()->GetNumTracks(); ++iTrack)
 	{
-		fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxX, seedX);
-		fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxY, seedY);
-		fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxZ, seedZ);
-		fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kDirTh, seedTheta);
-		fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kDirPhi, seedPhi);
-    fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxT, seedT);
+    // Only see the parameters if they are not requested to be fixed:
+    if(!fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kVtxX)){
+		  fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxX, seedX);
+    }
+    if(!fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kVtxY)){
+		  fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxY, seedY);
+    }
+    if(!fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kVtxZ)){
+		  fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxZ, seedZ);
+    }
+    if(iTrack==0 && !fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kDirTh)){
+		  fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kDirTh, seedTheta);
+    }
+    if(iTrack==0 && !fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kDirPhi)){
+		  fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kDirPhi, seedPhi);
+    }
 	}
 	delete myReco;
 }
@@ -550,11 +560,7 @@ void WCSimLikelihoodFitter::FitEnergy()
 	tempTrack->SetE(fFitterTrackParMap.GetMinValue(0, FitterParameterType::kEnergy));
 
 	//std::cout << "Making empty emission profile" << std::endl;
-	WCSimEmissionProfiles * tempProfileZero = new WCSimEmissionProfiles();
-	//std::cout << "Setting track 0" << std::endl;
-	tempProfileZero->SetTrack(tempTrack);
-
-	//std::cout << "Getting profile energies" << std::endl;
+	WCSimEmissionProfiles * tempProfileZero = new WCSimEmissionProfiles(tempTrack->GetType(), tempTrack->GetE());
 	std::vector<Double_t> energyBinsZero = tempProfileZero->GetProfileEnergies();
 
 	// Emission profiles can only be used for energies between (not equal to) the first and last bins
@@ -574,8 +580,7 @@ void WCSimLikelihoodFitter::FitEnergy()
 		trackOneType = WCSimFitterConfig::Instance()->GetTrackType(1);
 		WCSimLikelihoodTrackBase * tempTrack = WCSimLikelihoodTrackFactory::MakeTrack(trackOneType);
 		tempTrack->SetE(WCSimFitterConfig::Instance()->GetParStart(1, "kEnergy"));
-		WCSimEmissionProfiles * tempProfileOne = new WCSimEmissionProfiles();
-		tempProfileOne->SetTrack(tempTrack);
+		WCSimEmissionProfiles * tempProfileOne = new WCSimEmissionProfiles(tempTrack->GetType(), tempTrack->GetE());
 		energyBinsOne = tempProfileOne->GetProfileEnergies();
 		assert(energyBinsOne.size() > 2);
 		energyBinsOne.pop_back();
@@ -592,6 +597,7 @@ void WCSimLikelihoodFitter::FitEnergy()
 
 	bool isFirstLoop = true;
 	for(unsigned int iBin = 0; iBin < energyBinsZero.size(); ++iBin)
+//	for(unsigned int iBin = 0; iBin < energyBinsZero.size(); iBin += 4) // LEIGH
 	{
 		// std::cout << "Energy bin " << iBin << " is " << energyBinsZero.at(iBin) << std::endl;
     // std::cout << "Setting initial energy to " << energyBinsZero.at(iBin) << std::endl;
@@ -602,6 +608,7 @@ void WCSimLikelihoodFitter::FitEnergy()
 		do
 		{
 		  // std::cout << "jBin = " << jBin << std::endl;
+		  std::cout << "Current energy bin " << iBin << "," << jBin << std::endl; // LEIGH
 			if( WCSimFitterConfig::Instance()->GetNumTracks() > 1)
 			{
 				fFitterTrackParMap.SetCurrentValue(1, FitterParameterType::kEnergy, energyBinsOne.at(jBin));
@@ -612,9 +619,9 @@ void WCSimLikelihoodFitter::FitEnergy()
         // std::cout << startVals.at(i) << std::endl;
       }
 			Double_t * x = &(startVals[0]);
-      // std::cout << "GETTING TEMPMIN" << std::endl;
+      std::cout << "GETTING TEMPMIN" << std::endl;
 			double tempMin = WrapFunc(x);
-      // std::cout << "Energy = " << energyBinsZero.at(iBin) << "    -2LnL = " << tempMin << "   Best (till now) = " << best2LnL << std::endl;
+      std::cout << "Energy = " << energyBinsZero.at(iBin) << "    -2LnL = " << tempMin << "   Best (till now) = " << best2LnL << std::endl;
 			if( tempMin < best2LnL || isFirstLoop )
 			{
 				best2LnL = tempMin;
@@ -629,9 +636,14 @@ void WCSimLikelihoodFitter::FitEnergy()
 				}
 			}
 			jBin++;
+      if(fCalls >= 10) { 
+        break;}
+//			jBin+=4; // LEIGH
 		} while(jBin < energyBinsOne.size());
 
 
+      if(fCalls >= 10) { 
+        break;}
 	}
 
 

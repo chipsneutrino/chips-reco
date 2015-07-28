@@ -12,13 +12,13 @@
 class WCSimLikelihoodDigitArray;
 class WCSimLikelihoodTrackBase;
 class WCSimLikelihoodDigit;
-class WCSimEmissionProfiles;
+class WCSimEmissionProfileManager;
 class WCSimLikelihoodTuner;
 
 class WCSimTimePredictor : public TObject {
 public:
 	WCSimTimePredictor();
-	WCSimTimePredictor(WCSimLikelihoodDigitArray * myArray, WCSimEmissionProfiles * myEmissionProfiles);
+	WCSimTimePredictor(WCSimLikelihoodDigitArray * myArray, WCSimEmissionProfileManager * myEmissionProfileManager);
 	virtual ~WCSimTimePredictor();
 
     /**
@@ -55,7 +55,7 @@ private:
     double GetEscapeDistance(WCSimLikelihoodTrackBase * myTrack);
 	std::vector<WCSimLikelihoodTrackBase *> fTracks;
 	WCSimLikelihoodDigitArray * fDigitArray;
-  WCSimEmissionProfiles * fEmissionProfiles;
+  WCSimEmissionProfileManager * fEmissionProfileManager;
   WCSimLikelihoodTuner * fTuner;
     ClassDef(WCSimTimePredictor,0)
 };

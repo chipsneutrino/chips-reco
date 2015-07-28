@@ -31,9 +31,6 @@ WCSimEmissionProfiles::WCSimEmissionProfiles() {
 
   fDebug = kFALSE;
   
-	fLastEnergy = -999.9;
-	fLastType = TrackType::Unknown;
-
 	fProfileFileName = TString("");
 
 	fProfileFile = 0x0;
@@ -48,6 +45,9 @@ WCSimEmissionProfiles::WCSimEmissionProfiles() {
 	fRhoInterpHi = 0x0;
 	fGCoarse = 0x0;
 	fGFine = 0x0;
+
+  fType = TrackType::Unknown;
+  fEnergy = -999.9;
 }
 
 WCSimEmissionProfiles::~WCSimEmissionProfiles() {
@@ -106,7 +106,7 @@ WCSimEmissionProfiles::~WCSimEmissionProfiles() {
 
 }
 
-WCSimEmissionProfiles::WCSimEmissionProfiles(WCSimLikelihoodTrackBase* myTrack) {
+WCSimEmissionProfiles::WCSimEmissionProfiles(const TrackType::Type &type, const double &energy) {
 
 	fProfileFileName = TString("");
 
@@ -125,16 +125,8 @@ WCSimEmissionProfiles::WCSimEmissionProfiles(WCSimLikelihoodTrackBase* myTrack) 
 	fRhoInterpLo = 0x0;
 	fRhoInterpHi = 0x0;
 
-	SetTrack(myTrack);
+	LoadFile(type, energy);
 
-}
-
-void WCSimEmissionProfiles::SetTrack(WCSimLikelihoodTrackBase* myTrack) {
-	if( myTrack->GetE() != fLastEnergy || myTrack->GetType() != fLastType)
-	{
-		LoadFile(myTrack);
-	}
-	return;
 }
 
 Double_t WCSimEmissionProfiles::GetRho(const Double_t &s) {
@@ -165,12 +157,8 @@ Double_t WCSimEmissionProfiles::GetGWidth(const Double_t &cosTheta)
 }
 
 
-Double_t WCSimEmissionProfiles::GetIntegral(EmissionProfile_t::Type type, WCSimLikelihoodTrackBase* myTrack,
+Double_t WCSimEmissionProfiles::GetIntegral(WCSimLikelihoodTrackBase * myTrack, EmissionProfile_t::Type type, 
 		WCSimLikelihoodDigit * myDigit, Int_t sPower, Double_t cutoffS, Bool_t multiplyByWidth) {
-	if( myTrack->GetType() != fLastType || myTrack->GetE() != fLastEnergy )
-	{
-		SetTrack(myTrack);
-	}
 	if( type == EmissionProfile_t::kRho )
 	{
 		return GetRhoIntegral(sPower, 0, cutoffS, multiplyByWidth);
@@ -183,13 +171,13 @@ Double_t WCSimEmissionProfiles::GetIntegral(EmissionProfile_t::Type type, WCSimL
 	return 0;
 }
 
-Double_t WCSimEmissionProfiles::GetRhoIntegral(Int_t sPower, Double_t energy,
+Double_t WCSimEmissionProfiles::GetRhoIntegral(Int_t sPower,
 		Double_t startS, Double_t endS, Bool_t multiplyByWidth) {
   std::vector<Int_t> sVec(1, sPower);
-  return GetRhoIntegrals(sVec, energy, startS, endS, multiplyByWidth).at(0);
+  return GetRhoIntegrals(sVec, startS, endS, multiplyByWidth).at(0);
 }
 
-std::vector<Double_t> WCSimEmissionProfiles::GetRhoIntegrals(std::vector<Int_t> sPowers, Double_t energy,
+std::vector<Double_t> WCSimEmissionProfiles::GetRhoIntegrals(std::vector<Int_t> sPowers,
 		Double_t startS, Double_t endS, Bool_t multiplyByWidth) {
 	Int_t startBin = fRhoInterp->GetXaxis()->FindBin(startS);
 	Int_t endBin = fRhoInterp->GetXaxis()->FindBin(endS);
@@ -235,7 +223,6 @@ std::vector<Double_t> WCSimEmissionProfiles::GetRhoGIntegrals(WCSimLikelihoodTra
 		Double_t cosTheta = TMath::Cos(vtxDir.Angle( toPMT ));
 
 		Double_t binWidthS = multiplyByWidth ? GetRhoWidth(s) : 1;
-		Double_t binWidthTh = multiplyByWidth ?  GetGWidth(cosTheta) : 1;
 
 //    if( myDigit->GetTubeId() == 3364)
 //    {
@@ -293,56 +280,46 @@ Double_t WCSimEmissionProfiles::GetFractionThroughBin(Double_t energy) const{
 	return fraction;
 }
 
-void WCSimEmissionProfiles::LoadFile(WCSimLikelihoodTrackBase* myTrack) {
+void WCSimEmissionProfiles::LoadFile(const TrackType::Type &type, const double &energy) {
 	std::cout << " *** WCSimEmissionProfiles::LoadFile - Loading profile" << std::endl;
-  myTrack->Print();
-	if( myTrack->GetType() != fLastType )
+	fProfileFileName = TString(getenv("WCSIMANAHOME"));
+	fProfileFileName = "";
+	switch( type )
 	{
-
-		fProfileFileName = TString(getenv("WCSIMANAHOME"));
-		fProfileFileName = "";
-		switch( myTrack->GetType() )
-		{
-			case TrackType::ElectronLike:
-				fProfileFileName.Append("/home/ajperch/CHIPS/WCSim_fixGeneration/rootfiles/sum/emissionProfilesElectronsCoarseFineNorm.root");
-				break;
-			case TrackType::MuonLike:
-				fProfileFileName.Append("/home/ajperch/CHIPS/WCSim_fixGeneration/rootfiles/newsums/emissionProfilesMuon.root");
-				break;
-			default:
-        myTrack->Print();
-				std::cerr << "Error: unknown track type in WCSimLikelihoodTuner::LoadEmissionProfiles" << std::endl;
-				exit(EXIT_FAILURE);
-		}
-
-		if( fProfileFile != NULL )
-		{
-			delete fProfileFile;
-			delete fRhoArray;
-			delete fGCoarseArray;
-			delete fGFineArray;
-		}
-
-		fProfileFile      = new TFile(fProfileFileName.Data(),"READ");
-		// fProfileFile->ls();
-		fLastType         = myTrack->GetType();
-
-    fProfileFile->GetObject("histArray",fRhoArray);
-    fProfileFile->GetObject("angHistFineArray",fGFineArray);
-    fProfileFile->GetObject("angHistCoarseArray",fGCoarseArray);
-    fProfileFile->GetObject("hWhichHisto",fBinningHistogram);
-
-		fRhoArray->SetOwner(kTRUE);
-		fGCoarseArray->SetOwner(kTRUE);
-		fGFineArray->SetOwner(kTRUE);
+		case TrackType::ElectronLike:
+			fProfileFileName.Append("/home/ajperch/CHIPS/WCSim_fixGeneration/rootfiles/sum/emissionProfilesElectronsCoarseFineNorm.root");
+			break;
+		case TrackType::MuonLike:
+			fProfileFileName.Append("/home/ajperch/CHIPS/WCSim_fixGeneration/rootfiles/newsums/emissionProfilesMuon.root");
+			break;
+		default:
+			std::cerr << "Error: unknown track type in WCSimLikelihoodTuner::LoadEmissionProfiles" << std::endl;
+			exit(EXIT_FAILURE);
 	}
 
-	fLastEnergy = myTrack->GetE();
-	fLastType = myTrack->GetType();
-	InterpolateProfiles(myTrack);
+	fProfileFile      = new TFile(fProfileFileName.Data(),"READ");
 
-	if(fDebug) { SaveProfiles(); }
+  fProfileFile->GetObject("histArray",fRhoArray);
+  fProfileFile->GetObject("angHistFineArray",fGFineArray);
+  fProfileFile->GetObject("angHistCoarseArray",fGCoarseArray);
+  fProfileFile->GetObject("hWhichHisto",fBinningHistogram);
+
+	fRhoArray->SetOwner(kTRUE);
+	fGCoarseArray->SetOwner(kTRUE);
+	fGFineArray->SetOwner(kTRUE);
+
+  fType = type;
+	SetEnergy(energy);
+
+	if(fDebug) { SaveProfiles(type, energy); }
 	return;
+
+}
+
+void WCSimEmissionProfiles::SetEnergy(const double &energy)
+{
+  fEnergy = energy;
+  InterpolateProfiles(energy);
 
 }
 
@@ -351,21 +328,21 @@ Double_t WCSimEmissionProfiles::GetCriticalDistance(
 	assert(type == TrackType::MuonLike || type == TrackType::ElectronLike);
 	switch(type)
 	{
-	case TrackType::MuonLike:
-		return -398 + 0.756*energy - 8e-5 * energy * energy;
-    break;
-  default:
-    assert(0);
+  	case TrackType::MuonLike:
+  		return -398 + 0.756*energy - 8e-5 * energy * energy;
+      break;
+    default:
+      assert(0);
 	}
   return 0;
 }
 
-void WCSimEmissionProfiles::InterpolateProfiles(WCSimLikelihoodTrackBase* myTrack) {
-	InterpolateRho(myTrack);
-	InterpolateG(myTrack);
+void WCSimEmissionProfiles::InterpolateProfiles(const double &energy) {
+	InterpolateRho(energy);
+	InterpolateG(energy);
 }
 
-void WCSimEmissionProfiles::InterpolateRho(WCSimLikelihoodTrackBase* myTrack) {
+void WCSimEmissionProfiles::InterpolateRho(const double &energy) {
 	if(fRhoInterp != 0x0)
 	{
     // std::cout << fRhoInterp << std::endl;
@@ -374,9 +351,9 @@ void WCSimEmissionProfiles::InterpolateRho(WCSimLikelihoodTrackBase* myTrack) {
 		fRhoInterp = 0x0;
 	}
 
-  int bin = GetArrayBin(myTrack->GetE());
-	std::cerr << "Warning: not doing any interpolation, just getting the nearest profile - bin = " << bin << std::endl;
-	fRhoInterp = (TH1F*)(fRhoArray->At(GetArrayBin(myTrack->GetE()))->Clone());
+  int bin = GetArrayBin(energy);
+	// std::cerr << "Warning: not doing any interpolation, just getting the nearest profile - bin = " << bin << std::endl;
+	fRhoInterp = (TH1F*)(fRhoArray->At(bin)->Clone());
 	fRhoInterp->SetDirectory(0);
 	// std::cout << "Energy = " << myTrack->GetE() << "  integral = " << fRhoInterp->Integral("W");
 	return;
@@ -391,8 +368,6 @@ void WCSimEmissionProfiles::InterpolateRho(WCSimLikelihoodTrackBase* myTrack) {
 	//    increases by just enough to take the track length into the next bin
 
 
-	// Get the emission profiles for the energy bin below and above our current energy
-	Double_t energy = myTrack->GetE();
   // std::cout << "Getting profiles from array bin " << GetArrayBin(energy) << std::endl;
 	TH1F * profileLo = (TH1F*)fRhoArray->At(GetArrayBin(energy));
 	TH1F * profileHi = (TH1F*)fRhoArray->At(GetArrayBin(energy)+1);
@@ -423,9 +398,9 @@ void WCSimEmissionProfiles::InterpolateRho(WCSimLikelihoodTrackBase* myTrack) {
   fRhoInterp->SetDirectory(0);
 
   // Get the distances to the shoulder for each of the three energies
-  Double_t hiDist = GetCriticalDistance(fLastType, upEnergy);
-  Double_t loDist = GetCriticalDistance(fLastType, downEnergy);
-  Double_t truDist = GetCriticalDistance(fLastType, energy);
+  Double_t hiDist = GetCriticalDistance(fType, upEnergy);
+  Double_t loDist = GetCriticalDistance(fType, downEnergy);
+  Double_t truDist = GetCriticalDistance(fType, energy);
   // std::cout << "hiDist  = " << hiDist << std::endl;
   // std::cout << "loDist  = " << loDist << std::endl;
   // std::cout << "truDist  = " << truDist << std::endl;
@@ -628,7 +603,7 @@ void WCSimEmissionProfiles::InterpolateRho(WCSimLikelihoodTrackBase* myTrack) {
   return;
 }
 
-void WCSimEmissionProfiles::InterpolateG(WCSimLikelihoodTrackBase* myTrack) {
+void WCSimEmissionProfiles::InterpolateG(const double &energy) {
 
 	if(fGCoarse != 0x0)
 	{
@@ -642,11 +617,11 @@ void WCSimEmissionProfiles::InterpolateG(WCSimLikelihoodTrackBase* myTrack) {
 		fGFine = 0x0;
 	}
 
-  int bin = GetArrayBin(myTrack->GetE());
-	std::cerr << "Warning: not doing any interpolation, just getting the nearest profile - bin = " << bin << std::endl;
-	fGCoarse = (TH2F*)(fGCoarseArray->At(GetArrayBin(myTrack->GetE()))->Clone());
+  int bin = GetArrayBin(energy);
+	// std::cerr << "Warning: not doing any interpolation, just getting the nearest profile - bin = " << bin << std::endl;
+	fGCoarse = (TH2F*)(fGCoarseArray->At(bin)->Clone());
 	fGCoarse->SetDirectory(0);
-	fGFine = (TH2F*)(fGFineArray->At(GetArrayBin(myTrack->GetE()))->Clone());
+	fGFine = (TH2F*)(fGFineArray->At(bin)->Clone());
 	fGFine->SetDirectory(0);
 	return;
 
@@ -666,17 +641,6 @@ void WCSimEmissionProfiles::InterpolateG(WCSimLikelihoodTrackBase* myTrack) {
 
     return;
 */
-}
-
-
-
-Double_t WCSimEmissionProfiles::GetLightFlux(WCSimLikelihoodTrackBase * myTrack) const
-{
-  //std::cout << "*** WCSimChargeLikelihood::GetLightFlux() *** Getting the light flux as a function of the track KE" << std::endl;
-  Double_t energy      = myTrack->GetE();
-  TrackType::Type type = myTrack->GetType();
-  return this->GetLightFlux(type, energy);
-
 }
 
 std::vector<Double_t> WCSimEmissionProfiles::GetProfileEnergies() const
@@ -700,7 +664,7 @@ std::vector<Double_t> WCSimEmissionProfiles::GetProfileEnergies() const
 }
 
 Double_t WCSimEmissionProfiles::GetLightFlux(
-		TrackType::Type type, Double_t energy) const {
+		const TrackType::Type &type, const double &energy) const {
 	assert(type == TrackType::MuonLike || type == TrackType::ElectronLike);
 	Double_t flux = 0.0;
 	Double_t factorFromG = 1/(4.0*TMath::Pi()); // We want solid angle fraction
@@ -748,7 +712,7 @@ Double_t WCSimEmissionProfiles::GetTrackLengthForPercentile(Double_t percentile)
 
 }
 
-void WCSimEmissionProfiles::SaveProfiles()
+void WCSimEmissionProfiles::SaveProfiles(const TrackType::Type &type, const double &energy)
 {
   return;
   TCanvas * canRho = new TCanvas("canRho", "canRho", 800, 600);
@@ -760,8 +724,8 @@ void WCSimEmissionProfiles::SaveProfiles()
   fRhoInterp->GetXaxis()->CenterTitle();
   fRhoInterp->GetYaxis()->CenterTitle();
   TString rhoTitle("");
-  rhoTitle.Form("rho_%d_", (int)fLastEnergy);
-  rhoTitle += TrackType::AsString(fLastType);
+  rhoTitle.Form("rho_%d_", (int)energy);
+  rhoTitle += TrackType::AsString(type);
   fRhoInterp->SetTitle(rhoTitle.Data());
 
   canRho->SaveAs( (rhoTitle + TString(".png")).Data());
@@ -776,8 +740,8 @@ void WCSimEmissionProfiles::SaveProfiles()
   fRhoInterpLo->GetXaxis()->CenterTitle();
   fRhoInterpLo->GetYaxis()->CenterTitle();
   TString rhoLoTitle("");
-  rhoLoTitle.Form("rhoLo_%d_", (int)fLastEnergy);
-  rhoLoTitle += TrackType::AsString(fLastType);
+  rhoLoTitle.Form("rhoLo_%d_", (int)energy);
+  rhoLoTitle += TrackType::AsString(type);
   fRhoInterpLo->SetTitle(rhoLoTitle.Data());
   canRhoLo->SaveAs( (rhoLoTitle + TString(".png")).Data());
   canRhoLo->SaveAs( (rhoLoTitle + TString(".C")).Data());
@@ -791,8 +755,8 @@ void WCSimEmissionProfiles::SaveProfiles()
   fRhoInterpHi->GetXaxis()->CenterTitle();
   fRhoInterpHi->GetYaxis()->CenterTitle();
   TString rhoHiTitle("");
-  rhoHiTitle.Form("rhoHi_%d_", (int)fLastEnergy);
-  rhoHiTitle += TrackType::AsString(fLastType);
+  rhoHiTitle.Form("rhoHi_%d_", (int)energy);
+  rhoHiTitle += TrackType::AsString(type);
   fRhoInterpHi->SetTitle(rhoHiTitle.Data());
   canRhoHi->SaveAs( (rhoHiTitle + TString(".png")).Data());
   canRhoHi->SaveAs( (rhoHiTitle + TString(".C")).Data());
@@ -806,8 +770,8 @@ void WCSimEmissionProfiles::SaveProfiles()
   fGCoarse->GetXaxis()->CenterTitle();
   fGCoarse->GetYaxis()->CenterTitle();
   TString gTitle("");
-  gTitle.Form("gCoarse_%d_", (int)fLastEnergy);
-  gTitle += TrackType::AsString(fLastType);
+  gTitle.Form("gCoarse_%d_", (int)energy);
+  gTitle += TrackType::AsString(type);
   fGCoarse->SetTitle(gTitle.Data());
 
   canG->SaveAs( (gTitle + TString(".png")).Data());
@@ -819,8 +783,8 @@ void WCSimEmissionProfiles::SaveProfiles()
   fGFine->GetYaxis()->SetTitle("s (cm)");
   fGFine->GetXaxis()->CenterTitle();
   fGFine->GetYaxis()->CenterTitle();
-  gTitle.Form("gFine_%d_", (int)fLastEnergy);
-  gTitle += TrackType::AsString(fLastType);
+  gTitle.Form("gFine_%d_", (int)energy);
+  gTitle += TrackType::AsString(type);
   fGFine->SetTitle(gTitle.Data());
 
   canG->SaveAs( (gTitle + TString(".png")).Data());
@@ -834,43 +798,33 @@ void WCSimEmissionProfiles::SaveProfiles()
 
 }
 
-Double_t WCSimEmissionProfiles::GetStoppingDistance(WCSimLikelihoodTrackBase * track)
+Double_t WCSimEmissionProfiles::GetStoppingDistance()
 {
-	SetTrack(track);
 	Int_t bin = fRhoInterp->FindLastBinAbove(0);
 	return (fRhoInterp->GetBinCenter(bin));
 }
 
-TH1F * WCSimEmissionProfiles::GetRho(TrackType::Type particle, double energy)
+TH1F * WCSimEmissionProfiles::GetRho()
 {
-	WCSimLikelihoodTrackBase * tempTrack = WCSimLikelihoodTrackFactory::MakeTrack(particle);
-	tempTrack->SetE(energy);
-	SetTrack(tempTrack);
 	return fRhoInterp;
 }
 
-TH2F * WCSimEmissionProfiles::GetGCoarse(TrackType::Type particle, double energy)
+TH2F * WCSimEmissionProfiles::GetGCoarse()
 {
-	return GetG(particle, energy).first;
+	return GetG().first;
 }
 
-TH2F * WCSimEmissionProfiles::GetGFine(TrackType::Type particle, double energy)
+TH2F * WCSimEmissionProfiles::GetGFine()
 {
-	return GetG(particle, energy).second;
+	return GetG().second;
 }
 
-std::pair<TH2F *, TH2F* > WCSimEmissionProfiles::GetG(TrackType::Type particle, double energy)
+std::pair<TH2F *, TH2F* > WCSimEmissionProfiles::GetG()
 {
-	WCSimLikelihoodTrackBase * tempTrack = WCSimLikelihoodTrackFactory::MakeTrack(particle);
-	tempTrack->SetE(energy);
-	SetTrack(tempTrack);
 	return std::make_pair(fGCoarse, fGFine);
 }
 
-TH1F * WCSimEmissionProfiles::GetEnergyHist(TrackType::Type particle)
+TH1F * WCSimEmissionProfiles::GetEnergyHist()
 {
-	WCSimLikelihoodTrackBase * tempTrack = WCSimLikelihoodTrackFactory::MakeTrack(particle);
-	tempTrack->SetE(1000.0);
-	SetTrack(tempTrack);
 	return fBinningHistogram;
 }

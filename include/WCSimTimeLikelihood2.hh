@@ -10,7 +10,7 @@
 
 #include "TString.h"
 #include <map>
-class WCSimEmissionProfiles;
+class WCSimEmissionProfileManager;
 class WCSimPMTManager;
 class WCSimLikelihoodTrackBase;
 class WCSimTimePredictor;
@@ -19,7 +19,7 @@ class WCSimLikelihoodDigitArray;
 class WCSimTimeLikelihood2 {
 public:
 	WCSimTimeLikelihood2();
-	WCSimTimeLikelihood2(WCSimLikelihoodDigitArray * myDigitArray, WCSimEmissionProfiles * myEmissionProfiles);
+	WCSimTimeLikelihood2(WCSimLikelihoodDigitArray * myDigitArray, WCSimEmissionProfileManager * myEmissionProfileManager);
 	virtual ~WCSimTimeLikelihood2();
 
     /**
@@ -60,7 +60,7 @@ private:
 	  std::vector<WCSimLikelihoodTrackBase*> fTracks; ///< Tracks to consider when calculating the likelihood
     WCSimLikelihoodDigitArray * fLikelihoodDigitArray; ///< Event to build likelihood for
     WCSimPMTManager * fPMTManager;
-    WCSimEmissionProfiles * fEmissionProfiles;
+    WCSimEmissionProfileManager * fEmissionProfileManager;
     std::vector<double> fAllPreds;
     std::map<TString, double> fPMTTimeConstantMap;
     ClassDef(WCSimTimeLikelihood2,0)

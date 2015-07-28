@@ -6,7 +6,7 @@
 
 #include "WCSimChargePredictor.hh"
 #include "WCSimDigitizerLikelihood.hh"
-#include "WCSimEmissionProfiles.hh"
+#include "WCSimEmissionProfileManager.hh"
 #include "WCSimRecoDigit.hh"
 #include "WCSimLikelihoodDigit.hh"
 #include "WCSimLikelihoodDigitArray.hh"
@@ -35,23 +35,23 @@ WCSimChargePredictor::WCSimChargePredictor()
   fDigit = NULL;
   fNumCalculations = 0;
   fTuner = NULL;
-  fEmissionProfiles=  NULL;
+  fEmissionProfileManager =  NULL;
 }
 
 //
-WCSimChargePredictor::WCSimChargePredictor(WCSimLikelihoodDigitArray * myDigitArray, WCSimEmissionProfiles * myProfiles)
+WCSimChargePredictor::WCSimChargePredictor(WCSimLikelihoodDigitArray * myDigitArray, WCSimEmissionProfileManager * myEmissionProfileManager)
 {
     // std::cout << "*** WCSimChargeLikelihood::WCSimChargeLikelihood() *** Created charge likelihood object" << std::endl;
     fTuner = NULL;
     fDigitArray = NULL;
     fDigit = NULL;
-    this->Initialize( myDigitArray, myProfiles );
+    this->Initialize( myDigitArray, myEmissionProfileManager );
     fNumCalculations = 0;
 }
 
 
 
-void WCSimChargePredictor::Initialize( WCSimLikelihoodDigitArray * myDigitArray, WCSimEmissionProfiles * myEmissionProfiles)
+void WCSimChargePredictor::Initialize( WCSimLikelihoodDigitArray * myDigitArray, WCSimEmissionProfileManager * myEmissionProfileManager)
 {
     // std::cout << "*** WCSimChargeLikelihood::Initialize() *** Initializing charge likelihood with tuned values" << std::endl;
 
@@ -65,8 +65,8 @@ void WCSimChargePredictor::Initialize( WCSimLikelihoodDigitArray * myDigitArray,
 
     fGotTrackParameters = -1; //false
     fDigitArray = myDigitArray;
-    fEmissionProfiles = myEmissionProfiles;
-    fTuner = new WCSimLikelihoodTuner(fDigitArray, myEmissionProfiles);
+    fEmissionProfileManager = myEmissionProfileManager;
+    fTuner = new WCSimLikelihoodTuner(fDigitArray, myEmissionProfileManager);
 
     return;
 }
@@ -79,7 +79,7 @@ WCSimChargePredictor::WCSimChargePredictor(const WCSimChargePredictor &other)
   fTuner = NULL;
   fDigitArray = NULL;
   fDigit = NULL;
-  this->Initialize( other.fDigitArray, other.fEmissionProfiles );
+  this->Initialize( other.fDigitArray, other.fEmissionProfileManager );
 }
 
 
@@ -90,7 +90,7 @@ WCSimChargePredictor& WCSimChargePredictor::operator=(const WCSimChargePredictor
   fTuner      = rhs.fTuner;;
   fDigitArray = rhs.fDigitArray;;
   fDigit      = rhs.fDigit;;
-  this->Initialize( rhs.fDigitArray, rhs.fEmissionProfiles );
+  this->Initialize( rhs.fDigitArray, rhs.fEmissionProfileManager );
   return *this;
 }
 

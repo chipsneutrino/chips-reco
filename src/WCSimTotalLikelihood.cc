@@ -20,10 +20,10 @@ WCSimTotalLikelihood::WCSimTotalLikelihood( WCSimLikelihoodDigitArray * myLikeli
   fLikelihoodDigitArray(myLikelihoodDigitArray),
 	fDigitizerLikelihood()
 {  
-  fEmissionProfiles = new WCSimEmissionProfiles();
+  fEmissionProfileManager = new WCSimEmissionProfileManager();
   fChargeLikelihoodVector.push_back(
-      WCSimChargePredictor(fLikelihoodDigitArray, fEmissionProfiles) );
-  fTimeLikelihood = new WCSimTimeLikelihood2(fLikelihoodDigitArray, fEmissionProfiles);
+      WCSimChargePredictor(fLikelihoodDigitArray, fEmissionProfileManager) );
+  fTimeLikelihood = new WCSimTimeLikelihood2(fLikelihoodDigitArray, fEmissionProfileManager);
 
   ClearVectors();
 
@@ -35,7 +35,7 @@ WCSimTotalLikelihood::WCSimTotalLikelihood( WCSimLikelihoodDigitArray * myLikeli
 WCSimTotalLikelihood::~WCSimTotalLikelihood()
 {
   fChargeLikelihoodVector.clear();
-  delete fEmissionProfiles;
+  delete fEmissionProfileManager;
   delete fTimeLikelihood;
 }
 
@@ -57,12 +57,13 @@ void WCSimTotalLikelihood::SetTracks( std::vector<WCSimLikelihoodTrackBase*> &my
     // std::cout << "TrackIter -> " << std::endl;
     if (i > 0) {
       fChargeLikelihoodVector.push_back(
-          WCSimChargePredictor(fLikelihoodDigitArray, fEmissionProfiles) );
+          WCSimChargePredictor(fLikelihoodDigitArray, fEmissionProfileManager) );
     }
     fChargeLikelihoodVector[i].AddTrack(*trackIter);
     i++;
   }
   fTimeLikelihood->SetTracks(fTracks);
+  fEmissionProfileManager->CacheAtLeast(fTracks.size());
 
   return;
 }
@@ -144,8 +145,8 @@ Double_t WCSimTotalLikelihood::Calc2LnL(int iDigit)
   }
 
 
-  double minus2LnL = fDigitizerLikelihood.GetMinus2LnL(totalCharge, digit->GetQ());
-  double chargePart = minus2LnL;
+  double chargePart = fDigitizerLikelihood.GetMinus2LnL(totalCharge, digit->GetQ());
+  double minus2LnL = chargePart;
   double timePart = 0.0;
   if(WCSimAnalysisConfig::Instance()->GetUseChargeAndTime())
   {
@@ -167,11 +168,11 @@ void WCSimTotalLikelihood::SetLikelihoodDigitArray(
 
   fChargeLikelihoodVector.clear();
   std::vector<WCSimLikelihoodTrackBase*> tmpTracks = fTracks;
-  fChargeLikelihoodVector.push_back(WCSimChargePredictor(fLikelihoodDigitArray, fEmissionProfiles));
+  fChargeLikelihoodVector.push_back(WCSimChargePredictor(fLikelihoodDigitArray, fEmissionProfileManager));
 	if(fTimeLikelihood != NULL)
   {
     delete fTimeLikelihood;
-    fTimeLikelihood = new WCSimTimeLikelihood2(fLikelihoodDigitArray, fEmissionProfiles);
+    fTimeLikelihood = new WCSimTimeLikelihood2(fLikelihoodDigitArray, fEmissionProfileManager);
   }
   SetTracks(tmpTracks);
   ClearVectors();
@@ -237,4 +238,9 @@ std::vector<double> WCSimTotalLikelihood::GetTotal2LnLVector() const {
 		assert(fSetVectors);
 	}
 	return fTotal2LnL;
+}
+
+WCSimEmissionProfileManager * WCSimTotalLikelihood::GetEmissionProfileManager()
+{
+  return fEmissionProfileManager;
 }

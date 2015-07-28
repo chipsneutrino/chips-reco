@@ -79,6 +79,7 @@
 #pragma link C++ class vector<WCSimFitterSingleTrackParameters>+;
 #pragma link C++ class WCSimEmissionProfiles+;
 #pragma link C++ enum EmissionProfile_t::Type;
+#pragma link C++ class WCSimEmissionProfileManager+;
 #pragma link C++ class WCSimRecoSummary+;
 #pragma link C++ class WCSimRecoEvDisplay+;
 #pragma link C++ class WCSimIntegralLookupMaker+;

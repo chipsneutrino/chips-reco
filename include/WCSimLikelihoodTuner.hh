@@ -19,7 +19,7 @@
 #include "TString.h"
 #include "TTree.h"
 
-#include "WCSimEmissionProfiles.hh"
+#include "WCSimEmissionProfileManager.hh"
 #include "WCSimIntegralLookup.hh"
 #include "WCSimLikelihoodTrackBase.hh"
 #include "WCSimLikelihoodDigitArray.hh"
@@ -39,7 +39,7 @@ class WCSimLikelihoodTuner
          * Constructor using the detector settings from a given event
          * @param myDigitArray PMT response for an event
          */
-        WCSimLikelihoodTuner(WCSimLikelihoodDigitArray * myDigitArray, WCSimEmissionProfiles * myEmissionProfiles);
+        WCSimLikelihoodTuner(WCSimLikelihoodDigitArray * myDigitArray, WCSimEmissionProfileManager * myEmissionProfileManager);
 
         /**
          * Called by both constructors to set up internal variables
@@ -54,14 +54,6 @@ class WCSimLikelihoodTuner
          */
         void UpdateDigitArray(WCSimLikelihoodDigitArray * myDigitArray);
    
-        /**
-         * Get the emission profiles (fraction of photons emitted in a given direction at a given
-         * distance along the track) for a specific particle type
-         * @param myTrack Track object to load profiles for
-         */
-        void LoadEmissionProfiles(WCSimLikelihoodTrackBase * myTrack);
-
-
         /**
          * Probability a photon survives the distance from where it was emitted to the PMT
          * @param s Distance from track vertex at which the photon was emitted
@@ -132,12 +124,6 @@ class WCSimLikelihoodTuner
          * @param myTrack Track object to calculate it for
          */
         void CalculateCutoff(WCSimLikelihoodTrackBase * myTrack);
-
-        /**
-         * Load the lookup table containing the track integrals
-         * @param myTrack Track to load the table for
-         */
-	      void LoadTabulatedIntegrals(WCSimLikelihoodTrackBase * myTrack);
 
         // DEBUGGING:
         // By default the tuner will use a config file to determine whether to calculate or lookup the integrals
@@ -261,7 +247,7 @@ class WCSimLikelihoodTuner
 	  	Bool_t   fCalculateIntegrals;  ///< True if we should calculate integrals numerically, false to look them up in a table
       
 	  	TrackType::Type fIntegralParticleType; ///< The particle type whose table we've already loaded
-	  	WCSimEmissionProfiles * fEmissionProfiles; ///< The emission profile handler
+	  	WCSimEmissionProfileManager * fEmissionProfileManager; ///< The emission profile handler
 	  	WCSimPMTManager * fPMTManager;
 
 };

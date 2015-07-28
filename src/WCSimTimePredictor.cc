@@ -11,6 +11,7 @@
 #include "WCSimLikelihoodDigit.hh"
 #include "WCSimLikelihoodTuner.hh"
 #include "WCSimEmissionProfiles.hh"
+#include "WCSimEmissionProfileManager.hh"
 #include "WCSimLikelihoodTuner.hh"
 
 #ifndef REFLEX_DICTIONARY
@@ -22,10 +23,10 @@ WCSimTimePredictor::WCSimTimePredictor() {
   fTuner = 0x0;
 }
 
-WCSimTimePredictor::WCSimTimePredictor(WCSimLikelihoodDigitArray* myArray, WCSimEmissionProfiles * myEmissionProfiles) {
+WCSimTimePredictor::WCSimTimePredictor(WCSimLikelihoodDigitArray* myArray, WCSimEmissionProfileManager * myEmissionProfileManager) {
 	fDigitArray = myArray;
-  fEmissionProfiles = myEmissionProfiles;
-  fTuner = new WCSimLikelihoodTuner(myArray, myEmissionProfiles);
+  fEmissionProfileManager = myEmissionProfileManager;
+  fTuner = new WCSimLikelihoodTuner(myArray, myEmissionProfileManager);
 }
 
 WCSimTimePredictor::~WCSimTimePredictor() {
@@ -93,7 +94,7 @@ double WCSimTimePredictor::GetHitTime(WCSimLikelihoodTrackBase* myTrack,
 }
 
 double WCSimTimePredictor::GetSurvivalDistance(WCSimLikelihoodTrackBase* myTrack) {
-	double distance = fEmissionProfiles->GetStoppingDistance(myTrack);
+	double distance = fEmissionProfileManager->GetStoppingDistance(myTrack);
 	return distance;
 }
 
@@ -202,7 +203,7 @@ double WCSimTimePredictor::GetHitTime(WCSimLikelihoodTrackBase* myTrack,
 double WCSimTimePredictor::GetEscapeDistance(WCSimLikelihoodTrackBase* myTrack) {
   if(fTuner == 0x0)
   {
-    fTuner = new WCSimLikelihoodTuner(fDigitArray, fEmissionProfiles);
+    fTuner = new WCSimLikelihoodTuner(fDigitArray, fEmissionProfileManager);
   }
 	double cutoff = fTuner->GetCutoff(myTrack);
 	return cutoff;

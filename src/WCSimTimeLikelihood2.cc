@@ -24,15 +24,15 @@ WCSimTimeLikelihood2::WCSimTimeLikelihood2() {
 	// TODO Auto-generated constructor stub
 	fTimePredictor = 0x0;
 	fLikelihoodDigitArray = 0x0;
-  fEmissionProfiles = 0x0;
+  fEmissionProfileManager = 0x0;
 	fPMTManager = new WCSimPMTManager();
 }
 
-WCSimTimeLikelihood2::WCSimTimeLikelihood2( WCSimLikelihoodDigitArray * myDigitArray, WCSimEmissionProfiles * myEmissionProfiles)
+WCSimTimeLikelihood2::WCSimTimeLikelihood2( WCSimLikelihoodDigitArray * myDigitArray, WCSimEmissionProfileManager * myEmissionProfileManager)
 {
   fLikelihoodDigitArray = myDigitArray;
-  fEmissionProfiles = myEmissionProfiles;
-  fTimePredictor = new WCSimTimePredictor(myDigitArray, fEmissionProfiles);
+  fEmissionProfileManager = myEmissionProfileManager;
+  fTimePredictor = new WCSimTimePredictor(myDigitArray, fEmissionProfileManager);
   fPMTManager = new WCSimPMTManager();
   return;
 }

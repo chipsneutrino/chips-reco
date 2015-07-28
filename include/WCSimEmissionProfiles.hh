@@ -46,52 +46,48 @@ struct EmissionProfile_t{
 class WCSimEmissionProfiles {
 public:
 	WCSimEmissionProfiles();
-	WCSimEmissionProfiles(WCSimLikelihoodTrackBase * myTrack);
-  void SaveProfiles();
-	void SetTrack(WCSimLikelihoodTrackBase * myTrack);
+	WCSimEmissionProfiles(const TrackType::Type &type, const double &energy);
+  void SetEnergy(const double &energy);
+  void SaveProfiles(const TrackType::Type &type, const double &energy);
 	Double_t GetRho(const Double_t &s);
   Double_t GetRhoWidth(const Double_t &s);
 	Double_t GetG(const Double_t &s, const Double_t &cosTheta);
   Double_t GetGWidth(const Double_t &cosTheta);
 
-	Double_t GetIntegral(EmissionProfile_t::Type type, WCSimLikelihoodTrackBase* myTrack,
+	Double_t GetIntegral(WCSimLikelihoodTrackBase * myTrack, EmissionProfile_t::Type type, 
 			WCSimLikelihoodDigit * myDigit, Int_t sPower, Double_t cutoffS, Bool_t multiplyByWidth);
 	
-	Double_t GetRhoIntegral(Int_t sPower, Double_t energy, Double_t startS, Double_t endS, Bool_t multiplyByWidth = kTRUE);
-	std::vector<Double_t> GetRhoIntegrals(std::vector<Int_t> sPowers, Double_t energy, Double_t startS, Double_t endS, Bool_t multiplyByWidth = kTRUE);
+	Double_t GetRhoIntegral(Int_t sPower, Double_t startS, Double_t endS, Bool_t multiplyByWidth = kTRUE);
+	std::vector<Double_t> GetRhoIntegrals(std::vector<Int_t> sPowers, Double_t startS, Double_t endS, Bool_t multiplyByWidth = kTRUE);
 	Double_t GetRhoGIntegral(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit,
 			                     Int_t sPower, Double_t cutoffS, Bool_t multiplyByWidth);
-	std::vector<Double_t> GetRhoGIntegrals(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit,
+	std::vector<Double_t> GetRhoGIntegrals(WCSimLikelihoodTrackBase* myTrack, WCSimLikelihoodDigit * myDigit,
 			                                  std::vector<Int_t> sPowers, Double_t cutoffS, Bool_t multiplyByWidth);
   Double_t GetTrackLengthForPercentile(Double_t percentile);
 
 	virtual ~WCSimEmissionProfiles();
-  Double_t GetLightFlux(WCSimLikelihoodTrackBase * myTrack) const;
+  Double_t GetLightFlux(const TrackType::Type &type, const double &energy) const;
 
   std::vector<Double_t> GetProfileEnergies() const;
-  Double_t GetStoppingDistance(WCSimLikelihoodTrackBase * track);
+  Double_t GetStoppingDistance();
 
-  TH1F * GetRho(TrackType::Type particle, double energy);
-  std::pair<TH2F*,TH2F*> GetG(TrackType::Type particle, double energy);
-  TH2F * GetGCoarse(TrackType::Type particle, double energy);
-  TH2F * GetGFine(TrackType::Type particle, double energy);
-  TH1F * GetEnergyHist(TrackType::Type particle);
+  TH1F * GetRho();
+  std::pair<TH2F*,TH2F*> GetG();
+  TH2F * GetGCoarse();
+  TH2F * GetGFine();
+  TH1F * GetEnergyHist();
 
 private:
 	UInt_t GetArrayBin(Double_t energy) const;
 	UInt_t GetHistBin(Double_t energy) const;
 	Double_t GetFractionThroughBin(Double_t energy) const;
 
-	void LoadFile(WCSimLikelihoodTrackBase * myTrack);
-	void InterpolateProfiles(WCSimLikelihoodTrackBase * myTrack);
-	void InterpolateRho(WCSimLikelihoodTrackBase * myTrack);
-	void InterpolateG(WCSimLikelihoodTrackBase * myTrack);
+	void LoadFile(const TrackType::Type &type, const double &energy);
+	void InterpolateProfiles(const double &energy);
+	void InterpolateRho(const double &energy);
+	void InterpolateG(const double &energy);
 
 	Double_t GetCriticalDistance(TrackType::Type type, Double_t energy) const;
-	Double_t GetLightFlux(TrackType::Type type, Double_t energy) const;
-
-	Double_t fLastEnergy;
-	TrackType::Type fLastType;
 
 	TString fProfileFileName;
 	TFile * fProfileFile;
@@ -109,7 +105,8 @@ private:
 	TH1F * fRhoInterpLo;
 	TH1F * fRhoInterpHi;
 
-
+  TrackType::Type fType;
+  double fEnergy;
   ClassDef(WCSimEmissionProfiles,1)
 
 };

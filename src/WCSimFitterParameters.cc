@@ -179,16 +179,17 @@ WCSimFitterParameters::~WCSimFitterParameters() {
 
 void WCSimFitterParameters::SetNumTracks(unsigned int nTracks)
 {
-  if(fNumTracks < nTracks)
+  int tracksNeeded = fNumTracks;
+  if(tracksNeeded < nTracks)
   {
-    for(unsigned int toAdd = 0; toAdd < (nTracks - fNumTracks) ; ++toAdd)
+    for(unsigned int toAdd = 0; toAdd < (nTracks - tracksNeeded) ; ++toAdd)
     {
       WCSimFitterSingleTrackParameters trackPars;
       AddTrack(trackPars);
       fTrackTypes.push_back(TrackType::Unknown);
-    }
+   }
   }
-  else if(fNumTracks > nTracks)
+  else if(tracksNeeded > nTracks)
   {
     fTrackPars.erase( fTrackPars.begin() + nTracks, fTrackPars.end() );
     fTrackTypes.erase( fTrackTypes.begin() + nTracks, fTrackTypes.end() );

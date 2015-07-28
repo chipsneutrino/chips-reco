@@ -12,6 +12,7 @@
 #include "WCSimTimeLikelihood2.hh"
 #include "WCSimLikelihoodDigitArray.hh"
 #include "WCSimLikelihoodTrackBase.hh"
+#include "WCSimEmissionProfileManager.hh"
 
 #include "TObject.h"
 #include <vector>
@@ -72,6 +73,7 @@ class WCSimTotalLikelihood : public TObject
       std::vector<double> GetTotal2LnLVector() const;
       std::vector<double> GetPredictedTimeVector() const;
 
+      WCSimEmissionProfileManager * GetEmissionProfileManager();
  
   protected:
   private:
@@ -87,7 +89,7 @@ class WCSimTotalLikelihood : public TObject
       std::vector<double> fMeasuredCharges;
       std::vector<double> fPredictedCharges;
       std::vector<double> fTotal2LnL;
-      WCSimEmissionProfiles * fEmissionProfiles;
+      WCSimEmissionProfileManager * fEmissionProfileManager;
 
 
 	ClassDef(WCSimTotalLikelihood,1)

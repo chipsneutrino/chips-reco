@@ -8,6 +8,7 @@
 #ifndef WCSIMINTEGRALLOOKUPMAKER_HH_
 #define WCSIMINTEGRALLOOKUPMAKER_HH_
 
+#include "WCSimEmissionProfileManager.hh"
 #include "WCSimIntegralLookup.hh"
 #include "WCSimTrackParameterEnums.hh"
 #include "WCSimLikelihoodTrack.hh"
@@ -55,7 +56,7 @@ protected:
 	double fCosTh0Max;
 
 	TrackType::Type fType;
-	WCSimEmissionProfiles fEmissionProfiles;
+	WCSimEmissionProfileManager fEmissionProfileManager;
 
 	// The integral histograms:
 	WCSimIntegralLookupHists fIntegrals;

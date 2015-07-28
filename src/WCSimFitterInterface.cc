@@ -85,7 +85,7 @@ void WCSimFitterInterface::SetTrackType( unsigned int numTrack, const char * typ
 
 void WCSimFitterInterface::JoinParametersTogether(unsigned int numTrack1, unsigned int numTrack2, const char * name)
 {
-	assert(numTrack1 < fNumTracks && numTrack2 < fNumTracks && numTrack1 != numTrack2);
+	assert(numTrack1 != numTrack2);
 	if( numTrack1 < numTrack2 ){ WCSimFitterConfig::Instance()->SetJoinParametersTogether(numTrack1, numTrack2, name);}
 	else{ WCSimFitterConfig::Instance()->SetJoinParametersTogether(numTrack2, numTrack1, name); }
 

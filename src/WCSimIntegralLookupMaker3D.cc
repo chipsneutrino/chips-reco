@@ -33,8 +33,8 @@ WCSimIntegralLookupMaker3D::WCSimIntegralLookupMaker3D( TrackType::Type particle
 	fRhoGSSInt = 0x0;
 	fType = particle;
 
-	TH1F * binningHist = fEmissionProfiles.GetEnergyHist(particle);
-	TH1F * hRhoTemp = fEmissionProfiles.GetRho(particle, binningHist->GetXaxis()->GetXmin());
+	TH1F * binningHist = fEmissionProfileManager.GetEnergyHist(particle);
+	TH1F * hRhoTemp = fEmissionProfileManager.GetRho(particle, binningHist->GetXaxis()->GetXmin());
 
 	TCanvas * can1=  new TCanvas("can1","can1",800,600);
 	binningHist->Draw();
@@ -106,14 +106,14 @@ void WCSimIntegralLookupMaker3D::MakeLookupTables() {
 void WCSimIntegralLookupMaker3D::MakeRhoTables() {
 	std::cout << "*** Making tables for rho *** " << std::endl;
 	int binsFilled = 0;
-    TH1F * binningHisto = fEmissionProfiles.GetEnergyHist(fType);
+    TH1F * binningHisto = fEmissionProfileManager.GetEnergyHist(fType);
 
     for( int iEBin = 1; iEBin <= binningHisto->GetXaxis()->GetNbins(); ++iEBin)
     {
       std::cout << "Energy bin = " << iEBin << "/" << binningHisto->GetXaxis()->GetNbins() << std::endl;
       Double_t runningTotal[3] = {0.0, 0.0, 0.0};
 	  Double_t ELowEdge[1] = {binningHisto->GetXaxis()->GetBinLowEdge(iEBin)}; // E and s for each bin - THnSparseF needs an array
-	  TH1F * hRho = fEmissionProfiles.GetRho(fType, ELowEdge[0]);
+	  TH1F * hRho = fEmissionProfileManager.GetRho(fType, ELowEdge[0]);
 	  for(int iSBin = 1; iSBin <= hRho->GetXaxis()->GetNbins(); ++iSBin)
 	  {
 		  double s = hRho->GetXaxis()->GetBinCenter(iSBin);
@@ -139,7 +139,7 @@ void WCSimIntegralLookupMaker3D::MakeRhoTables() {
 
 void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
 	std::cout << " *** MakeRhoGTables *** " << std::endl;
-    TH1F * binningHisto = fEmissionProfiles.GetEnergyHist(fType);
+    TH1F * binningHisto = fEmissionProfileManager.GetEnergyHist(fType);
 
     TAxis axisR0(fNR0Bins, fR0Min, fR0Max);
     TAxis axisCosTh0(fNCosTh0Bins, fCosTh0Min, fCosTh0Max);
@@ -152,8 +152,8 @@ void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
     // std::cout << fIntegrals.GetRhoGSSInt()->GetBinContent(1613039);
 		Double_t vars[3] = { binningHisto->GetXaxis()->GetBinLowEdge(iEBin), 0.0, 0.0 };
 		// Entries are E, R0, cosTh0
-		TH1F * hRho = fEmissionProfiles.GetRho(fType, vars[0]);
-		std::pair<TH2F*, TH2F*> hG = fEmissionProfiles.GetG(fType, vars[0]);
+		TH1F * hRho = fEmissionProfileManager.GetRho(fType, vars[0]);
+		std::pair<TH2F*, TH2F*> hG = fEmissionProfileManager.GetG(fType, vars[0]);
 
 		for( Int_t iR0Bin = 1; iR0Bin <= fNR0Bins; ++iR0Bin)
 		{

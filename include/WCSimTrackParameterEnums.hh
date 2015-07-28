@@ -7,6 +7,7 @@
 
 #ifndef WCSIMTRACKPARAMETERENUMS_HH_
 #define WCSIMTRACKPARAMETERENUMS_HH_
+#include <cstdlib>
 #include <cassert>
 #include <string>
 #include <iostream>
@@ -77,9 +78,9 @@ class TrackType : public TObject{
       else
       {
         std::cerr << "Error: unknown track type for PDG code " << pdg << std::endl;
-        assert(0);
+        return Unknown;
+        //assert(0);
       }
-      return Unknown;
     }
 
     static int GetPDGFromType(const Type &type)
