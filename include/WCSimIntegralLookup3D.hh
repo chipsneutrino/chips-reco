@@ -8,8 +8,41 @@
 #ifndef WCSIMINTEGRALLOOKUP3D_HH_
 #define WCSIMINTEGRALLOOKUP3D_HH_
 #include "WCSimIntegralLookup.hh"
+class TH1F;
+class TH3F;
 
-class WCSimIntegralLookup3D : public WCSimIntegralLookup {
+class WCSimIntegralLookupHists3D{
+public:
+	WCSimIntegralLookupHists3D();
+	WCSimIntegralLookupHists3D( TH1F * rhoInt,  TH1F * rhoSInt,  TH1F * rhoSSInt,
+			   	   	   	   	  TH3F * rhoGInt, TH3F * rhoGSInt, TH3F * rhoGSSInt,
+			   	   	   	   	  TH1F * cutoffS );
+
+	TH1F * GetRhoInt() const;
+	TH1F * GetRhoSInt() const;
+	TH1F * GetRhoSSInt() const;
+	TH3F * GetRhoGInt() const;
+	TH3F * GetRhoGSInt() const;
+	TH3F * GetRhoGSSInt() const;
+	TH1F * GetCutoffS() const;
+
+	void SetHists( TH1F * rhoInt,  TH1F * rhoSInt,  TH1F * rhoSSInt,
+				   TH3F * rhoGInt, TH3F * rhoGSInt, TH3F * rhoGSSInt,
+				   TH1F * cutoffS );
+
+private:
+	TH1F * fRhoInt;
+	TH1F * fRhoSInt;
+	TH1F * fRhoSSInt;
+
+	TH3F * fRhoGInt;
+	TH3F * fRhoGSInt;
+	TH3F * fRhoGSSInt;
+
+	TH1F * fCutoffS;
+};
+
+class WCSimIntegralLookup3D {
 public:
 
 	WCSimIntegralLookup3D( TString fileName );

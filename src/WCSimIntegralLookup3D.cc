@@ -11,6 +11,86 @@
 #include <TH1F.h>
 #include <THnSparse.h>
 
+//////////////////////////////////////////////////////////////////////////////////////
+// First the class used to hold the histograms (compare to WCSimIntegralLookupHists3D //
+// in WCSimIntegralLookup.hh/cc														//
+//////////////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+// Class to hold all the histograms so that the reader and writer code don't get out of sync
+///////////////////////////////////////////////////////////////////////////////////////////////
+WCSimIntegralLookupHists3D::WCSimIntegralLookupHists3D() {
+	fRhoInt = 0x0;
+	fRhoSInt = 0x0;
+	fRhoSSInt = 0x0;
+
+	fRhoGInt = 0x0;
+	fRhoGSInt = 0x0;
+	fRhoGSSInt = 0x0;
+
+	fCutoffS = 0x0;
+}
+
+WCSimIntegralLookupHists3D::WCSimIntegralLookupHists3D(TH1F* rhoInt, TH1F* rhoSInt, TH1F* rhoSSInt,
+		TH3F* rhoGInt, TH3F* rhoGSInt, TH3F* rhoGSSInt, TH1F* cutoffS) {
+	SetHists(rhoInt, rhoSInt, rhoSSInt, rhoGInt, rhoGSInt, rhoGSSInt, cutoffS);
+
+}
+
+TH1F* WCSimIntegralLookupHists3D::GetRhoInt() const {
+	return fRhoInt;
+}
+
+TH1F* WCSimIntegralLookupHists3D::GetRhoSInt() const {
+	return fRhoSInt;
+}
+
+TH1F* WCSimIntegralLookupHists3D::GetRhoSSInt() const {
+	return fRhoSSInt;
+}
+
+TH3F* WCSimIntegralLookupHists3D::GetRhoGInt() const {
+	return fRhoGInt;
+}
+
+TH3F* WCSimIntegralLookupHists3D::GetRhoGSInt() const {
+  // std::cout << fRhoGSInt << std::endl;
+  // std::cout << fRhoGSInt->GetEntries() << std::endl;
+  // std::cout << "Returning fRhoGSInt" << std::endl;
+	return fRhoGSInt;
+}
+
+TH3F* WCSimIntegralLookupHists3D::GetRhoGSSInt() const {
+	return fRhoGSSInt;
+}
+
+TH1F* WCSimIntegralLookupHists3D::GetCutoffS() const {
+	return fCutoffS;
+}
+
+void WCSimIntegralLookupHists3D::SetHists(TH1F* rhoInt, TH1F* rhoSInt, TH1F* rhoSSInt,
+		TH3F* rhoGInt, TH3F* rhoGSInt, TH3F* rhoGSSInt, TH1F* cutoffS) {
+
+	fRhoInt = rhoInt;
+	fRhoSInt = rhoSInt;
+	fRhoSSInt = rhoSSInt;
+
+	fRhoGInt = rhoGInt;
+	fRhoGSInt = rhoGSInt;
+	fRhoGSSInt = rhoGSSInt;
+
+	fCutoffS = cutoffS;
+  // std::cout << "Finished setting hists" << std::endl;
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+// Now the main class to do the looking-up                                          //
+//////////////////////////////////////////////////////////////////////////////////////
+
+
 WCSimIntegralLookup3D::WCSimIntegralLookup3D(TString fileName) {
 
 	fHistFile = 0x0;
@@ -104,10 +184,10 @@ double WCSimIntegralLookup3D::GetIntegral3D(const double& E, const double& R0, c
 	int bin = hist->GetBin(x, false); // false -> don't allocate bin if it's empty
 
 //	if(0.7 < cosTh0 && cosTh0 < 0.8){
-	// std::cout << "Getting integral for:  E = " << E << "  R0 = " << R0 << "   cosTh0 = " << cosTh0 << "  " << std::endl;
-	// std::cout << " bin = " << bin << std::endl;
-	// if(bin != -1) {std::cout << "  int = " << hist->GetBinContent(bin) << std::endl;}
-  // std::cout << "Done" << std::endl;
+	//  std::cout << "Getting integral for:  E = " << E << "  R0 = " << R0 << "   cosTh0 = " << cosTh0 << "  " << std::endl;
+	//  std::cout << " bin = " << bin << std::endl;
+	//  if(bin != -1) {std::cout << "  int = " << hist->GetBinContent(bin) << std::endl;}
+  //  std::cout << "Done" << std::endl;
 	if( bin != -1) { return (hist->GetBinContent(bin) ); }
 	else { return 0; }
 }

@@ -12,6 +12,7 @@
 #include <TFile.h>
 #include <TH1F.h>
 #include <TH2F.h>
+#include <TH3F.h>
 #include <TMath.h>
 
 #ifndef REFLEX_DICTIONARY
@@ -22,7 +23,6 @@ ClassImp(WCSimIntegralLookupMaker3D)
 WCSimIntegralLookupMaker3D::WCSimIntegralLookupMaker3D( TrackType::Type particle,
 													int nR0Bins, double R0Min, double R0Max,
 													int nCosTh0Bins, double cosTh0Min, double cosTh0Max )
-: WCSimIntegralLookupMaker(particle, nR0Bins, R0Min, R0Max, nCosTh0Bins, cosTh0Min, cosTh0Max)
 {
 	std::cout << " *** WCSimIntegralLookupMaker3D for track type = " << TrackType::AsString(particle) << " *** " << std::endl;
 	fRhoInt = 0x0;
@@ -79,26 +79,18 @@ void WCSimIntegralLookupMaker3D::SetBins(const int &nEBins, const double &eMin, 
 	fCosTh0Min = cosTh0Min;
 	fCosTh0Max = cosTh0Max;
 
-	int binsRho[1] = {fNEBins};
-	double minRho[1] = {fEMin};
-	double maxRho[1] = {fEMax};
-	fRhoInt = new THnSparseF("fRhoInt","Integral of #rho(s)",1, binsRho, minRho, maxRho);
-	fRhoSInt = new THnSparseF("fRhoSInt","Integral of #rho(s) #times s",2, binsRho, minRho, maxRho);
-	fRhoSSInt = new THnSparseF("fRhoSSInt","Integral of #rho(s) #times s^{2}",2, binsRho, minRho, maxRho);
+	fRhoInt = new TH1F("fRhoInt","Integral of #rho(s)", fNEBins, fEMin, fEMax);
+	fRhoSInt = new TH1F("fRhoSInt","Integral of #rho(s) #times s", fNEBins, fEMin, fEMax);
+	fRhoSSInt = new TH1F("fRhoSSInt","Integral of #rho(s) #times s^{2}", fNEBins, fEMin, fEMax);
 
-	int binsG[3] = {fNEBins, fNR0Bins, fNCosTh0Bins};
-	double minG[3] = {fEMin, fR0Min, fCosTh0Min};
-	double maxG[3] = {fEMax, fR0Max, fCosTh0Max};
-	fRhoGInt = new THnSparseF("fRhoGInt","Integral of #rho(s) #times g(s, cos#theta)", 3, binsG, minG, maxG);
-	fRhoGSInt = new THnSparseF("fRhoGSInt","Integral of #rho(s) #times g(s, cos#theta) #times s", 3, binsG, minG, maxG);
-	fRhoGSSInt = new THnSparseF("fRhoGSSInt","Integral of #rho(s) #times g(s, cos#theta) #times s^{2}", 3, binsG, minG, maxG);
-
+	fRhoGInt = new TH3F("fRhoGInt","Integral of #rho(s) #times g(s, cos#theta)", fNEBins, fEMin, fEMax, fNR0Bins, fR0Min, fR0Max, fNCosTh0Bins, fCosTh0Min, fCosTh0Max);
+	fRhoGSInt = new TH3F("fRhoGSInt","Integral of #rho(s) #times g(s, cos#theta) #times s", fNEBins, fEMin, fEMax, fNR0Bins, fR0Min, fR0Max, fNCosTh0Bins, fCosTh0Min, fCosTh0Max);
+	fRhoGSSInt = new TH3F("fRhoGSSInt","Integral of #rho(s) #times g(s, cos#theta) #times s^{2}", fNEBins, fEMin, fEMax, fNR0Bins, fR0Min, fR0Max, fNCosTh0Bins, fCosTh0Min, fCosTh0Max);
 
 	fIntegrals.SetHists(fRhoInt, fRhoSInt, fRhoSSInt, fRhoGInt, fRhoGSInt, fRhoGSSInt, 0x0);
 }
 
 void WCSimIntegralLookupMaker3D::MakeLookupTables() {
-	MakeCutoffS();
 	MakeRhoTables();
 	MakeRhoGTables();
 }
@@ -112,8 +104,8 @@ void WCSimIntegralLookupMaker3D::MakeRhoTables() {
     {
       std::cout << "Energy bin = " << iEBin << "/" << binningHisto->GetXaxis()->GetNbins() << std::endl;
       Double_t runningTotal[3] = {0.0, 0.0, 0.0};
-	  Double_t ELowEdge[1] = {binningHisto->GetXaxis()->GetBinLowEdge(iEBin)}; // E and s for each bin - THnSparseF needs an array
-	  TH1F * hRho = fEmissionProfileManager.GetRho(fType, ELowEdge[0]);
+	  Double_t ELowEdge = binningHisto->GetXaxis()->GetBinLowEdge(iEBin); // E and s for each bin - THnSparseF needs an array
+	  TH1F * hRho = fEmissionProfileManager.GetRho(fType, ELowEdge);
 	  for(int iSBin = 1; iSBin <= hRho->GetXaxis()->GetNbins(); ++iSBin)
 	  {
 		  double s = hRho->GetXaxis()->GetBinCenter(iSBin);
@@ -173,11 +165,12 @@ void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
 					// Work out the co-ordinates needed to look up the emission profiles at this step
 					Double_t s = hRho->GetBinCenter(iSBin);
 
-          // Work out cos(theta) as a function of R0, s and cosTh0
-          // I've broken down the fraction into part to save computations but
-          // this is just applying cosine rule twice an rearranging
-          double R0CosTh0 = R0 * cosTh0;
-          double cosTh = (R0CosTh0 - s) / TMath::Sqrt(s*s + R0*R0 - 2*s*R0CosTh0);
+					// Work out cos(theta) as a function of R0, s and cosTh0
+					// I've broken down the fraction into part to save computations but
+					// this is just applying cosine rule twice an rearranging
+					double R0CosTh0 = R0 * cosTh0;
+					double cosTh = (R0CosTh0 - s) / TMath::Sqrt(s*s + R0*R0 - 2*s*R0CosTh0);
+
 					Double_t sWidth = hRho->GetBinWidth(iSBin); // +1 is array numbering vs. bin numbering
 
 					// Now get the values of the emission profiles
@@ -185,7 +178,6 @@ void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
 					double toAdd = 0.0;
 					if( cosTh < hG.second->GetXaxis()->GetXmin())
 					{
-
 						thetaBin = hG.first->GetXaxis()->FindBin(cosTh);
 						toAdd = hRho->GetBinContent(iSBin) * hG.first->GetBinContent(thetaBin, iSBin) * sWidth;
 					}
@@ -208,9 +200,9 @@ void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
 //					std::cout << "vars = " << vars[0] << " " << vars[1] << " " << vars[2] << " bin = " << fIntegrals.GetRhoGInt()->GetBin(vars, false) << std::endl;
 //          }
 				}
-        fIntegrals.GetRhoGInt()->Fill(vars, runningTotal[0]);
-				fIntegrals.GetRhoGSInt()->Fill(vars, runningTotal[1]);
-				fIntegrals.GetRhoGSSInt()->Fill(vars, runningTotal[2]);
+				fIntegrals.GetRhoGInt()->Fill(vars[0], vars[1], vars[2], runningTotal[0]);
+				fIntegrals.GetRhoGSInt()->Fill(vars[0], vars[1], vars[2], runningTotal[1]);
+				fIntegrals.GetRhoGSSInt()->Fill(vars[0], vars[1], vars[2], runningTotal[2]);
 				if(runningTotal[0] > 0) {
 					//std::cout << "E = " << vars[0] << "  R0 = " << vars[1] << "  cosTh0 = " << vars[2] << "  rhogint = " << runningTotal[0] << std::endl;
 					++binsFilled;
@@ -218,9 +210,6 @@ void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
 			}
 		}
 	}
-	// std::cout << "g bins filled = " << binsFilled << std::endl;
-	std::cout << "Fraction of bins = " << fIntegrals.GetRhoGInt()->GetSparseFractionBins() << " and of memory " << fIntegrals.GetRhoGInt()->GetSparseFractionMem() << std::endl;
-	// std::cout << fIntegrals.GetRhoGInt()->GetNbins() << std::endl << std::endl;
 }
 
 void WCSimIntegralLookupMaker3D::Run(TString fileName) {
