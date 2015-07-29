@@ -636,16 +636,9 @@ void WCSimLikelihoodFitter::FitEnergy()
 				}
 			}
 			jBin++;
-      if(fCalls >= 10) { 
-        break;}
+      
 //			jBin+=4; // LEIGH
 		} while(jBin < energyBinsOne.size());
-
-
-      if(fCalls >= 10) { 
-        break;}
-	}
-
 
 	// Update everything with the best fit
 	fMinimum = best2LnL;
