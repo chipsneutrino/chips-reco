@@ -23,8 +23,10 @@
 
 #pragma link C++ class WCSimRecoObjectTable+;
 #pragma link C++ class WCSimRecoFactory+;
+#pragma link C++ class WCSimRecoSlicer+;
 #pragma link C++ class WCSimReco+;
 #pragma link C++ class WCSimRecoAB+;
+#pragma link C++ class WCSimRecoSeed+;
 #pragma link C++ class WCSimRecoEvent+;
 #pragma link C++ class WCSimRecoDigit+;
 #pragma link C++ class WCSimRecoCluster+;

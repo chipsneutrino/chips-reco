@@ -1,6 +1,7 @@
 #include "WCSimRecoFactory.hh"
 #include "WCSimReco.hh"
 #include "WCSimRecoAB.hh"
+#include "WCSimRecoSeed.hh"
 
 #include <string>
 #include <iostream>
@@ -43,6 +44,11 @@ WCSimReco* WCSimRecoFactory::MakeReco(const char *name)
 
   if( strcmp(name,"AB")==0 ) {
     WCSimReco* reco = new WCSimRecoAB();
+    return reco;
+  }
+
+  if( strcmp(name,"seed")==0){
+    WCSimReco* reco = new WCSimRecoSeed();
     return reco;
   }
 

@@ -12,6 +12,7 @@
 #include "WCSimLikelihoodTrackBase.hh"
 #include "WCSimLikelihoodTrackFactory.hh"
 #include "WCSimReco.hh"
+#include "WCSimRecoSeed.hh"
 #include "WCSimRecoDigit.hh"
 #include "WCSimRecoEvent.hh"
 #include "WCSimRecoFactory.hh"
@@ -190,13 +191,13 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
     FixVertex();
     FitEnergy();
     
-    // FixEnergy();
-    // FreeVertex();
-    // FitVertex();
-    // 
-    // FixVertex();
-    // FreeEnergy();
-    // FitEnergy();
+    FixEnergy();
+    FreeVertex();
+    FitVertex();
+    
+    FixVertex();
+    FreeEnergy();
+    FitEnergy();
 /*
 
 
@@ -473,50 +474,62 @@ void WCSimLikelihoodFitter::SeedEvent()
 {
 	std::cout << " *** WCSimLikelihoodFitter::SeedEvent() *** " << std::endl;
 
-	// Run the old Hough transform reco
-	WCSimReco * myReco = WCSimRecoFactory::Instance()->MakeReco(); // This calls new() - delete when done
-	WCSimRecoEvent* recoEvent = WCSimInterface::RecoEvent();
-	// myReco->RunFilter(recoEvent); // Might need to do this first, I'm not sure
-	myReco->RunRecoRings(recoEvent);
+  // Run the old Hough transform reco
+  WCSimRecoSeed * myReco = dynamic_cast<WCSimRecoSeed*>(WCSimRecoFactory::Instance()->MakeReco("seed")); // This calls new() - delete when done
+  WCSimRecoEvent* recoEvent = WCSimInterface::RecoEvent();
+  std::vector<WCSimRecoEvent*> slicedEvents = myReco->RunSeed(recoEvent);
 
+  // Now we need to loop over all the track parameters available to the fitter
+  // and set them to the corresponding seed parameter
+  for(int iTrack = 0; iTrack < WCSimFitterInterface::Instance()->GetNumTracks(); ++iTrack)
+  {
+    double seedX, seedY, seedZ;
+    double dirX, dirY, dirZ;
+    double seedTheta, seedPhi;
+    if(iTrack < slicedEvents.size()){
+      seedX = slicedEvents[iTrack]->GetVtxX();
+      seedY = slicedEvents[iTrack]->GetVtxY();
+      seedZ = slicedEvents[iTrack]->GetVtxZ();
+      dirX = slicedEvents[iTrack]->GetDirX();
+      dirY = slicedEvents[iTrack]->GetDirY();
+      dirZ = slicedEvents[iTrack]->GetDirZ();
+    }
+    else{
+      seedX = slicedEvents[0]->GetVtxX();
+      seedY = slicedEvents[0]->GetVtxY();
+      seedZ = slicedEvents[0]->GetVtxZ();
+      dirX = slicedEvents[0]->GetDirX();
+      dirY = slicedEvents[0]->GetDirY();
+      dirZ = slicedEvents[0]->GetDirZ();
+    }
+    seedTheta = TMath::ACos(dirZ);
+    if(dirY != 0.0){ seedPhi = TMath::ATan2(dirY,dirX); }// Ensure range is -pi to pi
+    else{ seedPhi = (dirX < 0.0)? 0.5*TMath::Pi() : -0.5*TMath::Pi(); }
 
-	// Set the seed vertex coordinates using the Hough fit
-	double seedX = recoEvent->GetVtxX();
-	double seedY = recoEvent->GetVtxY();
-	double seedZ = recoEvent->GetVtxZ();
-  double seedT = recoEvent->GetVtxTime();
-
-	// Convert the direction into (theta, phi) coordinates
-	Double_t recoDirX = recoEvent->GetDirX();
-	Double_t recoDirY = recoEvent->GetDirY();
-	Double_t recoDirZ = recoEvent->GetDirZ();
-	Double_t seedTheta   = TMath::ACos(recoDirZ);
-	Double_t seedPhi     = -999.9;
-	if(recoDirY != 0.0){ seedPhi = TMath::ATan2(recoDirY,recoDirX); }// Ensure range is -pi to pi
-	else{ seedPhi = (recoDirX < 0.0)? 0.5*TMath::Pi() : -0.5*TMath::Pi(); }
-
-	// Now we need to loop over all the track parameters available to the fitter
-	// and set them to the corresponding seed parameter
-	for(int iTrack = 0; iTrack < WCSimFitterInterface::Instance()->GetNumTracks(); ++iTrack)
-	{
     // Only see the parameters if they are not requested to be fixed:
     if(!fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kVtxX)){
-		  fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxX, seedX);
+      fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxX, seedX);
     }
     if(!fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kVtxY)){
-		  fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxY, seedY);
+      fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxY, seedY);
     }
     if(!fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kVtxZ)){
-		  fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxZ, seedZ);
+      fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxZ, seedZ);
     }
     if(iTrack==0 && !fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kDirTh)){
-		  fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kDirTh, seedTheta);
+      fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kDirTh, seedTheta);
     }
     if(iTrack==0 && !fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kDirPhi)){
-		  fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kDirPhi, seedPhi);
+      fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kDirPhi, seedPhi);
     }
-	}
-	delete myReco;
+  }
+  delete myReco;
+
+  // Need to delete the elements of slicedEvents as they are not destroyed by WCSimRecoSlicer
+  for(unsigned int v = 0; v < slicedEvents.size(); ++v){
+    delete slicedEvents[v];
+  }
+
 }
 
 
@@ -596,8 +609,8 @@ void WCSimLikelihoodFitter::FitEnergy()
 	// Set everything to the default value
 
 	bool isFirstLoop = true;
-	for(unsigned int iBin = 0; iBin < energyBinsZero.size(); ++iBin)
-//	for(unsigned int iBin = 0; iBin < energyBinsZero.size(); iBin += 4) // LEIGH
+//	for(unsigned int iBin = 0; iBin < energyBinsZero.size(); ++iBin)
+	for(unsigned int iBin = 0; iBin < energyBinsZero.size(); iBin += 4) // LEIGH
 	{
 		// std::cout << "Energy bin " << iBin << " is " << energyBinsZero.at(iBin) << std::endl;
     // std::cout << "Setting initial energy to " << energyBinsZero.at(iBin) << std::endl;
@@ -635,15 +648,11 @@ void WCSimLikelihoodFitter::FitEnergy()
 						bestEnergies.push_back(energyBinsOne.at(jBin));
 				}
 			}
-			jBin++;
-      if(fCalls >= 10) { 
-        break;}
-//			jBin+=4; // LEIGH
+//			jBin++;
+			jBin+=4; // LEIGH
 		} while(jBin < energyBinsOne.size());
 
 
-      if(fCalls >= 10) { 
-        break;}
 	}
 
 
@@ -724,9 +733,9 @@ void WCSimLikelihoodFitter::FitVertex()
 	  {
   Double_t * x = &(startVals[0]);
   // std::cout << "First" << std::endl;
-  WrapFunc(x);
+//  WrapFunc(x);
   // std::cout << "Again" << std::endl;
-  WrapFunc(x);
+//  WrapFunc(x);
   // std::cout << "Now min" << std::endl;
 	    min->Minimize();
 	    fMinimum = min->MinValue();
