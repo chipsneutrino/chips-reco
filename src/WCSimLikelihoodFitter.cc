@@ -486,27 +486,32 @@ void WCSimLikelihoodFitter::SeedEvent()
     double seedX, seedY, seedZ, seedT;
     double dirX, dirY, dirZ;
     double seedTheta, seedPhi;
+    std::cout << "Track number " <<  iTrack << " compared to " << slicedEvents.size() << std::endl;
     if(iTrack < slicedEvents.size()){
-      seedX = slicedEvents[iTrack]->GetVtxX();
-      seedY = slicedEvents[iTrack]->GetVtxY();
-      seedZ = slicedEvents[iTrack]->GetVtxZ();
+      seedX = slicedEvents[iTrack]->GetRing(0)->GetVtxX();
+      seedY = slicedEvents[iTrack]->GetRing(0)->GetVtxY();
+      seedZ = slicedEvents[iTrack]->GetRing(0)->GetVtxZ();
       seedT = slicedEvents[iTrack]->GetVtxTime();
-      dirX = slicedEvents[iTrack]->GetDirX();
-      dirY = slicedEvents[iTrack]->GetDirY();
-      dirZ = slicedEvents[iTrack]->GetDirZ();
+      dirX = slicedEvents[iTrack]->GetRing(0)->GetDirX();
+      dirY = slicedEvents[iTrack]->GetRing(0)->GetDirY();
+      dirZ = slicedEvents[iTrack]->GetRing(0)->GetDirZ();
     }
     else{
-      seedX = slicedEvents[0]->GetVtxX();
-      seedY = slicedEvents[0]->GetVtxY();
-      seedZ = slicedEvents[0]->GetVtxZ();
+      seedX = slicedEvents[0]->GetRing(0)->GetVtxX();
+      seedY = slicedEvents[0]->GetRing(0)->GetVtxY();
+      seedZ = slicedEvents[0]->GetRing(0)->GetVtxZ();
       seedT = slicedEvents[0]->GetVtxTime();
-      dirX = slicedEvents[0]->GetDirX();
-      dirY = slicedEvents[0]->GetDirY();
-      dirZ = slicedEvents[0]->GetDirZ();
+      dirX = slicedEvents[0]->GetRing(0)->GetDirX();
+      dirY = slicedEvents[0]->GetRing(0)->GetDirY();
+      dirZ = slicedEvents[0]->GetRing(0)->GetDirZ();
     }
+
     seedTheta = TMath::ACos(dirZ);
     if(dirY != 0.0){ seedPhi = TMath::ATan2(dirY,dirX); }// Ensure range is -pi to pi
     else{ seedPhi = (dirX < 0.0)? 0.5*TMath::Pi() : -0.5*TMath::Pi(); }
+
+    std::cout << "Track seed " << iTrack << ": " << seedX << ", " << seedY << ", " << seedZ << " :: "
+                                                 << dirX << ", " << dirY << ", " << dirZ << ", " << seedTheta << ", " << seedPhi << std::endl; 
 
     // Only see the parameters if they are not requested to be fixed:
     if(!fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kVtxX)){
@@ -521,10 +526,10 @@ void WCSimLikelihoodFitter::SeedEvent()
     if(!fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kVtxT)){
       fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxT, seedT);
     }
-    if(iTrack==0 && !fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kDirTh)){
+    if(!fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kDirTh)){
       fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kDirTh, seedTheta);
     }
-    if(iTrack==0 && !fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kDirPhi)){
+    if(!fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kDirPhi)){
       fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kDirPhi, seedPhi);
     }
   }

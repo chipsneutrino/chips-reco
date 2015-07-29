@@ -99,9 +99,6 @@ WCSimRingFinder::WCSimRingFinder()
 
   // hough transform array
   fHoughTransformArray = 0;
-
-  // make list of rings
-  fRingList = new std::vector<WCSimRecoRing*>;
 }
 
 // Delete the Hough transform, array and ell entries in the ringlist
@@ -115,13 +112,6 @@ WCSimRingFinder::~WCSimRingFinder()
     delete fHoughTransformArray;
   }
 
-  for( UInt_t i=0; i<fRingList->size(); i++ ){
-    delete (WCSimRecoRing*)(fRingList->at(i));
-  }
- 
-  fRingList->clear();
-
-  delete fRingList;
 }
 
 
@@ -150,16 +140,6 @@ std::vector<WCSimRecoRing*>* WCSimRingFinder::Run(WCSimRecoVertex* myVertex)
 {
   std::cout << " *** WCSimRingFinder::Run(Vertex) *** " << std::endl;
 
-  // reset ring list
-  // ===============  
-  for( UInt_t i=0; i<fRingList->size(); i++ ){
-    delete (WCSimRecoRing*)(fRingList->at(i));
-  }
- 
-  // clear ring list
-  // ===============
-  fRingList->clear();  
-
   // Make new ring, using vertex
   // ===========================
   WCSimRecoRing* myRing = new WCSimRecoRing(myVertex->GetX(),
@@ -171,11 +151,12 @@ std::vector<WCSimRecoRing*>* WCSimRingFinder::Run(WCSimRecoVertex* myVertex)
 					    					myVertex->GetConeAngle(), 
                                             0.0); // height of hough peak
 
-  fRingList->push_back(myRing);
+  std::vector<WCSimRecoRing*>* newRings = new std::vector<WCSimRecoRing*>();
+  newRings->push_back(myRing);
 
   // Return Ring List
   // ================
-  return fRingList;
+  return newRings;
 }
 
 std::vector<WCSimRecoRing*>* WCSimRingFinder::Run(WCSimRecoEvent* myEvent, WCSimRecoVertex* myVertex)
@@ -200,16 +181,6 @@ std::vector<WCSimRecoRing*>* WCSimRingFinder::Run(std::vector<WCSimRecoDigit*>* 
     return this->Run(myVertex);
   }
 
-  // reset ring list
-  // ===============  
-  for( UInt_t i=0; i<fRingList->size(); i++ ){
-    delete (WCSimRecoRing*)(fRingList->at(i));
-  }
- 
-  // clear ring list
-  // ===============
-  fRingList->clear();
-
   // apply Hough Transform
   // =====================
   WCSimHoughTransformArray* myHoughTransformArray = (WCSimHoughTransformArray*)(this->HoughTransformArray(myDigitList,myVertex));
@@ -230,6 +201,8 @@ std::vector<WCSimRecoRing*>* WCSimRingFinder::Run(std::vector<WCSimRecoDigit*>* 
                                    houghAngle,houghHeight);
 	else myHoughTransformArray->FindPeak(houghDirX, houghDirY, houghDirZ, houghAngle, houghHeight);
  	std::cout << "The number of rings passed into the loop is..." << houghDirX.size() << std::endl;
+
+  std::vector<WCSimRecoRing*>* newRings = new std::vector<WCSimRecoRing*>();
 	for( int iRings = 0; iRings < (int)houghDirX.size(); iRings++ )
 	{
   // Make New Ring
@@ -241,12 +214,9 @@ std::vector<WCSimRecoRing*>* WCSimRingFinder::Run(std::vector<WCSimRecoDigit*>* 
 		WCSimRecoRing* myRing = new WCSimRecoRing(houghVtxX,houghVtxY,houghVtxZ,
 		                                          houghDirX[iRings],houghDirY[iRings],houghDirZ[iRings],
 		                                          houghAngle[iRings],houghHeight[iRings]);
-		
-		fRingList->push_back(myRing);
+		newRings->push_back(myRing);
 	}
-  // Return Ring List
-  // ================
-  return fRingList;
+  return newRings;
 }
 
 WCSimHoughTransform* WCSimRingFinder::HoughTransform(WCSimRecoEvent* myEvent, WCSimRecoVertex* myVertex, Double_t myAngle)
@@ -390,3 +360,7 @@ WCSimHoughTransformArray* WCSimRingFinder::HoughTransformArray(std::vector<WCSim
   // ================================
   return fHoughTransformArray;
 }
+
+
+
+

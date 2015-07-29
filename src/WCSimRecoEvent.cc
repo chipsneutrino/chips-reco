@@ -38,6 +38,11 @@ WCSimRecoEvent::~WCSimRecoEvent()
 
   delete fDigitList;
   delete fFilterDigitList;
+
+  for(unsigned int r = 0; r < fRingList->size(); ++r){
+    delete fRingList->at(r);
+  }
+  fRingList->clear();
   delete fRingList;
 
   WCSimRecoObjectTable::Instance()->DeleteEvent();
