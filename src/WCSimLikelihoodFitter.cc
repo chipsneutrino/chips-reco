@@ -639,7 +639,7 @@ void WCSimLikelihoodFitter::FitEnergy()
       
 //			jBin+=4; // LEIGH
 		} while(jBin < energyBinsOne.size());
-
+	}
 	// Update everything with the best fit
 	fMinimum = best2LnL;
 	for(int iTrack = 0; iTrack < WCSimFitterInterface::Instance()->GetNumTracks(); ++iTrack)
