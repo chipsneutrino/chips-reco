@@ -9,7 +9,7 @@
 #include "WCSimIntegralLookup3D.hh"
 #include <TFile.h>
 #include <TH1F.h>
-#include <THnSparse.h>
+#include <TH3F.h>
 
 //////////////////////////////////////////////////////////////////////////////////////
 // First the class used to hold the histograms (compare to WCSimIntegralLookupHists3D //
@@ -105,12 +105,12 @@ WCSimIntegralLookup3D::WCSimIntegralLookup3D(TString fileName) {
     	throw std::runtime_error("Integral lookup TFile is a zombie");
     }
 
-	THnSparseF * rhoInt = 0x0;
-	THnSparseF * rhoSInt = 0x0;
-	THnSparseF * rhoSSInt = 0x0;
-	THnSparseF * rhoGInt = 0x0;
-	THnSparseF * rhoGSInt = 0x0;
-	THnSparseF * rhoGSSInt = 0x0;
+	TH1F * rhoInt = 0x0;
+	TH1F * rhoSInt = 0x0;
+	TH1F * rhoSSInt = 0x0;
+	TH3F * rhoGInt = 0x0;
+	TH3F * rhoGSInt = 0x0;
+	TH3F * rhoGSSInt = 0x0;
 
 	fHistFile->GetObject("fRhoInt",rhoInt);
 	fHistFile->GetObject("fRhoSInt",rhoSInt);
@@ -160,20 +160,18 @@ double WCSimIntegralLookup3D::GetRhoGSSIntegral(const double& E, const double &s
 	return GetIntegral3D(E, R0, cosTh0, fIntegrals.GetRhoGSSInt());
 }
 
-THnSparseF* WCSimIntegralLookup3D::GetRhoIntegralHist() {
+TH1F* WCSimIntegralLookup3D::GetRhoIntegralHist() {
 	return fIntegrals.GetRhoInt();
 }
 
-double WCSimIntegralLookup3D::GetIntegral1D(const double& E, THnSparseF* hist) {
+double WCSimIntegralLookup3D::GetIntegral1D(const double& E, TH1F* hist) {
   // std::cout << "GetIntegral1D" << std::endl;
-	double x[1] = {E};
-	int bin = hist->GetBin(x, false); // Don't allocate it if it's empty
+	int bin = hist->FindBin(E); 
 	if( bin != -1){ return ( hist->GetBinContent(bin) ); }
 	else { return 0; }
 }
 
-double WCSimIntegralLookup3D::GetIntegral3D(const double& E, const double& R0, const double& cosTh0, THnSparseF* hist) {
-	double x[3] = {E, R0, cosTh0};
+double WCSimIntegralLookup3D::GetIntegral3D(const double& E, const double& R0, const double& cosTh0, TH3F* hist) {
   // std::cout << "GetIntegral3D" << std::endl;
   // std::cout << "hist = " << hist << "  " << hist->GetEntries() << std::endl;
 	// std::cout << "Getting integral for:  E = " << E << "  R0 = " << R0 << "   cosTh0 = " << cosTh0 << "  " << std::endl;
@@ -181,7 +179,7 @@ double WCSimIntegralLookup3D::GetIntegral3D(const double& E, const double& R0, c
   // std::cout << "Axis 0 goes from " << hist->GetAxis(0)->GetXmin() << " to " << hist->GetAxis(0)->GetXmax() << std::endl;
   // std::cout << "Axis 1 goes from " << hist->GetAxis(1)->GetXmin() << " to " << hist->GetAxis(1)->GetXmax() << std::endl;
   // std::cout << "Axis 2 goes from " << hist->GetAxis(2)->GetXmin() << " to " << hist->GetAxis(2)->GetXmax() << std::endl;
-	int bin = hist->GetBin(x, false); // false -> don't allocate bin if it's empty
+	int bin = hist->FindBin(E, R0, cosTh0); 
 
 //	if(0.7 < cosTh0 && cosTh0 < 0.8){
 	//  std::cout << "Getting integral for:  E = " << E << "  R0 = " << R0 << "   cosTh0 = " << cosTh0 << "  " << std::endl;

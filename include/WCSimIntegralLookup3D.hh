@@ -56,15 +56,15 @@ public:
 	double GetRhoGSIntegral( const double &E, const double &s, const double &R0, const double &cosTh0);
 	double GetRhoGSSIntegral( const double &E, const double &s, const double &R0, const double &cosTh0);
 
-  THnSparseF * GetRhoIntegralHist();
+  TH1F * GetRhoIntegralHist();
 
 private:
 
-	double GetIntegral1D( const double &E, THnSparseF * hist);
-	double GetIntegral3D( const double &E, const double &R0, const double &cosTh0, THnSparseF * hist);
+	double GetIntegral1D( const double &E, TH1F * hist);
+	double GetIntegral3D( const double &E, const double &R0, const double &cosTh0, TH3F * hist);
 	double GetCutoffS( const double &E ) const;
 
-	WCSimIntegralLookupHists fIntegrals;
+	WCSimIntegralLookupHists3D fIntegrals;
 	TFile * fHistFile;
 
 };
