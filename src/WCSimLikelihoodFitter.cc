@@ -483,13 +483,14 @@ void WCSimLikelihoodFitter::SeedEvent()
   // and set them to the corresponding seed parameter
   for(int iTrack = 0; iTrack < WCSimFitterInterface::Instance()->GetNumTracks(); ++iTrack)
   {
-    double seedX, seedY, seedZ;
+    double seedX, seedY, seedZ, seedT;
     double dirX, dirY, dirZ;
     double seedTheta, seedPhi;
     if(iTrack < slicedEvents.size()){
       seedX = slicedEvents[iTrack]->GetVtxX();
       seedY = slicedEvents[iTrack]->GetVtxY();
       seedZ = slicedEvents[iTrack]->GetVtxZ();
+      seedT = slicedEvents[iTrack]->GetVtxTime();
       dirX = slicedEvents[iTrack]->GetDirX();
       dirY = slicedEvents[iTrack]->GetDirY();
       dirZ = slicedEvents[iTrack]->GetDirZ();
@@ -498,6 +499,7 @@ void WCSimLikelihoodFitter::SeedEvent()
       seedX = slicedEvents[0]->GetVtxX();
       seedY = slicedEvents[0]->GetVtxY();
       seedZ = slicedEvents[0]->GetVtxZ();
+      seedT = slicedEvents[0]->GetVtxTime();
       dirX = slicedEvents[0]->GetDirX();
       dirY = slicedEvents[0]->GetDirY();
       dirZ = slicedEvents[0]->GetDirZ();
@@ -515,6 +517,9 @@ void WCSimLikelihoodFitter::SeedEvent()
     }
     if(!fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kVtxZ)){
       fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxZ, seedZ);
+    }
+    if(!fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kVtxT)){
+      fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kVtxT, seedT);
     }
     if(iTrack==0 && !fFitterTrackParMap.GetIsFixed(iTrack,FitterParameterType::kDirTh)){
       fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kDirTh, seedTheta);
