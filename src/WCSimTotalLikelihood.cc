@@ -56,7 +56,7 @@ void WCSimTotalLikelihood::SetTracks( std::vector<WCSimLikelihoodTrackBase*> &my
   {
     // std::cout << "TrackIter -> " << std::endl;
 //    if (i > 0) {
-      fChargeLikelihoodVector.push_back(
+    fChargeLikelihoodVector.push_back(
           WCSimChargePredictor(fLikelihoodDigitArray, fEmissionProfileManager) );
 //    }
     fChargeLikelihoodVector[i].AddTrack(*trackIter);
@@ -77,6 +77,7 @@ void WCSimTotalLikelihood::ResetTracks()
     fChargeLikelihoodVector[i].ClearTracks();
   }
   fChargeLikelihoodVector.clear();
+
   fTimeLikelihood->ClearTracks();
   ClearVectors();
   fTracks.clear();
