@@ -13,6 +13,9 @@
 #include "TGraph.h"
 #include "TH1F.h"
 
+#ifndef REFLEX_DICTIONARY
+ClassImp(WCSimDetectorParameters)
+#endif
 /// Static pointer to self (so we can make object a singleton)
 static WCSimDetectorParameters * fgDetectorParameters = NULL;
 

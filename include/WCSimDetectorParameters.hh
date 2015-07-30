@@ -13,10 +13,11 @@
 #include "WCSimTrackParameterEnums.hh"
 #include "WCSimPMTManager.hh"
 #include "TFile.h"
+#include "TObject.h"
 class TGraph;
 class TH1F;
 
-class WCSimDetectorParameters {
+class WCSimDetectorParameters : public TObject {
 public:
 	static WCSimDetectorParameters * Instance();
 	static double WavelengthAveragedQE(const TrackType::Type &type, const std::string &pmtName);
@@ -49,6 +50,8 @@ private:
 
 	std::map<TrackType::Type, std::map<std::string, double> > fAverageQEMap;
 	std::map<TrackType::Type, std::map<std::string, double> > fQEAveragedRefIndexMap;
+
+  ClassDef(WCSimDetectorParameters,1)
 };
 
 #endif /* INCLUDE_WCSIMDETECTORPARAMETERS_HH_ */

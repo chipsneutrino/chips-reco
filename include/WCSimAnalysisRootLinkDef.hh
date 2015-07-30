@@ -93,4 +93,5 @@
 #pragma link C++ class WCSimLikelihoodTrackFactory+;
 #pragma link C++ class WCSimTimePredictor+;
 #pragma link C++ class WCSimTimeLikelihood2+;
+#pragma link C++ class WCSimDetectorParameters+;
 #endif
