@@ -619,7 +619,7 @@ void WCSimLikelihoodFitter::FitEnergy()
 	// Set everything to the default value
 
 	bool isFirstLoop = true;
-  for(unsigned int iBin = 0; iBin < energyBinsZero.size(); ++iBin)
+  	for(unsigned int iBin = 0; iBin < energyBinsZero.size(); ++iBin)
 	// for(unsigned int iBin = 0; iBin < energyBinsZero.size(); iBin += 4) // LEIGH
 	{
 		// std::cout << "Energy bin " << iBin << " is " << energyBinsZero.at(iBin) << std::endl;
@@ -631,20 +631,23 @@ void WCSimLikelihoodFitter::FitEnergy()
 		do
 		{
 		  // std::cout << "jBin = " << jBin << std::endl;
-		  std::cout << "Current energy bin " << iBin << "," << jBin << std::endl; // LEIGH
+		  // std::cout << "Current energy bin " << iBin << "," << jBin << std::endl; // LEIGH
+	          // TString toPrint = Form("Current energy bin = %f", energyBinsZero.at(iBin));
 			if( WCSimFitterConfig::Instance()->GetNumTracks() > 1)
 			{
 				fFitterTrackParMap.SetCurrentValue(1, FitterParameterType::kEnergy, energyBinsOne.at(jBin));
+        			// toPrint = toPrint + Form(" and %f", energyBinsOne.at(jBin));
 			}
 			std::vector<double> startVals = fFitterTrackParMap.GetCurrentValues();
-      for(int i = 0; i < startVals.size(); ++i)
-      {
-        // std::cout << startVals.at(i) << std::endl;
-      }
+      			for(int i = 0; i < startVals.size(); ++i)
+      			{
+       				// std::cout << startVals.at(i) << std::endl;
+      			}
 			Double_t * x = &(startVals[0]);
-      std::cout << "GETTING TEMPMIN" << std::endl;
+     			// std::cout << "GETTING TEMPMIN" << std::endl;
 			double tempMin = WrapFunc(x);
-      std::cout << "Energy = " << energyBinsZero.at(iBin) << "    -2LnL = " << tempMin << "   Best (till now) = " << best2LnL << std::endl;
+      			// toPrint = toPrint + Form(" and -2LnL = %f, c.f. previous best of %f", tempMin, best2LnL);
+      			// std::cout << toPrint << std::endl;
 			if( tempMin < best2LnL || isFirstLoop )
 			{
 				best2LnL = tempMin;
@@ -730,7 +733,7 @@ void WCSimLikelihoodFitter::FitVertex()
 	// Print the parameters we're using
 	for(UInt_t j = 0; j < nPars; ++j)
 	{
-		std::cout << j << "   " << names[j] << "   " << startVals[j] << "   " << minVals[j] << "   " << maxVals[j] << std::endl;
+		// std::cout << j << "   " << names[j] << "   " << startVals[j] << "   " << minVals[j] << "   " << maxVals[j] << std::endl;
 	}
 
 
@@ -739,12 +742,7 @@ void WCSimLikelihoodFitter::FitVertex()
 	  // Perform the minimization
 	  if( isAnythingFree )
 	  {
-  Double_t * x = &(startVals[0]);
-  // std::cout << "First" << std::endl;
-//  WrapFunc(x);
-  // std::cout << "Again" << std::endl;
-//  WrapFunc(x);
-  // std::cout << "Now min" << std::endl;
+	  Double_t * x = &(startVals[0]);
 	    min->Minimize();
 	    fMinimum = min->MinValue();
 	    fStatus = min->Status();

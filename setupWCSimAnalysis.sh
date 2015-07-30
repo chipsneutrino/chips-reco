@@ -1,6 +1,6 @@
 #! /bin/bash
 
-export WCSIMHOME=~/CHIPS/WCSim_fixGeneration
+export WCSIMHOME=/unix/fnu/ajperch/software/WCSim_github
 
 #WCSimAnalysis Home Directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"

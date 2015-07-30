@@ -14,7 +14,7 @@
 #include "WCSimPMTManager.hh"
 #include "TFile.h"
 class TGraph;
-class TH1D;
+class TH1F;
 
 class WCSimDetectorParameters {
 public:
@@ -36,10 +36,10 @@ private:
 	bool IsInMap(const TrackType::Type &type, std::map<TrackType::Type, TFile*> *map);
 	double WorkOutAverageRefIndex(const TrackType::Type &type, const std::string &pmtName);
 	double WorkOutAverageQE(const TrackType::Type &type, const std::string &pmtName);
-	double AverageHistWithGraph(TH1D * hist, TGraph * graph);
-	TH1D * MultiplyHistByGraph(TH1D * hist, TGraph * graph);
+	double AverageHistWithGraph(TH1F * hist, TGraph * graph);
+	TH1F * MultiplyHistByGraph(TH1F * hist, TGraph * graph);
 
-	TH1D * GetWavelengthSpectrum(const TrackType::Type &type, const std::string &pmtName);
+	TH1F * GetWavelengthSpectrum(const TrackType::Type &type, const std::string &pmtName);
 
 
 

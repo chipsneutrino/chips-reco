@@ -140,7 +140,7 @@ void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
 	for( int iEBin = 1; iEBin <= binningHisto->GetXaxis()->GetNbins(); ++iEBin)
 	{
 		//if(iEBin != binningHisto->GetXaxis()->GetNbins() ) { continue; }
-		// std::cout << "Energy bin = " << iEBin << "/" << binningHisto->GetXaxis()->GetNbins() << std::endl;
+		std::cout << "Energy bin = " << iEBin << "/" << binningHisto->GetXaxis()->GetNbins() << std::endl;
     // std::cout << fIntegrals.GetRhoGSSInt()->GetBinContent(1613039);
 		Double_t vars[3] = { binningHisto->GetXaxis()->GetBinLowEdge(iEBin), 0.0, 0.0 };
 		// Entries are E, R0, cosTh0

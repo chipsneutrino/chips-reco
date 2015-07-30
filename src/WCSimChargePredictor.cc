@@ -101,11 +101,11 @@ WCSimChargePredictor::~WCSimChargePredictor()
 {
     if(fTuner != NULL)
     {
-      std::cout << "Delete fTuner" << std::endl;
+      // std::cout << "Delete fTuner" << std::endl;
       delete fTuner;
       fTuner = NULL;
     }
-    std::cout << "Done!" << std::endl;
+    // std::cout << "Done!" << std::endl;
 }
 
 

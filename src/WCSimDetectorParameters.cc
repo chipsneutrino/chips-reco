@@ -11,7 +11,7 @@
 #include "WCSimTrackParameterEnums.hh"
 #include "TFile.h"
 #include "TGraph.h"
-#include "TH1D.h"
+#include "TH1F.h"
 
 /// Static pointer to self (so we can make object a singleton)
 static WCSimDetectorParameters * fgDetectorParameters = NULL;
@@ -67,7 +67,7 @@ bool WCSimDetectorParameters::IsInMap(const TrackType::Type& type,
 		std::map<TrackType::Type, std::map<std::string, double> >* map) {
 	if(map->find(type) != map->end())
 	{
-		if((*map)[type].find(pmtName) == (*map)[type].end())
+		if((*map)[type].find(pmtName) != (*map)[type].end())
 		{
 			return true;
 		}
@@ -77,7 +77,7 @@ bool WCSimDetectorParameters::IsInMap(const TrackType::Type& type,
 
 bool WCSimDetectorParameters::IsInMap(const TrackType::Type& type,
 		std::map<TrackType::Type, TFile*> * map) {
-	return (map->find(type) != map->end());
+  return (map->find(type) != map->end());
 }
 
 double WCSimDetectorParameters::WorkOutAverageRefIndex(
@@ -88,11 +88,16 @@ double WCSimDetectorParameters::WorkOutAverageRefIndex(
 		OpenFile(type);
 	}
 
-	TH1D * spectrumHist = 0x0;
-	TGraph * qeGraph = 0x0;
+	TH1F * spectrumHist = 0x0;
+	TGraph * qeGraph = new TGraph();
 
-	fFileMap[type]->GetObject("hSpectrum",spectrumHist);
-	assert(spectrumHist != 0x0);
+  TString spectrumName = Form("hSpectrum_%s", TrackType(type).AsString().c_str());
+	fFileMap[type]->GetObject(spectrumName.Data(),spectrumHist);
+	if(spectrumHist == 0x0)
+  {
+    std::cerr << "Couldn't get " << spectrumName << std::endl;
+    assert(spectrumHist != 0x0);
+  }
 
 	WCSimPMTConfig config = fPMTManager.GetPMTByName(pmtName);
 	std::vector<std::pair<double,double> > effVector = config.GetEfficiencyVector();
@@ -109,6 +114,7 @@ double WCSimDetectorParameters::WorkOutAverageRefIndex(
 
 
 	double refInd = AverageHistWithGraph(MultiplyHistByGraph(spectrumHist, qeGraph), refIndGraph);
+  delete qeGraph;
 	return refInd;
 }
 
@@ -119,9 +125,10 @@ double WCSimDetectorParameters::WorkOutAverageQE(const TrackType::Type& type,
 	{
 		OpenFile(type);
 	}
-	TH1D * spectrumHist = 0x0;
-	TGraph * qeGraph = 0x0;
-	fFileMap[type]->GetObject("hSpectrum",spectrumHist);
+	TH1F * spectrumHist = 0x0;
+	TGraph * qeGraph = new TGraph();
+  TString spectrumName = Form("hSpectrum_%s", TrackType(type).AsString().c_str());
+  fFileMap[type]->GetObject(spectrumName.Data(), spectrumHist);
 	assert(spectrumHist != 0x0);
 
 	WCSimPMTConfig config = fPMTManager.GetPMTByName(pmtName);
@@ -134,7 +141,9 @@ double WCSimDetectorParameters::WorkOutAverageQE(const TrackType::Type& type,
 		effItr++;
 	}
 
-	return AverageHistWithGraph(spectrumHist, qeGraph);
+  double wavelengthAveragedQE = AverageHistWithGraph(spectrumHist, qeGraph);
+  delete qeGraph;
+  return wavelengthAveragedQE;
 }
 
 void WCSimDetectorParameters::OpenFile(const TrackType::Type& type) {
@@ -142,20 +151,19 @@ void WCSimDetectorParameters::OpenFile(const TrackType::Type& type) {
 	switch(type)
 	{
 		case TrackType::MuonLike:
-			filename = "spectrumMuon.root";
-      break;
-		case TrackType::ElectronLike:
-			filename = "spectrumElectron.root";
+    case TrackType::ElectronLike:
+			filename = TString(getenv("WCSIMANAHOME")) + "/config/spectra.root";
       break;
 		default:
 			assert(type == TrackType::MuonLike || type == TrackType::ElectronLike);
+      break;
 	}
   TFile * f = new TFile(filename.Data(), "READ");
 	fFileMap.insert(std::make_pair(type, f));
 	return;
 }
 
-double WCSimDetectorParameters::AverageHistWithGraph(TH1D* hist,
+double WCSimDetectorParameters::AverageHistWithGraph(TH1F* hist,
 		TGraph* graph) {
 	// Take a TH1 and a TGraph
 	// For every bin in the histogram, interpolate x between the two nearest points
@@ -173,7 +181,7 @@ double WCSimDetectorParameters::AverageHistWithGraph(TH1D* hist,
 	return weightedAverage;
 }
 
-TH1D* WCSimDetectorParameters::MultiplyHistByGraph(TH1D* hist, TGraph* graph) {
+TH1F* WCSimDetectorParameters::MultiplyHistByGraph(TH1F* hist, TGraph* graph) {
 	for(int iBin = 1; iBin <= hist->GetNbinsX(); ++iBin)
 	{
 		double newContent = hist->GetBinContent(iBin);

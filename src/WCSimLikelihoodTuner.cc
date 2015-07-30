@@ -23,6 +23,7 @@
 #include "TVector3.h"
 
 #include "WCSimChargePredictor.hh"
+#include "WCSimDetectorParameters.hh"
 #include "WCSimIntegralLookupReader.hh"
 #include "WCSimLikelihoodTrackBase.hh"
 #include "WCSimLikelihoodTuner.hh"
@@ -84,7 +85,6 @@ WCSimLikelihoodTuner::WCSimLikelihoodTuner(WCSimLikelihoodDigitArray * myDigitAr
 ///////////////////////////////////////////////////////////
 void WCSimLikelihoodTuner::Initialize()
 {
-  std::cout << "Re-initialising" << std::endl;
   fAverageQE       = 1.0;
 
   // Pointer to the last track for which we calculated the cutoff, to prevent repetition
@@ -309,7 +309,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ( Double_t s, WCSimLikelih
 
     J.push_back(   this->TransmissionFunction(s, myTrack, myDigit) 
                  * this->Efficiency(s, myTrack, myDigit)
-                 * this->QuantumEfficiency(myTrack)
+                 * this->QuantumEfficiency(myTrack, myDigit)
                  * this->SolidAngle(s, myTrack, myDigit));
     J.push_back(J.at(0) * this->ScatteringTable(s));
     return J;
@@ -779,11 +779,12 @@ Double_t WCSimLikelihoodTuner::GetTrackLengthForPercentile(WCSimLikelihoodTrackB
   return length;
 }
 
-Double_t WCSimLikelihoodTuner::QuantumEfficiency(WCSimLikelihoodTrackBase* myTrack) {
+Double_t WCSimLikelihoodTuner::QuantumEfficiency(WCSimLikelihoodTrackBase* myTrack, WCSimLikelihoodDigit * myDigit) {
+
 	double qe=  0.0;
 	if(myTrack->GetType() == TrackType::MuonLike || myTrack->GetType() == TrackType::ElectronLike)
 	{
-		qe = 0.436129;
+		qe = WCSimDetectorParameters::WavelengthAveragedQE(myTrack->GetType(), myDigit->GetPMTName().Data());
 	}
 	else assert(myTrack->GetType() == TrackType::ElectronLike || myTrack->GetType() == TrackType::MuonLike);
 	return qe;

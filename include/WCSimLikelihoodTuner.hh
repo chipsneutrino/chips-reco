@@ -76,7 +76,7 @@ class WCSimLikelihoodTuner
          * Apply the wavelength-weighted relative quantum efficiency
          * @param myTrack Track that emitted the photon
          */
-        Double_t QuantumEfficiency(WCSimLikelihoodTrackBase * myTrack);
+        Double_t QuantumEfficiency(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit);
 
         /**
          * Factor for the solid angle of the PMT as viewed from where the photon was emitted

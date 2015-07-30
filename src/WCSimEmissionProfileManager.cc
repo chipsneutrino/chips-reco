@@ -135,27 +135,27 @@ unsigned int WCSimEmissionProfileManager::GetNumTracksToCache() const
 
 void WCSimEmissionProfileManager::AddNewProfile(const TrackType::Type &type, const double &energy)
 {
-  std::cout << "Looking for type = " << type << " and energy = " << energy << std::endl;
-  std::cout << "We have..." << std::endl;
-  std::map<TrackType::Type, std::map<double, WCSimEmissionProfiles*> >::iterator outerItr = fProfileMap.begin();
-  for(; outerItr != fProfileMap.end(); ++outerItr)
-  {
-    std::map<double, WCSimEmissionProfiles*>::iterator innerItr = outerItr->second.begin();
-    for ( ; innerItr != outerItr->second.end(); ++innerItr)
-    {
-      std::cout << outerItr->first << "   "  << innerItr->first << std::endl;
-    }
+  // std::cout << "Looking for type = " << type << " and energy = " << energy << std::endl;
+  // std::cout << "We have..." << std::endl;
+  // std::map<TrackType::Type, std::map<double, WCSimEmissionProfiles*> >::iterator outerItr = fProfileMap.begin();
+  // for(; outerItr != fProfileMap.end(); ++outerItr)
+  // {
+    // std::map<double, WCSimEmissionProfiles*>::iterator innerItr = outerItr->second.begin();
+    // for ( ; innerItr != outerItr->second.end(); ++innerItr)
+    // {
+      // std::cout << outerItr->first << "   "  << innerItr->first << std::endl;
+    // }
 
-  }
+  // }
   // How many sets of profiles do we have cached for this track type?
-  std::cout << "Type = " << type << " and energy = " << energy << std::endl;
+  // std::cout << "Type = " << type << " and energy = " << energy << std::endl;
   unsigned int numThisType = GetNumCached(type);
-  std::cout << "Num this type = " << numThisType << std::endl;
+  // std::cout << "Num this type = " << numThisType << std::endl;
  
   // If zero, make a new one
   if(numThisType == 0)
   {
-    std::cout << "Adding" << std::endl;
+    // std::cout << "Adding" << std::endl;
     fProfileMap[type][energy] = new WCSimEmissionProfiles(type, energy);
   }
 
@@ -163,7 +163,7 @@ void WCSimEmissionProfileManager::AddNewProfile(const TrackType::Type &type, con
   // an old one instead of opening a bunch of new files here
   if(numThisType > 0 && numThisType < fNumTracksToCache)
   {
-    std::cout << "Adding 2 " << std::endl;
+    // std::cout << "Adding 2 " << std::endl;
     fProfileMap[type][energy] = new WCSimEmissionProfiles(type, energy);
   }
   
@@ -171,7 +171,7 @@ void WCSimEmissionProfileManager::AddNewProfile(const TrackType::Type &type, con
   if(numThisType == fNumTracksToCache)
   {
 
-    std::cout << "Replacing" << std::endl;
+    // std::cout << "Replacing" << std::endl;
     double replaceEnergy = GetLeastRecentlyUsedEnergy(type);
     WCSimEmissionProfiles * changeMe = fProfileMap[type][replaceEnergy];
 

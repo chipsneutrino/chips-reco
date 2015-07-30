@@ -287,7 +287,7 @@ void WCSimEmissionProfiles::LoadFile(const TrackType::Type &type, const double &
 	switch( type )
 	{
 		case TrackType::ElectronLike:
-			fProfileFileName.Append("/home/ajperch/CHIPS/WCSim_fixGeneration/rootfiles/sum/emissionProfilesElectronsCoarseFineNorm.root");
+			fProfileFileName.Append("/home/ajperch/CHIPS/WCSim_fixGeneration/rootfiles/newsums/emissionProfilesElectrons.root");
 			break;
 		case TrackType::MuonLike:
 			fProfileFileName.Append("/home/ajperch/CHIPS/WCSim_fixGeneration/rootfiles/newsums/emissionProfilesMuon.root");
@@ -682,13 +682,13 @@ Double_t WCSimEmissionProfiles::GetLightFlux(
 	case TrackType::MuonLike:
 		// From a linear fit to nPhotons as a function of energy (it's very linear)
 	  // New fit on 10/March/15
-	  nPhotons = 135.247 * energy -14823.6;
+    nPhotons = 431.467 * energy - 21813.0; // New fit on 29/Jul/2015 (QE decoupled)
 
 	  // Things get sketchy at really low energies
 	  if(nPhotons > 0){ flux = factorFromG * factorFromSolidAngle * nPhotons; }
       break;
     case TrackType::ElectronLike:
-      nPhotons = 116.272 + 123.399 * energy;  // New fit on 10/March/15
+      nPhotons = 201.709 + 383.217 * energy;  // New fit on 29/Jul/15
       if(nPhotons > 0){ flux = factorFromG * factorFromSolidAngle * nPhotons; }
       break;
     default:

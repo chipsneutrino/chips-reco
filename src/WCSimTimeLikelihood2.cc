@@ -74,7 +74,6 @@ Double_t WCSimTimeLikelihood2::Calc2LnL(const unsigned int& iDigit) {
 	WCSimLikelihoodDigit * myDigit = fLikelihoodDigitArray->GetDigit(iDigit);
 	if(IsGoodDigit(myDigit))
 	{
-		std::vector<WCSimLikelihoodTrackBase*>::iterator trackItr = fTracks.begin();
 		double predictedFirstHitTime = fAllPreds.at(iDigit);
 		double timeResolution = GetPMTTimeResolution(myDigit);
 		double actualHitTime = myDigit->GetT();
@@ -145,5 +144,5 @@ double WCSimTimeLikelihood2::GetGaussianMinusTwoLnL(const double& x,
 
 bool WCSimTimeLikelihood2::IsGoodDigit(WCSimLikelihoodDigit * myDigit)
 {
-    return (myDigit->GetQ() > 0 && myDigit->GetT() > 900 && myDigit->GetT() < 975);
+    return (myDigit->GetQ() > 0);
 }
