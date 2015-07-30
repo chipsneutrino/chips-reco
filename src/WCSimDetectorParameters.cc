@@ -31,71 +31,47 @@ WCSimDetectorParameters * WCSimDetectorParameters::Instance()
 
 WCSimDetectorParameters::WCSimDetectorParameters() : fPMTManager(){
 	// TODO Auto-generated constructor stub
-
+  fSpectrumFile = 0x0;
+  OpenFile();
 }
 
 WCSimDetectorParameters::~WCSimDetectorParameters() {
 	// TODO Auto-generated destructor stub
-  std::map<TrackType::Type, TFile *>::iterator fileMapItr = fFileMap.begin();
-  while(fileMapItr != fFileMap.end())
-  {
-    (fileMapItr->second)->Close();
-    delete fileMapItr->second;
-    fileMapItr->second = 0x0;
-  }
+  fSpectrumFile->Close();
+  delete fSpectrumFile;
 }
 
-double WCSimDetectorParameters::GetWavelengthAveragedQE(
-		const TrackType::Type& type, const std::string& pmtName) {
-	if(!IsInMap(type, pmtName, &fAverageQEMap))
+double WCSimDetectorParameters::GetWavelengthAveragedQE(const std::string& pmtName) {
+	if(!IsInMap(pmtName, &fAverageQEMap))
 	{
-		double averageQE = WorkOutAverageQE(type, pmtName);
-		fAverageQEMap[type][pmtName] = averageQE;
+		double averageQE = WorkOutAverageQE(pmtName);
+		fAverageQEMap[pmtName] = averageQE;
 	}
-	return fAverageQEMap[type][pmtName];
+	return fAverageQEMap[pmtName];
 }
 
-double WCSimDetectorParameters::GetQEAveragedRefIndex(
-		const TrackType::Type& type, const std::string& pmtName) {
-	if(!IsInMap(type, pmtName, &fQEAveragedRefIndexMap))
+double WCSimDetectorParameters::GetQEAveragedRefIndex(const std::string& pmtName) {
+	if(!IsInMap(pmtName, &fQEAveragedRefIndexMap))
 	{
-		double averageRefIndex = WorkOutAverageRefIndex(type, pmtName);
-		fQEAveragedRefIndexMap[type][pmtName] = averageRefIndex;
+		double averageRefIndex = WorkOutAverageRefIndex(pmtName);
+		fQEAveragedRefIndexMap[pmtName] = averageRefIndex;
 	}
-	return fQEAveragedRefIndexMap[type][pmtName];
+	return fQEAveragedRefIndexMap[pmtName];
 }
 
-bool WCSimDetectorParameters::IsInMap(const TrackType::Type& type,
-		const std::string& pmtName,
-		std::map<TrackType::Type, std::map<std::string, double> >* map) {
-	if(map->find(type) != map->end())
-	{
-		if((*map)[type].find(pmtName) != (*map)[type].end())
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-bool WCSimDetectorParameters::IsInMap(const TrackType::Type& type,
-		std::map<TrackType::Type, TFile*> * map) {
-  return (map->find(type) != map->end());
+bool WCSimDetectorParameters::IsInMap(const std::string& pmtName,
+		std::map<std::string, double>* map) {
+	return(map->find(pmtName) != map->end());
 }
 
 double WCSimDetectorParameters::WorkOutAverageRefIndex(
-		const TrackType::Type& type, const std::string& pmtName) {
-
-	if(!IsInMap(type, &fFileMap))
-	{
-		OpenFile(type);
-	}
+		const std::string& pmtName) {
 
 	TH1F * spectrumHist = 0x0;
 	TGraph * qeGraph = new TGraph();
 
-  TString spectrumName = Form("hSpectrum_%s", TrackType(type).AsString().c_str());
-	fFileMap[type]->GetObject(spectrumName.Data(),spectrumHist);
+  TString spectrumName = Form("hSpectrum");
+  fSpectrumFile->GetObject(spectrumName.Data(),spectrumHist);
 	if(spectrumHist == 0x0)
   {
     std::cerr << "Couldn't get " << spectrumName << std::endl;
@@ -113,7 +89,7 @@ double WCSimDetectorParameters::WorkOutAverageRefIndex(
 	}
 
 	TGraph * refIndGraph = 0x0;
-	fFileMap[type]->GetObject("gRefIndex",refIndGraph);
+	fSpectrumFile->GetObject("gRefIndex",refIndGraph);
 
 
 	double refInd = AverageHistWithGraph(MultiplyHistByGraph(spectrumHist, qeGraph), refIndGraph);
@@ -121,17 +97,12 @@ double WCSimDetectorParameters::WorkOutAverageRefIndex(
 	return refInd;
 }
 
-double WCSimDetectorParameters::WorkOutAverageQE(const TrackType::Type& type,
-		const std::string& pmtName) {
-
-	if(!IsInMap(type, &fFileMap))
-	{
-		OpenFile(type);
-	}
-	TH1F * spectrumHist = 0x0;
+double WCSimDetectorParameters::WorkOutAverageQE(const std::string& pmtName) {
+	
+  TH1F * spectrumHist = 0x0;
 	TGraph * qeGraph = new TGraph();
-  TString spectrumName = Form("hSpectrum_%s", TrackType(type).AsString().c_str());
-  fFileMap[type]->GetObject(spectrumName.Data(), spectrumHist);
+  TString spectrumName = Form("hSpectrum");
+  fSpectrumFile->GetObject(spectrumName.Data(), spectrumHist);
 	assert(spectrumHist != 0x0);
 
 	WCSimPMTConfig config = fPMTManager.GetPMTByName(pmtName);
@@ -146,24 +117,24 @@ double WCSimDetectorParameters::WorkOutAverageQE(const TrackType::Type& type,
 
   double wavelengthAveragedQE = AverageHistWithGraph(spectrumHist, qeGraph);
   delete qeGraph;
+
+
+  // If I run WCSim with QE set to Stacking_Only and to Sensitive_Detector_Only
+  // the difference in number of tracks differs from my QE weighting
+  // calculations by this factor - need to try and pin this down, but for now
+  // just put in this constant
+  wavelengthAveragedQE *= 2.528;
+
   return wavelengthAveragedQE;
 }
 
-void WCSimDetectorParameters::OpenFile(const TrackType::Type& type) {
-	TString filename("");
-	switch(type)
-	{
-		case TrackType::MuonLike:
-    case TrackType::ElectronLike:
-			filename = TString(getenv("WCSIMANAHOME")) + "/config/spectra.root";
-      break;
-		default:
-			assert(type == TrackType::MuonLike || type == TrackType::ElectronLike);
-      break;
+void WCSimDetectorParameters::OpenFile() {
+  if(fSpectrumFile == 0x0)
+  {
+    TString filename = TString(getenv("WCSIMANAHOME")) + "/config/spectra.root";
+    fSpectrumFile = new TFile(filename.Data(), "READ");
 	}
-  TFile * f = new TFile(filename.Data(), "READ");
-	fFileMap.insert(std::make_pair(type, f));
-	return;
+  return;
 }
 
 double WCSimDetectorParameters::AverageHistWithGraph(TH1F* hist,
@@ -195,12 +166,11 @@ TH1F* WCSimDetectorParameters::MultiplyHistByGraph(TH1F* hist, TGraph* graph) {
 }
 
 double WCSimDetectorParameters::WavelengthAveragedQE(
-		const TrackType::Type& type, const std::string& pmtName) {
-	return WCSimDetectorParameters::Instance()->GetWavelengthAveragedQE(type, pmtName);
+		const std::string& pmtName) {
+	return WCSimDetectorParameters::Instance()->GetWavelengthAveragedQE(pmtName);
 }
 
-double WCSimDetectorParameters::QEAveragedRefIndex(const TrackType::Type& type,
-		const std::string& pmtName) {
-	return WCSimDetectorParameters::Instance()->GetQEAveragedRefIndex(type, pmtName);
+double WCSimDetectorParameters::QEAveragedRefIndex(const std::string& pmtName) {
+	return WCSimDetectorParameters::Instance()->GetQEAveragedRefIndex(pmtName);
 }
 

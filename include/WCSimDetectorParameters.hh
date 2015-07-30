@@ -20,11 +20,11 @@ class TH1F;
 class WCSimDetectorParameters : public TObject {
 public:
 	static WCSimDetectorParameters * Instance();
-	static double WavelengthAveragedQE(const TrackType::Type &type, const std::string &pmtName);
-	static double QEAveragedRefIndex(const TrackType::Type &type, const std::string &pmtName);
+	static double WavelengthAveragedQE(const std::string &pmtName);
+	static double QEAveragedRefIndex(const std::string &pmtName);
 
-	double GetWavelengthAveragedQE(const TrackType::Type &type, const std::string &pmtName);
-	double GetQEAveragedRefIndex(const TrackType::Type &type, const std::string &pmtName);
+	double GetWavelengthAveragedQE(const std::string &pmtName);
+	double GetQEAveragedRefIndex(const std::string &pmtName);
 
 
 
@@ -32,24 +32,23 @@ private:
 	WCSimDetectorParameters();
 	virtual ~WCSimDetectorParameters();
 
-	void OpenFile(const TrackType::Type &type);
-	bool IsInMap(const TrackType::Type &type, const std::string &pmtName, std::map<TrackType::Type, std::map<std::string, double> > * map);
-	bool IsInMap(const TrackType::Type &type, std::map<TrackType::Type, TFile*> *map);
-	double WorkOutAverageRefIndex(const TrackType::Type &type, const std::string &pmtName);
-	double WorkOutAverageQE(const TrackType::Type &type, const std::string &pmtName);
+	void OpenFile();
+	bool IsInMap(const std::string &pmtName, std::map<std::string, double> * map);
+	double WorkOutAverageRefIndex(const std::string &pmtName);
+	double WorkOutAverageQE(const std::string &pmtName);
 	double AverageHistWithGraph(TH1F * hist, TGraph * graph);
 	TH1F * MultiplyHistByGraph(TH1F * hist, TGraph * graph);
 
-	TH1F * GetWavelengthSpectrum(const TrackType::Type &type, const std::string &pmtName);
+	TH1F * GetWavelengthSpectrum(const std::string &pmtName);
 
 
 
-	std::map<TrackType::Type, TFile*> fFileMap;
+  TFile* fSpectrumFile;
 
 	WCSimPMTManager fPMTManager;
 
-	std::map<TrackType::Type, std::map<std::string, double> > fAverageQEMap;
-	std::map<TrackType::Type, std::map<std::string, double> > fQEAveragedRefIndexMap;
+	std::map<std::string, double> fAverageQEMap;
+	std::map<std::string, double> fQEAveragedRefIndexMap;
 
   ClassDef(WCSimDetectorParameters,1)
 };

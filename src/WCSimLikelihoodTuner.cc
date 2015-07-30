@@ -23,7 +23,6 @@
 #include "TVector3.h"
 
 #include "WCSimChargePredictor.hh"
-#include "WCSimDetectorParameters.hh"
 #include "WCSimIntegralLookupReader.hh"
 #include "WCSimLikelihoodTrackBase.hh"
 #include "WCSimLikelihoodTuner.hh"
@@ -780,14 +779,7 @@ Double_t WCSimLikelihoodTuner::GetTrackLengthForPercentile(WCSimLikelihoodTrackB
 }
 
 Double_t WCSimLikelihoodTuner::QuantumEfficiency(WCSimLikelihoodTrackBase* myTrack, WCSimLikelihoodDigit * myDigit) {
-
-	double qe=  0.0;
-	if(myTrack->GetType() == TrackType::MuonLike || myTrack->GetType() == TrackType::ElectronLike)
-	{
-		qe = WCSimDetectorParameters::WavelengthAveragedQE(myTrack->GetType(), myDigit->GetPMTName().Data());
-	}
-	else assert(myTrack->GetType() == TrackType::ElectronLike || myTrack->GetType() == TrackType::MuonLike);
-	return qe;
+  return(myDigit->GetAverageQE());
 }
 
 double WCSimLikelihoodTuner::GetCutoff(WCSimLikelihoodTrackBase* myTrack) {
