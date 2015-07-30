@@ -105,6 +105,9 @@ private:
 	TH1F * fRhoInterpLo;
 	TH1F * fRhoInterpHi;
 
+  double fLastPercentile;
+  double fPercentileTrackLength;
+
   TrackType::Type fType;
   double fEnergy;
   ClassDef(WCSimEmissionProfiles,1)

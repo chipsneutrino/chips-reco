@@ -249,7 +249,11 @@ double WCSimIntegralLookupReader::GetTrackLengthForPercentile(const TrackType::T
 	  	assert(fLookupMap.find(type) != fLookupMap.end());
 	  }
 
-    TH2D * tempRhoInt = ((TH2D*)fLookupMap[type]->GetRhoIntegralHist()->Projection(0,1));
+  
+    THnSparseF * sparseHist = dynamic_cast<THnSparseF*>(fLookupMap[type]->GetRhoIntegralHist());
+    assert(sparseHist != 0x0);
+
+    TH2D * tempRhoInt = sparseHist->Projection(0,1);
     int bin = tempRhoInt->GetYaxis()->FindBin(E);
     TH1D * tempRhoInt1D = tempRhoInt->ProjectionX("tempRhoInt1D",bin, bin);
     dist = tempRhoInt1D->GetBinCenter(tempRhoInt1D->FindFirstBinAbove(percentile));

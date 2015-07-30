@@ -46,6 +46,9 @@ WCSimEmissionProfiles::WCSimEmissionProfiles() {
 	fGCoarse = 0x0;
 	fGFine = 0x0;
 
+  fLastPercentile = 0;
+  fPercentileTrackLength = 0;
+
   fType = TrackType::Unknown;
   fEnergy = -999.9;
 }
@@ -700,6 +703,7 @@ Double_t WCSimEmissionProfiles::GetLightFlux(
 
 Double_t WCSimEmissionProfiles::GetTrackLengthForPercentile(Double_t percentile)
 {
+  if(fLastPercentile == percentile) { return fPercentileTrackLength; }
   Double_t runningTotal = 0.0;
   Int_t iBin = 0;
   while(iBin < fRhoInterp->GetNbinsX() && runningTotal < 0.75)
@@ -707,7 +711,9 @@ Double_t WCSimEmissionProfiles::GetTrackLengthForPercentile(Double_t percentile)
       iBin++;
       runningTotal += fRhoInterp->GetBinContent(iBin) * fRhoInterp->GetXaxis()->GetBinWidth(iBin);
   }
-  return fRhoInterp->GetXaxis()->GetBinCenter(iBin);
+  fLastPercentile = percentile;
+  fPercentileTrackLength = fRhoInterp->GetXaxis()->GetBinCenter(iBin);
+  return fPercentileTrackLength;
 
 }
 
