@@ -657,7 +657,7 @@ void WCSimRecoEvDisplay::FillPlotsFromRecoFile() {
 
 		WCSimRootCherenkovDigiHit *wcSimDigiHit = dynamic_cast<WCSimRootCherenkovDigiHit*>(element);
 
-		WCSimRootPMT pmt = geo->GetPMT(wcSimDigiHit->GetTubeId());
+		WCSimRootPMT pmt = geo->GetPMTFromTubeID(wcSimDigiHit->GetTubeId());
 		double pmtX = pmt.GetPosition(0);
 		double pmtY = pmt.GetPosition(1);
 		double pmtZ = pmt.GetPosition(2);
