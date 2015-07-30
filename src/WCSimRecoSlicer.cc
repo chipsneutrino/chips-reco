@@ -121,6 +121,18 @@ void WCSimRecoSlicer::BuildEvents(){
 //  std::vector<std::pair<unsigned int, WCSimRecoEvent*> > sortVec;
   for(unsigned int v=0; v < fSlicedDigits.size(); ++v){
     WCSimRecoEvent* newEvt = new WCSimRecoEvent();
+    newEvt->SetHeader(fInputEvent->GetRun(), fInputEvent->GetEvent(), fInputEvent->GetTrigger());
+    newEvt->SetVertex(fInputEvent->GetVtxX(), fInputEvent->GetVtxY(), fInputEvent->GetVtxZ(), fInputEvent->GetVtxTime());
+    newEvt->SetDirection(fInputEvent->GetVtxX(), fInputEvent->GetVtxY(), fInputEvent->GetVtxZ());
+    newEvt->SetConeAngle(fInputEvent->GetConeAngle());
+    newEvt->SetTrackLength(fInputEvent->GetTrackLength());
+    newEvt->SetVtxFOM(fInputEvent->GetVtxFOM(), fInputEvent->GetVtxIterations(), fInputEvent->GetVtxPass());
+    newEvt->SetVtxStatus(fInputEvent->GetVtxStatus());
+
+    if(fInputEvent->IsFilterDone()){ newEvt->SetFilterDone();}
+    if(fInputEvent->IsVertexFinderDone()){ newEvt->SetVertexFinderDone();}
+    if(fInputEvent->IsRingFinderDone()){ newEvt->SetRingFinderDone();}
+
     // Add the digits
     for(unsigned int d = 0; d < fSlicedDigits[v].size(); ++d){
       newEvt->AddDigit(fSlicedDigits[v][d]);
