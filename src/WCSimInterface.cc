@@ -15,6 +15,8 @@
 #include <TIterator.h>
 #include <TObjArray.h>
 #include <TObjString.h>
+#include <TParticlePDG.h>
+#include <TDatabasePDG.h>
 
 #include <cmath>
 #include <iostream>
@@ -232,11 +234,15 @@ void WCSimInterface::BuildTrueLikelihoodTracks() {
   std::cout << " *** WCSimInterface::BuildTrueLikelihoodTracks() *** " << std::endl;
 	this->ResetTrueLikelihoodTracks();
 
+  TDatabasePDG myDatabase;
+
 	WCSimTruthSummary sum = fEvent->GetTruthSummary();
 
 	fTrueLikelihoodTracks = new std::vector<WCSimLikelihoodTrackBase*>;
 	if(sum.IsParticleGunEvent())
 	{
+    TParticlePDG * beamParticle = myDatabase.GetParticle(sum.GetBeamPDG());
+
 		double mm_to_cm = 0.1;
 		WCSimLikelihoodTrackBase * track = WCSimLikelihoodTrackFactory::MakeTrack(
 											TrackType::GetTypeFromPDG(sum.GetBeamPDG()),
@@ -246,7 +252,8 @@ void WCSimInterface::BuildTrueLikelihoodTracks() {
 											0,
 											sum.GetBeamDir().Theta(),
 											sum.GetBeamDir().Phi(),
-											sum.GetBeamEnergy());
+											sum.GetBeamEnergy() - beamParticle->Mass() * 1000 ); // Mass comes in GeV but we work in MeV
+
 		fTrueLikelihoodTracks->push_back(track);
 	}
 	else
@@ -256,13 +263,14 @@ void WCSimInterface::BuildTrueLikelihoodTracks() {
 		{
       if(TrackType::GetTypeFromPDG(sum.GetPrimaryPDG(i)) != TrackType::Unknown)
       {
+        TParticlePDG * primaryParticle = myDatabase.GetParticle(sum.GetPrimaryPDG(i));
 			  WCSimLikelihoodTrackBase * track = WCSimLikelihoodTrackFactory::MakeTrack(
 					  	  	  	  	  	  		TrackType::GetTypeFromPDG(sum.GetPrimaryPDG(i)),
 			  	  	  	  	  	  	  	  		sum.GetVertexX() * mm_to_cm, sum.GetVertexY() * mm_to_cm, sum.GetVertexZ() * mm_to_cm,
 			  	  	  	  	  	  	  	  		0,
 												sum.GetPrimaryDir(i).Theta(),
 												sum.GetPrimaryDir(i).Phi(),
-												sum.GetPrimaryEnergy(i)
+												sum.GetPrimaryEnergy(i) - primaryParticle->Mass()* 1000 // Mass comes in GeV but we want MeV
 												);
 			  fTrueLikelihoodTracks->push_back(track);
 		  }
