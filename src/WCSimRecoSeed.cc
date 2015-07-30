@@ -68,7 +68,7 @@ std::vector<WCSimRecoEvent*> WCSimRecoSeed::RunSeed(WCSimRecoEvent* myEvent)
   std::vector<WCSimRecoEvent*> slicedEvents = this->RunSlicer(myEvent);
 
   std::cout << "Found " << slicedEvents.size() << " slices." << std::endl;
-  if(slicedEvents.size() > 1){
+  if(slicedEvents.size() > 0){
     for(unsigned int i = 0; i < slicedEvents.size(); ++i){
       slicedEvents[i]->SetFilterDone();
       // reconstruct vertex
@@ -78,11 +78,6 @@ std::vector<WCSimRecoEvent*> WCSimRecoSeed::RunSeed(WCSimRecoEvent* myEvent)
       // =================
       this->RunRecoRings(slicedEvents[i]);
     }
-  }
-  else{
-    this->RunRecoVertex(myEvent);
-    this->RunRecoRings(myEvent);
-    slicedEvents.push_back(myEvent);
   }
 
   return slicedEvents;
