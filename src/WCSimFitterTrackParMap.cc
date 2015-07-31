@@ -126,7 +126,7 @@ void WCSimFitterTrackParMap::ResizeVectors()
 }
 
 void WCSimFitterTrackParMap::FixVertex(int track) {
-	FixOrFreeVertex(0, track);
+	FixOrFreeVertex(1, track);
 }
 
 void WCSimFitterTrackParMap::FreeVertex(int track) {
