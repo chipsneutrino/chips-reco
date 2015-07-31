@@ -166,9 +166,7 @@ TH1F* WCSimIntegralLookup3D::GetRhoIntegralHist() {
 
 double WCSimIntegralLookup3D::GetIntegral1D(const double& E, TH1F* hist) {
   // std::cout << "GetIntegral1D" << std::endl;
-	int bin = hist->FindBin(E); 
-	if( bin != -1){ return ( hist->GetBinContent(bin) ); }
-	else { return 0; }
+  return hist->Interpolate(E);
 }
 
 double WCSimIntegralLookup3D::GetIntegral3D(const double& E, const double& R0, const double& cosTh0, TH3F* hist) {
@@ -176,16 +174,29 @@ double WCSimIntegralLookup3D::GetIntegral3D(const double& E, const double& R0, c
   // std::cout << "hist = " << hist << "  " << hist->GetEntries() << std::endl;
 	// std::cout << "Getting integral for:  E = " << E << "  R0 = " << R0 << "   cosTh0 = " << cosTh0 << "  " << std::endl;
   // std::cout << "It has " << hist->GetNdimensions() << " dimensions" << std::endl;
-  // std::cout << "Axis 0 goes from " << hist->GetAxis(0)->GetXmin() << " to " << hist->GetAxis(0)->GetXmax() << std::endl;
-  // std::cout << "Axis 1 goes from " << hist->GetAxis(1)->GetXmin() << " to " << hist->GetAxis(1)->GetXmax() << std::endl;
-  // std::cout << "Axis 2 goes from " << hist->GetAxis(2)->GetXmin() << " to " << hist->GetAxis(2)->GetXmax() << std::endl;
-	int bin = hist->FindBin(E, R0, cosTh0); 
+  // std::cout << "Axis 0 goes from " << hist->GetXaxis()->GetXmin() << " to " << hist->GetXaxis()->GetXmax() << std::endl;
+  // std::cout << "Axis 1 goes from " << hist->GetYaxis()->GetXmin() << " to " << hist->GetYaxis()->GetXmax() << std::endl;
+  // std::cout << "Axis 2 goes from " << hist->GetZaxis()->GetXmin() << " to " << hist->GetZaxis()->GetXmax() << std::endl;
+  // std::cout << "Hist bin = " << hist->GetXaxis()->FindBin(E) << ", " << hist->GetYaxis()->FindBin(R0) << ", " << hist->GetZaxis()->FindBin(cosTh0) << std::endl;
+
+  // Sometimes cosTheta is too close to +/- 1 that it's before the centre of the
+  // first bin or beyond the centre of the last bin, so TH3::Interpolate doesn't work
+  int binE = hist->GetXaxis()->FindBin(E);
+  float lowE = hist->GetXaxis()->GetBinLowEdge(binE);
+  float hiE = hist->GetXaxis()->GetBinUpEdge(binE);
+
+  int lowBin = hist->FindBin(lowE, R0, cosTh0);
+  int hiBin = hist->FindBin(hiE, R0, cosTh0);
+
+  float interp = (hist->GetBinContent(lowBin) * (hiE-E) + hist->GetBinContent(hiBin) * (E-lowE)) / (hiE - lowE);
+  return interp;
 
 //	if(0.7 < cosTh0 && cosTh0 < 0.8){
 	//  std::cout << "Getting integral for:  E = " << E << "  R0 = " << R0 << "   cosTh0 = " << cosTh0 << "  " << std::endl;
 	//  std::cout << " bin = " << bin << std::endl;
 	//  if(bin != -1) {std::cout << "  int = " << hist->GetBinContent(bin) << std::endl;}
   //  std::cout << "Done" << std::endl;
-	if( bin != -1) { return (hist->GetBinContent(bin) ); }
-	else { return 0; }
+	//if( bin != -1) { return (hist->GetBinContent(bin) ); }
+	//else { return 0; }
 }
+

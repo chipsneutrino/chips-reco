@@ -50,8 +50,11 @@ class WCSimLikelihoodFitter
         void FixEnergy();
         void FreeEnergy();
 
-        void FitEnergy();
-        void FitVertex();
+        void FitEnergy(); ///< Wrapper to fit the energy - calls Fit() currently
+        void FitEnergyGridSearch(); ///< Alternative way to fit the energy - with a grid search.  Not used currently
+        void FitVertex(); ///< Wrapper to call Fit() in case we ever want to change the vertex method
+        void Fit(const char * minAlgorithm = "Simplex");
+
 
         void FitEventNumber(Int_t iEvent);
         void ResetEvent();

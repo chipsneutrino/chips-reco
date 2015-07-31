@@ -90,7 +90,6 @@ Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
   // of which track(s) - this is probably expensive, so we'll do it once and look it up in a map thereafter
 
   std::vector<WCSimLikelihoodTrackBase*> tracksToFit;
-  std::cout << "There are " << nTracks << " tracks" << std::endl;
   for(UInt_t iTrack = 0 ; iTrack < nTracks; ++iTrack)
   {
     TrackType::Type trackType = fFitterTrackParMap.GetTrackType(iTrack);
@@ -564,7 +563,7 @@ void WCSimLikelihoodFitter::FreeEnergy()
 	fFitterTrackParMap.FreeEnergy();
 }
 
-void WCSimLikelihoodFitter::FitEnergy()
+void WCSimLikelihoodFitter::FitEnergyGridSearch()
 {
 	TrackAndType trackAndEnergy;
 	if( WCSimFitterConfig::Instance()->GetNumTracks() > 2 )
@@ -620,8 +619,8 @@ void WCSimLikelihoodFitter::FitEnergy()
 	// Set everything to the default value
 
 	bool isFirstLoop = true;
-  //for(unsigned int iBin = 0; iBin < energyBinsZero.size(); ++iBin)
-	for(unsigned int iBin = 0; iBin < energyBinsZero.size(); iBin += 4) // LEIGH
+  for(unsigned int iBin = 0; iBin < energyBinsZero.size(); ++iBin)
+	//for(unsigned int iBin = 0; iBin < energyBinsZero.size(); iBin += 4) // LEIGH
 	{
 		// std::cout << "Energy bin " << iBin << " is " << energyBinsZero.at(iBin) << std::endl;
     // std::cout << "Setting initial energy to " << energyBinsZero.at(iBin) << std::endl;
@@ -662,9 +661,9 @@ void WCSimLikelihoodFitter::FitEnergy()
 						bestEnergies.push_back(energyBinsOne.at(jBin));
 				}
 			}
-			//jBin++;
+			jBin++;
 
-			jBin+=4; // LEIGH
+			//jBin+=4; // LEIGH
 		} while(jBin < energyBinsOne.size());
 
 	}
@@ -682,10 +681,20 @@ void WCSimLikelihoodFitter::FitEnergy()
 	return;
 }
 
+void WCSimLikelihoodFitter::FitEnergy()
+{
+  Fit("Simplex"); 
+}
+
 void WCSimLikelihoodFitter::FitVertex()
 {
+  Fit("Simplex");
+}
+
+void WCSimLikelihoodFitter::Fit(const char * minAlgorithm)
+{
 	// Set up the minimizer
-	ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Simplex");
+	ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("Minuit2", minAlgorithm);
 
 	// Alternatively: use a different algorithm to check the minimizer works
 	// ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "GSLSimAn");
