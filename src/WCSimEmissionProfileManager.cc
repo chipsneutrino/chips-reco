@@ -18,7 +18,21 @@ WCSimEmissionProfileManager::WCSimEmissionProfileManager()
 
 WCSimEmissionProfileManager::~WCSimEmissionProfileManager()
 {
-
+  std::map<TrackType::Type, std::map<double, WCSimEmissionProfiles*> >::iterator outerItr = fProfileMap.begin();
+  while(outerItr != fProfileMap.end())
+  {
+    std::map<double, WCSimEmissionProfiles*>::iterator innerItr = (outerItr->second).begin();
+    while(innerItr != outerItr->second.end())
+    {
+      delete innerItr->second;
+      innerItr->second = 0x0;
+      ++innerItr;
+    }
+    (outerItr->second).clear();
+    ++outerItr;
+  }
+  fProfileMap.clear();
+  fProfileMap.clear();
 }
 
 WCSimEmissionProfiles * WCSimEmissionProfileManager::GetEmissionProfile(TrackType::Type type, double energy)
