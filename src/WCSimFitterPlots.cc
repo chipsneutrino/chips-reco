@@ -144,7 +144,7 @@ void WCSimFitterPlots::MakePlotsForEachEvent(WCSimFitterConfig* fitterConfig) {
 			title.Form("Value of %s for track %d, for each of %d fitted tracks",
 					   parName, iTrack, fitterConfig->GetNumTracks());
 
-			int numBins = 20;
+			int numBins = 200;
       std::cout << "numBins = " << numBins << std::endl;
 			if( fitterConfig->GetNumEventsToFit() > 400)
 			{
@@ -198,7 +198,7 @@ void WCSimFitterPlots::MakeRecoMinusTrue(WCSimFitterConfig* fitterConfig) {
 			title.Form("Reco - true value of %s for track %d, for each of %d fitted events",
 					   parName.c_str(), iTrack, fitterConfig->GetNumTracks());
 
-			int numBins = 20;
+			int numBins = 200;
 			if( fitterConfig->GetNumEventsToFit() > 400)
 			{
 				numBins = fitterConfig->GetNumEventsToFit() / 20;
