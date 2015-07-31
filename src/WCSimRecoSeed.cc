@@ -25,7 +25,7 @@ ClassImp(WCSimRecoSeed)
 
 WCSimRecoSeed::WCSimRecoSeed()
 {
-
+  fNTracks = 9999;
 }
 
 WCSimRecoSeed::~WCSimRecoSeed()
@@ -69,7 +69,14 @@ std::vector<WCSimRecoEvent*> WCSimRecoSeed::RunSeed(WCSimRecoEvent* myEvent)
 
   std::cout << "Found " << slicedEvents.size() << " slices." << std::endl;
   if(slicedEvents.size() > 0){
-    for(unsigned int i = 0; i < slicedEvents.size(); ++i){
+
+    unsigned int nSlices = slicedEvents.size();
+    // Only consider the number of slices that we need
+    if(fNTracks < nSlices){
+      nSlices = fNTracks;
+    }
+
+    for(unsigned int i = 0; i < nSlices; ++i){
       slicedEvents[i]->SetFilterDone();
       // reconstruct vertex
      // ==================

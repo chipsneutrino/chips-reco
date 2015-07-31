@@ -25,8 +25,12 @@ class WCSimRecoSeed : public WCSimReco {
   void RunRecoVertex(WCSimRecoEvent* evt);
   void RunRecoRings(WCSimRecoEvent* evt);
 
+  void SetNumberOfTracks(unsigned int val){fNTracks = val;};
+  unsigned int GetNumberOfTracks(){return fNTracks;};
 
  private:
+
+  unsigned int fNTracks;
 
   ClassDef(WCSimRecoSeed,0)
 };
