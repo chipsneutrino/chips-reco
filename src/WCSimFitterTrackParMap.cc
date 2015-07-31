@@ -27,7 +27,7 @@ WCSimFitterTrackParMap::~WCSimFitterTrackParMap() {
 void WCSimFitterTrackParMap::Set() {
 	fTrackAndTypeIndexMap.clear();
 	unsigned int nTracks = WCSimFitterConfig::Instance()->GetNumTracks();
-  std::cout << "Number of tracks in ::Set is " << nTracks << std::endl;
+  //std::cout << "Number of tracks in ::Set is " << nTracks << std::endl;
 
 	unsigned int arrayCounter = 0; // How many unique track parameters there are
 	for (unsigned int iTrack = 0; iTrack < nTracks; ++iTrack) {
@@ -43,7 +43,7 @@ void WCSimFitterTrackParMap::Set() {
 			if (isJoinedWith == iTrack) // Itself, i.e. not joined with any other track
 			{
 				// Then set it to the value from the first track
-        std::cout << "Array counter = " << arrayCounter << "  " << "Independent params = " << WCSimFitterConfig::Instance()->GetNumIndependentParameters() << std::endl; 
+        //std::cout << "Array counter = " << arrayCounter << "  " << "Independent params = " << WCSimFitterConfig::Instance()->GetNumIndependentParameters() << std::endl; 
 				assert(arrayCounter	< WCSimFitterConfig::Instance()->GetNumIndependentParameters());
 				fTrackAndTypeIndexMap[trackPar] = arrayCounter;
 				arrayCounter++;
@@ -61,7 +61,7 @@ void WCSimFitterTrackParMap::Set() {
 
 void WCSimFitterTrackParMap::SetArrays()
 {
-  std::cout << "SetArrays" << std::endl;
+  //std::cout << "SetArrays" << std::endl;
 	ResizeVectors();
 
 	Int_t iParam = 0;
@@ -99,7 +99,7 @@ void WCSimFitterTrackParMap::SetArrays()
 }
 void WCSimFitterTrackParMap::ResizeVectors()
 {
-  std::cout << "Resize vectors" << std::endl;
+  //std::cout << "Resize vectors" << std::endl;
 	unsigned int arraySize = fTrackAndTypeIndexMap.size();
 	fCurrentValues.clear();
 	fMinValues.clear();
@@ -120,7 +120,7 @@ void WCSimFitterTrackParMap::ResizeVectors()
 	fSteps.resize(arraySize);
 	fNames.resize(arraySize);
 	fTypes.resize(WCSimFitterInterface::Instance()->GetNumTracks());
-  std::cout << "WCSimFitterInterface::ResizeVectors() = " << WCSimFitterInterface::Instance()->GetNumTracks() << std::endl;
+  //std::cout << "WCSimFitterInterface::ResizeVectors() = " << WCSimFitterInterface::Instance()->GetNumTracks() << std::endl;
 
 
 }

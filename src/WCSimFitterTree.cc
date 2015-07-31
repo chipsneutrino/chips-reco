@@ -280,12 +280,12 @@ void WCSimFitterTree::SaveTree() {
 	fSaveFile->cd();
 	std::cout << " *** WCSimFitter::SaveTree() *** " << std::endl;
 	std::cout << "Save file name = " << fSaveFileName << std::endl;
-	std::cout << "fTrueTree = " << fTrueTree << std::endl;
-	fTrueTree->Print();
+	//std::cout << "fTrueTree = " << fTrueTree << std::endl;
+	//TrueTree->Print();
 
 	assert(fSaveFile->IsOpen());
-	std::cout << "fTrueTree = " << fTrueTree << std::endl;
-	fTrueTree->Print();
+	//std::cout << "fTrueTree = " << fTrueTree << std::endl;
+	//fTrueTree->Print();
 	fTrueTree->Write("",TObject::kOverwrite);
 	fFitTree->Write("",TObject::kOverwrite);
 
@@ -398,7 +398,7 @@ void WCSimFitterTree::MakeSaveFileName()
     }
 
     fSaveFileName = fileNameCompare;
-	fSaveFile = new TFile(fSaveFileName.Data(), "CREATE");
+	  fSaveFile = new TFile(fSaveFileName.Data(), "CREATE");
     std::cout << "  Plots to be saved in file: " << fSaveFileName.Data() << std::endl;
 
     tmpd->cd();

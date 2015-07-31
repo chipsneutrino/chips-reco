@@ -79,7 +79,7 @@ void WCSimFitterInterface::SetNumTracks(unsigned int numTracks) {
 
 void WCSimFitterInterface::SetTrackType( unsigned int numTrack, const char * typeName)
 {
-  std::cout << "WCSimFitterInterface::SetTrackType(" << numTrack << ", " << typeName << ")" << std::endl;
+  //std::cout << "WCSimFitterInterface::SetTrackType(" << numTrack << ", " << typeName << ")" << std::endl;
 	WCSimFitterConfig::Instance()->SetTrackType(numTrack, typeName);
 }
 
@@ -244,17 +244,17 @@ void WCSimFitterInterface::SetInputFileName(const char * inputfile)
 
 void WCSimFitterInterface::SaveResults()
 {
-  std::cout << "  Saving tree " << std::endl;
+  //std::cout << "  Saving tree " << std::endl;
   fFitterTree->SaveTree();
-  std::cout << "  Saving plots " << std::endl;
+  //std::cout << "  Saving plots " << std::endl;
   fFitterPlots->SavePlots();
 }
 
 void WCSimFitterInterface::SaveProfiles()
 {
-  std::cout << "  Saving profiles " << std::endl;
+  //std::cout << "  Saving profiles " << std::endl;
   fFitterPlots->SaveProfiles();
-  std::cout << "  Saved profiles" << std::endl;
+  //std::cout << "  Saved profiles" << std::endl;
 }
 
 void WCSimFitterInterface::Run() {

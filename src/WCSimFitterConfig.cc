@@ -48,7 +48,7 @@ unsigned int WCSimFitterConfig::GetNumIndependentParameters()
 
 void WCSimFitterConfig::SetParameter( unsigned int numTrack, const char * name, double min, double max, double start, bool fixed)
 {
-  std::cout << "In WCSimFitterConfig::SetParameter" << std::endl;
+  //std::cout << "In WCSimFitterConfig::SetParameter" << std::endl;
   FitterParameterType::Type type = FitterParameterType::FromName(name);
   WCSimFitterSingleTrackParameters * trackPars = fFitterParameters.GetTrackParameters(numTrack);
   trackPars->SetParMin(type, min);
@@ -81,7 +81,7 @@ bool WCSimFitterConfig::GetIsFixedParameter(int numTrack, const char* name) {
 
 void WCSimFitterConfig::SetParMin(int numTrack, const char* name,
 		double min) {
-  std::cout << "In WCSimFitterConfig::SetParMin" << std::endl;
+  //std::cout << "In WCSimFitterConfig::SetParMin" << std::endl;
 	FitterParameterType::Type type = FitterParameterType::FromName(name);
 	WCSimFitterSingleTrackParameters * trackPars = fFitterParameters.GetTrackParameters(numTrack);
 	trackPars->SetParMin(type, min);
@@ -95,7 +95,7 @@ double WCSimFitterConfig::GetParMin(unsigned int numTrack, const char* name) {
 
 void WCSimFitterConfig::SetParMax(int numTrack, const char* name,
 		double max) {
-  std::cout << "In WCSimFitterConfig::SetParMax" << std::endl;
+  //std::cout << "In WCSimFitterConfig::SetParMax" << std::endl;
 	FitterParameterType::Type type = FitterParameterType::FromName(name);
 	WCSimFitterSingleTrackParameters * trackPars = fFitterParameters.GetTrackParameters(numTrack);
 	trackPars->SetParMax(type, max);
@@ -110,7 +110,7 @@ double WCSimFitterConfig::GetParMax(unsigned int numTrack, const char * name) {
 
 void WCSimFitterConfig::SetParStart(int numTrack, const char* name,
 		double start) {
-  std::cout << "In WCSimFitterConfig::SetParStart" << std::endl;
+  //std::cout << "In WCSimFitterConfig::SetParStart" << std::endl;
 
 	FitterParameterType::Type type = FitterParameterType::FromName(name);
 	WCSimFitterSingleTrackParameters * trackPars = fFitterParameters.GetTrackParameters(numTrack);
@@ -126,7 +126,7 @@ double WCSimFitterConfig::GetParStart(unsigned int numTrack, const char* name) {
 
 void WCSimFitterConfig::SetParRange(int numTrack, const char* name,
 		double min, double max) {
-  std::cout << "In WCSimFitterConfig::SetParRange" << std::endl;
+  //std::cout << "In WCSimFitterConfig::SetParRange" << std::endl;
 	FitterParameterType::Type type = FitterParameterType::FromName(name);
 	WCSimFitterSingleTrackParameters * trackPars = fFitterParameters.GetTrackParameters(numTrack);
 	trackPars->SetParRange(type, min, max);
@@ -173,8 +173,8 @@ int WCSimFitterConfig::GetNumEventsToFit() {
 
 
 void WCSimFitterConfig::Print() {
-	std::cout << " *** WCSimFitterConfig::Print() *** " << std::endl;
-	std::cout << "Should add some statements in here..." << std::endl;
+	//std::cout << " *** WCSimFitterConfig::Print() *** " << std::endl;
+	//std::cout << "Should add some statements in here..." << std::endl;
 }
 
 void WCSimFitterConfig::SetJoinParametersTogether(unsigned int numTrack1,
