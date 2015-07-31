@@ -85,6 +85,9 @@ std::vector<WCSimRecoEvent*> WCSimRecoSeed::RunSeed(WCSimRecoEvent* myEvent)
 
 void WCSimRecoSeed::RunFilter(WCSimRecoEvent* myEvent)
 {  
+  // Don't run the filter if it has already been done
+  if(myEvent->IsFilterDone()) return;
+  
   // Get Digit List
   // ==============
   std::vector<WCSimRecoDigit*>* myDigitList = (std::vector<WCSimRecoDigit*>*)(myEvent->GetDigitList()); 
