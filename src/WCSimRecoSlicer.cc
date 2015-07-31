@@ -56,8 +56,8 @@ void WCSimRecoSlicer::SliceTheEvent(){
     }
   }
   std::sort(digitVector.begin(),digitVector.end(),SortDigitsByCharge);
-  std::cout << " Slicing " << digitVector.size() << " digits from " << digitVector[0]->GetRawQPEs() 
-            << " to " << digitVector[digitVector.size()-1]->GetRawQPEs() << " PE." << std::endl;
+//  std::cout << " Slicing " << digitVector.size() << " digits from " << digitVector[0]->GetRawQPEs() 
+//            << " to " << digitVector[digitVector.size()-1]->GetRawQPEs() << " PE." << std::endl;
 
   fIsDigitClustered.clear();
   for(unsigned int d = 0; d < digitVector.size(); ++d){
@@ -113,6 +113,7 @@ void WCSimRecoSlicer::SliceTheEvent(){
     }
   }
 
+  // Now we need to turn our slices back into WCSimRecoEvents
   BuildEvents();
 
 }
@@ -156,6 +157,7 @@ void WCSimRecoSlicer::BuildEvents(){
 //  std::vector<std::pair<unsigned int, WCSimRecoEvent*> > sortVec;
   for(unsigned int v=0; v < fSlicedDigits.size(); ++v){
     WCSimRecoEvent* newEvt = new WCSimRecoEvent();
+    // Initialise the event from the input event
     newEvt->SetHeader(fInputEvent->GetRun(), fInputEvent->GetEvent(), fInputEvent->GetTrigger());
     newEvt->SetVertex(fInputEvent->GetVtxX(), fInputEvent->GetVtxY(), fInputEvent->GetVtxZ(), fInputEvent->GetVtxTime());
     newEvt->SetDirection(fInputEvent->GetVtxX(), fInputEvent->GetVtxY(), fInputEvent->GetVtxZ());
@@ -178,12 +180,7 @@ void WCSimRecoSlicer::BuildEvents(){
   }
 
   // Now we want to sort the vector by the number of digits.
-//  std::sort(sortVec.begin(),sortVec.end());
   std::sort(fSlicedEvents.begin(),fSlicedEvents.end(),SortTheSlices);
-//  for(unsigned int i = 0; i < sortVec.size(); ++i){ 
-  for(unsigned int i = 0; i < fSlicedEvents.size(); ++i){
-    std::cout << "Built sliced event with " << fSlicedEvents[i]->GetFilterDigitList()->size() << " digits." << std::endl;
-  }
 
 }
 
