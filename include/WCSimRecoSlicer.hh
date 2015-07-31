@@ -23,6 +23,8 @@ class WCSimRecoSlicer {
   std::vector<WCSimRecoEvent*> GetSlicedEvents(){return fSlicedEvents;};
 
   private:
+  
+  void UpdateParameters();
 
   bool AddDigitIfClose(WCSimRecoDigit*,std::vector<WCSimRecoDigit*>&);
   double GetDistanceBetweenDigits(WCSimRecoDigit*, WCSimRecoDigit*);
@@ -42,6 +44,7 @@ class WCSimRecoSlicer {
 
   double fDistanceCut;
   unsigned int fMinSliceSize;
+  double fChargeCut;
 };
 
 #endif

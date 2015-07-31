@@ -39,8 +39,18 @@ class WCSimParameters : public TObject {
   Double_t GetRefractiveIndex(Double_t r);  
   
   Double_t GetSimpleTimeResolution(Double_t Q);
-  Double_t GetSimpleTimeSlew() { return 0.0; }
-  Double_t GetSimpleRefractiveIndex() { return 1.33; }
+  Double_t GetSimpleTimeSlew() { return 0.0; };
+  Double_t GetSimpleRefractiveIndex() { return 1.33; };
+
+  // Slicer parameters
+  void SetSlicerClusterDistance(Double_t val) {fSlicerClusterDistance = val;};
+  Double_t GetSlicerClusterDistance() {return fSlicerClusterDistance;};
+
+  void SetSlicerMinSize(UInt_t val) {fSlicerMinSize = val;};
+  UInt_t GetSlicerMinSize() {return fSlicerMinSize;};
+
+  void SetSlicerChargeCut(Double_t val) {fSlicerChargeCut = val;};
+  Double_t GetSlicerChargeCut() {return fSlicerChargeCut;};
 
  private:
   WCSimParameters();
@@ -49,6 +59,11 @@ class WCSimParameters : public TObject {
   Bool_t fUseSimpleTimeResolution;
   Bool_t fUseSimpleTimeSlew;
   Bool_t fUseSimpleRefractiveIndex;
+
+  // Slicer parameters
+  Double_t fSlicerClusterDistance; // Max distance in cm between hits in the slices
+  UInt_t fSlicerMinSize; // Minimum number of hits for a slice to be formed
+  Double_t fSlicerChargeCut; // Only consider digits above the charge threshold
 
   ClassDef(WCSimParameters,0)
 

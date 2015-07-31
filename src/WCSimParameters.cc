@@ -32,6 +32,11 @@ WCSimParameters::WCSimParameters()
   fUseSimpleTimeResolution = 0;
   fUseSimpleTimeSlew = 0;
   fUseSimpleRefractiveIndex = 0;
+
+  // Leigh: Slicer parameters
+  fSlicerClusterDistance = 250; 
+  fSlicerMinSize = 10; 
+  fSlicerChargeCut = 2.0;
 }
 
 WCSimParameters::~WCSimParameters()
