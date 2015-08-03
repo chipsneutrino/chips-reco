@@ -485,7 +485,7 @@ void WCSimHoughTransformArray::FitMultiPeaksSmooth(std::vector<Double_t> &houghD
   WCSimHoughTransform* houghTrans = this->GetHoughTransform(this->FindBin(42));
 
   // Get the histogram corresponding to the expected cone angle.
-  TH2D* houghSpace = houghTrans->GetRotatedTH2D("houghSpace",180.0);
+  TH2D* houghSpace = houghTrans->GetRotatedTH2D("houghSpace",0.0);
   houghSpace->RebinX(4);
   houghSpace->RebinY(2);
 
