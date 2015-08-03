@@ -35,6 +35,7 @@
 
 #include <string>
 #include <iostream>
+#include <utility>
 #include <vector>
 #include <map>
 #include <algorithm>
@@ -42,6 +43,8 @@
 #ifndef REFLEX_DICTIONARY
 ClassImp(WCSimLikelihoodFitter)
 #endif
+
+bool RingSort(const std::pair<WCSimRecoRing*,double> &a, const std::pair<WCSimRecoRing*,double> &b);
 
 /**
  * @todo Remove hardcoding of track type
@@ -479,6 +482,27 @@ void WCSimLikelihoodFitter::SeedEvent()
   WCSimRecoEvent* recoEvent = WCSimInterface::RecoEvent();
   std::vector<WCSimRecoEvent*> slicedEvents = myReco->RunSeed(recoEvent);
 
+  // Make a vector of all of the available rings we have. 
+  std::vector<WCSimRecoRing*> ringVec;
+  std::vector<std::pair<WCSimRecoRing*,double> > otherRings;
+  std::vector<double> ringTime;
+  // Add the primary ring from each slice first.
+  for(unsigned int e = 0; e < slicedEvents.size(); ++e){
+    ringVec.push_back(slicedEvents[e]->GetRing(0));
+    ringTime.push_back(slicedEvents[e]->GetVtxTime());
+    for(int r = 1; r < slicedEvents[e]->GetNRings(); ++r){
+      std::pair<WCSimRecoRing*,double> tempPair;
+      tempPair = std::make_pair<WCSimRecoRing*,double>(slicedEvents[e]->GetRing(r),slicedEvents[e]->GetVtxTime());
+      otherRings.push_back(tempPair);
+    }
+  }
+  // Sort the otherRings vector by height and add to the main vector
+  std::sort(otherRings.begin(),otherRings.end(),RingSort);
+  for(unsigned int r = 0; r < otherRings.size(); ++r){
+    ringVec.push_back(otherRings[r].first);
+    ringTime.push_back(otherRings[r].second);
+  }
+
   // Now we need to loop over all the track parameters available to the fitter
   // and set them to the corresponding seed parameter
   for(int iTrack = 0; iTrack < WCSimFitterInterface::Instance()->GetNumTracks(); ++iTrack)
@@ -487,23 +511,23 @@ void WCSimLikelihoodFitter::SeedEvent()
     double dirX, dirY, dirZ;
     double seedTheta, seedPhi;
     std::cout << "Track number " <<  iTrack << " compared to " << slicedEvents.size() << std::endl;
-    if(iTrack < slicedEvents.size()){
-      seedX = slicedEvents[iTrack]->GetRing(0)->GetVtxX();
-      seedY = slicedEvents[iTrack]->GetRing(0)->GetVtxY();
-      seedZ = slicedEvents[iTrack]->GetRing(0)->GetVtxZ();
-      seedT = slicedEvents[iTrack]->GetVtxTime();
-      dirX = slicedEvents[iTrack]->GetRing(0)->GetDirX();
-      dirY = slicedEvents[iTrack]->GetRing(0)->GetDirY();
-      dirZ = slicedEvents[iTrack]->GetRing(0)->GetDirZ();
+    if(iTrack < ringVec.size()){
+      seedX = ringVec[iTrack]->GetVtxX();
+      seedY = ringVec[iTrack]->GetVtxY();
+      seedZ = ringVec[iTrack]->GetVtxZ();
+      seedT = ringTime[iTrack];
+      dirX = ringVec[iTrack]->GetDirX();
+      dirY = ringVec[iTrack]->GetDirY();
+      dirZ = ringVec[iTrack]->GetDirZ();
     }
     else{
-      seedX = slicedEvents[0]->GetRing(0)->GetVtxX();
-      seedY = slicedEvents[0]->GetRing(0)->GetVtxY();
-      seedZ = slicedEvents[0]->GetRing(0)->GetVtxZ();
-      seedT = slicedEvents[0]->GetVtxTime();
-      dirX = slicedEvents[0]->GetRing(0)->GetDirX();
-      dirY = slicedEvents[0]->GetRing(0)->GetDirY();
-      dirZ = slicedEvents[0]->GetRing(0)->GetDirZ();
+      seedX = ringVec[0]->GetVtxX();
+      seedY = ringVec[0]->GetVtxY();
+      seedZ = ringVec[0]->GetVtxZ();
+      seedT = ringTime[0];
+      dirX = ringVec[0]->GetDirX();
+      dirY = ringVec[0]->GetDirY();
+      dirZ = ringVec[0]->GetDirZ();
     }
 
     seedTheta = TMath::ACos(dirZ);
@@ -803,4 +827,8 @@ void WCSimLikelihoodFitter::UpdateBestFits()
 		  track->Print();
 		  fBestFit.push_back(track);
 	  }
+}
+
+bool RingSort(const std::pair<WCSimRecoRing*,double> &a, const std::pair<WCSimRecoRing*,double> &b){
+  return (a.first)->GetHeight() > (b.first)->GetHeight();
 }

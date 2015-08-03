@@ -208,6 +208,7 @@ void WCSimRecoSeed::RunRecoRings(WCSimRecoEvent* myEvent)
   // Get Ring Finder
   // ===============
   WCSimRingFinder* myRingFinder = WCSimRingFinder::Instance();
+  myRingFinder->SetUsingTSpectrum2();
 
   // Run Ring Finder
   // ===============

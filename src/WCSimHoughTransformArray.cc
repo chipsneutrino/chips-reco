@@ -2,13 +2,19 @@
 #include "WCSimHoughTransform.hh"
 
 #include "TMath.h"
+#include "TH2D.h"
+#include "TVector2.h"
 #include "TSpectrum2.h"
 #include "TSpectrum3.h"
 
 #include <iostream>
 #include <vector>
+#include <utility>
+#include <algorithm>
 
 ClassImp(WCSimHoughTransformArray)
+
+bool PairSort(const std::pair<double,TVector2> &a, const std::pair<double,TVector2> &b);
 
 // Constructor
 //============
@@ -472,5 +478,64 @@ void WCSimHoughTransformArray::FitTSpectrum2( std::vector<Double_t> &houghDirX, 
 	return;
 }
 
- 
+void WCSimHoughTransformArray::FitMultiPeaksSmooth(std::vector<Double_t> &houghDirX, std::vector<Double_t> &houghDirY,
+                                                   std::vector<Double_t> &houghDirZ, std::vector<Double_t> &houghAngle,
+                                                   std::vector<Double_t> &houghHeight){
+  // Transform for the expected cone angle.
+  WCSimHoughTransform* houghTrans = this->GetHoughTransform(this->FindBin(42));
+
+  // Get the histogram corresponding to the expected cone angle.
+  TH2D* houghSpace = houghTrans->GetRotatedTH2D("houghSpace",180.0);
+  houghSpace->RebinX(4);
+  houghSpace->RebinY(2);
+
+  // It seems that smoothing the histogram once and not binning too finely will help
+  // us avoid problems with noise.
+  houghSpace->Smooth(1);
+
+  // Search for peaks in the histogram.
+  TSpectrum2 *peakFinder = new TSpectrum2();
+  peakFinder->Search(houghSpace,2,"col");
+
+  std::cout << "== Found " << peakFinder->GetNPeaks() << " rings." << std::endl;
+
+  std::vector<std::pair<double,TVector2> > peakListToSort;
+  float *phiArray = peakFinder->GetPositionX();
+  float *thetaArray = peakFinder->GetPositionY();
+  for(int i = 0; i < peakFinder->GetNPeaks(); ++i){
+    TVector2 tempVec(phiArray[i],thetaArray[i]);
+    std::pair<double,TVector2> tempPair(houghSpace->Interpolate(phiArray[i],thetaArray[i]),tempVec);
+    peakListToSort.push_back(tempPair);
+  }
+  std::sort(peakListToSort.begin(),peakListToSort.end(),PairSort);
+
+  for(unsigned int v = 0; v < peakListToSort.size(); ++v){
+    std::cout << "Peak height = " << peakListToSort[v].first << std::endl;
+    Float_t phiradians = TMath::Pi() / 180.0 * (peakListToSort[v].second).X();
+    Float_t costheta = (peakListToSort[v].second).Y();
+    Float_t sintheta = sqrt(1.0-costheta*costheta);
+
+    std::cout << "Phiradians = " << phiradians << "   sintheta = " << costheta << std::endl;
+    double dirX = sintheta * cos(phiradians);
+    double dirY = sintheta * sin(phiradians);
+    double dirZ = costheta;
+
+    houghDirX.push_back(dirX);
+    houghDirY.push_back(dirY);
+    houghDirZ.push_back(dirZ);
+    houghAngle.push_back(42.0);
+    houghHeight.push_back(peakListToSort[v].first);
+  }
+
+  // Tidy up
+  delete houghSpace;
+  delete peakFinder;
+  houghSpace = 0x0;
+  peakFinder = 0x0;
+
+}
+
+bool PairSort(const std::pair<double,TVector2> &a, const std::pair<double,TVector2> &b){
+  return a.first > b.first;
+}
  

@@ -43,6 +43,12 @@ class WCSimHoughTransformArray : public TObject {
 	void FitTSpectrum3( std::vector<Double_t> &houghDirX, std::vector<Double_t> &houghDirY,
 										std::vector<Double_t> &houghDirZ, std::vector<Double_t> &houghAngle, 
 										std::vector<Double_t> &houghHeight );
+
+  // Leigh
+  void FitMultiPeaksSmooth(std::vector<Double_t> &houghDirX, std::vector<Double_t> &houghDirY,
+                           std::vector<Double_t> &houghDirZ, std::vector<Double_t> &houghAngle,
+                           std::vector<Double_t> &houghHeight);
+
   void Reset();
 
  private:
