@@ -509,7 +509,16 @@ void WCSimHoughTransformArray::FitMultiPeaksSmooth(std::vector<Double_t> &houghD
   }
   std::sort(peakListToSort.begin(),peakListToSort.end(),PairSort);
 
+  double maxHeight = -999;
+  if(peakListToSort.size() != 0){
+    maxHeight = peakListToSort[0].first;
+  }
+
   for(unsigned int v = 0; v < peakListToSort.size(); ++v){
+
+    // Only consider fairly decent sized peaks
+    if(peakListToSort[v].first < (maxHeight / 2.0)) continue;
+
     std::cout << "Peak height = " << peakListToSort[v].first << std::endl;
     Float_t phiradians = TMath::Pi() / 180.0 * (peakListToSort[v].second).X();
     Float_t costheta = (peakListToSort[v].second).Y();
