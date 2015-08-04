@@ -46,14 +46,8 @@ void WCSimHoughTransform::Fill(Double_t nx, Double_t ny, Double_t nz, Double_t w
 {
   Double_t phi = 0.0;
   Double_t costheta = 0.0;
-
-  if( nx!=0.0 ){
-    phi = atan(ny/nx);
-  }
-  if( nx<=0.0 ){
-    if( ny>0.0 ) phi += TMath::Pi();
-    if( ny<0.0 ) phi -= TMath::Pi();
-  }
+  
+  phi = TMath::ATan2(ny,nx);
 
   phi *= 180.0/TMath::Pi();
   costheta = nz;

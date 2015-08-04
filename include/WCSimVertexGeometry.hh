@@ -343,8 +343,6 @@ class WCSimVertexGeometry : public TObject {
   std::vector<Double_t> vSeedVtxTime;
   std::vector<Int_t> vSeedDigitList;
 
-  std::vector<WCSimRecoVertex*> vVertexList;
-
   ClassDef(WCSimVertexGeometry,0)
 
 };

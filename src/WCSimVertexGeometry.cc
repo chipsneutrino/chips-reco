@@ -194,12 +194,6 @@ void WCSimVertexGeometry::LoadEvent(WCSimRecoEvent* myEvent)
   Int_t thisEventNum = myEvent->GetEvent();
   Int_t thisTriggerNum = myEvent->GetTrigger();
 
-  if( fRunNum==thisRunNum
-   && fEventNum==thisEventNum
-   && fTriggerNum==thisTriggerNum ){
-    return;
-  }
-
   fRunNum = thisRunNum;
   fEventNum = thisEventNum;
   fTriggerNum = thisTriggerNum;
@@ -210,13 +204,6 @@ void WCSimVertexGeometry::LoadEvent(WCSimRecoEvent* myEvent)
   fThisDigit = 0;
   fLastEntry = 0;
   fCounter = 0;
-
-  // clear vertices
-  // ==============
-  for(UInt_t i=0; i<vVertexList.size(); i++ ){
-    delete (WCSimRecoVertex*)(vVertexList.at(i));
-  }
-  vVertexList.clear();
 
   // clear seed vertices
   // ===================
@@ -368,7 +355,6 @@ WCSimRecoVertex* WCSimVertexGeometry::CalcSimpleVertex()
   // create new vertex
   // =================
   WCSimRecoVertex* newVertex = new WCSimRecoVertex();
-  vVertexList.push_back(newVertex);
 
   // calculate vertex
   // ================
@@ -458,7 +444,6 @@ WCSimRecoVertex* WCSimVertexGeometry::CalcSimpleDirection(WCSimRecoVertex* myVer
   // create new vertex
   // =================
   WCSimRecoVertex* newVertex = new WCSimRecoVertex();
-  vVertexList.push_back(newVertex);
 
   // loop over digits
   // ================

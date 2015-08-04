@@ -397,13 +397,6 @@ WCSimVertexFinder::~WCSimVertexFinder()
   delete fMinuitTimeFit;
   delete fMinuitConeFit;
 
-  // clear vertices
-  // ==============
-  for(UInt_t i=0; i<vVertexList.size(); i++ ){
-    delete (WCSimRecoVertex*)(vVertexList.at(i));
-  }
-
-  vVertexList.clear();
 }
 
 void WCSimVertexFinder::RunPrintParameters()
@@ -436,14 +429,6 @@ void WCSimVertexFinder::Reset()
 
 void WCSimVertexFinder::Clear()
 {
-  // clear vertices
-  // ==============
-  for(UInt_t i=0; i<vVertexList.size(); i++ ){
-    delete (WCSimRecoVertex*)(vVertexList.at(i));
-  }
-
-  vVertexList.clear();
-
   // clear vertices
   // ==============
   fSimplePosition = 0;
@@ -665,7 +650,6 @@ WCSimRecoVertex* WCSimVertexFinder::BuildTrueVertex()
 WCSimRecoVertex* WCSimVertexFinder::BuildDummyVertex()
 {
   WCSimRecoVertex* newVertex = new WCSimRecoVertex();
-  vVertexList.push_back(newVertex);
 
   fSimplePosition  = newVertex;
   fSimpleDirection = newVertex;
@@ -806,7 +790,6 @@ WCSimRecoVertex* WCSimVertexFinder::FixSimplePosition(Double_t vtxX, Double_t vt
   // create new vertex
   // =================
   WCSimRecoVertex* newVertex = new WCSimRecoVertex();
-  vVertexList.push_back(newVertex);
   fSimplePosition = newVertex;
 
   // set vertex
@@ -835,7 +818,6 @@ WCSimRecoVertex* WCSimVertexFinder::FixPointPosition(Double_t vtxX, Double_t vtx
   // create new vertex
   // =================
   WCSimRecoVertex* newVertex = new WCSimRecoVertex();
-  vVertexList.push_back(newVertex);
   fPointPosition = newVertex;
 
   // calculate vertex
@@ -873,7 +855,6 @@ WCSimRecoVertex* WCSimVertexFinder::FixSimpleDirection(Double_t vtxX, Double_t v
   // create new vertex
   // =================
   WCSimRecoVertex* newVertex = new WCSimRecoVertex();
-  vVertexList.push_back(newVertex);
   fSimpleDirection = newVertex; 
 
   // set vertex
@@ -910,7 +891,6 @@ WCSimRecoVertex* WCSimVertexFinder::FixPointDirection(Double_t vtxX, Double_t vt
   // create new vertex
   // =================
   WCSimRecoVertex* newVertex = new WCSimRecoVertex();
-  vVertexList.push_back(newVertex);
   fPointDirection = newVertex;
 
   // figure of merit
@@ -956,7 +936,6 @@ WCSimRecoVertex* WCSimVertexFinder::FixPointVertex(Double_t vtxX, Double_t vtxY,
   // create new vertex
   // =================
   WCSimRecoVertex* newVertex = new WCSimRecoVertex();
-  vVertexList.push_back(newVertex);
   fPointVertex = newVertex;
 
   // figure of merit
@@ -999,7 +978,6 @@ WCSimRecoVertex* WCSimVertexFinder::FixExtendedVertex(Double_t vtxX, Double_t vt
   // create new vertex
   // =================
   WCSimRecoVertex* newVertex = new WCSimRecoVertex();
-  vVertexList.push_back(newVertex);
   fExtendedVertex = newVertex;
 
   // figure of merit
@@ -1070,7 +1048,6 @@ WCSimRecoVertex* WCSimVertexFinder::CorrectExtendedVertex(WCSimRecoVertex* myVer
                                                    dirX,dirY,dirZ,
                                                    angle,length,
                                                    fom,nsteps,pass,status);
-  vVertexList.push_back(newVertex);
   fExtendedVertex = newVertex;
 
   // print vertex
@@ -1120,7 +1097,6 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointPositionWithMinuit(WCSimRecoVertex* 
   // create new vertex
   // =================
   WCSimRecoVertex* newVertex = new WCSimRecoVertex();
-  vVertexList.push_back(newVertex);
   fPointPosition = newVertex;
 
   // abort if necessary
@@ -1263,7 +1239,6 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointDirectionWithMinuit(WCSimRecoVertex*
   // create new vertex
   // =================
   WCSimRecoVertex* newVertex = new WCSimRecoVertex();
-  vVertexList.push_back(newVertex);
   fPointDirection = newVertex;
 
   // abort if necessary
@@ -1402,7 +1377,6 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointVertexWithMinuit(WCSimRecoVertex* my
   // create new vertex
   // =================
   WCSimRecoVertex* newVertex = new WCSimRecoVertex();
-  vVertexList.push_back(newVertex);
   fPointVertex = newVertex;
 
   // abort if necessary
@@ -1558,7 +1532,6 @@ WCSimRecoVertex* WCSimVertexFinder::FitExtendedVertexWithMinuit(WCSimRecoVertex*
   // create new vertex
   // =================
   WCSimRecoVertex* newVertex = new WCSimRecoVertex();
-  vVertexList.push_back(newVertex);
   fExtendedVertex = newVertex;
 
   // abort if necessary

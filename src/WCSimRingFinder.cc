@@ -86,8 +86,10 @@ WCSimRingFinder::WCSimRingFinder()
 	fUseTSpectrum2 = 0;
 
   // default hough transform parameters
-  fHoughX = 240;          // bins in phi
-  fHoughY = 120;           // bins in cos(theta)
+//  fHoughX = 240;          // bins in phi
+//  fHoughY = 120;           // bins in cos(theta)
+  fHoughX = 100;          // bins in phi
+  fHoughY = 100;           // bins in cos(theta)
   fHoughPoints = 720;     // hough points
 
   fConeAngleBins = 16;   // hough angle bins

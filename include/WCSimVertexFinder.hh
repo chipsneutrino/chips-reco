@@ -285,8 +285,6 @@ class WCSimVertexFinder : public TObject {
   Double_t fSel;
   Bool_t fIntegralsDone;
 
-  std::vector<WCSimRecoVertex*> vVertexList;
-
  public:  
 
   Double_t fVtxX;

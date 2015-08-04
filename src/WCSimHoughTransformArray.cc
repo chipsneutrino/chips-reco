@@ -45,7 +45,7 @@ void WCSimHoughTransformArray::BuildArray(Int_t coneAngleBins, Double_t coneAngl
   fConeAngleMax = coneAngleMax;
 
   std::cout << "  building Hough Transform Array: Cone angle (bins,min,max)=(" << fConeAngleBins << "," << fConeAngleMin << "," << fConeAngleMax << ") " << std::endl
-						<< "  phi      (bins, min, max) =(" << fHoughX << ",0,360)" << std::endl
+						<< "  phi      (bins, min, max) =(" << fHoughX << ",-180,180)" << std::endl
 						<< "  costheta (bins, min, max) =(" << fHoughY << "-1,1)" << std::endl; 
 
   // clear current array
@@ -485,24 +485,26 @@ void WCSimHoughTransformArray::FitMultiPeaksSmooth(std::vector<Double_t> &houghD
   WCSimHoughTransform* houghTrans = this->GetHoughTransform(this->FindBin(42));
 
   // Get the histogram corresponding to the expected cone angle.
-  TH2D* houghSpace = houghTrans->GetRotatedTH2D("houghSpace",180.0);
-  houghSpace->RebinX(4);
-  houghSpace->RebinY(2);
+//  TH2D* houghSpace = houghTrans->GetRotatedTH2D("houghSpace",0.0);
+  TH2D* houghSpace = houghTrans->GetTH2D("houghSpace");
 
-  // It seems that smoothing the histogram once and not binning too finely will help
-  // us avoid problems with noise.
+  // Smooth slightly to help prevent noise problems
   houghSpace->Smooth(1);
 
   // Search for peaks in the histogram.
   TSpectrum2 *peakFinder = new TSpectrum2();
-  peakFinder->Search(houghSpace,2,"col");
-
-  std::cout << "== Found " << peakFinder->GetNPeaks() << " rings." << std::endl;
+  peakFinder->Search(houghSpace,4,"col");
 
   std::vector<std::pair<double,TVector2> > peakListToSort;
   float *phiArray = peakFinder->GetPositionX();
   float *thetaArray = peakFinder->GetPositionY();
   for(int i = 0; i < peakFinder->GetNPeaks(); ++i){
+
+    // Make sure phi is in range
+    if(phiArray[i] > 180){
+      phiArray[i] = phiArray[i] - 360;
+    }
+
     TVector2 tempVec(phiArray[i],thetaArray[i]);
     std::pair<double,TVector2> tempPair(houghSpace->Interpolate(phiArray[i],thetaArray[i]),tempVec);
     peakListToSort.push_back(tempPair);
