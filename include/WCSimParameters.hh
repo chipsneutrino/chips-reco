@@ -16,6 +16,7 @@ class WCSimParameters : public TObject {
   static Double_t SpeedOfLight();
   static Double_t CherenkovAngle();
   static Double_t TimeResolution(Double_t Q);
+  static Double_t WCSimTimeResolution(Double_t Q, Double_t timeConst);
   static Double_t TimeSlew(Double_t Q);
   static Double_t RefractiveIndex(Double_t r);
 

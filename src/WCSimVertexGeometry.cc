@@ -6,6 +6,8 @@
 
 #include "WCSimGeometry.hh"
 #include "WCSimParameters.hh"
+#include "WCSimPMTManager.hh"
+#include "WCSimPMTConfig.hh"
 
 #include "TMath.h"
 #include "TRandom.h"
@@ -15,6 +17,7 @@
 #include <cmath>
 #include <iostream>
 #include <cassert>
+#include <map>
 
 ClassImp(WCSimVertexGeometry)
 
@@ -50,6 +53,8 @@ WCSimVertexGeometry::WCSimVertexGeometry()
   fEventNum = -1;
   fTriggerNum = -1;
   
+  fPMTManager = new WCSimPMTManager();
+
   fNDigits = 0;
   fNFilterDigits = 0;
 
@@ -77,6 +82,7 @@ WCSimVertexGeometry::WCSimVertexGeometry()
 
   fIsFiltered = new Bool_t[fPMTs];
 
+  fDigitID = new Int_t[fPMTs];
   fDigitX = new Double_t[fPMTs];
   fDigitY = new Double_t[fPMTs];
   fDigitZ = new Double_t[fPMTs];
@@ -113,6 +119,7 @@ WCSimVertexGeometry::WCSimVertexGeometry()
   for( Int_t n=0; n<fPMTs; n++ ){
     fIsFiltered[n] = 0.0;
 
+    fDigitID[n] = -999;
     fDigitX[n] = 0.0;
     fDigitY[n] = 0.0;
     fDigitZ[n] = 0.0;
@@ -151,6 +158,7 @@ WCSimVertexGeometry::~WCSimVertexGeometry()
 {
   if( fIsFiltered ) delete [] fIsFiltered;
 
+  if( fDigitID ) delete [] fDigitID;
   if( fDigitX ) delete [] fDigitX;
   if( fDigitY ) delete [] fDigitY;
   if( fDigitZ ) delete [] fDigitZ;
@@ -259,6 +267,7 @@ void WCSimVertexGeometry::LoadEvent(WCSimRecoEvent* myEvent)
   for( Int_t idigit=0; idigit<fNDigits; idigit++ ){
     WCSimRecoDigit* recoDigit = (WCSimRecoDigit*)(myDigitList->at(idigit));    
 
+    fDigitID[idigit] = recoDigit->GetTubeID();
     fDigitX[idigit] = recoDigit->GetX();
     fDigitY[idigit] = recoDigit->GetY();
     fDigitZ[idigit] = recoDigit->GetZ();
@@ -674,7 +683,16 @@ void WCSimVertexGeometry::CalcResiduals(Double_t vtxX, Double_t vtxY, Double_t v
 
     Double_t dt = fDigitT[idigit] - vtxTime;
     Double_t qpes = fDigitQ[idigit];
-    Double_t res = WCSimParameters::TimeResolution(qpes);
+
+    WCSimRootPMT thisPMT = WCSimGeometry::Instance()->GetWCSimGeometry()->GetPMTFromTubeID(fDigitID[idigit]);
+    TString pmtName = thisPMT.GetPMTName();
+    if( fPMTTimeConstantMap.find(pmtName) == fPMTTimeConstantMap.end())
+    {
+      WCSimPMTConfig config = fPMTManager->GetPMTByName(std::string(pmtName.Data()));
+      fPMTTimeConstantMap[pmtName] = config.GetTimeConstant();
+    }
+//    Double_t res = WCSimParameters::TimeResolution(qpes);
+    Double_t res = WCSimParameters::WCSimTimeResolution(qpes,fPMTTimeConstantMap[pmtName]);
 
     fConeAngle[idigit] = thetadeg; // degrees
     fZenith[idigit] = phideg;      // degrees

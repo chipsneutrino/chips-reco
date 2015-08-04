@@ -4,9 +4,11 @@
 #include "TObject.h"
 
 #include <vector>
+#include <map>
 
 class WCSimRecoVertex;
 class WCSimRecoEvent;
+class WCSimPMTManager;
 
 class WCSimVertexGeometry : public TObject {
 
@@ -279,6 +281,8 @@ class WCSimVertexGeometry : public TObject {
   Int_t fNDigits;
   Int_t fNFilterDigits;
 
+  WCSimPMTManager* fPMTManager;
+
   Int_t fThisDigit;
   Int_t fLastEntry;
   Int_t fCounter;
@@ -304,6 +308,7 @@ class WCSimVertexGeometry : public TObject {
 
   Bool_t* fIsFiltered; 
 
+  Int_t* fDigitID;          // Digit Tube ID
   Double_t* fDigitX;           // Digit X (cm)
   Double_t* fDigitY;           // Digit Y (cm)
   Double_t* fDigitZ;           // Digit Z (cm)
@@ -342,6 +347,8 @@ class WCSimVertexGeometry : public TObject {
   std::vector<Double_t> vSeedVtxZ;
   std::vector<Double_t> vSeedVtxTime;
   std::vector<Int_t> vSeedDigitList;
+
+  std::map<TString,double> fPMTTimeConstantMap;
 
   ClassDef(WCSimVertexGeometry,0)
 

@@ -179,6 +179,17 @@ Double_t WCSimParameters::GetTimeResolution(Double_t Q)
   return res;
 }
 
+Double_t WCSimParameters::WCSimTimeResolution(Double_t q, Double_t timeConst){
+
+  // Copied from WCSim
+  Double_t Q = (q > 0.5) ? q : 0.5;
+  Double_t timingResolution = 0.33 + sqrt(timeConst/Q);
+  // looking at SK's jitter function for 20" tubes
+  if (timingResolution < 0.58) timingResolution=0.58;
+
+  return timingResolution;
+}
+
 Double_t WCSimParameters::GetTimeSlew(Double_t Q)
 {   
   /*
