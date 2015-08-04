@@ -1127,13 +1127,30 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointPositionWithMinuit(WCSimRecoVertex* 
   arglist[0]=1;  // 1: standard minimization
                  // 2: try to improve minimum
 
+  // Get parameters from the geometry
+  Double_t extentX, extentY, extentZ;
+  if(WCSimGeometry::Instance()->IsCylinder()){
+    extentX = WCSimGeometry::Instance()->GetCylRadius();
+    extentY = WCSimGeometry::Instance()->GetCylRadius();
+    extentZ = 0.5*WCSimGeometry::Instance()->GetCylLength();
+  }
+  else if(WCSimGeometry::Instance()->IsMailBox()){
+    extentX = WCSimGeometry::Instance()->GetMailBoxX();
+    extentY = WCSimGeometry::Instance()->GetMailBoxY();
+    extentZ = WCSimGeometry::Instance()->GetMailBoxZ();
+  }
+  else{
+    std::cerr << "WCSimVErtexFinder: Couldn't determine the geometry." << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
   // re-initialize everything...
   fMinuitPointPosition->mncler();
   fMinuitPointPosition->SetFCN(point_position_chi2);
   fMinuitPointPosition->mnexcm("SET STR",arglist,1,err);
-  fMinuitPointPosition->mnparm(0,"x",seedX,250.0,-5000.0,+5000.0,err);
-  fMinuitPointPosition->mnparm(1,"y",seedY,250.0,-5000.0,+5000.0,err);
-  fMinuitPointPosition->mnparm(2,"z",seedZ,250.0,-5000.0,+5000.0,err);
+  fMinuitPointPosition->mnparm(0,"x",seedX,250.0,-extentX,extentX,err);
+  fMinuitPointPosition->mnparm(1,"y",seedY,250.0,-extentY,extentY,err);
+  fMinuitPointPosition->mnparm(2,"z",seedZ,250.0,-extentZ,extentZ,err);
 
   flag = fMinuitPointPosition->Migrad();
   fMinuitPointPosition->GetParameter(0,fitXpos,fitXposErr);
@@ -1411,13 +1428,30 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointVertexWithMinuit(WCSimRecoVertex* my
   arglist[0]=2;  // 1: standard minimization
                  // 2: try to improve minimum
 
+  // Get parameters from the geometry
+  Double_t extentX, extentY, extentZ;
+  if(WCSimGeometry::Instance()->IsCylinder()){
+    extentX = WCSimGeometry::Instance()->GetCylRadius();
+    extentY = WCSimGeometry::Instance()->GetCylRadius();
+    extentZ = 0.5*WCSimGeometry::Instance()->GetCylLength();
+  }
+  else if(WCSimGeometry::Instance()->IsMailBox()){
+    extentX = WCSimGeometry::Instance()->GetMailBoxX();
+    extentY = WCSimGeometry::Instance()->GetMailBoxY();
+    extentZ = WCSimGeometry::Instance()->GetMailBoxZ();
+  }
+  else{
+    std::cerr << "WCSimVErtexFinder: Couldn't determine the geometry." << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
   // re-initialize everything...
   fMinuitPointVertex->mncler();
   fMinuitPointVertex->SetFCN(point_vertex_chi2);
   fMinuitPointVertex->mnexcm("SET STR",arglist,1,err);
-  fMinuitPointVertex->mnparm(0,"x",seedX,250.0,-5000.0,+5000.0,err);
-  fMinuitPointVertex->mnparm(1,"y",seedY,250.0,-5000.0,+5000.0,err);
-  fMinuitPointVertex->mnparm(2,"z",seedZ,250.0,-5000.0,+5000.0,err);
+  fMinuitPointVertex->mnparm(0,"x",seedX,250.0,-extentX,extentX,err);
+  fMinuitPointVertex->mnparm(1,"y",seedY,250.0,-extentY,extentY,err);
+  fMinuitPointVertex->mnparm(2,"z",seedZ,250.0,-extentZ,extentZ,err);
   fMinuitPointVertex->mnparm(3,"theta",seedTheta,0.125*TMath::Pi(),0.0,TMath::Pi(),err);
   fMinuitPointVertex->mnparm(4,"phi",seedPhi,0.25*TMath::Pi(),-1.0*TMath::Pi(),+3.0*TMath::Pi(),err);
   
@@ -1566,13 +1600,30 @@ WCSimRecoVertex* WCSimVertexFinder::FitExtendedVertexWithMinuit(WCSimRecoVertex*
   arglist[0]=2;  // 1: standard minimization
                  // 2: try to improve minimum
 
+  // Get parameters from the geometry
+  Double_t extentX, extentY, extentZ;
+  if(WCSimGeometry::Instance()->IsCylinder()){
+    extentX = WCSimGeometry::Instance()->GetCylRadius();
+    extentY = WCSimGeometry::Instance()->GetCylRadius();
+    extentZ = 0.5*WCSimGeometry::Instance()->GetCylLength();
+  }
+  else if(WCSimGeometry::Instance()->IsMailBox()){
+    extentX = WCSimGeometry::Instance()->GetMailBoxX();
+    extentY = WCSimGeometry::Instance()->GetMailBoxY();
+    extentZ = WCSimGeometry::Instance()->GetMailBoxZ();
+  }
+  else{
+    std::cerr << "WCSimVErtexFinder: Couldn't determine the geometry." << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
   // re-initialize everything...
   fMinuitExtendedVertex->mncler();
   fMinuitExtendedVertex->SetFCN(extended_vertex_chi2);
   fMinuitExtendedVertex->mnexcm("SET STR",arglist,1,err);
-  fMinuitExtendedVertex->mnparm(0,"x",seedX,250.0,-5000.0,+5000.0,err);
-  fMinuitExtendedVertex->mnparm(1,"y",seedY,250.0,-5000.0,+5000.0,err);
-  fMinuitExtendedVertex->mnparm(2,"z",seedZ,250.0,-5000.0,+5000.0,err);
+  fMinuitExtendedVertex->mnparm(0,"x",seedX,250.0,-extentX,extentX,err);
+  fMinuitExtendedVertex->mnparm(1,"y",seedY,250.0,-extentY,extentY,err);
+  fMinuitExtendedVertex->mnparm(2,"z",seedZ,250.0,-extentZ,extentZ,err);
   fMinuitExtendedVertex->mnparm(3,"theta",seedTheta,0.125*TMath::Pi(),0.0,TMath::Pi(),err);
   fMinuitExtendedVertex->mnparm(4,"phi",seedPhi,0.25*TMath::Pi(),-1.0*TMath::Pi(),+3.0*TMath::Pi(),err);
   
