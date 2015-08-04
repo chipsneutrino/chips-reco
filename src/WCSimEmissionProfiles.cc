@@ -289,10 +289,10 @@ void WCSimEmissionProfiles::LoadFile(const TrackType::Type &type, const double &
 	switch( type )
 	{
 		case TrackType::ElectronLike:
-			fProfileFileName.Append("/config/emissionProfilesMuons.root");
+			fProfileFileName.Append("/config/emissionProfilesElectrons.root");
 			break;
 		case TrackType::MuonLike:
-			fProfileFileName.Append("/config/emissionProfilesElectrons.root");
+			fProfileFileName.Append("/config/emissionProfilesMuons.root");
 			break;
 		default:
 			std::cerr << "Error: unknown track type in WCSimLikelihoodTuner::LoadEmissionProfiles" << std::endl;
