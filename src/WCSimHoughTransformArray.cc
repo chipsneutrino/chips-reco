@@ -1,3 +1,6 @@
+#include "TCanvas.h"
+#include "TStyle.h"
+
 #include "WCSimHoughTransformArray.hh"
 #include "WCSimHoughTransform.hh"
 
@@ -479,14 +482,22 @@ void WCSimHoughTransformArray::FitTSpectrum2( std::vector<Double_t> &houghDirX, 
 }
 
 void WCSimHoughTransformArray::FitMultiPeaksSmooth(std::vector<Double_t> &houghDirX, std::vector<Double_t> &houghDirY,
-                                                   std::vector<Double_t> &houghDirZ, std::vector<Double_t> &houghAngle,
+                                                   std::vector<Double_t> &houghDirZ, Double_t seedDirX, Double_t seedDirY, 
+                                                   Double_t seedDirZ, std::vector<Double_t> &houghAngle,
                                                    std::vector<Double_t> &houghHeight){
   // Transform for the expected cone angle.
   WCSimHoughTransform* houghTrans = this->GetHoughTransform(this->FindBin(42));
 
+  // If we are at the edge of the histogram space then rotate it.
+  double seedTheta = TMath::Cos(seedDirZ);
+  double seedPhi = TMath::ATan2(seedDirY,seedDirX);
+  double houghRotationPhi = 0.0;
+  if(fabs(seedPhi) > 0.75 * TMath::Pi()){
+    houghRotationPhi = 180.0;
+  }
+
   // Get the histogram corresponding to the expected cone angle.
-//  TH2D* houghSpace = houghTrans->GetRotatedTH2D("houghSpace",0.0);
-  TH2D* houghSpace = houghTrans->GetTH2D("houghSpace");
+  TH2D* houghSpace = houghTrans->GetRotatedTH2D("houghSpace",houghRotationPhi);
 
   // Smooth slightly to help prevent noise problems
   houghSpace->Smooth(1);
@@ -500,12 +511,7 @@ void WCSimHoughTransformArray::FitMultiPeaksSmooth(std::vector<Double_t> &houghD
   float *thetaArray = peakFinder->GetPositionY();
   for(int i = 0; i < peakFinder->GetNPeaks(); ++i){
 
-    // Make sure phi is in range
-    if(phiArray[i] > 180){
-      phiArray[i] = phiArray[i] - 360;
-    }
-
-    TVector2 tempVec(phiArray[i],thetaArray[i]);
+    TVector2 tempVec(phiArray[i] - houghRotationPhi,thetaArray[i]);
     std::pair<double,TVector2> tempPair(houghSpace->Interpolate(phiArray[i],thetaArray[i]),tempVec);
     peakListToSort.push_back(tempPair);
   }

@@ -193,6 +193,10 @@ std::vector<WCSimRecoRing*>* WCSimRingFinder::Run(std::vector<WCSimRecoDigit*>* 
   Double_t houghVtxY = myVertex->GetY();
   Double_t houghVtxZ = myVertex->GetZ();
 
+  Double_t seedDirX = myVertex->GetDirX();
+  Double_t seedDirY = myVertex->GetDirY();
+  Double_t seedDirZ = myVertex->GetDirZ();
+
   std::vector<Double_t> houghDirX;
   std::vector<Double_t> houghDirY;
   std::vector<Double_t> houghDirZ;
@@ -201,7 +205,7 @@ std::vector<WCSimRecoRing*>* WCSimRingFinder::Run(std::vector<WCSimRecoDigit*>* 
  
   if(this->UsingTSpectrum2()){ 
     //myHoughTransformArray->FitTSpectrum2(houghDirX,houghDirY,houghDirZ,houghAngle,houghHeight);
-    myHoughTransformArray->FitMultiPeaksSmooth(houghDirX,houghDirY,houghDirZ,houghAngle,houghHeight);
+    myHoughTransformArray->FitMultiPeaksSmooth(houghDirX,houghDirY,houghDirZ,seedDirX,seedDirY,seedDirZ,houghAngle,houghHeight);
   }
 	else myHoughTransformArray->FindPeak(houghDirX, houghDirY, houghDirZ, houghAngle, houghHeight);
  	std::cout << "The number of rings passed into the loop is..." << houghDirX.size() << std::endl;
