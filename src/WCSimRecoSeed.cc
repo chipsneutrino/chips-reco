@@ -72,11 +72,12 @@ std::vector<WCSimRecoEvent*> WCSimRecoSeed::RunSeed(WCSimRecoEvent* myEvent)
 
     unsigned int nSlices = slicedEvents.size();
     // Only consider the number of slices that we need
-    if(fNTracks < nSlices){
-      nSlices = fNTracks;
-    }
+//    if(fNTracks < nSlices){
+//      nSlices = fNTracks;
+//    }
 
     for(unsigned int i = 0; i < nSlices; ++i){
+      std::cout << "Processing slice " << i << " of " << nSlices << std::endl;
       slicedEvents[i]->SetFilterDone();
       // reconstruct vertex
      // ==================
@@ -152,7 +153,10 @@ void WCSimRecoSeed::RunRecoVertex(WCSimRecoEvent* myEvent)
   // Run Vertex Finder
   // =================
   WCSimRecoVertex* myVertex = (WCSimRecoVertex*)(myVertexFinder->Run(myEvent));
-    
+  
+  // Try just getting the simple direction...
+  myVertex = myVertexFinder->GetSimpleDirection();  
+  
   // Set Vertex
   // ==========
   if( myVertex->FoundVertex() ){
