@@ -86,7 +86,7 @@ void WCSimFitterTrackParMap::SetArrays()
 				fCurrentValues[iParam] = WCSimFitterConfig::Instance()->GetParStart(jTrack,name);
 				fMinValues[iParam]   = WCSimFitterConfig::Instance()->GetParMin(jTrack,name);
 				fMaxValues[iParam]   = WCSimFitterConfig::Instance()->GetParMax(jTrack,name);
-				fSteps[iParam] = (WCSimFitterConfig::Instance()->GetParMax(jTrack,name) - WCSimFitterConfig::Instance()->GetParMin(jTrack, name)) / 20.0;
+				fSteps[iParam] = (WCSimFitterConfig::Instance()->GetParMax(jTrack,name) - WCSimFitterConfig::Instance()->GetParMin(jTrack, name)) / 250.0;
 				fAlwaysFixed[iParam] = WCSimFitterConfig::Instance()->GetIsFixedParameter(jTrack,name);
 				fCurrentlyFixed[iParam] = fAlwaysFixed[iParam];
 				TString parName = Form("%s_track%d", name, jTrack);
@@ -125,6 +125,14 @@ void WCSimFitterTrackParMap::ResizeVectors()
 
 }
 
+void WCSimFitterTrackParMap::FixDirection(int track) {
+	FixOrFreeDirection(1, track);
+}
+
+void WCSimFitterTrackParMap::FreeDirection(int track) {
+	FixOrFreeDirection(0, track);
+}
+
 void WCSimFitterTrackParMap::FixVertex(int track) {
 	FixOrFreeVertex(1, track);
 }
@@ -133,7 +141,28 @@ void WCSimFitterTrackParMap::FreeVertex(int track) {
 	FixOrFreeVertex(0, track);
 }
 
-// Fixes the vertex (and direction) for a certain track (or all tracks
+// Fixes the vertex (position, not direction) for a certain track (or all tracks
+// if no argument given) if fixIt = true, otherwise frees it
+void WCSimFitterTrackParMap::FixOrFreeDirection(bool fixIt, int track) {
+	int firstTrack = (track != -1) ? track : 0;
+	int lastTrack = (track != -1) ? track : WCSimFitterInterface::Instance()->GetNumTracks();
+
+	for(int iTrack = firstTrack; iTrack < lastTrack; ++iTrack)
+	{
+		TrackAndType myDirTh(iTrack, FitterParameterType::kDirTh);
+		TrackAndType myDirPhi(iTrack, FitterParameterType::kDirPhi);
+
+    if(!fAlwaysFixed.at(fTrackAndTypeIndexMap[myDirTh])){
+		  fCurrentlyFixed.at(fTrackAndTypeIndexMap[myDirTh]) = fixIt;
+    }
+    if(!fAlwaysFixed.at(fTrackAndTypeIndexMap[myDirPhi])){
+		  fCurrentlyFixed.at(fTrackAndTypeIndexMap[myDirPhi]) = fixIt;
+    }
+	}
+}
+
+
+// Fixes the vertex (position, not direction) for a certain track (or all tracks
 // if no argument given) if fixIt = true, otherwise frees it
 void WCSimFitterTrackParMap::FixOrFreeVertex(bool fixIt, int track) {
 	int firstTrack = (track != -1) ? track : 0;
@@ -145,8 +174,6 @@ void WCSimFitterTrackParMap::FixOrFreeVertex(bool fixIt, int track) {
 		TrackAndType myVtxY(iTrack, FitterParameterType::kVtxY);
 		TrackAndType myVtxZ(iTrack, FitterParameterType::kVtxZ);
 		TrackAndType myVtxT(iTrack, FitterParameterType::kVtxT);
-		TrackAndType myDirTh(iTrack, FitterParameterType::kDirTh);
-		TrackAndType myDirPhi(iTrack, FitterParameterType::kDirPhi);
 
     if(!fAlwaysFixed.at(fTrackAndTypeIndexMap[myVtxX])){
 		  fCurrentlyFixed.at(fTrackAndTypeIndexMap[myVtxX]) = fixIt;
@@ -159,12 +186,6 @@ void WCSimFitterTrackParMap::FixOrFreeVertex(bool fixIt, int track) {
     }
     if(!fAlwaysFixed.at(fTrackAndTypeIndexMap[myVtxT])){
 		  fCurrentlyFixed.at(fTrackAndTypeIndexMap[myVtxT]) = fixIt;
-    }
-    if(!fAlwaysFixed.at(fTrackAndTypeIndexMap[myDirTh])){
-		  fCurrentlyFixed.at(fTrackAndTypeIndexMap[myDirTh]) = fixIt;
-    }
-    if(!fAlwaysFixed.at(fTrackAndTypeIndexMap[myDirPhi])){
-		  fCurrentlyFixed.at(fTrackAndTypeIndexMap[myDirPhi]) = fixIt;
     }
 	}
 }
@@ -277,6 +298,17 @@ double WCSimFitterTrackParMap::GetCurrentValue(int track,
 double WCSimFitterTrackParMap::GetCurrentValue(TrackAndType trackAndType) {
 	int index = GetIndex(trackAndType);
 	return fCurrentValues[index];
+}
+
+double WCSimFitterTrackParMap::GetStep(int track,
+		FitterParameterType type) {
+	TrackAndType myPair(track, type);
+	return GetStep(myPair);
+}
+
+double WCSimFitterTrackParMap::GetStep(TrackAndType trackAndType) {
+	int index = GetIndex(trackAndType);
+	return fSteps[index];
 }
 
 TrackType::Type WCSimFitterTrackParMap::GetTrackType(

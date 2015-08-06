@@ -35,6 +35,8 @@ public:
 
 	void FixVertex(int track = -1);
 	void FreeVertex(int track = -1);
+  void FixDirection(int track = -1);
+  void FreeDirection(int track = -1);
 	void FixEnergy(int track = -1);
 	void FreeEnergy(int track = -1);
 
@@ -46,6 +48,8 @@ public:
 	double GetMaxValue(TrackAndType trackAndType);
 	double GetCurrentValue(int track, FitterParameterType type);
 	double GetCurrentValue(TrackAndType trackAndType);
+	double GetStep(int track, FitterParameterType type);
+	double GetStep(TrackAndType trackAndType);
 	TrackType::Type GetTrackType(int track);
 
   bool GetIsFixed(int track, FitterParameterType type);
@@ -55,6 +59,7 @@ private:
 	void SetArrays();
 	void ResizeVectors();
 	void FixOrFreeVertex(bool fixIt, int track = -1);
+	void FixOrFreeDirection(bool fixIt, int track = -1);
 	void FixOrFreeEnergy(bool fixIt, int track = -1);
 	std::map<TrackAndType, unsigned int> fTrackAndTypeIndexMap;
 	std::vector<double> fCurrentValues;
