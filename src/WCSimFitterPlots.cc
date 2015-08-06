@@ -206,7 +206,7 @@ void WCSimFitterPlots::MakeRecoMinusTrue(WCSimFitterConfig* fitterConfig) {
 			}
 
       double lowBin = fitterConfig->GetParMax(iTrack, parName.c_str()) - 2 * (fitterConfig->GetParMax(iTrack, parName.c_str()) - fitterConfig->GetParMin(iTrack, parName.c_str()));
-			hist = new TH1D(title.Data(), name.Data(), numBins,
+			hist = new TH1D(name.Data(), title.Data(), numBins,
               lowBin,
 							2.0 * fitterConfig->GetParMax(iTrack, parName.c_str()));
       std::cout << "Histogram has " << numBins << " from " << hist->GetXaxis()->GetXmin() << " to " << hist->GetYaxis()->GetXmax() << std::endl;
