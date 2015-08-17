@@ -252,16 +252,15 @@ Double_t WCSimLikelihoodTuner::SolidAngle(Double_t s, WCSimLikelihoodTrackBase *
   // These are from WCSim so they're in cm
   TVector3 pmtDomePos  = myDigit->GetPos() + WCSimPMTRadius * myDigit->GetFace();
   TVector3 emissionPos = myTrack->GetPropagatedPos(s);
-  Double_t r = (pmtDomePos - emissionPos).Mag();
+  TVector3 toPMT = pmtDomePos - emissionPos;
+  Double_t r = toPMT.Mag();
 
   // Purely geometry: we need the solid angle of a cone whose bottom is a circle of the same radius as the circle of PMT poking
   // through the blacksheet.  This is 2pi( 1 - cos(coneAngle) ) where coneAngle can be deduced from trig and the PMT geometry
 	// So the fraction of total solid angle is this/4pi = 0.5(1 - cos(coneAngle))
 	Double_t solidAngle = 2.0*TMath::Pi()*(1.0 - (r)/sqrt( (r*r + WCSimPMTRadius * WCSimPMTRadius)));
-  // std::cout << "Solid angle = " << solidAngle << " = " << solidAngle / (0.04*(M_PI)) << std::endl;
-	
+  // std::cout << "Solid angle = " << solidAngle << std::endl;
 	return solidAngle;
-    
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -302,8 +301,9 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ( Double_t s, WCSimLikelih
 //    if( s == 0.0)
 //    {
 //    	std::cout << "Transmission = " << this->TransmissionFunction(s, myTrack, myDigit) << std::endl
-//    			  		<< "Efficiency =   " << this->Efficiency(s, myTrack, myDigit) << std::endl
-//    			  		<< "SolidAngle =   " << this->SolidAngle(s, myTrack, myDigit) << std::endl;
+//    			  		<< "Efficiency = " << this->Efficiency(s, myTrack, myDigit) << std::endl
+//    			  		<< "SolidAngle = " << this->SolidAngle(s, myTrack, myDigit) << std::endl
+//    			  		<< "QE           = " << this->QuantumEfficiency(myTrack, myDigit) << std::endl;
 //    }
 
     J.push_back(   this->TransmissionFunction(s, myTrack, myDigit) 

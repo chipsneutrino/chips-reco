@@ -9,6 +9,7 @@
 #include "WCSimPMTConfig.hh"
 #include "WCSimPMTManager.hh"
 #include "WCSimTrackParameterEnums.hh"
+#include "TDirectory.h"
 #include "TFile.h"
 #include "TGraph.h"
 #include "TH1F.h"
@@ -119,12 +120,6 @@ double WCSimDetectorParameters::WorkOutAverageQE(const std::string& pmtName) {
   delete qeGraph;
 
 
-  // If I run WCSim with QE set to Stacking_Only and to Sensitive_Detector_Only
-  // the difference in number of tracks differs from my QE weighting
-  // calculations by this factor - need to try and pin this down, but for now
-  // just put in this constant
-  wavelengthAveragedQE *= 2.528;
-
   return wavelengthAveragedQE;
 }
 
@@ -144,12 +139,14 @@ double WCSimDetectorParameters::AverageHistWithGraph(TH1F* hist,
 	// on the graph to find the value at the bin centre, then multiply the bin contents
 	// by that interpolated value.  Sum these, and divide by the number of hist entries.
 
-	// If the histogram goes off the front or back of the graph, extrapolate graph
+	// If the histogram goes off the front or back of the graph, set it to zero
 	double integral = hist->Integral();
 	double weightedAverage = 0.0;
 	for(int iBin = 1; iBin <= hist->GetNbinsX(); ++iBin)
 	{
-		weightedAverage += hist->GetBinContent(iBin) * graph->Eval(hist->GetXaxis()->GetBinCenter(iBin));
+    double graphVal = graph->Eval(hist->GetXaxis()->GetBinCenter(iBin));
+    if(graphVal < 0){ graphVal = 0.0; }
+		weightedAverage += hist->GetBinContent(iBin) * graphVal;
 	}
 	weightedAverage /= integral;
 	return weightedAverage;
@@ -159,7 +156,9 @@ TH1F* WCSimDetectorParameters::MultiplyHistByGraph(TH1F* hist, TGraph* graph) {
 	for(int iBin = 1; iBin <= hist->GetNbinsX(); ++iBin)
 	{
 		double newContent = hist->GetBinContent(iBin);
-		newContent *= graph->Eval(hist->GetXaxis()->GetBinCenter(iBin));
+    double graphVal = graph->Eval(hist->GetXaxis()->GetBinCenter(iBin));
+    if(graphVal < 0){ graphVal = 0.0; }
+    newContent *= graphVal;
 		hist->SetBinContent(iBin, newContent);
 	}
 	return hist;

@@ -171,20 +171,27 @@ void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
 					double R0CosTh0 = R0 * cosTh0;
 					double cosTh = (R0CosTh0 - s) / TMath::Sqrt(s*s + R0*R0 - 2*s*R0CosTh0);
 
-					Double_t sWidth = hRho->GetBinWidth(iSBin); // +1 is array numbering vs. bin numbering
-
+					double sWidth = hRho->GetBinWidth(iSBin); // +1 is array numbering vs. bin numbering
+          double thetaWidth = 1;
+          /*if(thetaWidth > 5e-4)
+          {
+            std::cout << "next " << cosThNext << "   current " << cosTh << std::endl;
+            std::cout << "sWidth = " << sWidth << "  thetaWidth = " << thetaWidth << std::endl;
+          }*/
 					// Now get the values of the emission profiles
 					int thetaBin = 0;
 					double toAdd = 0.0;
 					if( cosTh < hG.second->GetXaxis()->GetXmin())
 					{
 						thetaBin = hG.first->GetXaxis()->FindBin(cosTh);
-						toAdd = hRho->GetBinContent(iSBin) * hG.first->GetBinContent(thetaBin, iSBin) * sWidth;
+            // thetaWidth = hG.first->GetXaxis()->GetBinWidth(thetaBin);
+						toAdd = hRho->GetBinContent(iSBin) * hG.first->GetBinContent(thetaBin, iSBin) * sWidth * thetaWidth;
 					}
 					else
 					{
 						thetaBin = hG.second->GetXaxis()->FindBin(cosTh);
-						toAdd = hRho->GetBinContent(iSBin) * hG.second->GetBinContent(thetaBin, iSBin) * sWidth;
+            // thetaWidth = hG.second->GetXaxis()->GetBinWidth(thetaBin);
+						toAdd = hRho->GetBinContent(iSBin) * hG.second->GetBinContent(thetaBin, iSBin) * sWidth * thetaWidth;
 					}
 
 					if( toAdd > 0.0 )
@@ -193,7 +200,7 @@ void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
 						runningTotal[1] += toAdd * s;
 						runningTotal[2] += toAdd * s * s;
 					}
-					else if(hRho->GetBinContent(iSBin) == 0 && iSBin > 10) {break;} // Stop adding if we've reached the end of the profile
+					//else if(hRho->GetBinContent(iSBin) == 0 && iSBin > 10) {break;} // Stop adding if we've reached the end of the profile
 //          if( vars[0] == 1000 && 1285 <= vars[1] && 1290 >= vars[1] && 0.784 <= vars[2] && 0.786 > vars[2] )
 //          {
 // //            std::cout << "s = " << s << "  cosTh = " << cosTh << " - adding " << toAdd << "  integral[0] = " << runningTotal[0] << "  integral[1] = " << runningTotal[1] << "   integral[2] = " << runningTotal[2] << std::endl;
@@ -204,8 +211,8 @@ void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
 				fIntegrals.GetRhoGSInt()->Fill(vars[0], vars[1], vars[2], runningTotal[1]);
 				fIntegrals.GetRhoGSSInt()->Fill(vars[0], vars[1], vars[2], runningTotal[2]);
 				if(runningTotal[0] > 0) {
-					//std::cout << "E = " << vars[0] << "  R0 = " << vars[1] << "  cosTh0 = " << vars[2] << "  rhogint = " << runningTotal[0] << std::endl;
-					++binsFilled;
+		//			std::cout << "E = " << vars[0] << "  R0 = " << vars[1] << "  cosTh0 = " << vars[2] << "  rhogint = " << runningTotal[0] << std::endl;
+	  			++binsFilled;
 				}
 			}
 		}
