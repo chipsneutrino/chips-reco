@@ -7,6 +7,7 @@
 #include "TMath.h"
 #include "TH2D.h"
 #include "TVector2.h"
+#include "TSpectrum.h"
 #include "TSpectrum2.h"
 #include "TSpectrum3.h"
 
@@ -506,6 +507,32 @@ void WCSimHoughTransformArray::FitMultiPeaksSmooth(std::vector<Double_t> &houghD
   TSpectrum2 *peakFinder = new TSpectrum2();
   peakFinder->Search(houghSpace,4,"col");
 
+  // Search for ridges around cosTheta = +/- 1
+  // These aren't peaks because phi is arbitrary for upward/downward particles
+  TH1D * houghProjection1D = new TH1D("houghProjection1D",";cos#theta;height",
+                                      houghSpace->GetYaxis()->GetNbins(),
+                                      houghSpace->GetYaxis()->GetXmin(),
+                                      houghSpace->GetYaxis()->GetXmax());
+  for(int yBin = 1; yBin <= houghSpace->GetNbinsY(); ++yBin)
+  {
+    double total = 0.0;
+    double nonZeroBins = 0;
+    for(int xBin = 1; xBin <= houghSpace->GetNbinsX(); ++xBin)
+    {
+      total += houghSpace->GetBinContent(xBin, yBin);
+      if(houghSpace->GetBinContent(xBin, yBin) > 0)
+      {
+        nonZeroBins++;
+      }
+    }
+    if(nonZeroBins)
+    {
+      houghProjection1D->SetBinContent(yBin, total/nonZeroBins);
+    }
+  }
+  TSpectrum *peakFinder1D = new TSpectrum();
+  peakFinder1D->Search(houghProjection1D, 4, "col");
+
   std::vector<std::pair<double,TVector2> > peakListToSort;
   float *phiArray = peakFinder->GetPositionX();
   float *thetaArray = peakFinder->GetPositionY();
@@ -515,6 +542,25 @@ void WCSimHoughTransformArray::FitMultiPeaksSmooth(std::vector<Double_t> &houghD
     std::pair<double,TVector2> tempPair(houghSpace->Interpolate(phiArray[i],thetaArray[i]),tempVec);
     peakListToSort.push_back(tempPair);
   }
+  
+  float * thetaArray1D = peakFinder1D->GetPositionX();
+  for(int i = 0; i < peakFinder1D->GetNPeaks(); ++i){
+    double max = 0.0;
+    double maxPhi = 1;
+    for(int xBin = 1; xBin < houghSpace->GetNbinsX(); ++xBin)
+    {
+      double tmp = houghSpace->GetBinContent(xBin, houghSpace->GetYaxis()->FindBin(thetaArray1D[i]));
+      if(tmp > max)
+      { 
+        max = tmp; 
+        maxPhi = houghSpace->GetXaxis()->GetBinCenter(xBin);  
+      }
+    }
+    TVector2 tempVec(max,thetaArray1D[i]);
+    std::pair<double,TVector2> tempPair(houghSpace->Interpolate(maxPhi - houghRotationPhi,thetaArray1D[i]),tempVec);
+    peakListToSort.push_back(tempPair);
+  }
+
   std::sort(peakListToSort.begin(),peakListToSort.end(),PairSort);
 
   double maxHeight = -999;

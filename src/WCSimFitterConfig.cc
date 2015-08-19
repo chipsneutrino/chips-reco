@@ -189,6 +189,14 @@ bool WCSimFitterConfig::GetJoinParametersTogether(unsigned int numTrack1,
 	return fFitterParameters.GetJoinParametersTogether(numTrack1, numTrack2, type);
 }
 
+bool WCSimFitterConfig::GetIsParameterJoined(unsigned int numTrack, FitterParameterType::Type type) {
+	return fFitterParameters.GetIsParameterJoined(numTrack, type);
+}
+
+unsigned int WCSimFitterConfig::GetTrackIsJoinedWith(unsigned int numTrack, FitterParameterType::Type type) {
+	return fFitterParameters.GetTrackIsJoinedWith(numTrack, type);
+}
+
 bool WCSimFitterConfig::GetIsParameterJoined(unsigned int numTrack, const char* name) {
 	FitterParameterType::Type type = FitterParameterType::FromName(name);
 	return fFitterParameters.GetIsParameterJoined(numTrack, type);
@@ -202,7 +210,7 @@ unsigned int WCSimFitterConfig::GetTrackIsJoinedWith(unsigned int numTrack, cons
 void WCSimFitterConfig::SetTrackType(unsigned int numTrack,
 		const char* typeName)
 {
-  std::cout << "WCSimFitterConfig::SetTrackType(" << numTrack << ", " << typeName << ")" << std::endl;
+  // std::cout << "WCSimFitterConfig::SetTrackType(" << numTrack << ", " << typeName << ")" << std::endl;
 	TrackType::Type type = TrackType::FromName(typeName);
 	fFitterParameters.SetTrackType(numTrack, type);
 }

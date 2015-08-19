@@ -54,6 +54,8 @@ public:
 	bool GetJoinParametersTogether(unsigned int numTrack1, unsigned int numTrack2, const char * name);
 	bool GetIsParameterJoined(unsigned int numTrack, const char * name);
 	unsigned int GetTrackIsJoinedWith(unsigned int numTrack, const char * name);
+	bool GetIsParameterJoined(unsigned int numTrack, FitterParameterType::Type type);
+	unsigned int GetTrackIsJoinedWith(unsigned int numTrack, FitterParameterType::Type type);
 
 private:
 	WCSimFitterConfig();
