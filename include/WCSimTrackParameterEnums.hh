@@ -45,7 +45,6 @@ class TrackType : public TObject{
 	  };
 	  static TrackType FromName(const char * name)
 	  {
-      std::cout << "Getting type from name: " << name << std::endl;
 	  	std::string nameStr(name);
 
 	  	if( nameStr.compare(std::string("Unknown")) == 0){ return TrackType(Unknown); }
@@ -150,7 +149,6 @@ class FitterParameterType : public TObject{
   	};
   	static FitterParameterType FromName(const char * name)
   	{
-      std::cout << "Getting type from name: " << name << std::endl;
   		std::string nameStr(name);
   
   		if( nameStr.compare(std::string("kVtxX")) == 0){ return FitterParameterType(kVtxX); }

@@ -31,7 +31,6 @@ public:
 	}
 
 	void SetIsFixed(bool isFixed) {
-    std::cout << "Setting isFixed = " << isFixed << std::endl;
 		fIsFixed = isFixed;
 	}
 
@@ -40,7 +39,6 @@ public:
 	}
 
 	void SetMax(double max) {
-    std::cout << "Setting max = " << max << std::endl;
 		fMax = max;
 	}
 
@@ -49,7 +47,6 @@ public:
 	}
 
 	void SetMin(double min) {
-    std::cout << "Setting min = " << min << std::endl;
 		fMin = min;
 	}
 
@@ -58,7 +55,6 @@ public:
 	}
 
 	void SetStart(double start) {
-    std::cout << "Setting start = " << start << std::endl;
 		fStart = start;
 	}
 

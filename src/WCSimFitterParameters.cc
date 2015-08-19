@@ -227,7 +227,6 @@ unsigned int WCSimFitterParameters::GetNumParameters() const
 
 WCSimFitterSingleTrackParameters * WCSimFitterParameters::GetTrackParameters(
 		unsigned int trackNum) {
-  std::cout << "Getting parameters for track " << trackNum << "/" << fTrackPars.size() << std::endl;
 	assert(trackNum < fTrackPars.size());
 	return &(fTrackPars.at(trackNum));
 }
@@ -308,7 +307,7 @@ bool WCSimFitterParameters::GetIsParameterJoined(unsigned int track,
 
 void WCSimFitterParameters::SetTrackType(unsigned int nTrack, TrackType::Type trackType)
 {
-  std::cout << "WCSimFitterParameters::SetTrackType(" << nTrack << ", " << TrackType::AsString(trackType) << std::endl;
+  // std::cout << "WCSimFitterParameters::SetTrackType(" << nTrack << ", " << TrackType::AsString(trackType) << std::endl;
 	fTrackTypes.at(nTrack) = trackType;
 }
 
