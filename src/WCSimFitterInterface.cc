@@ -275,3 +275,15 @@ void WCSimFitterInterface::Run() {
   fFitterPlots->SavePlots();
   std::cout << " *********************************** " << std::endl;
 }
+
+void WCSimFitterInterface::SetIsPiZeroFit(const bool &isPiZero)
+{
+  WCSimFitterConfig::Instance()->SetIsPiZeroFit(isPiZero);
+  return;
+}
+
+bool WCSimFitterInterface::GetIsPiZeroFit() const
+{
+  return WCSimFitterConfig::Instance()->GetIsPiZeroFit();
+}
+

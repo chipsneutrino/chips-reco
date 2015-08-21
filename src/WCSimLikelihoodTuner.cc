@@ -190,8 +190,8 @@ Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrackBase *
 
     // Function for the PMT acceptance's dependence on the angle: 
     // WCSim defines arrays of efficiency at 10 degree intervals and linearly interpolates
-
-	/*
+/*
+	
     if( cosTheta < 0.0 || cosTheta > 1.0 )
     {
     //  std::cout << "Behind the PMT, cosTheta = " << cosTheta << std::endl;
@@ -215,8 +215,8 @@ Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrackBase *
                      * (collection_eff[iEntry+1] - collection_eff[iEntry]);
       }
     }
-      return efficiency/100.;
-	*/
+      return (efficiency/100.) * (1.0 - glassReflect);
+*/	
 }
 
 /*
@@ -626,27 +626,41 @@ double WCSimLikelihoodTuner::LookupChIntegrals(WCSimLikelihoodTrackBase * myTrac
 ///////////////////////////////////////////////////////////////////////////
 std::vector<Double_t> WCSimLikelihoodTuner::LookupChIntegrals(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit)
 {
-   // std::cout << "*** WCSimLikelihoodTuner::LookupChIntegrals() *** Looking up the tabulated integrals for direct Cherenkov light" << std::endl;
-  TVector3 pmtPos = myDigit->GetPos();
-  TVector3 vtxPos = myTrack->GetVtx();
-  TVector3 vtxDir = myTrack->GetDir();
+  // std::cout << "*** WCSimLikelihoodTuner::LookupChIntegrals() *** Looking up the tabulated integrals for direct Cherenkov light" << std::endl;
+	// These are the integrals we'll return
+  std::vector<Double_t> integralsVec;
 
-	TVector3 toPMT = pmtPos - vtxPos;
-  Double_t R0 = toPMT.Mag();
-	Double_t cosTheta0 = TMath::Cos(vtxDir.Angle( toPMT ));
- 	
- 	double E = myTrack->GetE();
- 	TrackType::Type type = myTrack->GetType();
+  // Our track might have a conversion distance where it doesn't emit photons until it's travelled some way
+  // The integral lookup doesn't know about this because it happens for photons, and photons share their 
+  // lookup tables with electrons, which don't have a nonzero conversion distance
+  // So we'll take care of it here instead
+  TVector3 emissionStart = myTrack->GetFirstEmissionVtx();
+  double emissionCutoff = fCutoffIntegral - myTrack->GetConversionDistance();
+  emissionCutoff *= (emissionCutoff > 0);
 
-	std::vector<Double_t> integralsVec;
-	integralsVec.push_back(WCSimIntegralLookupReader::Instance()->GetRhoGIntegral(type, E, fCutoffIntegral, R0, cosTheta0));
-	integralsVec.push_back(WCSimIntegralLookupReader::Instance()->GetRhoGSIntegral(type, E, fCutoffIntegral, R0, cosTheta0));
-	integralsVec.push_back(WCSimIntegralLookupReader::Instance()->GetRhoGSSIntegral(type, E, fCutoffIntegral, R0, cosTheta0));
-
+  if(emissionCutoff == 0){ 
+    integralsVec.push_back(0);
+    integralsVec.push_back(0);
+    integralsVec.push_back(0);
+  }
+  else{
+    TVector3 pmtPos = myDigit->GetPos();
+    TVector3 vtxDir = myTrack->GetDir();
+	  TVector3 toPMT = pmtPos - emissionStart; // The vector from where the track starts emitting Cherenkov light to the PMT
+    Double_t R0 = toPMT.Mag();
+	  Double_t cosTheta0 = TMath::Cos(vtxDir.Angle( toPMT ));
+ 	  
+ 	  double E = myTrack->GetE();
+ 	  TrackType::Type type = myTrack->GetType();
+	  integralsVec.push_back(WCSimIntegralLookupReader::Instance()->GetRhoGIntegral(type, E, emissionCutoff, R0, cosTheta0));
+	  integralsVec.push_back(WCSimIntegralLookupReader::Instance()->GetRhoGSIntegral(type, E, emissionCutoff, R0, cosTheta0));
+	  integralsVec.push_back(WCSimIntegralLookupReader::Instance()->GetRhoGSSIntegral(type, E, emissionCutoff, R0, cosTheta0));
+//    std::cout << "tubeID = " << myDigit->GetTubeId() << "    R0 = " << R0 << "    cosTheta0 = " << cosTheta0 << "     E = " << myTrack->GetE() << "    sMax = " << fCutoffIntegral << "  EmissionCutoff = " << emissionCutoff << std::endl;
+  }
  	// std::cout << "Done! ... ";
  	// std::cout << std::endl;
 //  if(integralsVec.at(1) != 0){
-//  std::cout << "tubeID = " << myDigit->GetTubeId() << "    R0 = " << R0 << "    cosTheta0 = " << cosTheta0 << "     E = " << myTrack->GetE() << "    sMax = " << fCutoffIntegral << "     s term = " << integralsVec.at(1) << std::endl;
+  //std::cout << "tubeID = " << myDigit->GetTubeId() << "    s^0 term = " << integralsVec.at(0) << "   s^1 term = " << integralsVec.at(1) << "   s^2 term = " << integralsVec.at(2) << std::endl;   
 //  }
  	return integralsVec;
 }
@@ -669,17 +683,28 @@ Double_t WCSimLikelihoodTuner::LookupIndIntegrals(WCSimLikelihoodTrackBase * myT
 
 std::vector<Double_t> WCSimLikelihoodTuner::LookupIndIntegrals(WCSimLikelihoodTrackBase * myTrack)
 {
-    // std::cout << "*** WCSimLikelihoodTuner::LookupChIntegrals() *** Looking up the tabulated integrals for direct Cherenkov light" << std::endl;
- 	double E = myTrack->GetE();
- 	TrackType::Type type = myTrack->GetType();
-
+  // std::cout << "*** WCSimLikelihoodTuner::LookupChIntegrals() *** Looking up the tabulated integrals for direct Cherenkov light" << std::endl;
 	std::vector<Double_t> integralsVec;
-	integralsVec.push_back(WCSimIntegralLookupReader::Instance()->GetRhoIntegral(type, E, fCutoffIntegral));
-	integralsVec.push_back(WCSimIntegralLookupReader::Instance()->GetRhoSIntegral(type, E, fCutoffIntegral));
-	integralsVec.push_back(WCSimIntegralLookupReader::Instance()->GetRhoSSIntegral(type, E, fCutoffIntegral));
+  
+  // Photons have a conversion distance so don't start emitting until they've travelled a certain length
+  // Need to allow for this in where we cut off the integral
+  double emissionCutoff = fCutoffIntegral - myTrack->GetConversionDistance();
+  emissionCutoff *= (emissionCutoff > 0);
 
+  if(emissionCutoff == 0){ 
+    integralsVec.push_back(0);
+    integralsVec.push_back(0);
+    integralsVec.push_back(0);
+  }
+  else{
+ 	  double E = myTrack->GetE();
+ 	  TrackType::Type type = myTrack->GetType();
+  	integralsVec.push_back(WCSimIntegralLookupReader::Instance()->GetRhoIntegral(type, E, fCutoffIntegral));
+	  integralsVec.push_back(WCSimIntegralLookupReader::Instance()->GetRhoSIntegral(type, E, fCutoffIntegral));
+	  integralsVec.push_back(WCSimIntegralLookupReader::Instance()->GetRhoSSIntegral(type, E, fCutoffIntegral));
+  }
 
-    return integralsVec;
+  return integralsVec;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -706,6 +731,8 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateChIntegrals(WCSimLikelihood
     sPowers.push_back(0);
     sPowers.push_back(1);
     sPowers.push_back(2);
+
+    // The track might have a conversion distance, but because the emission profile manager knows about the TrackType, it can take care of this
     std::vector<Double_t> integrals = fEmissionProfileManager->GetRhoGIntegrals(myTrack, myDigit, sPowers, fCutoffIntegral, kTRUE);
 
     // std::cout << "WCSimLikelihoodTuner::CalculateChIntegrals()   s = " << fCutoffIntegral << "   " << integrals[0] << "   " << integrals[1] << "   " << integrals[2] << std::endl;
@@ -719,6 +746,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateChIntegrals(WCSimLikelihood
 Double_t WCSimLikelihoodTuner::CalculateIndIntegrals(WCSimLikelihoodTrackBase * myTrack, int i)
 {
   
+  // The track might have a conversion distance, but because the emission profile manager knows about the TrackType, it can take care of this
 	std::vector<Double_t> integrals = this->CalculateIndIntegrals(myTrack);
 	if( i < 0 || i > 2) 
     {

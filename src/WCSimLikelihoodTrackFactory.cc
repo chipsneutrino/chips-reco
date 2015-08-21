@@ -54,7 +54,7 @@ WCSimLikelihoodTrackBase* WCSimLikelihoodTrackFactory::MakeTrack(
 		const TrackType& type, const double& x,
 		const double& y, const double& z, const double& t, const double& theta,
 		const double& phi, const double& energy,
-		std::map<FitterParameterType, double> &extraPars) {
+		std::map<FitterParameterType::Type, double> &extraPars) {
 
 	if(	   type == TrackType::ElectronLike
 		|| type == TrackType::MuonLike 	)
@@ -63,7 +63,7 @@ WCSimLikelihoodTrackBase* WCSimLikelihoodTrackFactory::MakeTrack(
 	}
 	else if( type == TrackType::PhotonLike)
 	{
-		std::map<FitterParameterType, double>::iterator mapItr = extraPars.find(FitterParameterType::kConversionDistance);
+		std::map<FitterParameterType::Type, double>::iterator mapItr = extraPars.find(FitterParameterType::kConversionDistance);
 		double conversionDistance = 0.0;
 		if( mapItr != extraPars.end() )
 		{
@@ -83,6 +83,6 @@ WCSimLikelihoodTrackBase* WCSimLikelihoodTrackFactory::MakeTrack(
 		const TrackType& type, const double& x,
 		const double& y, const double& z, const double& t, const double& theta,
 		const double& phi, const double& energy) {
-	std::map<FitterParameterType, double> emptyMap;
+	std::map<FitterParameterType::Type, double> emptyMap;
 	return MakeTrack(type, x, y, z, t, theta, phi, energy, emptyMap);
 }

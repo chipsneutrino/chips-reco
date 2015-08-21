@@ -51,6 +51,8 @@ class WCSimLikelihoodFitter
         void FreeEnergy();
         void FixDirection();
         void FreeDirection();
+        void FixConversionLength();
+        void FreeConversionLength();
 
         void FitEnergy(); ///< Wrapper to fit the energy - calls Fit() currently
         void FitEnergyGridSearch(); ///< Alternative way to fit the energy - with a grid search.  Not used currently
@@ -60,7 +62,7 @@ class WCSimLikelihoodFitter
         void MetropolisHastings(const int nTries = 500);
         void MetropolisHastingsAlongTrack(const int nTries = 500);
 
-
+        void FitPiZero();
         void FitEventNumber(Int_t iEvent);
         void ResetEvent();
 

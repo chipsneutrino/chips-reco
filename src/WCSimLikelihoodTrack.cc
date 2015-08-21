@@ -26,17 +26,11 @@ WCSimLikelihoodTrack::WCSimLikelihoodTrack( double x, double y, double z, double
 	fTheta0 = theta;
 	fPhi0   = phi;
 	fE0     = E;
-    fType   = myType;
+  fType   = myType;
+  fConversionDistance = 0.0;
 	return;
 }
 
-void WCSimLikelihoodTrack::Print()
-{
-	  // std::cout << "WCSimLikelihoodTrack::Print():" << std::endl;
-	  printf("Vertex = (%.02fcm,%.02fcm,%.02fcm,%.02fns)   Dir = (%.04f,%.04f)   E = %.03f  Type = %s \n",
-           fVtx[0], fVtx[1], fVtx[2], fT0, fTheta0, fPhi0, fE0, TrackType::AsString(fType).c_str());
-
-}
 
 double WCSimLikelihoodTrack::GetTrackParameter(
 		const FitterParameterType::Type &type) const {
@@ -47,6 +41,7 @@ double WCSimLikelihoodTrack::GetTrackParameter(
 	if( type == FitterParameterType::kDirTh ){ return GetTheta(); }
 	if( type == FitterParameterType::kDirPhi ){ return GetPhi(); }
 	if( type == FitterParameterType::kEnergy ){ return GetE(); }
+  if( type == FitterParameterType::kConversionDistance ) { return GetConversionDistance(); }
 	assert(0);
 	return -99999;
 }
@@ -66,8 +61,8 @@ void WCSimLikelihoodTrack::SetType(const TrackType::Type &type)
 	else
 	{
 		std::cerr << "Error in WCSimLikelihoodTrack::SetType: track type must be ElectronLike or MuonLike" << std::endl;
-		assert(		type == TrackType::ElectronLike
-				||	type == TrackType::MuonLike );
+		assert(		type == TrackType::ElectronLike	||	type == TrackType::MuonLike );
 	}
 }
 
+TVector3 WCSimLikelihoodTrack::GetFirstEmissionVtx() const { return GetVtx(); } // Conversion distance is 0 so it emits straight away

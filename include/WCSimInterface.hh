@@ -18,6 +18,7 @@ class WCSimLikelihoodDigitArray;
 
 class WCSimTrueTrack;
 class WCSimTrueEvent;
+class TClonesArray;
 
 class WCSimInterface : public TObject {
 
@@ -89,6 +90,7 @@ class WCSimInterface : public TObject {
   // These should only get called by BuildTrueEvent and ResetTrueEvent
   void BuildTrueLikelihoodTracks();
   void ResetTrueLikelihoodTracks();
+  std::vector<WCSimLikelihoodTrackBase*> GetPi0PhotonTracks(const WCSimTruthSummary &sum, double energy, TClonesArray* trajCont);
 
   WCSimTrueEvent* fTrueEvent;
   WCSimRecoEvent* fRecoEvent;

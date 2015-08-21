@@ -11,6 +11,7 @@
 #include "WCSimRecoEvent.hh"
 #include "WCSimRecoDigit.hh"
 
+#include <TClonesArray.h>
 #include <TChainElement.h>
 #include <TIterator.h>
 #include <TObjArray.h>
@@ -242,24 +243,33 @@ void WCSimInterface::BuildTrueLikelihoodTracks() {
 	if(sum.IsParticleGunEvent())
 	{
     TParticlePDG * beamParticle = myDatabase.GetParticle(sum.GetBeamPDG());
-
-		double mm_to_cm = 0.1;
-		WCSimLikelihoodTrackBase * track = WCSimLikelihoodTrackFactory::MakeTrack(
-											TrackType::GetTypeFromPDG(sum.GetBeamPDG()),
-											sum.GetVertexX() * mm_to_cm,
-											sum.GetVertexY() * mm_to_cm,
-											sum.GetVertexZ() * mm_to_cm,
-											0,
-											sum.GetBeamDir().Theta(),
-											sum.GetBeamDir().Phi(),
-											sum.GetBeamEnergy() - beamParticle->Mass() * 1000 ); // Mass comes in GeV but we work in MeV
-
+    
+    // If we have a pi-zero gun, make sure we treat it properly.
+    if (sum.GetBeamPDG() == 111){
+      std::vector<WCSimLikelihoodTrackBase*> tracks = this->GetPi0PhotonTracks(sum, sum.GetBeamEnergy(),fTrigger->GetTracks());
+      for(unsigned int iTrack = 0 ; iTrack < tracks.size(); ++iTrack)
+      {
+        fTrueLikelihoodTracks->push_back(tracks.at(iTrack));
+      }
+    }
+    else{
+		  double mm_to_cm = 0.1;
+		  WCSimLikelihoodTrackBase * track = WCSimLikelihoodTrackFactory::MakeTrack(
+		  									TrackType::GetTypeFromPDG(sum.GetBeamPDG()),
+		  									sum.GetVertexX() * mm_to_cm,
+		  									sum.GetVertexY() * mm_to_cm,
+		  									sum.GetVertexZ() * mm_to_cm,
+		  									0,
+		  									sum.GetBeamDir().Theta(),
+		  									sum.GetBeamDir().Phi(),
+		  									sum.GetBeamEnergy() - beamParticle->Mass() * 1000 ); // Mass comes in GeV but we work in MeV
 		fTrueLikelihoodTracks->push_back(track);
+    }
 	}
 	else
 	{
 		double mm_to_cm = 0.1;
-		for(int i = 0; i < sum.GetNPrimaries(); ++i)
+		for(unsigned int i = 0; i < sum.GetNPrimaries(); ++i)
 		{
       if(TrackType::GetTypeFromPDG(sum.GetPrimaryPDG(i)) != TrackType::Unknown)
       {
@@ -776,4 +786,75 @@ WCSimLikelihoodDigitArray* WCSimInterface::GetWCSimLikelihoodDigitArray(int ieve
 	if( fLikelihoodDigitArray != NULL ){ delete fLikelihoodDigitArray; }
 	fLikelihoodDigitArray = new WCSimLikelihoodDigitArray(myEvent);
 	return fLikelihoodDigitArray;
+}
+
+std::vector<WCSimLikelihoodTrackBase*> WCSimInterface::GetPi0PhotonTracks(const WCSimTruthSummary &sum, double energy, TClonesArray* trajCont){
+  std::vector<WCSimLikelihoodTrackBase*> photons;
+  // Iterate through the TClonesArray looking for what we want...
+  bool gotPi0 = false;
+  int gotPhotons = 0;
+  int pi0ID = -1; // This is the geant4 track ID for the parent pi0
+
+  // Temporarily store the information
+  TVector3 pi0Vtx;
+  TVector3 pi0Dir;
+  double photonEn1, photonEn2;
+  TVector3 photonDir1, photonDir2;  
+
+  TVector3 mainVtx = sum.GetVertex();
+  for(int e = 0; e < trajCont->GetEntries(); ++e){
+    // Skip the first entry for particle gun events as it is repeated
+    if(e == 0 && sum.IsParticleGunEvent()) continue;
+
+    // Get the track
+    WCSimRootTrack* trk = (WCSimRootTrack*)(*trajCont)[e];
+
+    if(!gotPi0){
+      // Is it a pizero?
+      if(trk->GetIpnu() != 111) continue;
+      if(fabs(trk->GetE()-energy) > 1e-2) continue;
+      // This is our pi0
+      gotPi0 = true;
+      pi0ID = trk->GetId();
+
+      pi0Vtx = TVector3(trk->GetStart(0),trk->GetStart(1),trk->GetStart(2));
+      pi0Dir = TVector3(trk->GetDir(0),trk->GetDir(1),trk->GetDir(2));
+    }
+    else{
+      // Presumably the photons are after the pi0? Let's look for them, then
+      if(trk->GetIpnu() != 22) continue; // Is it a photon?
+      if(trk->GetParenttype() != 111) continue; // Was the parent a pi0?
+      if(trk->GetParentId() != pi0ID) continue; // Pi0 stop and photon start at the same point?
+      // This is a photon that we are looking for!
+      if(gotPhotons == 0){
+        photonEn1 = trk->GetE();
+        photonDir1 = TVector3(trk->GetDir(0),trk->GetDir(1),trk->GetDir(2));
+      }
+      else{
+        photonEn2 = trk->GetE();
+        photonDir2 = TVector3(trk->GetDir(0),trk->GetDir(1),trk->GetDir(2));
+      }
+      ++gotPhotons;
+    }
+  }
+  if(gotPi0 && gotPhotons==2){
+    WCSimLikelihoodTrackBase * track;
+    std::map<FitterParameterType::Type, double> extraPars;
+    FitterParameterType::Type type = FitterParameterType::kConversionDistance;
+    extraPars[type] = 0.0;
+
+    track = WCSimLikelihoodTrackFactory::MakeTrack(TrackType::PhotonLike, 
+                                                   pi0Vtx.X(), pi0Vtx.Y(), pi0Vtx.Z(), 0,
+                                                   TMath::ACos(photonDir1.Z()), TMath::ATan2(photonDir1.Y(),photonDir1.X()),
+                                                   photonEn1,
+                                                   extraPars);
+    photons.push_back(track);
+    track = WCSimLikelihoodTrackFactory::MakeTrack(TrackType::PhotonLike, 
+                                                   pi0Vtx.X(), pi0Vtx.Y(), pi0Vtx.Z(), 0,
+                                                   TMath::ACos(photonDir2.Z()), TMath::ATan2(photonDir2.Y(),photonDir2.X()),
+                                                   photonEn2,
+                                                   extraPars);
+    photons.push_back(track);
+  }
+  return photons;
 }

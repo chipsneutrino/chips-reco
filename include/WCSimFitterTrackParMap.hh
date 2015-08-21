@@ -39,6 +39,8 @@ public:
   void FreeDirection(int track = -1);
 	void FixEnergy(int track = -1);
 	void FreeEnergy(int track = -1);
+	void FixConversionLength(int track = -1);
+	void FreeConversionLength(int track = -1);
 
 	int GetIndex(int track, FitterParameterType type);
 	int GetIndex(TrackAndType trackAndType);
@@ -61,6 +63,7 @@ private:
 	void FixOrFreeVertex(bool fixIt, int track = -1);
 	void FixOrFreeDirection(bool fixIt, int track = -1);
 	void FixOrFreeEnergy(bool fixIt, int track = -1);
+	void FixOrFreeConversionLength(bool fixIt, int track = -1);
 	std::map<TrackAndType, unsigned int> fTrackAndTypeIndexMap;
 	std::vector<double> fCurrentValues;
 	std::vector<double> fMinValues;

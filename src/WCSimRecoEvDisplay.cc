@@ -622,6 +622,10 @@ void WCSimRecoEvDisplay::FillPlotsFromRecoFile() {
       this->SearchForPi0Photons(pi0EnVec[p],wcSimTrigger->GetTracks());
     }
   }
+  // If we have a pi-zero gun, make sure we treat it properly.
+  else if (fTruthSummary->GetBeamPDG() == 111){
+    this->SearchForPi0Photons(fTruthSummary->GetBeamEnergy(),wcSimTrigger->GetTracks());
+  }
 
   // Update the truth view
   this->UpdateTruthPave();

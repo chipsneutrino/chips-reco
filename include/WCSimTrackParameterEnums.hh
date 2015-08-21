@@ -178,10 +178,9 @@ class FitterParameterType : public TObject{
   		types.push_back(FitterParameterType::kDirTh);
   		types.push_back(FitterParameterType::kDirPhi);
   		types.push_back(FitterParameterType::kEnergy);
-  		if(trackType == TrackType::PhotonLike) { types.push_back(FitterParameterType::kConversionDistance); } 
+  		if(trackType == TrackType::PhotonLike || 1 ) { types.push_back(FitterParameterType::kConversionDistance); } 
   		return types;
   	}
-  
     ClassDef(FitterParameterType, 1);
 
 };

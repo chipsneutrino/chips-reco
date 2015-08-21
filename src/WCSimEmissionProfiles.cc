@@ -164,7 +164,7 @@ Double_t WCSimEmissionProfiles::GetIntegral(WCSimLikelihoodTrackBase * myTrack, 
 		WCSimLikelihoodDigit * myDigit, Int_t sPower, Double_t cutoffS, Bool_t multiplyByWidth) {
 	if( type == EmissionProfile_t::kRho )
 	{
-		return GetRhoIntegral(sPower, 0, cutoffS, multiplyByWidth);
+		return GetRhoIntegral(myTrack, sPower, 0, cutoffS, multiplyByWidth);
 	}
 	else if( type == EmissionProfile_t::kRhoTimesG )
 	{
@@ -174,18 +174,28 @@ Double_t WCSimEmissionProfiles::GetIntegral(WCSimLikelihoodTrackBase * myTrack, 
 	return 0;
 }
 
-Double_t WCSimEmissionProfiles::GetRhoIntegral(Int_t sPower,
+Double_t WCSimEmissionProfiles::GetRhoIntegral(WCSimLikelihoodTrackBase * myTrack, Int_t sPower,
 		Double_t startS, Double_t endS, Bool_t multiplyByWidth) {
   std::vector<Int_t> sVec(1, sPower);
-  return GetRhoIntegrals(sVec, startS, endS, multiplyByWidth).at(0);
+  return GetRhoIntegrals(myTrack, sVec, startS, endS, multiplyByWidth).at(0);
 }
 
-std::vector<Double_t> WCSimEmissionProfiles::GetRhoIntegrals(std::vector<Int_t> sPowers,
+std::vector<Double_t> WCSimEmissionProfiles::GetRhoIntegrals(WCSimLikelihoodTrackBase * myTrack, std::vector<Int_t> sPowers,
 		Double_t startS, Double_t endS, Bool_t multiplyByWidth) {
+  // The integrals we'll return
+	std::vector<Double_t> integrals(sPowers.size(), 0.0);
+
+  // Need to subtract off the conversion distance (it's zero unless we have a photon track)
+  startS -= myTrack->GetConversionDistance();
+  endS -= myTrack->GetConversionDistance();
+
+  // Now find the right bins:
 	Int_t startBin = fRhoInterp->GetXaxis()->FindBin(startS);
 	Int_t endBin = fRhoInterp->GetXaxis()->FindBin(endS);
-//	std::cout << fRhoInterp->GetBinContent(endBin) << std::endl;;
-	std::vector<Double_t> integrals(sPowers.size(), 0.0);
+  if(endBin < 1) { return integrals; } // We don't get to any emission, so can just return here
+  if( startBin < 1 ) { startBin = 1; } // Are we starting off the end of the histogram? Let's not.
+
+  //	std::cout << fRhoInterp->GetBinContent(endBin) << std::endl;;
 	for(Int_t iBin = startBin; iBin < endBin; ++iBin)
 	{
 		Double_t binWidth = multiplyByWidth ? fRhoInterp->GetXaxis()->GetBinWidth(iBin) : 1;
@@ -205,27 +215,38 @@ Double_t WCSimEmissionProfiles::GetRhoGIntegral(WCSimLikelihoodTrackBase * myTra
 }
 
 std::vector<Double_t> WCSimEmissionProfiles::GetRhoGIntegrals(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit,
-		std::vector<Int_t> sPowers, Double_t cutoffS, Bool_t multiplyByWidth) {
+	std::vector<Int_t> sPowers, Double_t cutoffS, Bool_t multiplyByWidth) {
 
 	// std::cout << "WCSimEmissionProfiles::GetRhoGIntegrals()" << std::endl;
 	std::vector<Double_t> integrals(3, 0.0);
-   
+ 
+  // If the track has a conversion distance we need to subtract it off the cutoff to
+  // work out how far through the emission profile we need to integrate  
 	Int_t startBin = fRhoInterp->GetXaxis()->FindBin(0.);
-	Int_t endBin = fRhoInterp->GetXaxis()->FindBin(cutoffS);
+  double emissionCutoff = myTrack->GetConversionDistance();
+  if(emissionCutoff <= 0.0){ return integrals; }
 
-    TVector3 pmtPos = myDigit->GetPos();
-    TVector3 vtxPos = myTrack->GetVtx();
-    TVector3 vtxDir = myTrack->GetDir();
+	Int_t endBin = fRhoInterp->GetXaxis()->FindBin(emissionCutoff);
 
-   // std::cout << "Integrating from " << 0.0 << " to " << cutoffS << std::endl;
+  TVector3 pmtPos = myDigit->GetPos();
+  TVector3 vtxPos = myTrack->GetVtx();
+  TVector3 vtxDir = myTrack->GetDir();
+
+  // std::cout << "Integrating from " << 0.0 << " to " << cutoffS << std::endl;
 
 	for(Int_t iBin = startBin; iBin < endBin; ++iBin)
 	{
 		Double_t s = fRhoInterp->GetBinCenter(iBin);
+    if( s < myTrack->GetConversionDistance() ) { continue; }
+
+    Double_t emissionDistance = s - myTrack->GetConversionDistance();
+
+
+
 		TVector3 toPMT = pmtPos - myTrack->GetPropagatedPos(s);
 		Double_t cosTheta = TMath::Cos(vtxDir.Angle( toPMT ));
 
-		Double_t binWidthS = multiplyByWidth ? GetRhoWidth(s) : 1;
+		Double_t binWidthS = multiplyByWidth ? GetRhoWidth(emissionDistance) : 1;
 
 //    if( myDigit->GetTubeId() == 3364)
 //    {
@@ -242,8 +263,8 @@ std::vector<Double_t> WCSimEmissionProfiles::GetRhoGIntegrals(WCSimLikelihoodTra
       adding =
                 binWidthS
 							* fRhoInterp->GetBinContent(iBin)
-							* GetG(s, cosTheta);
-      integrals.at(iPower) += adding * pow(s, sPowers.at(iPower));
+							* GetG(emissionDistance, cosTheta);
+      integrals.at(iPower) += adding * pow(emissionDistance, sPowers.at(iPower));
 			// std::cout << "Now integrals.at(" << iPower << ") = " << integrals.at(iPower) <<  " sPower = " << sPowers.at(iPower) << std::endl;
 		}
 //
@@ -288,8 +309,10 @@ void WCSimEmissionProfiles::LoadFile(const TrackType::Type &type, const double &
 	fProfileFileName = TString(getenv("WCSIMANAHOME"));
 	switch( type )
 	{
+    case TrackType::PhotonLike:
+      // Fall through to the electron track
 		case TrackType::ElectronLike:
-			fProfileFileName.Append("/config/emissionProfilesElectrons.root");
+			fProfileFileName.Append("/config/emissionProfilesElectronsFull.root");
 			break;
 		case TrackType::MuonLike:
 			fProfileFileName.Append("/config/emissionProfilesMuons.root");
@@ -667,7 +690,7 @@ std::vector<Double_t> WCSimEmissionProfiles::GetProfileEnergies() const
 
 Double_t WCSimEmissionProfiles::GetLightFlux(
 		const TrackType::Type &type, const double &energy) const {
-	assert(type == TrackType::MuonLike || type == TrackType::ElectronLike);
+	assert(type == TrackType::MuonLike || type == TrackType::ElectronLike || type == TrackType::PhotonLike);
 	Double_t flux = 0.0;
 	Double_t factorFromG = 1/(4.0*TMath::Pi()); // We want solid angle fraction
 
@@ -681,14 +704,16 @@ Double_t WCSimEmissionProfiles::GetLightFlux(
   double fudge = 1.0;
 	switch(type)
 	{
-	case TrackType::MuonLike:
-		// From a linear fit to nPhotons as a function of energy (it's very linear)
-	  // New fit on 10/March/15
-    nPhotons = 431.467 * energy - 21813.0; // New fit on 29/Jul/2015 (QE decoupled)
+	  case TrackType::MuonLike:
+	  	// From a linear fit to nPhotons as a function of energy (it's very linear)
+	    // New fit on 10/March/15
+      nPhotons = 431.467 * energy - 21813.0; // New fit on 29/Jul/2015 (QE decoupled)
 
-	  // Things get sketchy at really low energies
-	  if(nPhotons > 0){ flux = factorFromG * factorFromSolidAngle * nPhotons; }
+	    // Things get sketchy at really low energies
+	    if(nPhotons > 0){ flux = factorFromG * factorFromSolidAngle * nPhotons; }
       break;
+    case TrackType::PhotonLike:
+      // Fall through to ElectronLike
     case TrackType::ElectronLike:
       nPhotons = 201.709 + 383.217 * energy;  // New fit on 29/Jul/15
       if(nPhotons > 0){ flux = factorFromG * factorFromSolidAngle * nPhotons; }

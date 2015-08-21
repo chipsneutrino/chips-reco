@@ -106,6 +106,10 @@ Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
 	  TrackAndType trackParPhi = std::make_pair(iTrack, FitterParameterType::kDirPhi);
 	  TrackAndType trackParE = std::make_pair(iTrack, FitterParameterType::kEnergy);
 
+    TrackAndType trackParConversionDistance = std::make_pair(iTrack, FitterParameterType::kConversionDistance);
+    std::map<FitterParameterType::Type, double> extraPars;
+    extraPars[FitterParameterType::kConversionDistance] = x[fFitterTrackParMap.GetIndex(trackParConversionDistance)];
+
 	  WCSimLikelihoodTrackBase * track = WCSimLikelihoodTrackFactory::MakeTrack(
 			  	  	  	  	  	  fFitterTrackParMap.GetTrackType(iTrack),
 			  	  	  	  	  	  x[fFitterTrackParMap.GetIndex(trackParX)],
@@ -114,7 +118,8 @@ Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
 		          						  x[fFitterTrackParMap.GetIndex(trackParT)],
 		          						  x[fFitterTrackParMap.GetIndex(trackParTh)],
 		          						  x[fFitterTrackParMap.GetIndex(trackParPhi)],
-		          						  x[fFitterTrackParMap.GetIndex(trackParE)]
+		          						  x[fFitterTrackParMap.GetIndex(trackParE)],
+                            extraPars
 		          						  );
 	  tracksToFit.push_back(track);
   }
@@ -268,6 +273,12 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
 
 	if(WCSimFitterInterface::Instance()->GetMakeFits() ) {
     std::cout << "Fitting event " << iEvent << std::endl;
+
+    if(WCSimFitterConfig::Instance()->GetIsPiZeroFit())
+    {
+      FitPiZero();
+    }
+
     fCalls = 0;
 	  fFitterTrackParMap.Set();
 
@@ -901,10 +912,12 @@ void WCSimLikelihoodFitter::Fit(const char * minAlgorithm)
 	{
 		// Sometimes the fast seed goes outside the allowed range:
 		if( currentlyFixed[i] ){
+      // std::cout << "Fixed: " << names[i] << "  Start: " << startVals[i] << std::endl;
 			min->SetFixedVariable(i, names[i], startVals[i]);
 		}
 		else{
 			isAnythingFree = true;
+      // std::cout << "Free: " << names[i] << "  Start: " << startVals[i] << "   Min: " << minVals[i] << "   Max: " << maxVals[i] << std::endl;
 			min->SetLimitedVariable(i, names[i], startVals[i], steps[i], minVals[i], maxVals[i]);
 		}
 	}
@@ -921,7 +934,6 @@ void WCSimLikelihoodFitter::Fit(const char * minAlgorithm)
 	  // Perform the minimization
 	  if( isAnythingFree )
 	  {
-	  Double_t * x = &(startVals[0]);
 	    min->Minimize();
 	    fMinimum = min->MinValue();
 	    fStatus = min->Status();
@@ -929,7 +941,7 @@ void WCSimLikelihoodFitter::Fit(const char * minAlgorithm)
 	  // This is what we ought to do:
 	  const Double_t * outPar = min->X();
 	  // Future tracks need to start from this best fit
-	  for( int i = 0; i < nPars; ++i)
+	  for( unsigned int i = 0; i < nPars; ++i)
 	  {
 	    fFitterTrackParMap.SetCurrentValue(i, outPar[i]);
 	  }
@@ -958,6 +970,9 @@ void WCSimLikelihoodFitter::UpdateBestFits()
 		  TrackAndType trackParTh = std::make_pair(iTrack, FitterParameterType::kDirTh);
 		  TrackAndType trackParPhi = std::make_pair(iTrack, FitterParameterType::kDirPhi);
 		  TrackAndType trackParE = std::make_pair(iTrack, FitterParameterType::kEnergy);
+      TrackAndType trackParConversionDistance = std::make_pair(iTrack, FitterParameterType::kConversionDistance);
+      std::map<FitterParameterType::Type, Double_t> extraPars;
+      extraPars[FitterParameterType::kConversionDistance] = fFitterTrackParMap.GetCurrentValue(trackParConversionDistance);
 
 		  WCSimLikelihoodTrackBase * track = WCSimLikelihoodTrackFactory::MakeTrack(
 		  	  	  	      fFitterTrackParMap.GetTrackType(iTrack),
@@ -967,7 +982,8 @@ void WCSimLikelihoodFitter::UpdateBestFits()
   	  	  	  	  	  fFitterTrackParMap.GetCurrentValue(trackParT),
   	  	  	  	  	  fFitterTrackParMap.GetCurrentValue(trackParTh),
   	  	  	  	  	  fFitterTrackParMap.GetCurrentValue(trackParPhi),
-  	  	  	  	  	  fFitterTrackParMap.GetCurrentValue(trackParE));
+  	  	  	  	  	  fFitterTrackParMap.GetCurrentValue(trackParE),
+                      extraPars);
 		  std::cout << "Best-fit track number " << iTrack << std::endl;
 		  track->Print();
 		  fBestFit.push_back(track);
@@ -1282,4 +1298,59 @@ void WCSimLikelihoodFitter::FitAlongTrack()
   }
   else{ assert(0); }
 	return;
+}
+
+void WCSimLikelihoodFitter::FitPiZero()
+{
+    fCalls = 0;
+	  fFitterTrackParMap.Set();
+
+    // Run seed
+    SeedEvent();
+
+    FixVertex();
+    FixEnergy();
+    FreeDirection();
+    FreeConversionLength();
+    FitVertex();
+
+    FreeVertex();
+    FreeEnergy();
+    
+
+    // Now fit the energy and conversion length
+    FixVertex();
+    FixDirection();
+    FitEnergy();
+    FreeVertex();
+    FreeDirection();
+
+    // Now freely fit the vertex and direction    
+    FixEnergy();
+    FixConversionLength();
+    FitVertex();
+    FreeEnergy();
+
+    // And finally tidy up the energy
+    FixVertex();
+    FixDirection();
+    FreeEnergy();
+    FitEnergy();
+
+    // Leave everything free at the end
+    FreeVertex();
+    FreeDirection();    
+    FreeEnergy();
+    FreeConversionLength();
+
+}
+
+void WCSimLikelihoodFitter::FixConversionLength()
+{
+  fFitterTrackParMap.FixConversionLength();
+}
+
+void WCSimLikelihoodFitter::FreeConversionLength()
+{
+  fFitterTrackParMap.FreeConversionLength();
 }

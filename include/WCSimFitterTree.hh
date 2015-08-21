@@ -117,6 +117,7 @@ private:
 	Double_t fFitDirTheta;
 	Double_t fFitDirPhi;
 	Double_t fFitEnergy;
+  Double_t fFitConversionDistance;
 	Bool_t fFitEscapes;
 	Int_t fFitPDG;
 

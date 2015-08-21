@@ -22,7 +22,7 @@ public:
      WCSimLikelihoodTrackBase( WCSimTrueTrack * trueTrack);
 
      virtual ~WCSimLikelihoodTrackBase();
-     virtual void Print() = 0;
+     virtual void Print();
 
      // Setters
      void SetX(double x);
@@ -39,12 +39,14 @@ public:
      double GetY() const;
      double GetZ() const;
      TVector3 GetVtx() const;
+     virtual TVector3 GetFirstEmissionVtx() const = 0;
      double GetT() const;
      double GetTheta() const;
      double GetPhi() const;
      double GetDirX() const;
      double GetDirY() const;
      double GetDirZ() const;
+     double GetConversionDistance() const;
      TVector3 GetDir() const;
      double GetE() const;
      TrackType GetType() const;
@@ -71,6 +73,7 @@ public:
    double fTheta0;	    ///< Polar angle to z axis
    double fPhi0;		///< Azimuthal angle
    double fE0;			///< Kinetic energy
+   double fConversionDistance; ///< Distance from the vertex to the point where Cherenkov light is first emitted (zero unless a photon)
 
    TrackType::Type fType; ///< Particle type (e, mu, pi...)
    WCSimLikelihoodTrackBase();

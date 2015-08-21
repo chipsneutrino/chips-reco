@@ -18,16 +18,15 @@ public:
                           	    double theta, double phi, double E,
                           	    double convDistance);
 	virtual ~WCSimLikelihoodPhotonTrack();
-	double GetConversionDistance() const; //< Get the conversion distance in m
 	void SetConversionDistance(const double &convDist);
-	void Print();
 	double GetTrackParameter(const FitterParameterType::Type &type) const;
 	TVector3 GetPropagatedPos(const Double_t &s) const;
 	void SetType(const TrackType::Type &type);
+  TVector3 GetFirstEmissionVtx() const;
 
 
 private:
-	double fConversionDistance;
+  TVector3 fFirstEmissionVtx;
 
 };
 

@@ -260,7 +260,7 @@ double WCSimEmissionProfileManager::GetTrackLengthForPercentile(WCSimLikelihoodT
 
 std::vector<Double_t> WCSimEmissionProfileManager::GetRhoIntegrals(std::vector<Int_t> sPowers, WCSimLikelihoodTrackBase* myTrack, Double_t startS, Double_t endS, Bool_t multiplyByWidth)
 {
-  return GetEmissionProfile(myTrack)->GetRhoIntegrals(sPowers, startS, endS, multiplyByWidth);
+  return GetEmissionProfile(myTrack)->GetRhoIntegrals(myTrack, sPowers, startS, endS, multiplyByWidth);
 }
 
 std::vector<double> WCSimEmissionProfileManager::GetRhoGIntegrals(WCSimLikelihoodTrackBase* myTrack, WCSimLikelihoodDigit* myDigit, std::vector<int> sPowers, double cutoffS, bool multiplyByWidth)

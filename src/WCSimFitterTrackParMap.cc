@@ -209,6 +209,25 @@ void WCSimFitterTrackParMap::FixOrFreeEnergy(bool fixIt, int track) {
 		}
 }
 
+void WCSimFitterTrackParMap::FixConversionLength(int track) {
+	FixOrFreeConversionLength(1, track);
+}
+
+void WCSimFitterTrackParMap::FreeConversionLength(int track) {
+	FixOrFreeConversionLength(0, track);
+}
+
+void WCSimFitterTrackParMap::FixOrFreeConversionLength(bool fixIt, int track) {
+	int firstTrack = (track != -1) ? track : 0;
+		int lastTrack = (track != -1) ? track : WCSimFitterInterface::Instance()->GetNumTracks();
+
+		for(int iTrack = firstTrack; iTrack < lastTrack; ++iTrack)
+		{
+			TrackAndType myConversionLength(iTrack, FitterParameterType::kConversionDistance);
+			fCurrentlyFixed.at(fTrackAndTypeIndexMap[myConversionLength]) = fixIt;
+		}
+}
+
 std::vector<double> WCSimFitterTrackParMap::GetCurrentValues() {
 	return fCurrentValues;
 }

@@ -9,8 +9,8 @@
 
 WCSimLikelihoodPhotonTrack::WCSimLikelihoodPhotonTrack() : WCSimLikelihoodTrackBase(){
 	// TODO Auto-generated constructor stub
-	fConversionDistance = 0.0;
 	SetType(TrackType::PhotonLike);
+	SetConversionDistance(0.0);
 }
 
 WCSimLikelihoodPhotonTrack::WCSimLikelihoodPhotonTrack(double x, double y,
@@ -23,26 +23,18 @@ WCSimLikelihoodPhotonTrack::WCSimLikelihoodPhotonTrack(double x, double y,
 	fTheta0 = theta;
 	fPhi0   = phi;
 	fE0     = E;
-    fType   = TrackType::PhotonLike;
-	fConversionDistance = convDistance;
+  fType   = TrackType::PhotonLike;
+  SetConversionDistance(convDistance);
+
 }
 
 WCSimLikelihoodPhotonTrack::~WCSimLikelihoodPhotonTrack() {
 	// TODO Auto-generated destructor stub
 }
 
-double WCSimLikelihoodPhotonTrack::GetConversionDistance() const {
-	return fConversionDistance;
-}
-
 void WCSimLikelihoodPhotonTrack::SetConversionDistance(const double& convDist) {
 	fConversionDistance = convDist;
-}
-
-void WCSimLikelihoodPhotonTrack::Print() {
-
-	  printf("Vertex = (%.02fcm,%.02fcm,%.02fcm,%.02fns)   Dir = (%.04f,%.04f)   E = %.03f  Type = %s  Conv. dist = %.02f\n",
-           fVtx[0], fVtx[1], fVtx[2], fT0, fTheta0, fPhi0, fE0, TrackType::AsString(fType).c_str(), fConversionDistance);
+  fFirstEmissionVtx = GetPropagatedPos(convDist); // Where are Cherenkov photons first emitted?
 }
 
 double WCSimLikelihoodPhotonTrack::GetTrackParameter(
@@ -75,4 +67,13 @@ void WCSimLikelihoodPhotonTrack::SetType(
 		std::cerr << "Error in WCSimLikelihoodPhotonTrack::SetType: track type must be PhotonLike" << std::endl;
 		assert(	type == TrackType::PhotonLike );
 	}
+}
+
+// Get the point at which the track first releases Cherenkov photons
+// For a photon, this is found by travelling away from the vertex in the distance
+// of track propagation by the conversion distance.  Work this out when we set the
+// conversion distance so that this is just a lookup
+TVector3 WCSimLikelihoodPhotonTrack::GetFirstEmissionVtx() const
+{
+  return fFirstEmissionVtx;
 }

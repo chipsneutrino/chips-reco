@@ -56,15 +56,17 @@ void WCSimFitterSingleTrackParameters::SetDefaultParameters(){
 	WCSimFitterParameter parTh(FitterParameterType::kDirTh, false, 0, 0, TMath::Pi());
 	WCSimFitterParameter parPhi(FitterParameterType::kDirPhi, false, 0, 0, 2.0 * TMath::Pi());
 	WCSimFitterParameter parE(FitterParameterType::kEnergy, false, 1500, 1000, 2000);
+  WCSimFitterParameter parConv(FitterParameterType::kConversionDistance, true, 0, 0, 250);
 
   fParameters.clear();
-  fParameters.insert( std::map< FitterParameterType::Type, WCSimFitterParameter >::value_type ( FitterParameterType::kVtxX,   parX   ) );
-  fParameters.insert( std::map< FitterParameterType::Type, WCSimFitterParameter >::value_type ( FitterParameterType::kVtxY,   parY   ) );
-  fParameters.insert( std::map< FitterParameterType::Type, WCSimFitterParameter >::value_type ( FitterParameterType::kVtxZ,   parZ   ) );
-  fParameters.insert( std::map< FitterParameterType::Type, WCSimFitterParameter >::value_type ( FitterParameterType::kVtxT,   parT   ) );
-  fParameters.insert( std::map< FitterParameterType::Type, WCSimFitterParameter >::value_type ( FitterParameterType::kDirTh,  parTh  ) );
-  fParameters.insert( std::map< FitterParameterType::Type, WCSimFitterParameter >::value_type ( FitterParameterType::kDirPhi, parPhi ) );
-  fParameters.insert( std::map< FitterParameterType::Type, WCSimFitterParameter >::value_type ( FitterParameterType::kEnergy, parE   ) );
+  fParameters.insert( std::map< FitterParameterType::Type, WCSimFitterParameter >::value_type ( FitterParameterType::kVtxX,   parX               ) );
+  fParameters.insert( std::map< FitterParameterType::Type, WCSimFitterParameter >::value_type ( FitterParameterType::kVtxY,   parY               ) );
+  fParameters.insert( std::map< FitterParameterType::Type, WCSimFitterParameter >::value_type ( FitterParameterType::kVtxZ,   parZ               ) );
+  fParameters.insert( std::map< FitterParameterType::Type, WCSimFitterParameter >::value_type ( FitterParameterType::kVtxT,   parT               ) );
+  fParameters.insert( std::map< FitterParameterType::Type, WCSimFitterParameter >::value_type ( FitterParameterType::kDirTh,  parTh              ) );
+  fParameters.insert( std::map< FitterParameterType::Type, WCSimFitterParameter >::value_type ( FitterParameterType::kDirPhi, parPhi             ) );
+  fParameters.insert( std::map< FitterParameterType::Type, WCSimFitterParameter >::value_type ( FitterParameterType::kEnergy, parE               ) );
+  fParameters.insert( std::map< FitterParameterType::Type, WCSimFitterParameter >::value_type ( FitterParameterType::kConversionDistance, parConv) );
 
 }
 

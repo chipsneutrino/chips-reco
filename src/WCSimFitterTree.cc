@@ -134,6 +134,7 @@ void WCSimFitterTree::MakeTree() {
 	fTrueTree->Branch("energy", &fTrueEnergy);
 	fTrueTree->Branch("pdg", &fTruePDG);
 	fTrueTree->Branch("escapes", &fTrueEscapes);
+  
 
 	fFitTree->Branch("event", &fEvent);
 	fFitTree->Branch("track", &fFitTrackNum);
@@ -147,9 +148,10 @@ void WCSimFitterTree::MakeTree() {
 	fFitTree->Branch("energy", &fFitEnergy);
 	fFitTree->Branch("pdg", &fFitPDG);
 	fFitTree->Branch("escapes", &fFitEscapes);
+  fFitTree->Branch("convDist",&fFitConversionDistance);
 
 
-    fGeometry = new WCSimRootGeom();
+  fGeometry = new WCSimRootGeom();
 	fGeoTree->Branch("wcsimrootgeom", "WCSimRootGeom", &fGeometry, 64000,0);
 	fWCSimTree->Branch("wcsimrootevent", "WCSimRootEvent", &fWCSimRootEvent, 64000,0);
 
@@ -216,8 +218,7 @@ void WCSimFitterTree::Fill(Int_t iEvent,
 	{
 		fFitTrackNum = std::distance(bestFitTracks.begin(), bfIter);
 		Bool_t escapes = bestFitEscapes.at(fFitTrackNum);
-		WCSimLikelihoodTrackBase * track = (*bfIter);
-		FillFitTrack(track, escapes, minimum);
+		FillFitTrack((*bfIter), escapes, minimum);
   }
 
 	std::vector<WCSimLikelihoodTrackBase*>::iterator truIter;
@@ -226,35 +227,45 @@ void WCSimFitterTree::Fill(Int_t iEvent,
 		fTrueTrackNum = std::distance(trueTracks.begin(), truIter);
 		Bool_t escapes = trueTrackEscapes.at(fTrueTrackNum);
 		WCSimLikelihoodTrackBase* track = (*truIter);
+    std::cout << "Fill true track...";
 		FillTrueTrack(track, escapes);
+    std::cout << " ... done" << std::endl;
 	}
 
 	// Fill the geometry tree
 	if(fGeoTree->GetEntries() == 0)
 	{
-      
+      std::cout << "Fill geo tree ..." ;
       *fGeometry = *(WCSimGeometry::Instance()->GetWCSimGeometry());
       WCSimGeometry::Instance()->PrintGeometry();
-
+      
 		fGeoTree->Fill();
+    std::cout << "... done" << std::endl;
 	}
 
 	// Make the reco summary object for the event display, and fill its tree
 	if(fRecoSummaryTree != 0x0)
 	{
+    std::cout << "Make reco summary ...";
 		MakeRecoSummary( bestFitTracks );
+    std::cout << "... made it - fill tree ..." ;
 		fRecoSummaryTree->Fill();
+    std::cout << "... done" << std::endl;
 	}
 
 	// Copy the root event into the file for the event display to use
+  std::cout << "Make root event ... " ;
 	fWCSimRootEvent = WCSimInterface::Instance()->GetWCSimEvent(iEvent);
+  std::cout << " ... made - filling tree ... " ;
 	fWCSimTree->Fill();
+  std::cout << " ... done" << std::endl;
   SaveTree();
+  std::cout << "Saved tree" << std::endl;
 
 }
 
 void WCSimFitterTree::FillFitTrack(WCSimLikelihoodTrackBase * track, Bool_t escapes, Double_t twoLnL) {
-
+  std::cout << "Filling fit track" << std::endl;
 	track->Print();
 	fFitVtxX     = track->GetX();
 	fFitVtxY     = track->GetY();
@@ -264,6 +275,7 @@ void WCSimFitterTree::FillFitTrack(WCSimLikelihoodTrackBase * track, Bool_t esca
 	fFitDirPhi   = track->GetPhi();
 	fFitEnergy   = track->GetE();
 	fFitPDG      = track->GetPDG();
+  fFitConversionDistance = track->GetConversionDistance();
 	fFitEscapes = escapes;
 
 	if(fFitTree == 0x0)
@@ -335,15 +347,21 @@ TString WCSimFitterTree::GetSaveFileName() const
 void WCSimFitterTree::MakeRecoSummary(
 		std::vector<WCSimLikelihoodTrackBase*> bestFitTracks) {
 	fRecoSummary->ResetValues();
-	std::sort(bestFitTracks.begin(), bestFitTracks.end(), WCSimLikelihoodTrackBase::EnergyGreaterThanOrEqualPtrs);
 
+  std::cout << "There are " << bestFitTracks.size() << " best-fit tracks" << std::endl;
+	std::sort(bestFitTracks.begin(), bestFitTracks.end(), WCSimLikelihoodTrackBase::EnergyGreaterThanOrEqualPtrs);
 	for(unsigned int iTrack = 0; iTrack < bestFitTracks.size() ; ++iTrack )
 	{
+    std::cout << "Make track " << iTrack << std::endl;
 		WCSimLikelihoodTrackBase * track = (bestFitTracks.at(iTrack));
+    std::cout << "track:" << track->GetX() << ", " << track->GetY() << ", " << track->GetZ() << "    ";
+    std::cout << track->GetType() << std::endl;
+    track->Print();
 		if(iTrack == 0)
 		{
 			fRecoSummary->SetVertex( 10*track->GetX(), 10*track->GetY(), 10*track->GetZ() ); // Convert cm to mm
 		}
+    std::cout << "Making reco summary" << std::endl;
 		fRecoSummary->AddPrimary(track->GetPDG(), track->GetE(), track->GetDir());
 	}
 	return;

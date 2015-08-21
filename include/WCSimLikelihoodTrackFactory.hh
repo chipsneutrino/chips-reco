@@ -29,7 +29,7 @@ public:
 											const double &theta,
 											const double &phi,
 											const double &energy,
-											std::map<FitterParameterType, double> &extraPars);
+											std::map<FitterParameterType::Type, double> &extraPars);
 	static WCSimLikelihoodTrackBase * MakeTrack(const TrackType &type,
 											const double &x,
 											const double &y,

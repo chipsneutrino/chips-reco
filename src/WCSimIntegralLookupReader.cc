@@ -212,7 +212,7 @@ TString WCSimIntegralLookupReader::GetLookupFilename(const TrackType::Type& type
 			str = "config/muonIntegralsSmall.root";
 		}
 	}
-	else if( type == TrackType::ElectronLike)
+	else if( type == TrackType::ElectronLike || type == TrackType::PhotonLike)
 	{
 		if(WCSimAnalysisConfig::Instance()->GetTruncateIntegrals())
 		{

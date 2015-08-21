@@ -72,6 +72,9 @@ public:
 	void Make2DSurface(unsigned int nTrack, const char * name, unsigned int nTrack2, const char * name2, bool doIt = true );
 	bool GetMake2DSurface(unsigned int nTrack, const char * name, unsigned int nTrack2, const char * name2 );
 
+  void SetIsPiZeroFit(const bool &isPiZero);
+  bool GetIsPiZeroFit() const;
+
 	void PrintFitConfiguration();
 	void PrintPlotsConfiguration();
 	void PrintSurfaceConfiguration();

@@ -48,8 +48,8 @@ unsigned int WCSimFitterConfig::GetNumIndependentParameters()
 
 void WCSimFitterConfig::SetParameter( unsigned int numTrack, const char * name, double min, double max, double start, bool fixed)
 {
-  //std::cout << "In WCSimFitterConfig::SetParameter" << std::endl;
   FitterParameterType::Type type = FitterParameterType::FromName(name);
+  std::cout << "In WCSimFitterConfig::SetParameter: " << type <<  std::endl;
   WCSimFitterSingleTrackParameters * trackPars = fFitterParameters.GetTrackParameters(numTrack);
   trackPars->SetParMin(type, min);
   trackPars->SetParMax(type, max);
@@ -243,4 +243,14 @@ void WCSimFitterConfig::SetFirstEventToFit(unsigned int iEvt) {
 
 int WCSimFitterConfig::GetFirstEventToFit() const {
 	return fFirstEventToFit;
+}
+
+bool WCSimFitterConfig::GetIsPiZeroFit() const
+{
+  return fIsPiZeroFit;
+}
+
+void WCSimFitterConfig::SetIsPiZeroFit(bool isPiZero)
+{
+  fIsPiZeroFit = isPiZero;
 }

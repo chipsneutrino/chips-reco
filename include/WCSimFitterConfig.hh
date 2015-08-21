@@ -57,6 +57,8 @@ public:
 	bool GetIsParameterJoined(unsigned int numTrack, FitterParameterType::Type type);
 	unsigned int GetTrackIsJoinedWith(unsigned int numTrack, FitterParameterType::Type type);
 
+  bool GetIsPiZeroFit() const;
+  void SetIsPiZeroFit(bool isPiZero);
 private:
 	WCSimFitterConfig();
 
@@ -67,6 +69,7 @@ private:
 	int fNumEventsToFit;
 	int fNumParameters;
 	int fFirstEventToFit;
+  bool fIsPiZeroFit;
 };
 
 #endif /* WCSIMFITTERCONFIG_HH_ */

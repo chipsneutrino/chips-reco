@@ -17,7 +17,8 @@ WCSimLikelihoodTrackBase::WCSimLikelihoodTrackBase()
 	fTheta0 = 0;
 	fPhi0 = 0;
 	fE0 = 0;
-    fType = TrackType::Unknown;
+  fType = TrackType::Unknown;
+  fConversionDistance = 0.0;
 	return;
 }
 
@@ -32,7 +33,8 @@ bool WCSimLikelihoodTrackBase::operator == (const WCSimLikelihoodTrackBase &b) c
               && fTheta0 == b.fTheta0
               && fPhi0 == b.fPhi0
               && fE0 == b.fE0
-              && fType == b.fType );
+              && fType == b.fType 
+              && fConversionDistance == b.fConversionDistance );
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -58,6 +60,7 @@ double WCSimLikelihoodTrackBase::GetT() const {return fT0; }
 double WCSimLikelihoodTrackBase::GetTheta() const {return fTheta0; }
 double WCSimLikelihoodTrackBase::GetPhi() const {return fPhi0; }
 double WCSimLikelihoodTrackBase::GetE() const {return fE0; }
+double WCSimLikelihoodTrackBase::GetConversionDistance() const { return fConversionDistance; }
 
 double WCSimLikelihoodTrackBase::GetDirX() const { return (TMath::Sin(fTheta0) * TMath::Cos(fPhi0)); }
 double WCSimLikelihoodTrackBase::GetDirY() const { return (TMath::Sin(fTheta0) * TMath::Sin(fPhi0)); }
@@ -65,6 +68,8 @@ double WCSimLikelihoodTrackBase::GetDirZ() const { return (TMath::Cos(fTheta0));
 TVector3 WCSimLikelihoodTrackBase::GetDir() const { return TVector3( this->GetDirX(), this->GetDirY(), this->GetDirZ()); }
 
 TrackType WCSimLikelihoodTrackBase::GetType() const{ return fType; }
+
+
 
 ///////////////////////////////////////////////////////////////////////////
 // Destructor
@@ -93,10 +98,18 @@ bool WCSimLikelihoodTrackBase::IsSameTrack(WCSimLikelihoodTrackBase * b) const
               && fTheta0 == b->fTheta0
               && fPhi0 == b->fPhi0
               && fE0 == b->fE0
-              && fType == b->fType );
+              && fType == b->fType 
+              && fConversionDistance == b->fConversionDistance);
 }
 
 int WCSimLikelihoodTrackBase::GetPDG() const
 {
   return TrackType::GetPDGFromType(fType);
+}
+
+void WCSimLikelihoodTrackBase::Print()
+{
+	  printf("Vertex = (%.02fcm,%.02fcm,%.02fcm,%.02fns)   Dir = (%.04f,%.04f)   E = %.03f  Type = %s  Conv = %.02fcm\n",
+           fVtx[0], fVtx[1], fVtx[2], fT0, fTheta0, fPhi0, fE0, TrackType::AsString(fType).c_str(), fConversionDistance);
+
 }

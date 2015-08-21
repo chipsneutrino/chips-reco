@@ -23,10 +23,10 @@ class WCSimLikelihoodTrack : public WCSimLikelihoodTrackBase
     public:
 		WCSimLikelihoodTrack();
 		WCSimLikelihoodTrack(double x, double y, double z, double t, double theta, double phi, double E, TrackType::Type myType);
-		void Print();
 		double GetTrackParameter(const FitterParameterType::Type &type) const;
 		TVector3 GetPropagatedPos(const Double_t &s) const;
 		void SetType(const TrackType::Type &type);
+    TVector3 GetFirstEmissionVtx() const;
 		ClassDef(WCSimLikelihoodTrack,1)
 };
 
