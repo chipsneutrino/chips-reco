@@ -94,4 +94,5 @@
 #pragma link C++ class WCSimTimePredictor+;
 #pragma link C++ class WCSimTimeLikelihood2+;
 #pragma link C++ class WCSimDetectorParameters+;
+#pragma link C++ class WCSimPiZeroFitter+;
 #endif

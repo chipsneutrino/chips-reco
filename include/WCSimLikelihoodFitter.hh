@@ -42,7 +42,7 @@ class WCSimLikelihoodFitter
 
 
     protected:
-    private:
+
 
         void SeedEvent();
         void FixVertex();
@@ -58,11 +58,14 @@ class WCSimLikelihoodFitter
         void FitEnergyGridSearch(); ///< Alternative way to fit the energy - with a grid search.  Not used currently
         void FitVertex(); ///< Wrapper to call Fit() in case we ever want to change the vertex method
         void Fit(const char * minAlgorithm = "Simplex");
+        void FitPiZero(const char * minAlgorithm = "Simplex");
         void FitAlongTrack();
         void MetropolisHastings(const int nTries = 500);
         void MetropolisHastingsAlongTrack(const int nTries = 500);
 
-        void FitPiZero();
+        void FitPiZeroEvent();
+        void FitPiZeroEvent2();
+
         void FitEventNumber(Int_t iEvent);
         void ResetEvent();
 
@@ -86,6 +89,7 @@ class WCSimLikelihoodFitter
          */
         Double_t WrapFunc(const Double_t * x);
         Double_t WrapFuncAlongTrack(const Double_t * x);
+        Double_t WrapFuncPiZero(const Double_t * x);
 
         /**
          * Get the minimum value of -2 log(likelihood) returned by the fit
@@ -139,7 +143,7 @@ class WCSimLikelihoodFitter
         Bool_t GetFitTrackEscapes( unsigned int iTrack) const;
         Bool_t GetTrackEscapes(WCSimLikelihoodTrackBase * track) const;
 
-
+        Double_t GetPiZeroSecondTrackEnergy(const Double_t * x);
 
 
         WCSimTotalLikelihood * fTotalLikelihood; ///< Class used to calculate the total (combined charge and time) likelihood that we minimize
@@ -183,6 +187,8 @@ class WCSimLikelihoodFitter
         WCSimFitterPlots * fFitterPlots;
         WCSimFitterTree * fFitterTree;
         WCSimFitterTrackParMap fFitterTrackParMap;
+
+
 
         int fCalls;
     ClassDef(WCSimLikelihoodFitter,1);

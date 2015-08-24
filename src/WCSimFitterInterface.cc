@@ -11,6 +11,7 @@
 #include "WCSimFitterConfig.hh"
 #include "WCSimFitterPlots.hh"
 #include "WCSimFitterTree.hh"
+#include "WCSimPiZeroFitter.hh"
 #include <TString.h>
 #include <TTimeStamp.h>
 #include <cassert>
@@ -48,8 +49,11 @@ WCSimFitterInterface::~WCSimFitterInterface() {
 void WCSimFitterInterface::Init()
 {
   if( fFitter == NULL ) { fFitter = new WCSimLikelihoodFitter() ; }
+  if( fPiZeroFitter == NULL ) { fPiZeroFitter = new WCSimPiZeroFitter() ; }
   fFitter->SetFitterPlots( fFitterPlots );
   fFitter->SetFitterTree( fFitterTree );
+  fPiZeroFitter->SetFitterPlots( fFitterPlots );
+  fPiZeroFitter->SetFitterTree( fFitterTree );
 }
 
 WCSimFitterInterface* WCSimFitterInterface::Instance()
@@ -266,9 +270,21 @@ void WCSimFitterInterface::Run() {
   fFitterTree->MakeTree();
 
   std::cout << "  Running fits " << std::endl;
-  if(fMakeFits) { fFitter->RunFits(); }
+  if(fMakeFits) 
+  { 
+    if(WCSimFitterConfig::Instance()->GetIsPiZeroFit())
+    {
+      std::cout << "Pi zero" << std::endl;
+      fPiZeroFitter->RunFits();
+    }
+    else
+    {
+      assert(0);
+      fFitter->RunFits(); 
+    }
+  }
   std::cout << "  Running surfaces " << std::endl;
-  if(fMakeSurfaces) { fFitter->RunSurfaces(); }
+  // if(fMakeSurfaces) { fFitter->RunSurfaces(); }
   std::cout << "  Saving tree " << std::endl;
   fFitterTree->SaveTree();
   std::cout << "  Saving plots " << std::endl;

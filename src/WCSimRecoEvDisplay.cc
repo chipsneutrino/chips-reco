@@ -849,7 +849,7 @@ void WCSimRecoEvDisplay::DrawFitOverlays() {
 	fBarrelPad->cd();
 	fBarrelHist->Draw("colz");
   this->DrawHitGraphs(fBarrelGraphs);
-	// Draw the truth rings
+	// Draw the fit rings
   std::cout << "There are " << fFitMarkersBarrel.size() << " barrel markers" << std::endl;
 	for (unsigned int r = 0; r < fFitMarkersBarrel.size(); ++r) {
     std::cout << "Drawing fit marker " << r << "/" << fFitMarkersBarrel.size() << std::endl;
@@ -863,7 +863,7 @@ void WCSimRecoEvDisplay::DrawFitOverlays() {
 	fTopPad->cd();
 	fTopHist->Draw("colz");
   this->DrawHitGraphs(fTopGraphs);
-	// Draw the truth rings
+	// Draw the fit rings
   std::cout << "There are " << fFitMarkersTop.size() << " top markers" << std::endl;
 	for (unsigned int r = 0; r < fFitMarkersTop.size(); ++r) {
     std::cout << "Drawing fit marker " << r << "/" << fFitMarkersTop.size() << std::endl;

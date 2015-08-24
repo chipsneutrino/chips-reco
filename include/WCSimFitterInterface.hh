@@ -14,6 +14,7 @@ class WCSimLikelihoodFitter;
 class WCSimFitterConfig;
 class WCSimFitterPlots;
 class WCSimFitterTree;
+class WCSimPiZeroFitter;
 
 
 class WCSimFitterInterface {
@@ -92,6 +93,7 @@ private:
 	TString fFileName;
 	unsigned int fNumTracks;
 	WCSimLikelihoodFitter * fFitter;
+	WCSimPiZeroFitter * fPiZeroFitter;
 	WCSimFitterPlots * fFitterPlots;
 	WCSimFitterTree * fFitterTree;
 
