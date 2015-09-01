@@ -37,6 +37,7 @@ private:
 	double WorkOutAverageRefIndex(const std::string &pmtName);
 	double WorkOutAverageQE(const std::string &pmtName);
 	double AverageHistWithGraph(TH1F * hist, TGraph * graph);
+	double AverageHistWithGraph(TH1F * hist, TGraph * graph, const double &min, const double &max);
 	TH1F * MultiplyHistByGraph(TH1F * hist, TGraph * graph);
 
 	TH1F * GetWavelengthSpectrum(const std::string &pmtName);

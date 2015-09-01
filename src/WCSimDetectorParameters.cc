@@ -13,6 +13,7 @@
 #include "TFile.h"
 #include "TGraph.h"
 #include "TH1F.h"
+#include "TMath.h"
 
 #ifndef REFLEX_DICTIONARY
 ClassImp(WCSimDetectorParameters)
@@ -116,7 +117,12 @@ double WCSimDetectorParameters::WorkOutAverageQE(const std::string& pmtName) {
 		effItr++;
 	}
 
-  double wavelengthAveragedQE = AverageHistWithGraph(spectrumHist, qeGraph);
+  double wavelengthAveragedQE = AverageHistWithGraph(spectrumHist, qeGraph, 280.0, 660.0);
+  // WCSim has a hardcoded PMT QE cutoff for wavelengths less than 280nm and greater than 660nm
+  // in WCSimStackingAction.cc and WCSimWCSD.cc
+  // n.b. WCSim calls GetPMTQE with a lower cutoff of 240nm, but the function itself has 280nm hardcoded
+  // as well
+
   delete qeGraph;
 
 
@@ -134,17 +140,42 @@ void WCSimDetectorParameters::OpenFile() {
 
 double WCSimDetectorParameters::AverageHistWithGraph(TH1F* hist,
 		TGraph* graph) {
+  double minX = TMath::MinElement(graph->GetN(),graph->GetX()); 
+  double maxX = TMath::MaxElement(graph->GetN(),graph->GetX()); 
+  return AverageHistWithGraph(hist, graph, minX, maxX);
+}
+
+
+double WCSimDetectorParameters::AverageHistWithGraph(TH1F* hist,
+		TGraph* graph, const double &min, const double &max) {
 	// Take a TH1 and a TGraph
 	// For every bin in the histogram, interpolate x between the two nearest points
 	// on the graph to find the value at the bin centre, then multiply the bin contents
 	// by that interpolated value.  Sum these, and divide by the number of hist entries.
+  // 
+  // This function doesn't allow negative values (because it's for refrative indices and
+  // QE) so will set negative values to zero
+  //
+  // Min and max are used to consider only a range - if x is less than min or greater
+  // than max, the histogram value for this bin is multiplied by zero even if the graph
+  // is nonzero at this point (the WCSim QE is forced to zero belo 280nm and above 660nm
+  // even though the QE graph goes further than this)
+  // If min and max are not set then they will be set to the minimum and maximum x value
+  // of the graph (ie. won't have any effect)
+  // 
+	// If the histogram goes off the front or back of the graph, set it to zero for this bin
 
-	// If the histogram goes off the front or back of the graph, set it to zero
-	double integral = hist->Integral();
+
+  double integral = hist->Integral();
 	double weightedAverage = 0.0;
 	for(int iBin = 1; iBin <= hist->GetNbinsX(); ++iBin)
 	{
-    double graphVal = graph->Eval(hist->GetXaxis()->GetBinCenter(iBin));
+    double x = hist->GetXaxis()->GetBinCenter(iBin);
+    double graphVal = 0.0;
+    if(x >= min && x <= max) 
+    {
+      graphVal = graph->Eval(hist->GetXaxis()->GetBinCenter(iBin));
+    }
     if(graphVal < 0){ graphVal = 0.0; }
 		weightedAverage += hist->GetBinContent(iBin) * graphVal;
 	}

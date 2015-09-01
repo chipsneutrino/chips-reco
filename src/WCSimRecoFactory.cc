@@ -3,6 +3,7 @@
 #include "WCSimRecoAB.hh"
 #include "WCSimRecoSeed.hh"
 
+#include <cstring>
 #include <string>
 #include <iostream>
 #include <cassert>

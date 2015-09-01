@@ -279,7 +279,6 @@ void WCSimFitterInterface::Run() {
     }
     else
     {
-      assert(0);
       fFitter->RunFits(); 
     }
   }
