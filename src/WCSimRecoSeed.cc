@@ -154,9 +154,6 @@ void WCSimRecoSeed::RunRecoVertex(WCSimRecoEvent* myEvent)
   // =================
   WCSimRecoVertex* myVertex = (WCSimRecoVertex*)(myVertexFinder->Run(myEvent));
   
-  // Try just getting the simple direction...
-  myVertex = myVertexFinder->GetSimpleDirection();  
-  
   // Set Vertex
   // ==========
   if( myVertex->FoundVertex() ){
