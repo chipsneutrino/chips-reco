@@ -28,6 +28,7 @@
 #include "WCSimTotalLikelihood.hh"
 #include "WCSimTrackParameterEnums.hh"
 
+
 #include "TClonesArray.h"
 #include "TCollection.h"
 #include "TLorentzVector.h"
@@ -92,32 +93,38 @@ void WCSimPiZeroFitter::FitAfterFixingDirectionAndEnergy(
 		std::pair<WCSimLikelihoodTrackBase*, WCSimLikelihoodTrackBase*> pair)
 {
 	SetStartingTracks(pair);
-	FreeVertex();
-	FreeEnergy();
-	FreeDirection();
 
-	FixDirection();
-	FixEnergy();
-	Fit("Simplex");
+	// FreeVertex();
+	// FreeEnergy();
+	// FreeDirection();
 
-	FreeDirection();
-	FreeEnergy();
-	Fit("Simplex");
+	FixVertex();
+  FixDirection();
+  FixEnergy();
+	// FreeEnergy();
+	// FitPiZero("Simplex");
+
+  // FreeDirection();
+  // FreeVertex();
+	// FreeEnergy();
+	FitPiZero("Simplex");
 }
 
 void WCSimPiZeroFitter::FitAfterFixingEnergy(
 		std::pair<WCSimLikelihoodTrackBase*, WCSimLikelihoodTrackBase*> pair)
 {
+  return;
 	SetStartingTracks(pair);
 	FreeVertex();
 	FreeDirection();
 
 	FixEnergy();
-	Fit("Simplex");
+	FitPiZero("Simplex");
 	FreeEnergy();
 
-	Fit("Simplex");
+	FitPiZero("Simplex");
 }
+
 
 void WCSimPiZeroFitter::SetStartingTracks(
 		std::pair<WCSimLikelihoodTrackBase*, WCSimLikelihoodTrackBase*> tracks)
@@ -198,8 +205,16 @@ UInt_t WCSimPiZeroFitter::GetNPars()
 
 void WCSimPiZeroFitter::RunFits()
 {
-	std::cout << "WCSimPiZeroFitter::RunFits()" << std::endl;
-	FitEventNumber(0);
+  std::cout << "WCSimLikelihoodFitter::RunFits() " << std::endl;
+	UInt_t firstEvent = WCSimFitterConfig::Instance()->GetFirstEventToFit();
+	UInt_t numEventsToFit = WCSimFitterConfig::Instance()->GetNumEventsToFit();
+
+
+	for(UInt_t iEvent = firstEvent; iEvent < firstEvent + numEventsToFit ; ++iEvent)
+	{
+		FitEventNumber(iEvent);
+		WCSimFitterInterface::Instance()->SaveResults();
+	}
 
 }
 
@@ -232,11 +247,13 @@ void WCSimPiZeroFitter::FitEventNumber(Int_t iEvent) {
 
 	// First we fit a single electron track using the Hough transform.  This gets us a vertex
 	// and a direction to use as the jumping off point to generate the seeds for the fitter
+  bool cheat = false;
+	std::vector<std::pair<WCSimLikelihoodTrackBase*, WCSimLikelihoodTrackBase*> > allSeedTracks;
+  if(!cheat){
 	SeedWithSingleElectron();
 
 	// Try various combinations of conversion distance for each of the two photons.  We'll run the fitter
 	// several times with different track directions for each of these combinations
-	std::vector<std::pair<WCSimLikelihoodTrackBase*, WCSimLikelihoodTrackBase*> > allSeedTracks;
 	allSeedTracks = IterateOverConversionDistances();
 		/* |-> Fixes the conversion distance of each track to a pre-chosen value, and tries all combinations
 		 	|-> Each combination iterates over the direction of the single track seed by perturbing the direction slightly
@@ -250,10 +267,26 @@ void WCSimPiZeroFitter::FitEventNumber(Int_t iEvent) {
 	////////////////////////////////////////////////////////////////////////////////////
 	// Now try all the seed tracks one at a time in the fitter, and pick the best result
 	////////////////////////////////////////////////////////////////////////////////////
+  }
+  else
+  {
+    allSeedTracks = SeedCheat();
+  }
+
+
+
 
 	std::vector<std::pair<WCSimLikelihoodTrackBase*, WCSimLikelihoodTrackBase*> >::iterator seedTrackItr;
 	seedTrackItr = allSeedTracks.begin();
 	std::cout << "There are " << allSeedTracks.size() << " seeds" << std::endl;
+  for(; seedTrackItr != allSeedTracks.end(); ++seedTrackItr)
+  {
+    std::cout << "Tracks used for seeding: " << std::endl;
+    seedTrackItr->first->Print();
+    seedTrackItr->second->Print();
+    std::cout << std::endl;
+  }
+  seedTrackItr = allSeedTracks.begin();
 
 	// We try two minimiser algorithms:
 	// 1. Fix the energy and direction of both tracks, run the fit to find a minimum
@@ -298,8 +331,12 @@ std::vector<std::pair<WCSimLikelihoodTrackBase*, WCSimLikelihoodTrackBase*> > WC
 			std::vector<std::pair<WCSimLikelihoodTrackBase*, WCSimLikelihoodTrackBase*> > trackOptions;
 			trackOptions = IterateOverFirstTrackPerturbations(conversionDistancesToTry[iTrack1Dist],
 															  conversionDistancesToTry[iTrack2Dist]);
+      std::cout << "conversionDistances = " << conversionDistancesToTry[iTrack1Dist] << "  " << conversionDistancesToTry[iTrack2Dist] << std::endl;
 			for(unsigned int iTrack = 0; iTrack < trackOptions.size(); ++iTrack)
 			{
+        std::cout << "Final seed tracks here are: " << std::endl;
+        trackOptions.at(iTrack).first->Print();
+        trackOptions.at(iTrack).second->Print();
 				allTracks.push_back(trackOptions.at(iTrack));
 			}
 		}
@@ -314,27 +351,59 @@ std::vector<std::pair<WCSimLikelihoodTrackBase*, WCSimLikelihoodTrackBase*> > WC
 
 	std::vector<TVector3> directionsToTry = GetFirstTrackDirectionsToTry();
 	std::vector<TVector3>::iterator directionItr = directionsToTry.begin();
+
+  double currentBestSimilar2LnL = -999.9;
+  double currentBestDifferent2LnL = -999.9;
+  WCSimLikelihoodTrackBase * nullTrack = 0x0;
+  std::pair<WCSimLikelihoodTrackBase*, WCSimLikelihoodTrackBase*> bestSimilarTracks = std::make_pair(nullTrack, nullTrack);
+  std::pair<WCSimLikelihoodTrackBase*, WCSimLikelihoodTrackBase*> bestDifferentTracks = std::make_pair(nullTrack, nullTrack);
+
 	while(directionItr != directionsToTry.end())
 	{
 		std::vector<std::pair<WCSimLikelihoodTrackBase *, WCSimLikelihoodTrackBase *> > tracks;
 
 		std::cout << "I think the distance is " << std::distance(directionsToTry.begin(), directionItr) <<std::endl;
 
+    double tmpBestSimilar2LnL = -999.9;
+    double tmpBestDifferent2LnL = -999.9;
+
 		tracks = GridSearchOverSecondTrackDirection(
 				convDistTrack1, convDistTrack2,
 				*directionItr,
-				std::distance(directionsToTry.begin(), directionItr));
+				std::distance(directionsToTry.begin(), directionItr),
+        tmpBestSimilar2LnL,
+        tmpBestDifferent2LnL);
 
-		// Append the new track vector to allTracks, after checking that tracks
-		// isn't empty (it could be if there's a big energy imbalance between the
-		// two tracks  given this separation angle)
-		if(tracks.size() > 0)
-		{
-			allTracks.push_back(tracks.at(0));
-		}
+    if( (tmpBestDifferent2LnL != -999.9 && tmpBestDifferent2LnL < currentBestDifferent2LnL) || currentBestDifferent2LnL == -999.9 )
+    {
+      if(bestSimilarTracks.first != NULL){ delete bestSimilarTracks.first; }
+      if(bestSimilarTracks.second != NULL) { delete bestSimilarTracks.second; }
+      bestSimilarTracks = tracks.at(tracks.size() - 1);
+      currentBestSimilar2LnL = tmpBestDifferent2LnL;
+      tracks.pop_back();
+    }
+
+    if( (tmpBestSimilar2LnL != -999.9 && tmpBestSimilar2LnL < currentBestSimilar2LnL) || currentBestSimilar2LnL == -999.9 )
+    {
+      if(bestDifferentTracks.first != NULL){ delete bestDifferentTracks.first; }
+      if(bestDifferentTracks.second != NULL) { delete bestDifferentTracks.second; }
+      bestDifferentTracks = tracks.at(tracks.size() - 1);
+      currentBestDifferent2LnL = tmpBestDifferent2LnL;
+      tracks.pop_back();
+    }
 		std::cout << "Size of vector returned by grid search = " << tracks.size() << std::endl;
 		++directionItr;
 	}
+
+  if(bestSimilarTracks.first != NULL && bestSimilarTracks.second != NULL)
+  {
+    allTracks.push_back(bestSimilarTracks);
+  }
+  if(bestDifferentTracks.first != NULL && bestDifferentTracks.second != NULL)
+  {
+    allTracks.push_back(bestDifferentTracks);
+  }
+
 
 	return allTracks;
 }
@@ -467,7 +536,7 @@ std::vector<TVector3> WCSimPiZeroFitter::GetFirstTrackDirectionsToTry()
 											   0.20 * M_PI, -0.20 * M_PI };
 	for(int i = 0; i < numRotMaj; ++i)
 	{
-		TVector3 tmp = fSingleElectronSeed.fVertex; // TVector3::Rotate overwrites the vector, so need a copy
+		TVector3 tmp = fSingleElectronSeed.fDirection; // TVector3::Rotate overwrites the vector, so need a copy
 		tmp.Rotate(rotationsAboutMajor[i], majorAxis);
 		directionsToTry.push_back(tmp);
 	}
@@ -489,12 +558,16 @@ std::vector<std::pair<WCSimLikelihoodTrackBase *, WCSimLikelihoodTrackBase *> > 
 		const double &convDistTrack1,
 		const double &convDistTrack2,
 		const TVector3 &track1Dir,
-		int numTimesAlready)
+		int numTimesAlready,
+    double &bestSimilar2LnL,
+    double &bestDifferent2LnL)
 {
 	// std::cout << "*** WCSimPiZeroFitter::GridSearchOverSecondTrackDirection *** " << std::endl;
+  bestSimilar2LnL = -999.9;
+  bestDifferent2LnL = -999.9;
 
-	const unsigned int nBins = 5; // Number of bins in theta and phi
-	assert(nBins);
+	const unsigned int nBinsTh = 5; // Number of bins in theta
+	const unsigned int nBinsPhi = 5; // Number of bins in phi
 
 	// Make first track:
 	fFitterTrackParMap.SetCurrentValue(0, FitterParameterType::kVtxX, fSingleElectronSeed.fVertex.X());
@@ -519,54 +592,88 @@ std::vector<std::pair<WCSimLikelihoodTrackBase *, WCSimLikelihoodTrackBase *> > 
 	}
 
 	// Default the best values to something junk so we can tell when they've been set
-	double best2LnL = -999.9;
-	double bestTheta = -999.9;
-	double bestPhi = -999.9;
-	double bestEnergy = -999.9;
+	double bestSimilarTheta = -999.9;
+	double bestSimilarPhi = -999.9;
+	double bestSimilarEnergy1 = -999.9;
+  double bestSimilarEnergy2 = -999.9;
+
+	double bestDifferentTheta = -999.9;
+	double bestDifferentPhi = -999.9;
+	double bestDifferentEnergy1 = -999.9;
+  double bestDifferentEnergy2 = -999.9;
+
+  // Vector orthogonal to the direction of track 1: we do the theta rotation about this axis
+  // and the phi rotation about track1Dir
+  TVector3 orthog = track1Dir.Orthogonal();
 
 	// Start the grid search
 	fFitterTrackParMap.SetCurrentValue(1, FitterParameterType::kConversionDistance, convDistTrack2);
-	for(unsigned int thetaBin = 0; thetaBin < nBins; ++thetaBin)
+	for(unsigned int thetaBin = 1; thetaBin <= nBinsTh; ++thetaBin)
 	{
-		double theta = thetaBin * M_PI/nBins;
-		fFitterTrackParMap.SetCurrentValue(1, FitterParameterType::kDirTh, theta);
+    double dTheta = (0.125 * M_PI * thetaBin)/nBinsTh;
 
-		for(unsigned int phiBin = 0; phiBin < nBins; ++phiBin)
+
+		for(unsigned int phiBin = 1; phiBin <= nBinsPhi; ++phiBin)
 		{
-			double phi = phiBin * 2.0 * M_PI/nBins;
-			std::cout << "Grid search number " << numTimesAlready+1 << "  Bin " << phiBin+1 + thetaBin * nBins << "/" << nBins*nBins << "   (theta, phi) = (" << theta << ", " << phi << ")" << std::endl;
-			fFitterTrackParMap.SetCurrentValue(1, FitterParameterType::kDirPhi, phi);
+			double dPhi = phiBin * 2.0 * M_PI/nBinsPhi;
+      TVector3 track2Dir = track1Dir;
+      track2Dir.Rotate(dTheta, orthog);
+      track2Dir.Rotate(dPhi, track1Dir);
 
-			TVector3 track2Dir;
-			track2Dir.SetMagThetaPhi(1, theta, phi);
-			double energy = GetPiZeroSecondTrackEnergy(track1Dir, fSingleElectronSeed.fEnergy, track2Dir);
-			if(energy > 5000)
+			std::cout << "Grid search number " << numTimesAlready+1 << "  Bin " << phiBin + (thetaBin-1) * nBinsPhi << "/" << nBinsTh*nBinsPhi << std::endl;
+      std::cout << "Angle between two tracks = " << track2Dir.Angle(track1Dir) << "   (" << track2Dir.Angle(track1Dir) * 180.0 / M_PI << ") deg" << std::endl;
+
+
+
+		  fFitterTrackParMap.SetCurrentValue(1, FitterParameterType::kDirTh, track2Dir.Theta());
+			fFitterTrackParMap.SetCurrentValue(1, FitterParameterType::kDirPhi, track2Dir.Phi());
+
+			std::pair<double, double> energies = GetPiZeroPhotonEnergies(track1Dir, fSingleElectronSeed.fEnergy, track2Dir);
+			if(energies.second > 5000)
 			{
 				continue;
 			}
+
 			if(   numTimesAlready > 0
-			   && (   energy < 0.05 * fSingleElectronSeed.fEnergy
-				   || fSingleElectronSeed.fEnergy < 0.05*energy )
-			){ continue; }
-			fFitterTrackParMap.SetCurrentValue(1, FitterParameterType::kEnergy, energy);
+			   && ( energies.second < 0.05 * energies.first || energies.first < 0.05 * energies.second ))
+      { 
+        continue; 
+      }
+			fFitterTrackParMap.SetCurrentValue(0, FitterParameterType::kEnergy, energies.first);
+			fFitterTrackParMap.SetCurrentValue(1, FitterParameterType::kEnergy, energies.second);
 
 			std::vector<double> startVals = fFitterTrackParMap.GetCurrentValues();
 			Double_t * x = &(startVals[0]);
      		double tempMin = WrapFunc(x);
 
-     		if( tempMin < best2LnL || best2LnL < 0 )
-			{
-				best2LnL = tempMin;
-				bestTheta = theta;
-				bestPhi = phi;
-				bestEnergy = energy;
-			}
+      if(energies.first > 2 * energies.second || energies.second > 2* energies.first)
+      {
+     	  if( tempMin < bestDifferent2LnL || bestDifferent2LnL < 0 )
+			  {
+				  bestDifferent2LnL = tempMin;
+				  bestDifferentTheta = track2Dir.Theta();
+				  bestDifferentPhi = track2Dir.Phi();
+				  bestDifferentEnergy1 = energies.first;
+          bestDifferentEnergy2 = energies.second;
+			  }
+      }
+      else
+      {
+        if( tempMin < bestSimilar2LnL || bestSimilar2LnL < 0 )
+        {
+				  bestSimilar2LnL = tempMin;
+				  bestSimilarTheta = track2Dir.Theta();
+				  bestSimilarPhi = track2Dir.Phi();
+				  bestSimilarEnergy1 = energies.first;
+          bestSimilarEnergy2 = energies.second;
+        }
+      }
 		}
 	}
 
 	// Return the best-fit
 	std::vector<std::pair<WCSimLikelihoodTrackBase*, WCSimLikelihoodTrackBase*> > best;
-	if( best2LnL > 0)
+	if( bestSimilar2LnL > 0)
 	{
 		std::map<FitterParameterType::Type, double> extraPars;
 		extraPars[FitterParameterType::kConversionDistance] = convDistTrack1;
@@ -575,23 +682,50 @@ std::vector<std::pair<WCSimLikelihoodTrackBase *, WCSimLikelihoodTrackBase *> > 
 				fSingleElectronSeed.fVertex.X(), fSingleElectronSeed.fVertex.Y(), fSingleElectronSeed.fVertex.Z(),
 				fSingleElectronSeed.fTime,
 				track1Theta, track1Phi,
-				fSingleElectronSeed.fEnergy,
+				bestSimilarEnergy1,
 				extraPars);
 
 
 		std::map<FitterParameterType::Type, double> extraPars2;
-		extraPars[FitterParameterType::kConversionDistance] = convDistTrack2;
+		extraPars2[FitterParameterType::kConversionDistance] = convDistTrack2;
 		WCSimLikelihoodTrackBase * secondTrack = WCSimLikelihoodTrackFactory::MakeTrack(
 				TrackType::PhotonLike,
 				fSingleElectronSeed.fVertex.X(), fSingleElectronSeed.fVertex.Y(), fSingleElectronSeed.fVertex.Z(),
 				fSingleElectronSeed.fTime,
-				bestTheta,
-				bestPhi,
-				bestEnergy,
+				bestSimilarTheta,
+				bestSimilarPhi,
+				bestSimilarEnergy2,
 				extraPars2);
 		best.push_back(std::make_pair(firstTrack, secondTrack));
 	}
-	std::cout << "Best 2LnL was " << best2LnL << std::endl;
+
+  if( bestDifferent2LnL > 0)
+  {
+		std::map<FitterParameterType::Type, double> extraPars;
+		extraPars[FitterParameterType::kConversionDistance] = convDistTrack1;
+		WCSimLikelihoodTrackBase * firstTrack = WCSimLikelihoodTrackFactory::MakeTrack(
+				TrackType::PhotonLike,
+				fSingleElectronSeed.fVertex.X(), fSingleElectronSeed.fVertex.Y(), fSingleElectronSeed.fVertex.Z(),
+				fSingleElectronSeed.fTime,
+				track1Theta, track1Phi,
+				bestDifferentEnergy1,
+				extraPars);
+
+
+		std::map<FitterParameterType::Type, double> extraPars2;
+		extraPars2[FitterParameterType::kConversionDistance] = convDistTrack2;
+		WCSimLikelihoodTrackBase * secondTrack = WCSimLikelihoodTrackFactory::MakeTrack(
+				TrackType::PhotonLike,
+				fSingleElectronSeed.fVertex.X(), fSingleElectronSeed.fVertex.Y(), fSingleElectronSeed.fVertex.Z(),
+				fSingleElectronSeed.fTime,
+				bestDifferentTheta,
+				bestDifferentPhi,
+				bestDifferentEnergy2,
+				extraPars2);
+		best.push_back(std::make_pair(firstTrack, secondTrack));
+  }
+	std::cout << "Best similar 2LnL was " << bestSimilar2LnL << std::endl;
+	std::cout << "Best different 2LnL was " << bestDifferent2LnL << std::endl;
 	std::cout << "Size of best-fit vector was " << best.size() << std::endl;
 	return best;
 }
@@ -602,8 +736,9 @@ std::vector<std::pair<WCSimLikelihoodTrackBase *, WCSimLikelihoodTrackBase *> > 
 // mass)
 // \param x The array of current values that will be passed to/returned from WrapFuncPiZero
 //          (which comes from the FitterTrackParMap)
-Double_t WCSimPiZeroFitter::GetPiZeroSecondTrackEnergy(const TVector3 &track1Dir, const double &track1Energy, const TVector3 &track2Dir )
+std::pair<double, double> WCSimPiZeroFitter::GetPiZeroPhotonEnergies(const TVector3 &track1Dir, const double &track1Energy, const TVector3 &track2Dir )
 {
+
   double cosThTrk1 = track1Dir.CosTheta();
   double sinThTrk1 = sin(track1Dir.Theta());
   double cosPhiTrk1 = cos(track1Dir.Phi());
@@ -616,19 +751,49 @@ Double_t WCSimPiZeroFitter::GetPiZeroSecondTrackEnergy(const TVector3 &track1Dir
 
   double massOfPiZeroMeV = 134.9766; // PDG 2014: http://pdg.lbl.gov/2014/listings/rpp2014-list-pi-zero.pdf
 
-  double cosTheta01 =   sinThTrk1 * cosPhiTrk1 * sinThTrk2 * cosPhiTrk2
+  double cosTheta12 =   sinThTrk1 * cosPhiTrk1 * sinThTrk2 * cosPhiTrk2
                       + sinThTrk1 * sinPhiTrk1 * sinThTrk2 * sinPhiTrk2
                       + cosThTrk1 * cosThTrk2;
                       // This is the dot product of unit vectors in the directions of track 0 and track 1
                       // i.e. the cosine of the angle between the two photons
-  double track2Energy = 0.5 * massOfPiZeroMeV * massOfPiZeroMeV / (track1Energy * (1.0 - cosTheta01));
+  
+  double track1Estimator = GetFirstTrackEnergyEstimator(track1Energy, cosTheta12);
+  double track2Estimator = 0.5 * massOfPiZeroMeV * massOfPiZeroMeV / (track1Estimator * (1.0 - cosTheta12));
+  /*if(track1Estimator < 100 && track2Estimator > 100)
+  {
+    double scale = 100.0 / track1Estimator;
+    track1Estimator /= scale;
+    track2Estimator *= scale;
+  }
+  else if(track2Estimator < 100 && track1Estimator > 100)
+  {
+    double scale = 100.0 / track1Estimator;
+    track1Estimator *= scale;
+    track2Estimator /= scale;
+  }*/
 
-  TLorentzVector fourMom0( track1Energy * sinThTrk1 * cosPhiTrk1, track1Energy * sinThTrk1 * sinPhiTrk1, track1Energy * cosThTrk1, track1Energy);
-  TLorentzVector fourMom1( track2Energy * sinThTrk2 * cosPhiTrk2, track2Energy * sinThTrk2 * sinPhiTrk2, track2Energy * cosThTrk2, track2Energy);
-  // std::cout << "E1 = " << track1Energy << "   E2 = " << track2Energy << "   Separation = " << TMath::ACos(cosTheta01) << "  Total four-momentum = " << (fourMom0 + fourMom1).Mag() << std::endl;
+  TLorentzVector fourMom0( track1Estimator * sinThTrk1 * cosPhiTrk1, track1Estimator * sinThTrk1 * sinPhiTrk1, track1Estimator * cosThTrk1, track1Estimator);
+  TLorentzVector fourMom1( track2Estimator * sinThTrk2 * cosPhiTrk2, track2Estimator * sinThTrk2 * sinPhiTrk2, track2Estimator * cosThTrk2, track2Estimator);
+  // std::cout << "E1 = " << track1Energy << "   E2 = " << track2Energy << "   Separation = " << TMath::ACos(cosTheta12) << "  Total four-momentum = " << (fourMom0 + fourMom1).Mag() << std::endl;
+  std::cout << "Fit energy = " << track1Energy << "   so set E1 = " << track1Estimator << " and E2 = " << track2Estimator << std::endl;
+  std::cout << "Separation = " << acos(cosTheta12) << "  so four-momentum = " << (fourMom0 + fourMom1).Mag() << std::endl;
 
-  return track2Energy;
+  return std::make_pair(track1Estimator, track2Estimator); 
+}
 
+double WCSimPiZeroFitter::GetFirstTrackEnergyEstimator(const double &singleTrackFitE, const double &cosThetaSep)
+{
+  double theta = acos(cosThetaSep);
+  while(theta < 0){
+    theta += 2*M_PI;
+  }
+  double rmtor = 0.549803 - 0.148013 * theta; // (Reco - true) over reco, from an empirical fit
+  double energy = singleTrackFitE * (1 - rmtor);
+  if(energy < 50)
+  { 
+    energy = 50; 
+  }
+  return energy;
 }
 
 void WCSimPiZeroFitter::SeedWithSingleElectron()
@@ -683,7 +848,7 @@ void WCSimPiZeroFitter::SeedWithSingleElectron()
 	fSingleElectronSeed.fVertex = TVector3(seedX, seedY, seedZ);
 	fSingleElectronSeed.fDirection = TVector3(dirX, dirY, dirZ);
 	fSingleElectronSeed.fTime = seedT;
-	FitSingleElectronSeedEnergy();
+	FitSingleElectronSeed();
 	delete myReco;
 
 	// Need to delete the elements of slicedEvents as they are not destroyed by WCSimRecoSlicer
@@ -693,9 +858,11 @@ void WCSimPiZeroFitter::SeedWithSingleElectron()
 	}
 }
 
-void WCSimPiZeroFitter::FitSingleElectronSeedEnergy()
+void WCSimPiZeroFitter::FitSingleElectronSeed()
 {
-	std::cout << "*** WCSimPiZeroFitter::FitSingleElectronSeedEnergy *** " << std::endl;
+  std::cout << " *** Fitting seed track as a single electron *** " << std::endl;
+
+	// Set up the minimizer
 	ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Simplex");
 
 	// Alternatively: use a different algorithm to check the minimizer works
@@ -706,44 +873,201 @@ void WCSimPiZeroFitter::FitSingleElectronSeedEnergy()
 	min->SetMaxIterations(1);
 	min->SetPrintLevel(3);
 	//min->SetTolerance(0.);
-	min->SetErrorDef(1.0);
+  min->SetErrorDef(1.0);
 	min->SetStrategy(2);
 	std::cout << " Tolerance = " << min->Tolerance() << std::endl;
 
+	// Convert nTracks into number of parameters
+	const unsigned int nPars = 7;
+
 	// Tell the minimizer the function to minimize
 	// We have to wrap it in this functor because it's a member function of this class
-	const unsigned int nPars = 1;
-	ROOT::Math::Functor func(this,&WCSimPiZeroFitter::WrapFuncSeedTrackEnergy, nPars);
-
+	ROOT::Math::Functor func(this,&WCSimPiZeroFitter::WrapFuncSingleElectron, nPars);
 
 	// Tell the minimizer the functor and variables to consider
 	min->SetFunction(func);
-	double minVal = fFitterTrackParMap.GetMinValue(0, FitterParameterType::kEnergy);
-	double maxVal = fFitterTrackParMap.GetMaxValue(0, FitterParameterType::kEnergy);
-	double step = fFitterTrackParMap.GetStep(0, FitterParameterType::kEnergy);
-	min->SetLimitedVariable(0, "Energy", 0, step, minVal, maxVal);
-	min->Minimize();
 
-	double bestEnergy = min->X()[0];
-	fSingleElectronSeed.fEnergy = GetFirstPhotonEnergyEstimate(bestEnergy);
-	std::cout << "Best-fit single electron energy = " << bestEnergy
-			  << " -> first photon energy estimate = " << fSingleElectronSeed.fEnergy << std::endl;
-	return;
+	// Set the fixed and free variables
+  double starts[nPars];
+  double mins[nPars];
+  double maxes[nPars];
+  double steps[nPars];
+  std::vector<std::string> names;
+  names.resize(nPars);
 
+  int index = 0;
+
+  // Vertex X:
+  FitterParameterType current = FitterParameterType::kVtxX;
+  mins[index] = fFitterTrackParMap.GetMinValue(0, current);
+  maxes[index] = fFitterTrackParMap.GetMaxValue(0, current);
+  steps[index] = fFitterTrackParMap.GetStep(0, current);
+  starts[index] = fSingleElectronSeed.fVertex.X();
+  names.at(index) = "seedVtxX";
+  index++;
+
+  // Vertex Y:
+  current = FitterParameterType::kVtxY;
+  mins[index] = fFitterTrackParMap.GetMinValue(0, current);
+  maxes[index] = fFitterTrackParMap.GetMaxValue(0, current);
+  steps[index] = fFitterTrackParMap.GetStep(0, current);
+  starts[index] = fSingleElectronSeed.fVertex.Y();
+  names.at(index) = "seedVtxY";
+  index++;
+
+  // Vertex Z:
+  current = FitterParameterType::kVtxY;
+  mins[index] = fFitterTrackParMap.GetMinValue(0, current);
+  maxes[index] = fFitterTrackParMap.GetMaxValue(0, current);
+  steps[index] = fFitterTrackParMap.GetStep(0, current);
+  starts[index] = fSingleElectronSeed.fVertex.Z();
+  names.at(index) = "seedVtxZ";
+  index++;
+
+  // Vertex T:
+  current = FitterParameterType::kVtxY;
+  mins[index] = fFitterTrackParMap.GetMinValue(0, current);
+  maxes[index] = fFitterTrackParMap.GetMaxValue(0, current);
+  steps[index] = fFitterTrackParMap.GetStep(0, current);
+  starts[index] = fSingleElectronSeed.fTime;
+  names.at(index) = "seedVtxT";
+  index++;
+
+  // Direction theta:
+  current = FitterParameterType::kDirTh;
+  mins[index] = fFitterTrackParMap.GetMinValue(0, current);
+  maxes[index] = fFitterTrackParMap.GetMaxValue(0, current);
+  steps[index] = fFitterTrackParMap.GetStep(0, current);
+  starts[index] = fSingleElectronSeed.fDirection.Theta();
+  names.at(index) = "seedDirTheta";
+  index++;
+
+  // Direction phi:
+  current = FitterParameterType::kDirPhi;
+  mins[index] = fFitterTrackParMap.GetMinValue(0, current);
+  maxes[index] = fFitterTrackParMap.GetMaxValue(0, current);
+  steps[index] = fFitterTrackParMap.GetStep(0, current);
+  starts[index] = fSingleElectronSeed.fDirection.Phi();
+  names.at(index) = "seedDirPhi";
+  index++;
+  
+  // Kinetic energy:
+  current = FitterParameterType::kEnergy;
+  mins[index] = fFitterTrackParMap.GetMinValue(0, current);
+  maxes[index] = fFitterTrackParMap.GetMaxValue(0, current);
+  steps[index] = fFitterTrackParMap.GetStep(0, current);
+  starts[index] = 0.5 * (maxes[index] + mins[index]);
+  names.at(index) = "seedEnergy";
+  index++;
+
+
+	// Print the parameters we're using
+  std::cout << "Parameters used for single track seed fit:" << std::endl;
+	for(UInt_t j = 0; j < nPars; ++j)
+	{
+		std::cout << j << "   " << names[j] << "   " << starts[j] << "   " << mins[j] << "   " << maxes[j] << std::endl;
+	}
+
+  // Fit the direction and energy
+  ///////////////////////////////
+  std::cout << "**** FIT DIRECTION AND ENERGY **** " << std::endl;
+	for(UInt_t i = 0; i < nPars; ++i)
+	{
+    if(names[i] == "seedDirTheta" || names[i] == "seedDirPhi" || names[i] == "seedEnergy")
+    {
+      std::cout << "Setting limited variable " << names[i] << std::endl;
+		  min->SetLimitedVariable(i, names[i], starts[i], steps[i], mins[i], maxes[i]);
+    }
+    else
+    {
+      std::cout << "Setting fixed variable " << names[i] << std::endl;
+      min->SetFixedVariable(i, names[i], starts[i]);
+    }
+	}
+  min->Minimize();
+  
+  // Update params
+  const double * fits = min->X();
+  for(int i = 0; i < nPars; ++i)
+  {
+    starts[i] = fits[i];
+  }
+
+
+  // Fit vertex and energy with fixed direction
+  /////////////////////////////////////////////
+  std::cout << " **** FIT VERTEX AND ENERGY **** " << std::endl;
+	for(UInt_t i = 0; i < nPars; ++i)
+	{
+    if(names[i] != "seedDirTheta" && names[i] != "seedDirPhi")
+    {
+      std::cout << "Setting limited variable " << names[i] << std::endl;
+		  min->SetLimitedVariable(i, names[i], starts[i], steps[i], mins[i], maxes[i]);
+    }
+    else
+    {
+      std::cout << "Setting fixed variable " << names[i] << std::endl;
+      min->SetFixedVariable(i, names[i], starts[i]);
+    }
+
+    if(!WCSimAnalysisConfig::Instance()->GetUseChargeAndTime() && names[i] == "seedVtxT")
+    {
+      std::cout << "Setting fixed variable " << names[i] << std::endl;
+      min->SetFixedVariable(i, names[i], starts[i]);
+    }
+	}
+  min->Minimize();
+  
+  // Update params
+  fits = min->X();
+  for(int i = 0; i < nPars; ++i)
+  {
+    starts[i] = fits[i];
+  }
+
+
+  // Finally fit energy:
+  //////////////////////
+  std::cout << " **** JUST FITTING ENERGY **** " << std::endl;
+	for(UInt_t i = 0; i < nPars; ++i)
+	{
+    if(names[i] == "seedEnergy")
+    {
+      std::cout << "Setting limited variable " << names[i] << std::endl;
+		  min->SetLimitedVariable(i, names[i], starts[i], steps[i], mins[i], maxes[i]);
+    }
+    else
+    {
+      std::cout << "Setting fixed variable " << names[i] << std::endl;
+      min->SetFixedVariable(i, names[i], starts[i]);
+    }
+	}
+  min->Minimize();
+  
+  // Update params
+  fits = min->X();
+  fSingleElectronSeed.fVertex = TVector3(fits[0], fits[1], fits[2]);
+  fSingleElectronSeed.fTime = fits[3];
+  TVector3 dir;
+  dir.SetMagThetaPhi(1, fits[4], fits[5]);
+  fSingleElectronSeed.fDirection = dir;
+  fSingleElectronSeed.fEnergy = fits[6];
+
+  std::cout << "Seeded with single electron fit" << std::endl;
+  return;
 }
 
-double WCSimPiZeroFitter::WrapFuncSeedTrackEnergy(const double * x)
+double WCSimPiZeroFitter::WrapFuncSingleElectron(const double * x)
 {
 	std::vector<WCSimLikelihoodTrackBase *> tracksToFit;
 	WCSimLikelihoodTrackBase * track = WCSimLikelihoodTrackFactory::MakeTrack(
-			TrackType::ElectronLike,
-			fSingleElectronSeed.fVertex.X(),
-			fSingleElectronSeed.fVertex.Y(),
-			fSingleElectronSeed.fVertex.Z(),
-			fSingleElectronSeed.fTime,
-			fSingleElectronSeed.fDirection.Theta(),
-			fSingleElectronSeed.fDirection.Phi(),
-			x[0]);
+			                                  TrackType::ElectronLike, // Type
+                                        x[0], x[1], x[2],        // Vertex (x,y,z)
+                                        x[3],                    // Time
+                                        x[4], x[5],              // (theta, phi)
+                                        x[6]);                   // K.E.
+  std::cout << "Fitting with track" << std::endl;
+  track->Print();
 	tracksToFit.push_back(track);
 
   Double_t minus2LnL = 0.0;
@@ -754,9 +1078,103 @@ double WCSimPiZeroFitter::WrapFuncSeedTrackEnergy(const double * x)
   return minus2LnL;
 }
 
-
-double WCSimPiZeroFitter::GetFirstPhotonEnergyEstimate(
-		const double& singleElectronEnergy)
+std::vector<std::pair<WCSimLikelihoodTrackBase *, WCSimLikelihoodTrackBase*> > WCSimPiZeroFitter::SeedCheat()
 {
-	return singleElectronEnergy;
+  std::vector<std::pair<WCSimLikelihoodTrackBase *, WCSimLikelihoodTrackBase*> > allSeeds;
+
+  double vtxX = 40.79;
+  double vtxY = 20.16;
+  double vtxZ = -31.82;
+  double vtxT = 907.00;
+
+  std::map<FitterParameterType::Type, double> map50;
+  std::map<FitterParameterType::Type, double> map250;
+  map50[FitterParameterType::kConversionDistance] = 50.0;
+  map250[FitterParameterType::kConversionDistance] = 250.0;
+
+  WCSimLikelihoodTrackBase * track1 = WCSimLikelihoodTrackFactory::MakeTrack(
+    TrackType::PhotonLike,
+    vtxX, vtxY, vtxZ, vtxT,
+    2.3085, 0.5737, 541.052, map50);
+  WCSimLikelihoodTrackBase * track2 = WCSimLikelihoodTrackFactory::MakeTrack(
+    TrackType::PhotonLike,
+    vtxX, vtxY, vtxZ, vtxT,
+    1.9172, 0.5348, 221.180, map50);
+  allSeeds.push_back(std::make_pair(track1, track2));
+
+  track1 = WCSimLikelihoodTrackFactory::MakeTrack(
+    TrackType::PhotonLike,
+    vtxX, vtxY, vtxZ, vtxT,
+    2.3085, 0.5737, 528.678, map250);
+  track2 = WCSimLikelihoodTrackFactory::MakeTrack(
+    TrackType::PhotonLike,
+    vtxX, vtxY, vtxZ, vtxT,
+    1.9955, 0.5412, 352.048, map250);
+  allSeeds.push_back(std::make_pair(track1, track2));
+
+  return allSeeds;
+  track1 = WCSimLikelihoodTrackFactory::MakeTrack(
+    TrackType::PhotonLike,
+    vtxX, vtxY, vtxZ, vtxT,
+    2.3085, 0.5737, 541.052, map250);
+  track2 = WCSimLikelihoodTrackFactory::MakeTrack(
+    TrackType::PhotonLike,
+    vtxX, vtxY, vtxZ, vtxT,
+    1.9172, 0.5348, 221.180, map250);
+
+  allSeeds.push_back(std::make_pair(track1, track2));
+  track1 = WCSimLikelihoodTrackFactory::MakeTrack(
+    TrackType::PhotonLike,
+    vtxX, vtxY, vtxZ, vtxT,
+    2.3085, 0.5737, 528.678, map250);
+  track2 = WCSimLikelihoodTrackFactory::MakeTrack(
+    TrackType::PhotonLike,
+    vtxX, vtxY, vtxZ, vtxT,
+    1.9955, 0.5412, 352.048, map50);
+  allSeeds.push_back(std::make_pair(track1, track2));
+
+  track1 = WCSimLikelihoodTrackFactory::MakeTrack(
+    TrackType::PhotonLike,
+    vtxX, vtxY, vtxZ, vtxT,
+    2.3085, 0.5737, 541.052, map250);
+  track2 = WCSimLikelihoodTrackFactory::MakeTrack(
+    TrackType::PhotonLike,
+    vtxX, vtxY, vtxZ, vtxT,
+    1.9172, 0.5348, 221.180, map50);
+  allSeeds.push_back(std::make_pair(track1, track2));
+
+  track1 = WCSimLikelihoodTrackFactory::MakeTrack(
+    TrackType::PhotonLike,
+    vtxX, vtxY, vtxZ, vtxT,
+    2.3085, 0.5737, 528.678, map50);
+  track2 = WCSimLikelihoodTrackFactory::MakeTrack(
+    TrackType::PhotonLike,
+    vtxX, vtxY, vtxZ, vtxT,
+    1.9955, 0.5412, 352.047, map250);
+  allSeeds.push_back(std::make_pair(track1, track2));
+
+  track1 = WCSimLikelihoodTrackFactory::MakeTrack(
+    TrackType::PhotonLike,
+    vtxX, vtxY, vtxZ, vtxT,
+    2.3085, 0.5737, 541.052, map50);
+  track2 = WCSimLikelihoodTrackFactory::MakeTrack(
+    TrackType::PhotonLike,
+    vtxX, vtxY, vtxZ, vtxT,
+    1.9172, 0.5348, 221.180, map250);
+  allSeeds.push_back(std::make_pair(track1, track2));
+
+  track1 = WCSimLikelihoodTrackFactory::MakeTrack(
+    TrackType::PhotonLike,
+    vtxX, vtxY, vtxZ, vtxT,
+    2.3085, 0.5737, 528.678, map50);
+  track2 = WCSimLikelihoodTrackFactory::MakeTrack(
+    TrackType::PhotonLike,
+    vtxX, vtxY, vtxZ, vtxT,
+    1.9955, 0.5412, 352.047, map50);
+  allSeeds.push_back(std::make_pair(track1, track2));
+
+  return allSeeds;
+
+
 }
+

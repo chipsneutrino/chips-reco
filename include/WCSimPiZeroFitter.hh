@@ -42,9 +42,8 @@ protected:
 private:
 	// For building seed track combinations
 	void SeedWithSingleElectron();
-	void FitSingleElectronSeedEnergy();  // Hough transform only gives  the vertex and direction, so fit the energy
-	double WrapFuncSeedTrackEnergy(const double * x);
-	double GetFirstPhotonEnergyEstimate(const double &singleElectronEnergy);
+	void FitSingleElectronSeed();  // Hough transform only gives  the vertex and direction, so fit the energy
+	double WrapFuncSingleElectron(const double * x);
 
 
 	std::vector<std::pair<WCSimLikelihoodTrackBase*, WCSimLikelihoodTrackBase*> > IterateOverConversionDistances();
@@ -52,11 +51,15 @@ private:
 	std::vector<TVector3> GetFirstTrackDirectionsToTry();
 	std::vector<std::pair<WCSimLikelihoodTrackBase *, WCSimLikelihoodTrackBase *> > GridSearchOverSecondTrackDirection(const double &convDistTrack1, const double &convDistTrack2,
 	        																							 const TVector3 &track1Dir,
-	        																							 int numTimesAlready);
+	        																							 int numTimesAlready,
+                                                         double &bestSimilar2LnL,
+                                                         double &bestDifferent2LnL);
+
+  double GetFirstTrackEnergyEstimator(const double &singleTrackFitE, const double &cosThetaSep); //> Take the energy from a single track electron fit and estimate the leading photon's energy
 
 	// Calculate the energy of the second photon assuming we have pi0 -> gamma gamma and know the direction
 	// of both photons and the energy of the first
-	Double_t GetPiZeroSecondTrackEnergy(const TVector3 &track1Dir, const double &track1Energy, const TVector3 &track2Dir );
+  std::pair<double, double> GetPiZeroPhotonEnergies(const TVector3 &track1Dir, const double &track1Energy, const TVector3 &track2Dir );
 
 	// For fitting using each seed track combination
 	void FitAfterFixingDirectionAndEnergy(std::pair<WCSimLikelihoodTrackBase*, WCSimLikelihoodTrackBase*>);
@@ -75,8 +78,8 @@ private:
 
 	SingleElectronSeed fSingleElectronSeed;
 
-
-
+  std::vector<std::pair<WCSimLikelihoodTrackBase *, WCSimLikelihoodTrackBase*> > SeedCheat(); // Temporary function to save running the same grid search over and over
+  
 	int fCalls;
 	ClassDef(WCSimPiZeroFitter,1);
 };

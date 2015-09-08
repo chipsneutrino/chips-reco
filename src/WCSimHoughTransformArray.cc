@@ -490,7 +490,7 @@ void WCSimHoughTransformArray::FitMultiPeaksSmooth(std::vector<Double_t> &houghD
   WCSimHoughTransform* houghTrans = this->GetHoughTransform(this->FindBin(42));
 
   // If we are at the edge of the histogram space then rotate it.
-  double seedTheta = TMath::Cos(seedDirZ);
+  double seedTheta = TMath::ACos(seedDirZ);
   double seedPhi = TMath::ATan2(seedDirY,seedDirX);
   double houghRotationPhi = 0.0;
   if(fabs(seedPhi) > 0.75 * TMath::Pi()){
@@ -547,6 +547,8 @@ void WCSimHoughTransformArray::FitMultiPeaksSmooth(std::vector<Double_t> &houghD
   for(int i = 0; i < peakFinder1D->GetNPeaks(); ++i){
     double max = 0.0;
     double maxPhi = 1;
+    double cosTheta = thetaArray1D[i];
+    if(abs(cosTheta) < 0.95){ continue; }
     for(int xBin = 1; xBin < houghSpace->GetNbinsX(); ++xBin)
     {
       double tmp = houghSpace->GetBinContent(xBin, houghSpace->GetYaxis()->FindBin(thetaArray1D[i]));
@@ -556,8 +558,8 @@ void WCSimHoughTransformArray::FitMultiPeaksSmooth(std::vector<Double_t> &houghD
         maxPhi = houghSpace->GetXaxis()->GetBinCenter(xBin);  
       }
     }
-    TVector2 tempVec(max,thetaArray1D[i]);
-    std::pair<double,TVector2> tempPair(houghSpace->Interpolate(maxPhi - houghRotationPhi,thetaArray1D[i]),tempVec);
+    TVector2 tempVec(maxPhi - houghRotationPhi,thetaArray1D[i]);
+    std::pair<double,TVector2> tempPair(houghSpace->Interpolate(maxPhi,thetaArray1D[i]),tempVec);
     peakListToSort.push_back(tempPair);
   }
 
@@ -578,10 +580,10 @@ void WCSimHoughTransformArray::FitMultiPeaksSmooth(std::vector<Double_t> &houghD
     Float_t costheta = (peakListToSort[v].second).Y();
     Float_t sintheta = sqrt(1.0-costheta*costheta);
 
-    std::cout << "Phiradians = " << phiradians << "   sintheta = " << costheta << std::endl;
     double dirX = sintheta * cos(phiradians);
     double dirY = sintheta * sin(phiradians);
     double dirZ = costheta;
+    std::cout << "Phiradians = " << phiradians << "   costheta = " << costheta << "    (" << dirX << ", " << dirY << ", " << dirZ << ") " << std::endl;
 
     houghDirX.push_back(dirX);
     houghDirY.push_back(dirY);
@@ -593,6 +595,7 @@ void WCSimHoughTransformArray::FitMultiPeaksSmooth(std::vector<Double_t> &houghD
   // Tidy up
   delete houghSpace;
   delete peakFinder;
+  delete houghProjection1D;
   houghSpace = 0x0;
   peakFinder = 0x0;
 

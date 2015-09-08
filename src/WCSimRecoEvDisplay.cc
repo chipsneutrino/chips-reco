@@ -690,6 +690,8 @@ void WCSimRecoEvDisplay::FillPlotsFromRecoFile() {
   }
   // For now, always want charge to start at 0.
   fQMin = 0;
+  fTMax -= fTMin;
+
   this->CalculateChargeAndTimeBins();
   this->ResetGraphs();
 
@@ -707,10 +709,34 @@ void WCSimRecoEvDisplay::FillPlotsFromRecoFile() {
 		double pmtZ = pmt.GetPosition(2);
 		double pmtPhi = TMath::ATan2(pmtY,pmtX);
 		double pmtQ = wcSimDigiHit->GetQ();
-		double pmtT = wcSimDigiHit->GetT();
+		double pmtT = wcSimDigiHit->GetT() - fTMin;
 		// Set the z-axis to be charge or time.
 		double colourAxis = pmtQ;
-		if(fViewType == 1) colourAxis = pmtT;
+    fBarrelHist->GetZaxis()->SetTitle("Charge (p.e.)");
+    fBarrelHist->GetZaxis()->SetTitleSize(0.05);
+    fBarrelHist->GetZaxis()->SetTitleOffset(0.5);
+    fBarrelHist->GetZaxis()->CenterTitle(0);
+		if(fViewType == 1){
+      colourAxis = pmtT;
+      fBarrelHist->GetZaxis()->SetTitle("Time (ns)");
+      fBarrelHist->GetZaxis()->SetTitleOffset(0.7);
+    }
+    fTopHist->GetZaxis()->SetTitle("Charge (p.e.)");
+    fTopHist->GetZaxis()->SetTitleSize(0.05);
+    fTopHist->GetZaxis()->SetTitleOffset(0.8);
+    fTopHist->GetZaxis()->CenterTitle(0);
+		if(fViewType == 1){
+      fTopHist->GetZaxis()->SetTitle("Time (ns)");
+      fTopHist->GetZaxis()->SetTitleOffset(1);
+    }
+    fBottomHist->GetZaxis()->SetTitle("Charge (p.e.)");
+    fBottomHist->GetZaxis()->SetTitleSize(0.05);
+    fBottomHist->GetZaxis()->SetTitleOffset(0.8);
+    fBottomHist->GetZaxis()->CenterTitle(0);
+		if(fViewType == 1){
+      fBottomHist->GetZaxis()->SetTitle("Time (ns)");
+      fBottomHist->GetZaxis()->SetTitleOffset(1.0);
+    }
 
     // Make sure we pass the charge cut
     if(pmtQ > fChargeCut){

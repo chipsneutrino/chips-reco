@@ -298,8 +298,9 @@ double WCSimLikelihoodFitter::WrapFuncPiZero(const Double_t * x)
 	trackParPhi = std::make_pair(1, FitterParameterType::kDirPhi);
   double track1Energy = GetPiZeroSecondTrackEnergy(x);
 
+  std::map<FitterParameterType::Type, double> extraPars2;
   trackParConversionDistance = std::make_pair(1, FitterParameterType::kConversionDistance);
-  extraPars[FitterParameterType::kConversionDistance] = x[fFitterTrackParMap.GetIndex(trackParConversionDistance)];
+  extraPars2[FitterParameterType::kConversionDistance] = x[fFitterTrackParMap.GetIndex(trackParConversionDistance)];
 
 	track = WCSimLikelihoodTrackFactory::MakeTrack(
 		  	  	  	  	  	                         trackType,
@@ -310,7 +311,7 @@ double WCSimLikelihoodFitter::WrapFuncPiZero(const Double_t * x)
 	          						                         x[fFitterTrackParMap.GetIndex(trackParTh)],
 	          						                         x[fFitterTrackParMap.GetIndex(trackParPhi)],
                                                  track1Energy,
-                                                 extraPars
+                                                 extraPars2
 	          						                         );
 	tracksToFit.push_back(track);
 
@@ -419,40 +420,41 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
         FreeVertex();
         FreeEnergy();
       }
-  
+      
       // Now fit the energy
       FixVertex();
-      FixDirection();
+      //FixDirection();
       FitEnergy();
       FreeVertex();
-      FreeDirection();
-  
+      //FreeDirection();
+
       // Fix the directions and energy and move the vertex
       // along the (average) momentum vector (helps because the seed
       // often gets this wrong in the direction of the track by 
       // changing the cone angle)
       FixDirection();
-      //FixEnergy();
+      // FixEnergy();
       FitAlongTrack();
       // MetropolisHastingsAlongTrack(250);
       FreeDirection();
-      FreeEnergy();
+      // FreeEnergy();
   
       // Now freely fit the vertex and direction    
       // FixEnergy();
-      FitVertex();
-      FreeEnergy();
+      // FitVertex();
+      // FreeEnergy();
   
       // And finally tidy up the energy
-      //FixVertex();
-      //FixDirection();
-      //FreeEnergy();
-      //FitEnergy();
+      FixVertex();
+      FixDirection();
+      FreeEnergy();
+      FitEnergy();
   
       // Leave everything free at the end
       FreeVertex();
       FreeDirection();    
       FreeEnergy();
+      
     }
       // MetropolisHastings(500);
   /*
@@ -1116,7 +1118,7 @@ void WCSimLikelihoodFitter::FitPiZero(const char * minAlgorithm)
 	std::cout << " Tolerance = " << min->Tolerance() << std::endl;
 
 	// Convert nTracks into number of parameters
-	const unsigned int nPars = this->GetNPars() - 1; // We can constrain one of the energies using the pion invariant mass
+	const unsigned int nPars = this->GetNPars(); // We can constrain one of the energies using the pion invariant mass
 
 	// Tell the minimizer the function to minimize
 	// We have to wrap it in this functor because it's a member function of this class
@@ -1142,7 +1144,7 @@ void WCSimLikelihoodFitter::FitPiZero(const char * minAlgorithm)
 	{
 
 		// Sometimes the fast seed goes outside the allowed range:
-		if( currentlyFixed[i] || i == trk1EnergyIndex){ 
+		if( currentlyFixed[i] ){ 
       // The fitter shouldn't vary track 1's energy because the pion mass constrains it
       // But we still need to set it so the indices don't get off by one from fFitterTrackParMap
       // So we'll fix it, the fit function won't use it, and we can update it manually at the end
@@ -1157,11 +1159,12 @@ void WCSimLikelihoodFitter::FitPiZero(const char * minAlgorithm)
 		}
 	}
 
-	// Print the parameters we're using
-	// for(UInt_t j = 0; j < nPars; ++j)
-	// {
-	// 	// std::cout << j << "   " << names[j] << "   " << startVals[j] << "   " << minVals[j] << "   " << maxVals[j] << std::endl;
-	// }
+	  // Print the parameters we're using
+	  for(UInt_t j = 0; j < nPars; ++j)
+	  {
+      std::string isFixedStr = currentlyFixed[j] ? "Fixed" : "Free";
+	  	std::cout << j << "   " << names[j] << "   " << isFixedStr << "   " << startVals[j] << "   " << minVals[j] << "   " << maxVals[j] << std::endl;
+	  }
 
 	  // Perform the minimization
 	  if( isAnythingFree )
@@ -1577,7 +1580,7 @@ void WCSimLikelihoodFitter::FitPiZeroEvent()
 
     // Now freely fit the vertex and direction    
     FixEnergy();
-    FixConversionLength();
+    //FixConversionLength();
     FitPiZero();
     FreeEnergy();
 
@@ -1592,6 +1595,7 @@ void WCSimLikelihoodFitter::FitPiZeroEvent()
     FreeDirection();    
     FreeEnergy();
     FreeConversionLength();
+    Fit();
 
 }
 
@@ -1626,7 +1630,7 @@ Double_t WCSimLikelihoodFitter::GetPiZeroSecondTrackEnergy(const Double_t * x)
   double sinThTrk1 = sin(x[track1ThIndex]);
   double cosPhiTrk1 = cos(x[track1PhiIndex]);
   double sinPhiTrk1 = sin(x[track1PhiIndex]);
-  double track0Energy = x[fFitterTrackParMap.GetIndex(std::make_pair(1, FitterParameterType::kEnergy))];
+  double track0Energy = x[fFitterTrackParMap.GetIndex(std::make_pair(0, FitterParameterType::kEnergy))];
   double massOfPiZeroMeV = 134.9766; // PDG 2014: http://pdg.lbl.gov/2014/listings/rpp2014-list-pi-zero.pdf
   
   double cosTheta01 =   sinThTrk0 * cosPhiTrk0 * sinThTrk1 * cosPhiTrk1
@@ -1635,6 +1639,7 @@ Double_t WCSimLikelihoodFitter::GetPiZeroSecondTrackEnergy(const Double_t * x)
                       // This is the dot product of unit vectors in the directions of track 0 and track 1
                       // i.e. the cosine of the angle between the two photons
   double track1Energy = 0.5 * massOfPiZeroMeV * massOfPiZeroMeV / (track0Energy * (1.0 - cosTheta01));
+  if(track1Energy > 3000) { track1Energy = 3000; }
 
   TLorentzVector fourMom0( track0Energy * sinThTrk0 * cosPhiTrk0, track0Energy * sinThTrk0 * sinPhiTrk0, track0Energy * cosThTrk0, track0Energy);
   TLorentzVector fourMom1( track1Energy * sinThTrk1 * cosPhiTrk1, track1Energy * sinThTrk1 * sinPhiTrk1, track1Energy * cosThTrk1, track1Energy);

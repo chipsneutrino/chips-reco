@@ -83,6 +83,17 @@ void WCSimIntegralLookupHists3D::SetHists(TH1F* rhoInt, TH1F* rhoSInt, TH1F* rho
   // std::cout << "Finished setting hists" << std::endl;
 }
 
+WCSimIntegralLookupHists3D::~WCSimIntegralLookupHists3D()
+{
+  if(fRhoInt != 0x0) { delete fRhoInt; };
+  if(fRhoSInt != 0x0) { delete fRhoSInt; };
+  if(fRhoSSInt != 0x0) { delete fRhoSSInt; };
+  if(fRhoGInt != 0x0) { delete fRhoGInt; };
+  if(fRhoGSInt != 0x0) { delete fRhoGSInt; };
+  if(fRhoGSSInt != 0x0) { delete fRhoGSSInt; };
+
+}
+
 
 
 

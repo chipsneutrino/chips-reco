@@ -17,6 +17,7 @@ public:
 	WCSimIntegralLookupHists3D( TH1F * rhoInt,  TH1F * rhoSInt,  TH1F * rhoSSInt,
 			   	   	   	   	  TH3F * rhoGInt, TH3F * rhoGSInt, TH3F * rhoGSSInt,
 			   	   	   	   	  TH1F * cutoffS );
+  virtual ~WCSimIntegralLookupHists3D();
 
 	TH1F * GetRhoInt() const;
 	TH1F * GetRhoSInt() const;
