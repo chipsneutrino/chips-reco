@@ -209,6 +209,26 @@ void WCSimFitterTrackParMap::FixOrFreeEnergy(bool fixIt, int track) {
 		}
 }
 
+void WCSimFitterTrackParMap::FixTime(int track) {
+	FixOrFreeTime(1, track);
+}
+
+void WCSimFitterTrackParMap::FreeTime(int track) {
+	FixOrFreeTime(0, track);
+}
+
+void WCSimFitterTrackParMap::FixOrFreeTime(bool fixIt, int track) {
+	int firstTrack = (track != -1) ? track : 0;
+		int lastTrack = (track != -1) ? track : WCSimFitterInterface::Instance()->GetNumTracks();
+
+		for(int iTrack = firstTrack; iTrack < lastTrack; ++iTrack)
+		{
+			TrackAndType myTime(iTrack, FitterParameterType::kVtxT);
+			fCurrentlyFixed.at(fTrackAndTypeIndexMap[myTime]) = fixIt;
+		}
+}
+
+
 void WCSimFitterTrackParMap::FixConversionLength(int track) {
 	FixOrFreeConversionLength(1, track);
 }
