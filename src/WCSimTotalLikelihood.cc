@@ -154,11 +154,13 @@ Double_t WCSimTotalLikelihood::Calc2LnL(int iDigit)
   }
   minus2LnL += timePart;
   
-  //std::cout << "Recorded charge = " << digit->GetQ() << " and predicted charge = " << totalCharge << " so charge adds " << chargePart << " to -2LnL and time adds " << timePart << std::endl;
+//  std::cout << "Recorded charge = " << digit->GetQ() << " and predicted charge = " << totalCharge << " so charge adds " << chargePart << " to -2LnL and time adds " << timePart << std::endl;
 
   fMeasuredCharges.at(iDigit) = digit->GetQ();
   fPredictedCharges.at(iDigit) = totalCharge;
   fTotal2LnL.at(iDigit) = minus2LnL;
+  fCharge2LnL.at(iDigit) = chargePart;
+  fTime2LnL.at(iDigit) = timePart;
   return minus2LnL;
 }
 
@@ -184,9 +186,13 @@ void WCSimTotalLikelihood::ClearVectors() {
 	  fMeasuredCharges.clear();
 	  fPredictedCharges.clear();
 	  fTotal2LnL.clear();
+	  fCharge2LnL.clear();
+	  fTime2LnL.clear();
 	  fMeasuredCharges.resize(fLikelihoodDigitArray->GetNDigits());
 	  fPredictedCharges.resize(fLikelihoodDigitArray->GetNDigits());
 	  fTotal2LnL.resize(fLikelihoodDigitArray->GetNDigits());
+	  fCharge2LnL.resize(fLikelihoodDigitArray->GetNDigits());
+	  fTime2LnL.resize(fLikelihoodDigitArray->GetNDigits());
 }
 
 std::vector<double> WCSimTotalLikelihood::GetMeasuredChargeVector() const {
@@ -239,6 +245,27 @@ std::vector<double> WCSimTotalLikelihood::GetTotal2LnLVector() const {
 	}
 	return fTotal2LnL;
 }
+
+std::vector<double> WCSimTotalLikelihood::GetCharge2LnLVector() const {
+	if( !fSetVectors )
+	{
+		std::cerr << "Error: You're asking for the charge 2LnL vector, but this hasn't been set" << std::endl;
+		std::cerr << "       Have you reset the tracks or likelihood digit array since calculating the likelihood?" << std::endl;
+		assert(fSetVectors);
+	}
+	return fCharge2LnL;
+}
+
+std::vector<double> WCSimTotalLikelihood::GetTime2LnLVector() const {
+	if( !fSetVectors )
+	{
+		std::cerr << "Error: You're asking for the time 2LnL vector, but this hasn't been set" << std::endl;
+		std::cerr << "       Have you reset the tracks or likelihood digit array since calculating the likelihood?" << std::endl;
+		assert(fSetVectors);
+	}
+	return fTime2LnL;
+}
+
 
 WCSimEmissionProfileManager * WCSimTotalLikelihood::GetEmissionProfileManager()
 {

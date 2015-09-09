@@ -71,6 +71,8 @@ class WCSimTotalLikelihood : public TObject
       std::vector<double> GetMeasuredChargeVector() const;
       std::vector<double> GetPredictedChargeVector() const;
       std::vector<double> GetTotal2LnLVector() const;
+      std::vector<double> GetCharge2LnLVector() const; // Leigh: Get the charge component only
+      std::vector<double> GetTime2LnLVector() const; // Leigh: Get the time component only
       std::vector<double> GetPredictedTimeVector() const;
 
       WCSimEmissionProfileManager * GetEmissionProfileManager();
@@ -89,6 +91,8 @@ class WCSimTotalLikelihood : public TObject
       std::vector<double> fMeasuredCharges;
       std::vector<double> fPredictedCharges;
       std::vector<double> fTotal2LnL;
+      std::vector<double> fCharge2LnL; // Leigh: Store the charge part only
+      std::vector<double> fTime2LnL; // Leigh: Store the time part only
       WCSimEmissionProfileManager * fEmissionProfileManager;
 
 

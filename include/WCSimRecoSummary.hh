@@ -27,10 +27,13 @@ public:
 	  TVector3 GetVertex() const;
 	  void SetVertex(TVector3 vtx);
 	  void SetVertex(double x, double y, double z);
+	  void SetVertex(double x, double y, double z, double t);
+    void SetVertexT(double t);
 
 	  double GetVertexX() const;
 	  double GetVertexY() const;
 	  double GetVertexZ() const;
+    double GetVertexT() const;
 
 	  // Primary particle functions
 	  void AddPrimary(int pdg, double en, TVector3 dir);
@@ -48,6 +51,7 @@ public:
 
 	  // Vertex position
 	  TVector3 fVertex;
+    double fVertexT;
 
 	  // Also store information about the primary particles (only those escaping the nucleus)
 	  std::vector<int> fPrimaryPDGs;

@@ -477,12 +477,14 @@ void WCSimRecoEvDisplay::UpdateFitPave() {
 	  // Stream to parse things into strings
 	  std::stringstream tmpS;
 	  TVector3 vtx = fRecoSummary->GetVertex();
-;
+
 	  std::cout << "Vertex = " << vtx.X() << ", " << vtx.Y() << ", " << vtx.Z() << std::endl;
 	  std::cout << "Radius = " << fWCRadius << ", " << "Height = " << fWCLength << std::endl;
 	  tmpS << vtx.X() << "," << vtx.Y() << "," << vtx.Z();
 	  fFitTextMain->AddText(("Vertex at ("+tmpS.str()+") mm").c_str());
-
+    tmpS.str("");
+    tmpS << "Vertex time = " << fRecoSummary->GetVertexT() << " ns";
+    fFitTextMain->AddText(tmpS.str().c_str());
 	  int nFitRings = 0;
 	  // Create the TLegend for the truth overlays
 	  if(fFitLegend != 0x0){

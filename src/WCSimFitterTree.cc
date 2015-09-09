@@ -170,6 +170,8 @@ void WCSimFitterTree::MakeTree() {
   fHitComparisonTree->Branch("minus2LnL",&(fHitComparison->minus2LnL));
   fHitComparisonTree->Branch("correctPredQ",&(fHitComparison->correctPredQ));
   fHitComparisonTree->Branch("correctMinus2LnL",&(fHitComparison->correctMinus2LnL));
+  fHitComparisonTree->Branch("charge2LnL",&(fHitComparison->charge2LnL));
+  fHitComparisonTree->Branch("time2LnL",&(fHitComparison->time2LnL));
 
   fRecoFailureTree->Branch("failedEvent",&fFailedEvent);
   fEvent = 0;
@@ -360,6 +362,7 @@ void WCSimFitterTree::MakeRecoSummary(
 		if(iTrack == 0)
 		{
 			fRecoSummary->SetVertex( 10*track->GetX(), 10*track->GetY(), 10*track->GetZ() ); // Convert cm to mm
+      fRecoSummary->SetVertexT(track->GetT());
 		}
     std::cout << "Making reco summary" << std::endl;
 		fRecoSummary->AddPrimary(track->GetPDG(), track->GetE(), track->GetDir());
@@ -375,7 +378,9 @@ void WCSimFitterTree::FillHitComparison(
 		const std::vector<double>& measuredCharges,
     const std::vector<double>& predictedTimes,
 		const std::vector<double>& total2LnLs,
-		const std::vector<double>& correct2LnLs) {
+		const std::vector<double>& correct2LnLs,
+		const std::vector<double>& q2LnLs,
+		const std::vector<double>& t2LnLs) {
   assert(predictedCharges.size() == measuredCharges.size() && predictedCharges.size() == total2LnLs.size() && predictedTimes.size() == predictedCharges.size());
   fEvent = event;
   for(unsigned int iPMT = 0; iPMT < predictedCharges.size(); ++iPMT)
@@ -389,7 +394,9 @@ void WCSimFitterTree::FillHitComparison(
                         predictedCharges.at(iPMT),
                         correctPredictedCharges.at(iPMT),
                         total2LnLs.at(iPMT),
-                        correct2LnLs.at(iPMT));
+                        correct2LnLs.at(iPMT),
+                        q2LnLs.at(iPMT),
+                        t2LnLs.at(iPMT));
     fHitComparisonTree->Fill();
   }
 }

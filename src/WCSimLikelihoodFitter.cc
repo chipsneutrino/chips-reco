@@ -122,6 +122,7 @@ Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
 		          						  x[fFitterTrackParMap.GetIndex(trackParE)],
                             extraPars
 		          						  );
+    track->Print();
 	  tracksToFit.push_back(track);
   }
 
@@ -397,6 +398,19 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
       // Fit directions
       if(WCSimFitterConfig::Instance()->GetNumTracks() > 1)
       {
+        // Leigh: Fit the time first.
+        if(!fFitterTrackParMap.GetIsFixed(0,FitterParameterType::kVtxT)){
+          std::cout << "LEIGH: About to fit time for two track event" << std::endl;
+          FixVertex();
+          FixDirection();
+          FixEnergy();
+          FreeTime();
+          FitTime();
+          FreeVertex();
+          FreeDirection();
+          FreeEnergy();
+        }
+
         FixVertex();
         FreeDirection();
         FixEnergy();
@@ -535,6 +549,8 @@ void WCSimLikelihoodFitter::FillHitComparison() {
 	std::vector<double> predictedCharges = fTotalLikelihood->GetPredictedChargeVector();
 	std::vector<double> measuredCharges = fTotalLikelihood->GetMeasuredChargeVector();
 	std::vector<double> best2LnLs = fTotalLikelihood->GetTotal2LnLVector();
+	std::vector<double> charge2LnLs = fTotalLikelihood->GetCharge2LnLVector();
+	std::vector<double> time2LnLs = fTotalLikelihood->GetTime2LnLVector();
   std::vector<double> predictedTimes = fTotalLikelihood->GetPredictedTimeVector();
 
 	std::vector<WCSimLikelihoodTrackBase*> *correctTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
@@ -543,8 +559,7 @@ void WCSimLikelihoodFitter::FillHitComparison() {
 	fTotalLikelihood->Calc2LnL();
 	std::vector<double> correctPredictedCharges = fTotalLikelihood->GetPredictedChargeVector();
 	std::vector<double> correct2LnLs = fTotalLikelihood->GetTotal2LnLVector();
-	fFitterTree->FillHitComparison(fEvent, fLikelihoodDigitArray, predictedCharges, correctPredictedCharges, measuredCharges, predictedTimes, best2LnLs, correct2LnLs);
-
+	fFitterTree->FillHitComparison(fEvent, fLikelihoodDigitArray, predictedCharges, correctPredictedCharges, measuredCharges, predictedTimes, best2LnLs, correct2LnLs, charge2LnLs, time2LnLs);
 
 }
 
@@ -852,6 +867,16 @@ void WCSimLikelihoodFitter::FreeEnergy()
 	fFitterTrackParMap.FreeEnergy();
 }
 
+void WCSimLikelihoodFitter::FixTime()
+{
+  fFitterTrackParMap.FixTime();
+}
+
+void WCSimLikelihoodFitter::FreeTime()
+{
+  fFitterTrackParMap.FreeTime();
+}
+
 void WCSimLikelihoodFitter::FitEnergyGridSearch()
 {
 	TrackAndType trackAndEnergy;
@@ -976,6 +1001,11 @@ void WCSimLikelihoodFitter::FitEnergy()
 }
 
 void WCSimLikelihoodFitter::FitVertex()
+{
+  Fit("Simplex");
+}
+
+void WCSimLikelihoodFitter::FitTime()
 {
   Fit("Simplex");
 }

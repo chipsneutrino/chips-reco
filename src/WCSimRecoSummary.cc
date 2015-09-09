@@ -25,7 +25,7 @@ WCSimRecoSummary::WCSimRecoSummary() : TObject() {
 // Copy constructor
 WCSimRecoSummary::WCSimRecoSummary(const WCSimRecoSummary &ts) : TObject(ts) {
   fVertex = ts.GetVertex();
-
+  fVertexT = ts.GetVertexT();
   fPrimaryPDGs = ts.GetPrimaryPDGs();
   fPrimaryEnergies = ts.GetPrimaryEnergies();
   fPrimaryDirs = ts.GetPrimaryDirs();
@@ -57,6 +57,15 @@ void WCSimRecoSummary::SetVertex(double x, double y, double z){
   fVertex = TVector3(x,y,z);
 }
 
+void WCSimRecoSummary::SetVertex(double x, double y, double z, double t){
+  fVertex = TVector3(x,y,z);
+  fVertexT = t;
+}
+
+void WCSimRecoSummary::SetVertexT(double t){
+  fVertexT = t;
+}
+
 // Get the vertex components
 double WCSimRecoSummary::GetVertexX() const{
   return fVertex.X();
@@ -68,6 +77,10 @@ double WCSimRecoSummary::GetVertexY() const{
 
 double WCSimRecoSummary::GetVertexZ() const{
   return fVertex.Z();
+}
+
+double WCSimRecoSummary::GetVertexT() const{
+  return fVertexT;
 }
 
 // Primary particle functions

@@ -53,10 +53,13 @@ class WCSimLikelihoodFitter
         void FreeDirection();
         void FixConversionLength();
         void FreeConversionLength();
+        void FixTime();
+        void FreeTime();
 
         void FitEnergy(); ///< Wrapper to fit the energy - calls Fit() currently
         void FitEnergyGridSearch(); ///< Alternative way to fit the energy - with a grid search.  Not used currently
         void FitVertex(); ///< Wrapper to call Fit() in case we ever want to change the vertex method
+        void FitTime();
         void Fit(const char * minAlgorithm = "Simplex");
         void FitPiZero(const char * minAlgorithm = "Simplex");
         void FitAlongTrack();

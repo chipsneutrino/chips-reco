@@ -22,10 +22,10 @@ class WCSimRecoSummary;
 
 class HitComparison {
   public:
-    HitComparison() : pmtID(-999), pmtX(-999.9), pmtY(-999.9), pmtZ(-999.9), trueT(-999.9), predT(-999.9), trueQ(-999.9), predQ(-999.9), correctPredQ(-999.9), minus2LnL(-999.9), correctMinus2LnL(-999.9) {};
-    HitComparison(int pmt, double x, double y, double z, double truthT, double predictT, double truthQ, double predictQ, double correctPred, double m2LnL, double correctm2LnL) :
-    pmtID(pmt), pmtX(x), pmtY(y), pmtZ(z), trueT(truthT), predT(predictT), trueQ(truthQ), predQ(predictQ), correctPredQ(correctPred), minus2LnL(m2LnL), correctMinus2LnL(correctm2LnL) {};
-    void Set(int pmt, double x, double y, double z, double truthT, double predictT, double truthQ, double predictQ, double correctPred, double m2LnL, double correctm2LnL) {
+    HitComparison() : pmtID(-999), pmtX(-999.9), pmtY(-999.9), pmtZ(-999.9), trueT(-999.9), predT(-999.9), trueQ(-999.9), predQ(-999.9), correctPredQ(-999.9), minus2LnL(-999.9), correctMinus2LnL(-999.9), charge2LnL(-999.9), time2LnL(-999.9) {};
+    HitComparison(int pmt, double x, double y, double z, double truthT, double predictT, double truthQ, double predictQ, double correctPred, double m2LnL, double correctm2LnL, double q2LnL, double t2LnL) :
+    pmtID(pmt), pmtX(x), pmtY(y), pmtZ(z), trueT(truthT), predT(predictT), trueQ(truthQ), predQ(predictQ), correctPredQ(correctPred), minus2LnL(m2LnL), correctMinus2LnL(correctm2LnL), charge2LnL(q2LnL), time2LnL(t2LnL) {};
+    void Set(int pmt, double x, double y, double z, double truthT, double predictT, double truthQ, double predictQ, double correctPred, double m2LnL, double correctm2LnL, double q2LnL, double t2LnL) {
       pmtID = pmt;
       pmtX = x;
       pmtY = y;
@@ -37,6 +37,8 @@ class HitComparison {
       correctPredQ = correctPred;
       minus2LnL = m2LnL;
       correctMinus2LnL = correctm2LnL;
+      charge2LnL = q2LnL;
+      time2LnL = t2LnL;
     };
 
     virtual ~HitComparison(){};
@@ -52,6 +54,8 @@ class HitComparison {
     double correctPredQ;
     double minus2LnL;
     double correctMinus2LnL;
+    double charge2LnL;
+    double time2LnL;
 };
 
 class WCSimFitterTree {
@@ -85,7 +89,9 @@ public:
 						   const std::vector<double> &measuredCharges,
                const std::vector<double> &predictedTimes,
 						   const std::vector<double> &total2LnLs,
-						   const std::vector<double> &correct2LnLs);
+						   const std::vector<double> &correct2LnLs,
+               const std::vector<double> &charge2LnLs,
+               const std::vector<double> &time2LnLs);
   void FillRecoFailures(const int &event);
 
 private:
