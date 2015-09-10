@@ -55,7 +55,7 @@ int main(int argc,char* argv[])
 	TApplication theApp("App", &argc, argv);
 
   // Popup the GUI...
-	WCSimRecoEvDisplay *ev = new WCSimRecoEvDisplay(gClient->GetRoot(),800,600);
+	WCSimRecoEvDisplay *ev = new WCSimRecoEvDisplay(gClient->GetRoot(),1000,800);
 	if(filename != ""){
 		ev->SetInputFile(filename);
 	}
