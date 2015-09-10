@@ -35,11 +35,18 @@ public:
 	// Button to show truth or reco
 	void ShowFit();
 	void ShowFitOverlay();
+  void ShowTruthOverlay();
+
+  // Functions to show the different likelihood contributions
+  void SetViewTotalLnL();
+  void SetViewQLnL();
+  void SetViewTLnL();
 
 protected:
 	
 	void FillPlots();
 	void FillPlotsFromRecoFile();
+  void FillPlotsFromLikelihood();
 
   // Update the truth TPaveText panel
 	void UpdateFitPave();
@@ -65,6 +72,9 @@ protected:
 	TPad * fFitOverlayPad;
 	TPad * fFitPad;
 
+  // Need to overload the SetPlotZAxes function
+  void SetPlotZAxes();
+
 	// Vectors of TPolyMarkers to store the truth rings for each detector region
 	std::vector<TPolyMarker*> fFitMarkersTop;
 	std::vector<TPolyMarker*> fFitMarkersBarrel;
@@ -76,10 +86,19 @@ protected:
 
 	TChain * fRecoSummaryChain;
 
+  // TChain for the HitComparison tree
+  TChain *fHitComparisonChain;
+
 	// The truth display is all contained within TPaveText objects
 	TPaveText *fFitTextMain;
 	TPaveText *fFitTextPrimaries;
 
+  // Needed for the likelihood plotting
+  double fLnLMin;
+  double fLnLMax;
+  std::vector<double> fLnLBins; // Lower edges of the bins
+  void CalculateLnLBins();
+  unsigned int GetLnLBin(double lnl) const;
 
 	ClassDef(WCSimRecoEvDisplay,0)
 };
