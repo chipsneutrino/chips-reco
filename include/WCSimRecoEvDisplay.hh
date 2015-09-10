@@ -42,21 +42,28 @@ public:
   void SetViewQLnL();
   void SetViewTLnL();
 
+  // Show the reco-true distributions
+  void SetViewChargeRMT();
+  void SetViewTimeRMT();
+
 protected:
 	
 	void FillPlots();
 	void FillPlotsFromRecoFile();
   void FillPlotsFromLikelihood();
-
+  void FillPlotsFromRMT();
+  // Draw the reco plots to their pads, but don't show yet.
+  void UpdateRecoPads();
   // Update the truth TPaveText panel
 	void UpdateFitPave();
 	
-  // Draw the truth information to its pad, but don't show yet.
+  // Draw the fit information to its pad, but don't show yet.
 	void UpdateFitPad();
-	// Draw the truth overlay rings to their pads
+	// Draw the fit overlay rings to their pads
 	void UpdateFitOverlayPad();
 
 	// Encapsulate some of the GUI generation
+	void CreateDebugButtonBar();
 	void CreateSubButtonBar();
 	void CreateMainButtonBar();
 
@@ -99,6 +106,14 @@ protected:
   std::vector<double> fLnLBins; // Lower edges of the bins
   void CalculateLnLBins();
   unsigned int GetLnLBin(double lnl) const;
+
+  // Needed for the reco-true plotting
+  double fRMTMin;
+  double fRMTMax;
+  std::vector<double> fRMTBins; // Lower edges of the bins
+  void CalculateRMTBins();
+  unsigned int GetRMTBin(double rmt) const;
+
 
 	ClassDef(WCSimRecoEvDisplay,0)
 };
