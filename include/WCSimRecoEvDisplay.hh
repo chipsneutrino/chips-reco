@@ -17,6 +17,7 @@ class TPolyMarker;
 class TGWindow;
 class TPaveText;
 class TLegend;
+class TH1D;
 
 
 class WCSimRecoEvDisplay: public WCSimEvDisplay {
@@ -48,6 +49,8 @@ public:
 
 protected:
 	
+  void MakeGraphColours();
+
 	void FillPlots();
 	void FillPlotsFromRecoFile();
   void FillPlotsFromLikelihood();
@@ -108,12 +111,17 @@ protected:
   unsigned int GetLnLBin(double lnl) const;
 
   // Needed for the reco-true plotting
-  double fRMTMin;
-  double fRMTMax;
-  std::vector<double> fRMTBins; // Lower edges of the bins
+  double fQRMTMin;
+  double fQRMTMax;
+  double fTRMTMin;
+  double fTRMTMax;
+  std::vector<double> fQRMTBins; // Lower edges of the bins
+  std::vector<double> fTRMTBins; // Lower edges of the bins
   void CalculateRMTBins();
-  unsigned int GetRMTBin(double rmt) const;
-
+  unsigned int GetQRMTBin(double rmt) const;
+  unsigned int GetTRMTBin(double rmt) const;
+  TH1D *fChargeRMTHist;
+  TH1D *fTimeRMTHist;
 
 	ClassDef(WCSimRecoEvDisplay,0)
 };

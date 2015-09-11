@@ -28,6 +28,7 @@
 #include <TPolyMarker.h>
 #include <TGraph.h>
 #include <TStyle.h>
+#include <TColor.h>
 
 #include <iostream>
 #include <string>
@@ -48,6 +49,8 @@ WCSimRecoEvDisplay::WCSimRecoEvDisplay(const TGWindow* p, UInt_t w, UInt_t h)
 	fBottomHist = 0x0;
 	fChargeHist = 0x0;
 	fTimeHist = 0x0;
+	fChargeRMTHist = 0x0;
+	fTimeRMTHist = 0x0;
 
 	// Initialise the TChain pointers
 	fChain = 0x0;
@@ -976,9 +979,13 @@ void WCSimRecoEvDisplay::SetPlotZAxes(){
     min = fLnLMin;
     max = fLnLMax;
   }
-  if(fViewType >=5){
-    min = fRMTMin;
-    max = fRMTMax;
+  if(fViewType == 5){
+    min = fQRMTMin;
+    max = fQRMTMax;
+  }
+  if(fViewType == 6){
+    min = fTRMTMin;
+    max = fTRMTMax;
   }
 
 	// Make sure the histogram max / min are correct
@@ -998,6 +1005,9 @@ void WCSimRecoEvDisplay::SetViewTotalLnL(){
     if(fWhichPads != 0){
       this->ShowReco();
     }
+   	if(fShow1DHists == 1){
+      this->Toggle1DHists();
+    }
 		std::cout << "Setting colour axis to total likelihood" << std::endl;
 		this->FillPlots();
 	}
@@ -1013,6 +1023,9 @@ void WCSimRecoEvDisplay::SetViewQLnL(){
     if(fWhichPads != 0){
       this->ShowReco();
     }
+   	if(fShow1DHists == 1){
+      this->Toggle1DHists();
+    }
 		std::cout << "Setting colour axis to charge likelihood" << std::endl;
 		this->FillPlots();
 	}
@@ -1027,6 +1040,9 @@ void WCSimRecoEvDisplay::SetViewTLnL(){
 		fViewType = 4;
     if(fWhichPads != 0){
       this->ShowReco();
+    }
+   	if(fShow1DHists == 1){
+      this->Toggle1DHists();
     }
 		std::cout << "Setting colour axis to time likelihood" << std::endl;
 		this->FillPlots();
@@ -1168,17 +1184,14 @@ void WCSimRecoEvDisplay::FillPlotsFromRMT(){
   fHitComparisonChain->SetBranchAddress("eventID",&eventID);
   fHitComparisonChain->SetBranchAddress("pmtID",&pmtID);
   
-  // Only load the LnL values that we need.
-  double recoVal = -999;
-  double trueVal = -999;
-  std::string recoVarName = "predQ";
-  std::string trueVarName = "trueQ";
-  if(fViewType == 6){
-    recoVarName = "predT";
-    trueVarName = "trueT";
-  }
-  fHitComparisonChain->SetBranchAddress(recoVarName.c_str(),&recoVal);
-  fHitComparisonChain->SetBranchAddress(trueVarName.c_str(),&trueVal);
+  double recoQ = -999;
+  double trueQ = -999;
+  double recoT = -999;
+  double trueT = -999;
+  fHitComparisonChain->SetBranchAddress("predQ",&recoQ);
+  fHitComparisonChain->SetBranchAddress("trueQ",&trueQ);
+  fHitComparisonChain->SetBranchAddress("predT",&recoT);
+  fHitComparisonChain->SetBranchAddress("trueT",&trueT);
 
 	// Get the geometry
 	WCSimRootGeom *geo = new WCSimRootGeom();
@@ -1186,32 +1199,52 @@ void WCSimRecoEvDisplay::FillPlotsFromRMT(){
 	fGeomTree->GetEntry(0);
 
   // Loop over the chain to find the min and max values of the likelihood
-  fRMTMin = 1e10;
-  fRMTMax = -1e10;
+  fQRMTMin = 1e10;
+  fQRMTMax = -1e10;
+  fTRMTMin = 1e10;
+  fTRMTMax = -1e10;
   // Loop over the chain to fill the plots
   for(int i = 0; i < fHitComparisonChain->GetEntries(); ++i){
     fHitComparisonChain->GetEntry(i);
     // Check if we are on the event that we care about
     if(eventID < fCurrentEvent) continue;
     if(eventID > fCurrentEvent) break;
-    double rmtVal = recoVal - trueVal;
-    if(fViewType == 6){
-      // Time can have default values
-      if(trueVal <= 0 || recoVal <= 0) rmtVal = 0;
-    }
-    if(rmtVal < fRMTMin) fRMTMin = rmtVal; 
-    if(rmtVal > fRMTMax) fRMTMax = rmtVal; 
+    double rmtValQ = recoQ - trueQ;
+    double rmtValT = recoT - trueT;
+    // Time can have default values
+    if(trueT <= 0 || recoT <= 0) rmtValT = 0;
+
+    if(rmtValQ < fQRMTMin) fQRMTMin = rmtValQ; 
+    if(rmtValQ > fQRMTMax) fQRMTMax = rmtValQ; 
+    if(rmtValT < fTRMTMin) fTRMTMin = rmtValT; 
+    if(rmtValT > fTRMTMax) fTRMTMax = rmtValT; 
   }
   // Nice to have these plots symmetric about 0:
-  if(fabs(fRMTMin) > fRMTMax){
-    fRMTMax = -fRMTMin;
+  if(fabs(fQRMTMin) > fQRMTMax){
+    fQRMTMax = -fQRMTMin;
   }
   else{
-    fRMTMin = -fRMTMax;
+    fQRMTMin = -fQRMTMax;
+  }
+  if(fabs(fTRMTMin) > fTRMTMax){
+    fTRMTMax = -fTRMTMin;
+  }
+  else{
+    fTRMTMin = -fTRMTMax;
   }
   this->CalculateRMTBins();
   this->ResetGraphs();
 
+  // Make the two 1D histograms
+  if(fChargeRMTHist != 0x0){
+    delete fChargeRMTHist;
+  }
+  fChargeRMTHist = new TH1D("hChargeRMT","Charge Reco - True; Charge Reco - True / PE",100,fQRMTMin,fQRMTMax);
+  if(fTimeRMTHist != 0x0){
+    delete fTimeRMTHist;
+  }
+  fTimeRMTHist = new TH1D("hTimeRMT","Time Reco - True; Time Reco - True / ns",100,fTRMTMin,fTRMTMax);
+
   // Loop over the chain to fill the plots
   for(int i = 0; i < fHitComparisonChain->GetEntries(); ++i){
     fHitComparisonChain->GetEntry(i);
@@ -1220,12 +1253,20 @@ void WCSimRecoEvDisplay::FillPlotsFromRMT(){
     if(eventID < fCurrentEvent) continue;
     if(eventID > fCurrentEvent) break;
 
-    // If we are looking at time, ignore those that shouldn't be hit
-    if(fViewType == 6 && (trueVal <= 0 || recoVal <= 0)) continue;
+    // Make the 1D plots
+    fChargeRMTHist->Fill(recoQ-trueQ);
+    if(!(trueT <= 0 || recoT <= 0)) fTimeRMTHist->Fill(recoT-trueT);
 
-    double rmtVal = recoVal - trueVal;
+    // If we are looking at time, ignore those that shouldn't be hit
+    if(fViewType == 6 && (trueT <= 0 || recoT <= 0)) continue;
+
+    double rmtVal =  -999;
+    if(fViewType == 5) rmtVal = recoQ - trueQ;
+    if(fViewType == 6) rmtVal = recoT - trueT;
     // Check which bin this value of LnL should go in
-    unsigned int bin = this->GetRMTBin(rmtVal);
+    unsigned int bin = -1;
+    if(fViewType == 5) bin = this->GetQRMTBin(rmtVal);
+    if(fViewType == 6) bin = this->GetTRMTBin(rmtVal);
 
     pmtID++; // Looks like we have the off-by-one problem again
 
@@ -1236,6 +1277,7 @@ void WCSimRecoEvDisplay::FillPlotsFromRMT(){
 		double pmtY = pmt.GetPosition(1);
 		double pmtZ = pmt.GetPosition(2);
 		double pmtPhi = TMath::ATan2(pmtY,pmtX);
+
     // Top cap
 		if(pmt.GetCylLoc() == 0){
         fTopGraphs[bin]->SetPoint(fTopGraphs[bin]->GetN(),pmtY,pmtX);
@@ -1293,19 +1335,33 @@ unsigned int WCSimRecoEvDisplay::GetLnLBin(double lnl) const{
 // Calculate the bins for the likelihood plots
 void WCSimRecoEvDisplay::CalculateRMTBins(){
   // Firstly, clear the existing vector
-  fRMTBins.clear();
+  fQRMTBins.clear();
+  fTRMTBins.clear();
   
-  double delta = (fRMTMax - fRMTMin) / 10.;
+  double deltaQ = (fQRMTMax - fQRMTMin) / 10.;
+  double deltaT = (fTRMTMax - fTRMTMin) / 10.;
 
   for(int i = 0; i < 10; ++i){
-    fRMTBins.push_back(fRMTMin+i*delta);
+    fQRMTBins.push_back(fQRMTMin+i*deltaQ);
+    fTRMTBins.push_back(fTRMTMin+i*deltaT);
   }
 }
 
-unsigned int WCSimRecoEvDisplay::GetRMTBin(double rmt) const{
+unsigned int WCSimRecoEvDisplay::GetQRMTBin(double rmt) const{
   unsigned int bin = 9;
-  for(unsigned int i = 1; i < fRMTBins.size(); ++i){
-    if(rmt < fRMTBins[i]){
+  for(unsigned int i = 1; i < fQRMTBins.size(); ++i){
+    if(rmt < fQRMTBins[i]){
+      bin = i - 1;
+      break;
+    }
+  }
+  return bin;
+}
+
+unsigned int WCSimRecoEvDisplay::GetTRMTBin(double rmt) const{
+  unsigned int bin = 9;
+  for(unsigned int i = 1; i < fTRMTBins.size(); ++i){
+    if(rmt < fTRMTBins[i]){
       bin = i - 1;
       break;
     }
@@ -1316,6 +1372,8 @@ unsigned int WCSimRecoEvDisplay::GetRMTBin(double rmt) const{
 // Draw the reco plots to the reco pads
 void WCSimRecoEvDisplay::UpdateRecoPads(){
 
+  this->MakeGraphColours();
+
 	this->SetPlotZAxes();
   // Set the styles how we want them
   this->MakePlotsPretty(fBarrelHist);
@@ -1323,6 +1381,8 @@ void WCSimRecoEvDisplay::UpdateRecoPads(){
   this->MakePlotsPretty(fBottomHist);
   this->MakePlotsPretty(fChargeHist);
   this->MakePlotsPretty(fTimeHist);
+  if(fChargeRMTHist != 0x0) this->MakePlotsPretty(fChargeRMTHist);
+  if(fTimeRMTHist != 0x0) this->MakePlotsPretty(fTimeRMTHist);
 
   // Take the plots one by one and draw them.
   fBarrelPad->cd();
@@ -1344,15 +1404,63 @@ void WCSimRecoEvDisplay::UpdateRecoPads(){
   fBottomPad->Update();
 
   fChargePad->cd();
-  fChargeHist->Draw();
+  if(fViewType < 5){ 
+    fChargeHist->Draw();
+  }
+  else{
+    fChargeRMTHist->Draw();
+  }
   fChargePad->Modified();
   fChargePad->Update();
 
   fTimePad->cd();
-  fTimeHist->Draw();
+  if(fViewType < 5){
+    fTimeHist->Draw();
+  }
+  else{
+    fTimeRMTHist->Draw();
+  }
   fTimePad->Modified();
   fTimePad->Update();
 
   fHitMapCanvas->GetCanvas()->cd();
+}
+
+void WCSimRecoEvDisplay::MakeGraphColours(){
+
+  if(fViewType < 5){
+  // Make a palette
+    fColours[0] = TColor::GetColor("#330000");
+    fColours[1] = TColor::GetColor("#660000");
+    fColours[2] = TColor::GetColor("#990000");
+    fColours[3] = TColor::GetColor("#CC0000");
+    fColours[4] = TColor::GetColor("#FF0000");
+    fColours[5] = TColor::GetColor("#FF3300");
+    fColours[6] = TColor::GetColor("#FF6600");
+    fColours[7] = TColor::GetColor("#FF8800");
+    fColours[8] = TColor::GetColor("#FFAA00");
+    fColours[9] = TColor::GetColor("#FFCC00");
+  }
+  else{
+  // Make a palette
+    fColours[0] = TColor::GetColor("#0000FF");
+    fColours[1] = TColor::GetColor("#3333FF");
+    fColours[2] = TColor::GetColor("#6666FF");
+    fColours[3] = TColor::GetColor("#9999FF");
+    fColours[4] = TColor::GetColor("#CCCCFF");
+    fColours[5] = TColor::GetColor("#FFCCCC");
+    fColours[6] = TColor::GetColor("#FF9999");
+    fColours[7] = TColor::GetColor("#FF6666");
+    fColours[8] = TColor::GetColor("#FF3333");
+    fColours[9] = TColor::GetColor("#FF0000");
+  }
+  // Update the palette
+  gStyle->SetPalette(10,fColours);
+  for(unsigned int g = 0; g < fTopGraphs.size(); ++g){
+    // Initialise the graphs
+    this->InitialiseGraph(fTopGraphs[g],g);
+    this->InitialiseGraph(fBarrelGraphs[g],g);
+    this->InitialiseGraph(fBottomGraphs[g],g);
+  }
 }
 
