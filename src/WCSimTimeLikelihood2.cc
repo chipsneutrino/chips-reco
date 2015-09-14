@@ -14,6 +14,7 @@
 #include "WCSimPMTConfig.hh"
 #include "WCSimTimeLikelihood2.hh"
 #include "TString.h"
+#include "TMath.h"
 #include <cmath>
 #include <map>
 
@@ -121,12 +122,11 @@ double WCSimTimeLikelihood2::GetPMTTimeResolution(WCSimLikelihoodDigit * myDigit
   double timeConstant = 0.0;
   if( fPMTTimeConstantMap.find(pmtName) == fPMTTimeConstantMap.end())
   {
-	  WCSimPMTConfig config = fPMTManager->GetPMTByName(std::string(myDigit->GetPMTName().Data()));
+	  WCSimPMTConfig config = fPMTManager->GetPMTByName(std::string(pmtName.Data()));
 	  timeConstant = config.GetTimeConstant();
     fPMTTimeConstantMap[pmtName] = timeConstant;
   }
-
-	return 0.33 + sqrt(fPMTTimeConstantMap[pmtName] / myDigit->GetQ()); // This is what WCSim does...
+  return 0.33 + sqrt(fPMTTimeConstantMap[pmtName] / myDigit->GetQ()); // This is what WCSim does...
 }
 
 double WCSimTimeLikelihood2::GetGaussianMinusTwoLnL(const double& x,
@@ -138,7 +138,11 @@ double WCSimTimeLikelihood2::GetGaussianMinusTwoLnL(const double& x,
   if( mean < 0 ) { 
     return 50;
   }
-	return (x - mean)*(x - mean) / (2*sigma*sigma);
+  
+  // Calculate the likelihood:
+  double lnl = 2*TMath::Log(sqrt(2*TMath::Pi())*sigma) + ((x - mean)*(x - mean) / (2*sigma*sigma));
+
+	return lnl;
 }
 
 
