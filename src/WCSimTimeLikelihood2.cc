@@ -140,7 +140,7 @@ double WCSimTimeLikelihood2::GetGaussianMinusTwoLnL(const double& x,
   }
   
   // Calculate the likelihood:
-  double lnl = 2*TMath::Log(sqrt(2*TMath::Pi())*sigma) + ((x - mean)*(x - mean) / (2*sigma*sigma));
+  double lnl = 2*TMath::Log(sqrt(2*TMath::Pi())*sigma) + ((x - mean)*(x - mean) / (sigma*sigma));
 
 	return lnl;
 }
