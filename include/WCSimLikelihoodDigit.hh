@@ -34,7 +34,7 @@ public:
      */
     WCSimLikelihoodDigit(Double_t x, Double_t y, Double_t z, Double_t t,
             Double_t Q, Int_t tubeId, Double_t faceX, Double_t faceY,
-            Double_t faceZ, TString name, Double_t wlWeightedQE, Double_t wlWeightedRefIndex);
+            Double_t faceZ, TString name, Double_t wlWeightedQE, Double_t wlWeightedRefIndex, double exposeHeight);
 
     /**
      * Constructor
@@ -65,6 +65,7 @@ public:
 
     double GetAverageQE() const;
     double GetAverageRefIndex() const;
+    double GetExposeHeight() const;
 
     TString GetPMTName() const;
 
@@ -81,6 +82,7 @@ private:
 
     double fAverageQE; ///< Average QE of the PMT, from weighting QE(wavelength) by the average Cherenkov spectrum
     double fAverageRefIndex; ///< Weight WCSim's refractive index by (wavelength * PMT QE(wavelength))
+    double fExposeHeight; ///< Heigh of PMT dome expose through the detector liner
 
 
 ClassDef(WCSimLikelihoodDigit,1)

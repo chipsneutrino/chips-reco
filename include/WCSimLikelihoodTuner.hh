@@ -85,7 +85,7 @@ class WCSimLikelihoodTuner
          * @param myDigit PMT the photon is travelling to
          * @return Total (not fractional) solid angle of the photon
          */
-        Double_t SolidAngle(Double_t s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit);
+        Double_t SolidAngleFraction(Double_t s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit);
 
         /**
          * Relates the amount of direct and indirect light as a function of several geometric factors

@@ -204,3 +204,20 @@ double WCSimDetectorParameters::QEAveragedRefIndex(const std::string& pmtName) {
 	return WCSimDetectorParameters::Instance()->GetQEAveragedRefIndex(pmtName);
 }
 
+double WCSimDetectorParameters::PMTExposeHeight(const std::string &pmtName){
+  return WCSimDetectorParameters::Instance()->GetPMTExposeHeight(pmtName);
+}
+
+double WCSimDetectorParameters::GetPMTExposeHeight(const std::string &pmtName){
+	if(!IsInMap(pmtName, &fExposeHeightMap))
+	{
+		double exposeHeight = WorkOutExposeHeight(pmtName);
+		fExposeHeightMap[pmtName] = exposeHeight;
+	}
+	return fExposeHeightMap[pmtName];
+}
+
+double WCSimDetectorParameters::WorkOutExposeHeight(const std::string &pmtName){
+	WCSimPMTConfig config = fPMTManager.GetPMTByName(pmtName);
+  return config.GetExposeHeight();
+}

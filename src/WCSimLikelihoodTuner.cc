@@ -17,6 +17,7 @@
 #include "TArrayD.h"
 #include "TH2D.h"
 #include "TMath.h"
+#include "TMatrixD.h"
 #include "TObjArray.h"
 #include "TTree.h"
 #include "TVector2.h"
@@ -152,7 +153,7 @@ Double_t WCSimLikelihoodTuner::TransmissionFunction(Double_t s, WCSimLikelihoodT
     trans = 0.0;
     for(int i = 0; i < 3; ++i){ trans+= f[i]*exp(1.0 * 10 * r * nu[i]);}  //Convert to cm -> factor 10
   }
-  //std::cout << "trans = " << trans << std::endl;
+  // std::cout << "trans = " << trans << std::endl;
   return trans;
 }
 
@@ -176,21 +177,25 @@ Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrackBase *
     TVector3 pmtToEm     = emissionPos - pmtPos;
     TVector3 pmtFace     = myDigit->GetFace();
 
-    Double_t cosTheta = pmtFace.Dot(pmtToEm) / (pmtFace.Mag() * pmtToEm.Mag()); 
+    Double_t cosTheta = pmtFace.Dot(pmtToEm) / pmtFace.Mag2(); 
+    Double_t theta = pmtFace.Angle(pmtToEm) * 180.0 / TMath::Pi();
+
 	  // The MiniBooNE method:
-    Double_t theta = TMath::ACos(cosTheta) * 180. / TMath::Pi();
+    // Double_t theta = TMath::ACos(cosTheta) * 180. / TMath::Pi();
     if( theta > 90.0 )
     {
       theta = 180.0 - theta;
     }
-	  efficiency =  (1 + (-1.182e-4) * pow(theta, 2) + 4.959e-9 * pow(theta, 4) - 7.371e-14 * pow(theta, 6));
+    // std::cout << "theta = " << theta << std::endl;
+/*	  efficiency =  (1 + (-1.182e-4) * pow(theta, 2) + 4.959e-9 * pow(theta, 4) - 7.371e-14 * pow(theta, 6));
 	}
+
   //std::cout << "Efficiency = " << efficiency * (1-glassReflect) << std::endl;
   return efficiency * (1-glassReflect);
 
     // Function for the PMT acceptance's dependence on the angle: 
     // WCSim defines arrays of efficiency at 10 degree intervals and linearly interpolates
-/*
+
 	
     if( cosTheta < 0.0 || cosTheta > 1.0 )
     {
@@ -199,13 +204,12 @@ Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrackBase *
     //  emissionPos.Print();
         return 0.0;
     }
-
     Double_t theta = TMath::ACos(cosTheta) * 180.0 / TMath::Pi();
+*/
     Double_t collection_angle[10]={0.,10.,20.,30.,40.,50.,60.,70.,80.,90.};
     Double_t collection_eff[10]={100.,100.,99.,95.,90.,85.,80.,69.,35.,13.}; 
     Int_t num_elements = sizeof( collection_angle ) / sizeof( collection_angle[0] );
 
-    Double_t efficiency = 0.0;
     for(int iEntry = 0; iEntry < num_elements-1; ++iEntry)
     {
       if( theta >= collection_angle[iEntry] && theta < collection_angle[iEntry+1])
@@ -215,8 +219,11 @@ Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrackBase *
                      * (collection_eff[iEntry+1] - collection_eff[iEntry]);
       }
     }
-      return (efficiency/100.) * (1.0 - glassReflect);
-*/	
+  }
+
+  // std::cout << "efficiency = " << efficiency << std::endl;
+  return (efficiency/100.) * (1.0 - glassReflect);
+	
 }
 
 /*
@@ -237,13 +244,14 @@ Double_t WCSimLikelihoodTuner::QuantumEfficiency(WCSimLikelihoodTrackBase * myTr
 //////////////////////////////////////////////////////////////////////////////////////////
 // Work out the effect of solid angle on the probability of photon incidenc; pure geometry
 //////////////////////////////////////////////////////////////////////////////////////////
-Double_t WCSimLikelihoodTuner::SolidAngle(Double_t s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit)
+Double_t WCSimLikelihoodTuner::SolidAngleFraction(Double_t s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit)
 {
   // Now some physical parameters of the phototube
   WCSimRootPMT myPMT     = ((WCSimRootGeom*) (WCSimGeometry::Instance())->GetWCSimGeometry())->GetPMTFromTubeID(myDigit->GetTubeId());
   // 
   Double_t mm_to_cm = 0.1;
 	Double_t WCSimPMTRadius = myPMT.GetRadius() * mm_to_cm;
+  Double_t exposeHeight = myDigit->GetExposeHeight() * mm_to_cm;
 
 	// // Double_t WCSimPMTExposeHeight = WCSimPMTRadius - 1.0;
 	
@@ -258,9 +266,9 @@ Double_t WCSimLikelihoodTuner::SolidAngle(Double_t s, WCSimLikelihoodTrackBase *
   // Purely geometry: we need the solid angle of a cone whose bottom is a circle of the same radius as the circle of PMT poking
   // through the blacksheet.  This is 2pi( 1 - cos(coneAngle) ) where coneAngle can be deduced from trig and the PMT geometry
 	// So the fraction of total solid angle is this/4pi = 0.5(1 - cos(coneAngle))
-	Double_t solidAngle = 2.0*TMath::Pi()*(1.0 - (r)/sqrt( (r*r + WCSimPMTRadius * WCSimPMTRadius)));
-  // std::cout << "Solid angle = " << solidAngle << std::endl;
-	return solidAngle;
+	Double_t solidAngle = 2.0*TMath::Pi()*(1.0 - ((r+exposeHeight)/sqrt( (r + exposeHeight)*(r + exposeHeight) + WCSimPMTRadius*WCSimPMTRadius)))  ;
+   // std::cout << "Solid angle = " << solidAngle << "   c.f. " << 2.0 * TMath::Pi()*(1.0 - (r/sqrt(r*r + WCSimPMTRadius * WCSimPMTRadius))) << std::endl;
+	return solidAngle / (4.0*TMath::Pi());
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -302,14 +310,14 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ( Double_t s, WCSimLikelih
 //    {
 //    	std::cout << "Transmission = " << this->TransmissionFunction(s, myTrack, myDigit) << std::endl
 //    			  		<< "Efficiency = " << this->Efficiency(s, myTrack, myDigit) << std::endl
-//    			  		<< "SolidAngle = " << this->SolidAngle(s, myTrack, myDigit) << std::endl
+//    			  		<< "SolidAngle = " << this->SolidAngleFraction(s, myTrack, myDigit) << std::endl
 //    			  		<< "QE           = " << this->QuantumEfficiency(myTrack, myDigit) << std::endl;
 //    }
 
     J.push_back(   this->TransmissionFunction(s, myTrack, myDigit) 
                  * this->Efficiency(s, myTrack, myDigit)
-                 * this->QuantumEfficiency(myTrack, myDigit)
-                 * this->SolidAngle(s, myTrack, myDigit));
+                 //* this->QuantumEfficiency(myTrack, myDigit)
+                 * this->SolidAngleFraction(s, myTrack, myDigit));
     J.push_back(J.at(0) * this->ScatteringTable(s));
     return J;
 }
@@ -360,18 +368,51 @@ void WCSimLikelihoodTuner::CalculateCoefficients(WCSimLikelihoodTrackBase * myTr
         JInd[k] = J.at(1);
     }
 
-    // Now do a quadratic fit to the Cherenkov and indirect parts, sampling them at these 3 points
+    /* Now do a quadratic fit to the Cherenkov and indirect parts, sampling them at these 3 points
     // We can actually work this out analytically:
-    fDirCoeffs[0] = JDir[0];
-    fDirCoeffs[1] = (4.*JDir[1] - JDir[2] -3.*JDir[0]) / (2*s[1]);
-    fDirCoeffs[2] = (JDir[0] + JDir[2] - 2.*JDir[1]) / (2 * s[1] * s[1]);
-    // std::cout << "jDir:        " << JDir[0]       << "," << JDir[1]       << "," << JDir[2]       << std::endl;
-    // std::cout << "fDirCoeffs:  " << fDirCoeffs[0] << "," << fDirCoeffs[1] << "," << fDirCoeffs[2] << std::endl;
+    //
+    // We want as^2 + bs + c = J
+    // So solve:
+    // /J0\   / 1  s0  s0*s0 \ /c\
+    // |J1| = | 1  s1  s1*s1 | |b|
+    // \J2/   \ 1  s2  s2*s2 / \a/
+    // By inverting the 3x3 matrix
+    */
+    TMatrixD jDistMat(3,3);
+    jDistMat[0][0] = 1.0;
+    jDistMat[0][1] = s[0];
+    jDistMat[0][2] = s[0]*s[0];
+    jDistMat[1][0] = 1.0;
+    jDistMat[1][1] = s[1];
+    jDistMat[1][2] = s[1]*s[1];
+    jDistMat[2][0] = 1.0;
+    jDistMat[2][1] = s[2];
+    jDistMat[2][2] = s[2]*s[2];
+    jDistMat.Invert();
+  
+    // Multiple the vector of J[i] by the matrix inverse to get the coefficients
+    TMatrixD jVec(3,1);
+    jVec[0][0] = JDir[0];
+    jVec[1][0] = JDir[1];
+    jVec[2][0] = JDir[2];
+    TMatrixD coeffsDir = jDistMat * jVec;
 
+    // Set the direct coefficients
+    fDirCoeffs[0] = coeffsDir[0][0];
+    fDirCoeffs[1] = coeffsDir[1][0];
+    fDirCoeffs[2] = coeffsDir[2][0];
 
-    fIndCoeffs[0] = JInd[0];
-    fIndCoeffs[1] = (4.*JInd[1] - JInd[2] -3.*JInd[0]) / (2*s[1]);
-    fIndCoeffs[2] = (JInd[0] + JInd[2] - 2.*JInd[1]) / (2 * s[1] * s[1]);
+    // Now multiple the indirect J values by the same matrix to get the other coefficients
+    TMatrixD jIndVec(3,1);
+    jIndVec[0][0] = JInd[0];
+    jIndVec[1][0] = JInd[1];
+    jIndVec[2][0] = JInd[2];
+    TMatrixD coeffsInd = jDistMat * jIndVec;
+
+    fIndCoeffs[0] = coeffsInd[0][0];
+    fIndCoeffs[1] = coeffsInd[1][0];
+    fIndCoeffs[2] = coeffsInd[2][0];
+
 
     //    if((myDigit->GetZ() > 900))
     //    {

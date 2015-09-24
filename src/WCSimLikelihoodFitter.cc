@@ -89,6 +89,7 @@ void WCSimLikelihoodFitter::Minimize2LnL()
 Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
 {
   UInt_t nTracks = WCSimFitterConfig::Instance()->GetNumTracks();
+  std::cout << "Fitting " << nTracks << " tracks " << std::endl;
 
   // If we've fixed some track parameters together, then our array of fit parameters won't just be of size
   // n tracks * m parameters per track, and we need to work out which entry corresponds to which parameter
@@ -143,12 +144,12 @@ Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
   minus2LnL = fTotalLikelihood->Calc2LnL();
 
   // std::cout << "deleting tracks" << std::endl;
-  for(size_t iTrack = 0; iTrack < tracksToFit.size(); ++iTrack)
-  {
-    tracksToFit.at(iTrack)->Print();
-    // std::cout << iTrack << "/" << tracksToFit.size() << std::endl;
-	  delete (tracksToFit.at(iTrack));
-  }
+  // for(size_t iTrack = 0; iTrack < tracksToFit.size(); ++iTrack)
+  // {
+  //   tracksToFit.at(iTrack)->Print();
+  //   // std::cout << iTrack << "/" << tracksToFit.size() << std::endl;
+	//   delete (tracksToFit.at(iTrack));
+  // }
   // std::cout << "Clearing" << std::endl;
   tracksToFit.clear();
   // std::cout << "Done" << std::endl;

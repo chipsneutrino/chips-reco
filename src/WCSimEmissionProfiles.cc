@@ -692,16 +692,13 @@ Double_t WCSimEmissionProfiles::GetLightFlux(
 		const TrackType::Type &type, const double &energy) const {
 	assert(type == TrackType::MuonLike || type == TrackType::ElectronLike || type == TrackType::PhotonLike);
 	Double_t flux = 0.0;
-	Double_t factorFromG = 1/(4.0*TMath::Pi()); // We want solid angle fraction
 
-	Double_t factorFromSolidAngle = 1; //2*TMath::Pi();
 	// There was an overall normalization of 2pi that used to be neglected
 	// because the solid angle subtended by a cone is 2pi(1 - cosTheta)
 	// I've absorbed this into the SolidAngle now
 
   Double_t nPhotons = 0.0;
 
-  double fudge = 1.0;
 	switch(type)
 	{
 	  case TrackType::MuonLike:
@@ -710,19 +707,19 @@ Double_t WCSimEmissionProfiles::GetLightFlux(
       nPhotons = 431.467 * energy - 21813.0; // New fit on 29/Jul/2015 (QE decoupled)
 
 	    // Things get sketchy at really low energies
-	    if(nPhotons > 0){ flux = factorFromG * factorFromSolidAngle * nPhotons; }
+	    if(nPhotons > 0){ flux = nPhotons; }
       break;
     case TrackType::PhotonLike:
       // Fall through to ElectronLike
     case TrackType::ElectronLike:
       nPhotons = 201.709 + 383.217 * energy;  // New fit on 29/Jul/15
-      if(nPhotons > 0){ flux = factorFromG * factorFromSolidAngle * nPhotons; }
+      if(nPhotons > 0){ flux = nPhotons; }
       break;
     default:
       assert(0);
       break;
 	}
-  flux = flux * fudge;
+  // std::cout << "numPhotons = " << nPhotons << std::endl;
 	return flux;
 }
 

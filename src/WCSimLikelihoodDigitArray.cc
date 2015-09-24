@@ -96,7 +96,7 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myEvent )
     face[2] = myPMT.GetOrientation(2);
     TString name = myPMT.GetPMTName();
 
-	  new(digitArray[arrayIndex]) WCSimLikelihoodDigit(pos[0], pos[1], pos[2], t, q, tubeID, face[0], face[1], face[2], name, WCSimDetectorParameters::WavelengthAveragedQE(name.Data()), WCSimDetectorParameters::QEAveragedRefIndex(name.Data()));
+	  new(digitArray[arrayIndex]) WCSimLikelihoodDigit(pos[0], pos[1], pos[2], t, q, tubeID, face[0], face[1], face[2], name, WCSimDetectorParameters::WavelengthAveragedQE(name.Data()), WCSimDetectorParameters::QEAveragedRefIndex(name.Data()), WCSimDetectorParameters::PMTExposeHeight(name.Data()));
     if(fNumHitPMTs == 1){
       std::cout << "Time = " << t << std::endl;
     }
@@ -207,7 +207,7 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myRootEve
     	Double_t faceZ = myPMT.GetOrientation(2);
       TString name = myPMT.GetPMTName();
 	  	hitPMT[arrayIndex] = kTRUE; 
-	  	new(digitArray[arrayIndex]) WCSimLikelihoodDigit( posX, posY, posZ, t, Q, tubeID, faceX, faceY, faceZ, name, WCSimDetectorParameters::WavelengthAveragedQE(name.Data()), WCSimDetectorParameters::QEAveragedRefIndex(name.Data()) );
+	  	new(digitArray[arrayIndex]) WCSimLikelihoodDigit( posX, posY, posZ, t, Q, tubeID, faceX, faceY, faceZ, name, WCSimDetectorParameters::WavelengthAveragedQE(name.Data()), WCSimDetectorParameters::QEAveragedRefIndex(name.Data()), WCSimDetectorParameters::PMTExposeHeight(name.Data()) );
       fNumHitPMTs++;
 	}
 	

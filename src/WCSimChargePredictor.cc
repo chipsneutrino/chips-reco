@@ -260,10 +260,11 @@ double WCSimChargePredictor::GetMuDirect(Int_t trackIndex)
     // std::cout << "Energy = " << fEnergy << "  and light flux = " << lightFlux <<std::endl;
     // std::cout << " **** CALCULATING COEFFICIENTS ***** " << std::endl;
     // fTuner->CalculateCoefficients(fTracks[trackIndex], fDigit);
-
-//   std::cout << "Digit = " << fDigit->GetTubeId() << "   charge = " << fDigit->GetQ() << "   integrals[0] = " << integrals[0] << "  integrals[1] = " << integrals[1] << "   integrals[2] = " << integrals[2] << std::endl
-//           << "fCoeffsCh = " << fCoeffsCh[0] << "," << fCoeffsCh[1] << "," << fCoeffsCh[2] << std::endl;
-
+   if(fDigit->GetQ() > 10.0)
+   {
+   // std::cout << "Digit = " << fDigit->GetTubeId() << "   charge = " << fDigit->GetQ() << "   integrals[0] = " << integrals[0] << "  integrals[1] = " << integrals[1] << "   integrals[2] = " << integrals[2] << std::endl
+     //      << "fCoeffsCh = " << fCoeffsCh[0] << "," << fCoeffsCh[1] << "," << fCoeffsCh[2] << std::endl;
+    }
     muDirect = lightFlux * ( integrals[0] * fCoeffsCh[0] + integrals[1] * fCoeffsCh[1] + integrals[2] * fCoeffsCh[2] );
     if(muDirect < 0)
     {

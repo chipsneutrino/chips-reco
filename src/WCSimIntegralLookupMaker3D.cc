@@ -172,7 +172,7 @@ void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
 					double cosTh = (R0CosTh0 - s) / TMath::Sqrt(s*s + R0*R0 - 2*s*R0CosTh0);
 
 					double sWidth = hRho->GetBinWidth(iSBin); // +1 is array numbering vs. bin numbering
-          double thetaWidth = 1;
+          double thetaWidth = 1; // We've made the emission profiles so that all we need are the bin contents
           /*if(thetaWidth > 5e-4)
           {
             std::cout << "next " << cosThNext << "   current " << cosTh << std::endl;

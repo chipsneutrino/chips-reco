@@ -11,7 +11,7 @@ ClassImp(WCSimLikelihoodDigit)
 
 WCSimLikelihoodDigit::WCSimLikelihoodDigit(Double_t x, Double_t y, Double_t z,
         Double_t t, Double_t Q, Int_t tubeId, Double_t faceX, Double_t faceY,
-        Double_t faceZ, TString pmtName, double wlWeightedQE, double wlWeightedRefIndex)
+        Double_t faceZ, TString pmtName, double wlWeightedQE, double wlWeightedRefIndex, double exposeHeight)
 {
     if (tubeId == 0)
     {
@@ -31,6 +31,7 @@ WCSimLikelihoodDigit::WCSimLikelihoodDigit(Double_t x, Double_t y, Double_t z,
     fPMTName = pmtName;
     fAverageQE = wlWeightedQE;
     fAverageRefIndex = wlWeightedRefIndex;
+    fExposeHeight = exposeHeight;
 }
 
 
@@ -51,6 +52,7 @@ WCSimLikelihoodDigit::WCSimLikelihoodDigit( WCSimRootCherenkovDigiHit * myDigiHi
     fPMTName = myPMT.GetPMTName();
     fAverageQE = WCSimDetectorParameters::WavelengthAveragedQE(fPMTName.Data());
     fAverageRefIndex = WCSimDetectorParameters::QEAveragedRefIndex(fPMTName.Data());
+    fExposeHeight = WCSimDetectorParameters::PMTExposeHeight(fPMTName.Data());
 }
 
 WCSimLikelihoodDigit::WCSimLikelihoodDigit(const WCSimLikelihoodDigit &otherLikelihoodDigit)
@@ -70,6 +72,7 @@ WCSimLikelihoodDigit::WCSimLikelihoodDigit(const WCSimLikelihoodDigit &otherLike
   fPMTName = otherLikelihoodDigit.fPMTName;
   fAverageQE = otherLikelihoodDigit.fAverageQE;
   fAverageRefIndex = otherLikelihoodDigit.fAverageRefIndex;
+  fExposeHeight = otherLikelihoodDigit.fExposeHeight;
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -135,6 +138,10 @@ double WCSimLikelihoodDigit::GetAverageQE() const
 double WCSimLikelihoodDigit::GetAverageRefIndex() const
 {
     return fAverageRefIndex;
+}
+double WCSimLikelihoodDigit::GetExposeHeight() const
+{
+  return fExposeHeight;
 }
 
 
