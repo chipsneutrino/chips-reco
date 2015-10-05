@@ -490,7 +490,6 @@ void WCSimHoughTransformArray::FitMultiPeaksSmooth(std::vector<Double_t> &houghD
   WCSimHoughTransform* houghTrans = this->GetHoughTransform(this->FindBin(42));
 
   // If we are at the edge of the histogram space then rotate it.
-  double seedTheta = TMath::ACos(seedDirZ);
   double seedPhi = TMath::ATan2(seedDirY,seedDirX);
   double houghRotationPhi = 0.0;
   if(fabs(seedPhi) > 0.75 * TMath::Pi()){
@@ -548,7 +547,7 @@ void WCSimHoughTransformArray::FitMultiPeaksSmooth(std::vector<Double_t> &houghD
     double max = 0.0;
     double maxPhi = 1;
     double cosTheta = thetaArray1D[i];
-    if(abs(cosTheta) < 0.95){ continue; }
+    if(fabs(cosTheta) < 0.95){ continue; }
     for(int xBin = 1; xBin < houghSpace->GetNbinsX(); ++xBin)
     {
       double tmp = houghSpace->GetBinContent(xBin, houghSpace->GetYaxis()->FindBin(thetaArray1D[i]));
