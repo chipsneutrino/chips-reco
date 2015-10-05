@@ -15,6 +15,7 @@
 #include "TObject.h"
 #include "TVector3.h"
 #include "TString.h"
+class TGraph;
 
 class WCSimLikelihoodDigit: public TObject
 {
@@ -80,7 +81,7 @@ private:
     Double_t fFace[3]; ///< (x,y,z) components of the direction normal to the PMT
     TString fPMTName; ///< Name of PMT type, e.g. 3_inch_HQE
 
-    TGraph * fAverageQE; ///< Average QE of the PMT, from weighting QE(wavelength) by the average Cherenkov spectrum
+    TGraph * fAverageQE; ///< Average QE of the PMT, from weighting QE(wavelength) by the average Cherenkov spectrum - as a function of photon travel distance
     double fAverageRefIndex; ///< Weight WCSim's refractive index by (wavelength * PMT QE(wavelength))
     double fExposeHeight; ///< Heigh of PMT dome expose through the detector liner
 

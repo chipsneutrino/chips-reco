@@ -15,7 +15,6 @@
 #include "TH1D.h"
 #include "TH2D.h"
 #include "TMath.h"
-#include <TCanvas.h>
 
 #ifndef REFLEX_DICTIONARY
 ClassImp(WCSimDetectorParameters)
@@ -106,7 +105,6 @@ double WCSimDetectorParameters::WorkOutAverageRefIndex(
 	TGraph * refIndGraph = 0x0;
 	fSpectrumFile->GetObject("gRefIndex",refIndGraph);
 
-  std::cout << "qeGraph = " << qeGraph << std::endl; 
 	double refInd = AverageHistWithGraph(MultiplyHistByGraph(spectrumHist, qeGraph), refIndGraph);
   delete qeGraph;
 	return refInd;
@@ -137,23 +135,18 @@ TGraph * WCSimDetectorParameters::WorkOutAverageQE(const std::string& pmtName) {
 	}
 
   // For each distance bin, work out the wavelength averaged QE and fill the graph with it
-  for(int iBin = 1; iBin < spectrumHist->GetNbinsY(); ++iBin)
+  for(int iBin = 1; iBin <= spectrumHist->GetNbinsX(); ++iBin)
   {
-    TH1D * spectrumAtDist = spectrumHist->ProjectionX("spectrumAtDist",iBin, iBin);
-    // TCanvas * can = new TCanvas("can","",800,600);
-    // spectrumAtDist->Draw();
-    // can->SaveAs(TString::Format("spectrumAtDist_%d.png", iBin).Data());
+    TH1D * spectrumAtDist = spectrumHist->ProjectionX("spectrumAtDist",iBin, iBin+1);
     // WCSim has a hardcoded PMT QE cutoff for wavelengths less than 280nm and greater than 660nm
     // in WCSimStackingAction.cc and WCSimWCSD.cc
     // n.b. WCSim calls GetPMTQE with a lower cutoff of 240nm, but the function itself has 280nm hardcoded
     // as well
     double wavelengthAveragedQE = AverageHistWithGraph(spectrumAtDist, qeGraph, 280.0, 660.0);
-    gMeanQEDistance->SetPoint(gMeanQEDistance->GetN(), spectrumHist->GetYaxis()->GetBinLowEdge(iBin), wavelengthAveragedQE);
-
-
-
+    gMeanQEDistance->SetPoint(gMeanQEDistance->GetN(), spectrumAtDist->GetXaxis()->GetBinLowEdge(iBin), wavelengthAveragedQE);
     delete spectrumAtDist;
-  } 
+  }
+  
   delete qeGraph;
   return gMeanQEDistance;
 }
@@ -174,6 +167,7 @@ void WCSimDetectorParameters::OpenFile() {
 
 double WCSimDetectorParameters::AverageHistWithGraph(TH1D* hist,
 		TGraph* graph) {
+  std::cout << "Graph = " << graph << " 1  "<< std::endl;
   double minX = TMath::MinElement(graph->GetN(),graph->GetX()); 
   double maxX = TMath::MaxElement(graph->GetN(),graph->GetX()); 
   return AverageHistWithGraph(hist, graph, minX, maxX);
@@ -218,8 +212,6 @@ double WCSimDetectorParameters::AverageHistWithGraph(TH1D* hist,
 }
 
 TH1D* WCSimDetectorParameters::MultiplyHistByGraph(TH1D* hist, TGraph* graph) {
-  std::cout << "Hist = " << hist << std::endl;
-  std::cout << "And graph = " << graph << std::endl;
 
 	for(int iBin = 1; iBin <= hist->GetNbinsX(); ++iBin)
 	{

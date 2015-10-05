@@ -132,10 +132,9 @@ double WCSimLikelihoodDigit::GetFaceZ() const
 {
     return fFace[2];
 }
+
 double WCSimLikelihoodDigit::GetAverageQE(const double &distanceToPMT) const
 {
-    //std::cout << "Distance to PMT = " << distanceToPMT << std::endl;
-    //TCanvas * can  = new TCanvas("can","",800,600);
     double xLo, yLo;
     double xHi, yHi;
     fAverageQE->GetPoint(0, xLo, yLo);
@@ -150,6 +149,7 @@ double WCSimLikelihoodDigit::GetAverageQE(const double &distanceToPMT) const
     }
     return fAverageQE->Eval(distanceToPMT);
 }
+
 double WCSimLikelihoodDigit::GetAverageRefIndex() const
 {
     return fAverageRefIndex;
@@ -159,18 +159,16 @@ double WCSimLikelihoodDigit::GetExposeHeight() const
   return fExposeHeight;
 }
 
-
-
-
 void WCSimLikelihoodDigit::Print() const
 {
     std::cout << "WCSimLikelihoodDigit::Print()" << std::endl
             << "     fTubeId = " << fTubeId << std::endl
             << "     fQ      = " << fQ << std::endl
             << "     fT      = " << fT << std::endl
-            << "     fPos    = " << "(" << fPos[0] << ", " << fPos[1] << ", " << fPos[2] << ")" << std::endl
-            << "     fFace   = " << "(" << fFace[0] << ", " << fFace[1] << ", " << fFace[2] << ")"
-            << std::endl << std::endl;
+            << "     fPos    = " << "(" << fPos[0] 
+            << ", " << fPos[1] << ", " << fPos[2] << ")" << std::endl
+            << "     fFace   = " << "(" << fFace[0] << ", " << fFace[1] << ", " << fFace[2] << ")" << std::endl
+            << "     fExposeHeight = " << fExposeHeight << std::endl;
     return;
 }
 

@@ -140,8 +140,8 @@ Double_t WCSimLikelihoodTuner::TransmissionFunction(Double_t s, WCSimLikelihoodT
     Double_t r           = (pmtPos - emissionPos).Mag();
 
     // We'll use a triple exponential to parameterise the transmission probability
-//    Double_t nu[3]     = {-1.137e-5,-5.212e-4, -4.359e-3}; // nu = 1/Decay length in mm
-//    Double_t f[3]      = {0.8827, 0.08162, 0.03515};
+    //    Double_t nu[3]     = {-1.137e-5,-5.212e-4, -4.359e-3}; // nu = 1/Decay length in mm
+    //    Double_t f[3]      = {0.8827, 0.08162, 0.03515};
     
     
     // Assumes scattering length has not been edited down (abwff = 0.625) 
@@ -155,7 +155,6 @@ Double_t WCSimLikelihoodTuner::TransmissionFunction(Double_t s, WCSimLikelihoodT
     trans = 0.0;
     for(int i = 0; i < 3; ++i){ trans+= f[i]*exp(1.0 * 10 * r * nu[i]);}  //Convert to cm -> factor 10
   }
-  // std::cout << "trans = " << trans << std::endl;
   return trans;
 }
 
@@ -180,24 +179,20 @@ Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrackBase *
     TVector3 pmtFace     = myDigit->GetFace();
 
     Double_t cosTheta = pmtFace.Dot(pmtToEm) / pmtFace.Mag2(); 
-    Double_t theta = pmtFace.Angle(pmtToEm) * 180.0 / TMath::Pi();
-
-	  // The MiniBooNE method:
+/*	  // The MiniBooNE method:
     // Double_t theta = TMath::ACos(cosTheta) * 180. / TMath::Pi();
+    Double_t theta = TMath::ACos(cosTheta) * 180. / TMath::Pi();
     if( theta > 90.0 )
     {
       theta = 180.0 - theta;
     }
-    // std::cout << "theta = " << theta << std::endl;
-/*	  efficiency =  (1 + (-1.182e-4) * pow(theta, 2) + 4.959e-9 * pow(theta, 4) - 7.371e-14 * pow(theta, 6));
+	  efficiency =  (1 + (-1.182e-4) * pow(theta, 2) + 4.959e-9 * pow(theta, 4) - 7.371e-14 * pow(theta, 6));
 	}
-
   //std::cout << "Efficiency = " << efficiency * (1-glassReflect) << std::endl;
   return efficiency * (1-glassReflect);
-
+*/
     // Function for the PMT acceptance's dependence on the angle: 
     // WCSim defines arrays of efficiency at 10 degree intervals and linearly interpolates
-
 	
     if( cosTheta < 0.0 || cosTheta > 1.0 )
     {
@@ -207,11 +202,11 @@ Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrackBase *
         return 0.0;
     }
     Double_t theta = TMath::ACos(cosTheta) * 180.0 / TMath::Pi();
-*/
     Double_t collection_angle[10]={0.,10.,20.,30.,40.,50.,60.,70.,80.,90.};
     Double_t collection_eff[10]={100.,100.,99.,95.,90.,85.,80.,69.,35.,13.}; 
     Int_t num_elements = sizeof( collection_angle ) / sizeof( collection_angle[0] );
-
+    
+    Double_t efficiency = 0.0;
     for(int iEntry = 0; iEntry < num_elements-1; ++iEntry)
     {
       if( theta >= collection_angle[iEntry] && theta < collection_angle[iEntry+1])
@@ -222,10 +217,7 @@ Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrackBase *
       }
     }
   }
-
-  // std::cout << "efficiency = " << efficiency << std::endl;
   return (efficiency/100.) * (1.0 - glassReflect);
-	
 }
 
 /*
