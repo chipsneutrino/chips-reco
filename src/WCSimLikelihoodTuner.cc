@@ -280,7 +280,7 @@ Double_t WCSimLikelihoodTuner::SolidAngleFraction(Double_t s, WCSimLikelihoodTra
 Double_t WCSimLikelihoodTuner::ScatteringTable(Double_t s)
 {
     // A fixed percentage of scattered light for now
-    return 0.001;
+    return 0.01;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -316,7 +316,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ( Double_t s, WCSimLikelih
 
     J.push_back(   this->TransmissionFunction(s, myTrack, myDigit) 
                  * this->Efficiency(s, myTrack, myDigit)
-                 //* this->QuantumEfficiency(myTrack, myDigit)
+                 * this->QuantumEfficiency(s, myTrack, myDigit)
                  * this->SolidAngleFraction(s, myTrack, myDigit));
     J.push_back(J.at(0) * this->ScatteringTable(s));
     return J;
@@ -847,8 +847,11 @@ Double_t WCSimLikelihoodTuner::GetTrackLengthForPercentile(WCSimLikelihoodTrackB
   return length;
 }
 
-Double_t WCSimLikelihoodTuner::QuantumEfficiency(WCSimLikelihoodTrackBase* myTrack, WCSimLikelihoodDigit * myDigit) {
-  return(myDigit->GetAverageQE());
+Double_t WCSimLikelihoodTuner::QuantumEfficiency(const double &s, WCSimLikelihoodTrackBase* myTrack, WCSimLikelihoodDigit * myDigit) {
+  
+  double distToPMT = (myTrack->GetPropagatedPos(s) - myDigit->GetPos()).Mag();
+  double qe =  (myDigit->GetAverageQE(0));
+  return qe;
 }
 
 double WCSimLikelihoodTuner::GetCutoff(WCSimLikelihoodTrackBase* myTrack) {

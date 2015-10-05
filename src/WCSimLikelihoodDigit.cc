@@ -1,6 +1,7 @@
 #include "WCSimLikelihoodDigit.hh"
 #include "WCSimGeometry.hh"
 #include "WCSimRootGeom.hh"
+#include "TGraph.h"
 #include <iostream>
 #include <cmath>
 #include <cstdlib>
@@ -11,7 +12,7 @@ ClassImp(WCSimLikelihoodDigit)
 
 WCSimLikelihoodDigit::WCSimLikelihoodDigit(Double_t x, Double_t y, Double_t z,
         Double_t t, Double_t Q, Int_t tubeId, Double_t faceX, Double_t faceY,
-        Double_t faceZ, TString pmtName, double wlWeightedQE, double wlWeightedRefIndex, double exposeHeight)
+        Double_t faceZ, TString pmtName, TGraph * wlWeightedQE, double wlWeightedRefIndex, double exposeHeight)
 {
     if (tubeId == 0)
     {
@@ -131,9 +132,23 @@ double WCSimLikelihoodDigit::GetFaceZ() const
 {
     return fFace[2];
 }
-double WCSimLikelihoodDigit::GetAverageQE() const
+double WCSimLikelihoodDigit::GetAverageQE(const double &distanceToPMT) const
 {
-    return fAverageQE;
+    //std::cout << "Distance to PMT = " << distanceToPMT << std::endl;
+    //TCanvas * can  = new TCanvas("can","",800,600);
+    double xLo, yLo;
+    double xHi, yHi;
+    fAverageQE->GetPoint(0, xLo, yLo);
+    fAverageQE->GetPoint(fAverageQE->GetN()-1, xHi, yHi);
+    if( distanceToPMT < xLo )
+    {
+      std::cerr << "WCSimLikelihoodDigit::GetAverageQE - Warning: distance to PMT of " << distanceToPMT << " is less than the minimum x-value in the graph, of " << xLo << std::endl;
+    }
+    if( distanceToPMT > xHi )
+    {
+      std::cerr << "WCSimLikelihoodDigit::GetAverageQE - Warning: distance to PMT of " << distanceToPMT << " is greater than the maximum x-value in the graph, of " << xHi << std::endl;
+    }
+    return fAverageQE->Eval(distanceToPMT);
 }
 double WCSimLikelihoodDigit::GetAverageRefIndex() const
 {

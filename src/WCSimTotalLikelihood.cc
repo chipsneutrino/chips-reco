@@ -154,10 +154,10 @@ Double_t WCSimTotalLikelihood::Calc2LnL(int iDigit)
   }
   minus2LnL += timePart;
  
-  if(digit->GetQ() > 10)
+  /*if(digit->GetQ() > 10)
   {
     std::cout << "Recorded charge = " << digit->GetQ() << " and predicted charge before effiencies = " << totalCharge << " so charge adds " << chargePart << " to -2LnL and time adds " << timePart << std::endl;
-  }
+  }*/
   fMeasuredCharges.at(iDigit) = digit->GetQ();
   fPredictedCharges.at(iDigit) = totalCharge;
   fTotal2LnL.at(iDigit) = minus2LnL;
