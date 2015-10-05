@@ -13,8 +13,8 @@
 
 class WCSimFitterConfig{
 public:
-	static WCSimFitterConfig * Instance();
-	static void Print();
+	WCSimFitterConfig();
+	void Print();
 
 	virtual ~WCSimFitterConfig();
 	void SetNumTracks(int nTracks);
@@ -57,19 +57,26 @@ public:
 	bool GetIsParameterJoined(unsigned int numTrack, FitterParameterType::Type type);
 	unsigned int GetTrackIsJoinedWith(unsigned int numTrack, FitterParameterType::Type type);
 
-  bool GetIsPiZeroFit() const;
-  void SetIsPiZeroFit(bool isPiZero);
+	bool GetMakeFits() const;
+	void SetMakeFits(const bool &makeFits = true);
+
+	void SetForcePiZeroMass(const bool &doIt = true);
+	bool GetForcePiZeroMass();
+
+	bool GetIsPiZeroFit() const;
+	void SetIsPiZeroFit(bool isPiZero);
 private:
-	WCSimFitterConfig();
 
 
 
+    bool fMakeFits;
 	WCSimFitterParameters fFitterParameters;
     int fNumTracks;
 	int fNumEventsToFit;
 	int fNumParameters;
 	int fFirstEventToFit;
-  bool fIsPiZeroFit;
+	bool fIsPiZeroFit;
+	bool fForcePiZeroMass;
 };
 
 #endif /* WCSIMFITTERCONFIG_HH_ */

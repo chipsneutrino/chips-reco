@@ -9,11 +9,12 @@
 #include "WCSimInterface.hh"
 #include "WCSimTrackParameterEnums.hh"
 
-static WCSimFitterConfig * fgFitterConfig = 0;
-
-
 WCSimFitterConfig::WCSimFitterConfig() : fNumTracks(1), fNumEventsToFit(0), fFirstEventToFit(0){
   fIsPiZeroFit = 0;
+  fNumParameters = 0;
+  fForcePiZeroMass = 0;
+  fMakeFits = 1;
+
 	// TODO Auto-generated constructor stub
 
 }
@@ -21,12 +22,6 @@ WCSimFitterConfig::WCSimFitterConfig() : fNumTracks(1), fNumEventsToFit(0), fFir
 WCSimFitterConfig::~WCSimFitterConfig() {
 	// TODO Auto-generated destructor stub
 }
-
-WCSimFitterConfig* WCSimFitterConfig::Instance() {
-	if( fgFitterConfig == 0 ){ fgFitterConfig = new WCSimFitterConfig(); }
-	return fgFitterConfig;
-}
-
 
 void WCSimFitterConfig::SetNumTracks(int nTracks) {
   fFitterParameters.SetNumTracks(nTracks);
@@ -222,7 +217,7 @@ TrackType::Type WCSimFitterConfig::GetTrackType(const unsigned int &numTrack) co
 }
 
 void WCSimFitterConfig::SetFirstEventToFit(unsigned int iEvt) {
-	  int maxNumEvents = WCSimInterface::GetNumEvents();
+	  unsigned int maxNumEvents = WCSimInterface::GetNumEvents();
 	  if(iEvt > maxNumEvents)
 	  {
 	    std::cerr << "Warning: Requested to start fitting at event " << iEvt << ", but the file only contains " << maxNumEvents << std::endl;
@@ -251,7 +246,32 @@ bool WCSimFitterConfig::GetIsPiZeroFit() const
   return fIsPiZeroFit;
 }
 
+bool WCSimFitterConfig::GetMakeFits() const
+{
+	return fMakeFits;
+}
+
+void WCSimFitterConfig::SetMakeFits(const bool& makeFits)
+{
+	fMakeFits = makeFits;
+}
+
 void WCSimFitterConfig::SetIsPiZeroFit(bool isPiZero)
 {
   fIsPiZeroFit = isPiZero;
+}
+
+void WCSimFitterConfig::SetForcePiZeroMass(const bool& doIt)
+{
+	if(!fIsPiZeroFit)
+	{
+		std::cerr << "Can't force the mass to that of a pi zero without setting WCSimFitterConfig::fIsPiZeroFit first" << std::endl;
+		assert(fIsPiZeroFit);
+	}
+	fForcePiZeroMass = doIt;
+}
+
+bool WCSimFitterConfig::GetForcePiZeroMass()
+{
+	return fForcePiZeroMass;
 }

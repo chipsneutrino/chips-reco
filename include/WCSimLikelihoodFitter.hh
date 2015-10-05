@@ -24,6 +24,8 @@
 
 //class WCSimChargeLikelihood;
 class WCSimFitterTree;
+class WCSimFitterConfig;
+
 
 class WCSimLikelihoodFitter
 {
@@ -32,13 +34,14 @@ class WCSimLikelihoodFitter
          * Constructor
          * @param Event object from WCSim to reconstruct
          */
-		WCSimLikelihoodFitter();
+		WCSimLikelihoodFitter(WCSimFitterConfig * config);
         virtual ~WCSimLikelihoodFitter();
         void SetFitterPlots(WCSimFitterPlots * fitterPlots);
         void SetFitterTree(WCSimFitterTree * fitterTree);
         void RunFits();
         void RunSurfaces();
 
+        static bool RingSort(const std::pair<WCSimRecoRing*,double> &a, const std::pair<WCSimRecoRing*,double> &b);
 
 
     protected:
@@ -61,15 +64,16 @@ class WCSimLikelihoodFitter
         void FitVertex(); ///< Wrapper to call Fit() in case we ever want to change the vertex method
         void FitTime();
         void Fit(const char * minAlgorithm = "Simplex");
+        double FitAndGetLikelihood(const char * minAlgorithm = "Simplex"); ///< Does the fit and returns the best -2LnL from this minimization
         void FitPiZero(const char * minAlgorithm = "Simplex");
         void FitAlongTrack();
         void MetropolisHastings(const int nTries = 500);
         void MetropolisHastingsAlongTrack(const int nTries = 500);
 
         void FitPiZeroEvent();
-        void FitPiZeroEvent2();
 
         void FitEventNumber(Int_t iEvent);
+        void SetEvent(Int_t iEvent);
         void ResetEvent();
 
         /**
@@ -145,6 +149,7 @@ class WCSimLikelihoodFitter
         Bool_t GetTrueTrackEscapes(unsigned int iTrack) const;
         Bool_t GetFitTrackEscapes( unsigned int iTrack) const;
         Bool_t GetTrackEscapes(WCSimLikelihoodTrackBase * track) const;
+        Bool_t GetUsePiZeroMassConstraint() const;
 
         Double_t GetPiZeroSecondTrackEnergy(const Double_t * x);
 
@@ -190,6 +195,7 @@ class WCSimLikelihoodFitter
         WCSimFitterPlots * fFitterPlots;
         WCSimFitterTree * fFitterTree;
         WCSimFitterTrackParMap fFitterTrackParMap;
+        WCSimFitterConfig * fFitterConfig;
 
 
 

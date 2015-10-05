@@ -19,9 +19,9 @@ class WCSimPiZeroFitter;
 
 class WCSimFitterInterface {
 public:
-	static WCSimFitterInterface * Instance();
 	virtual ~WCSimFitterInterface();
-  void Init();
+	WCSimFitterInterface();
+	void Init();
 
 	// void SetFile(const char * fileName);
 	void SetNumTracks( unsigned int numTracks );
@@ -64,8 +64,8 @@ public:
 	void SetMakeSurfaces(bool doIt = true);
 	bool GetMakeSurfaces();
 
-  void SetNumSurfaceBins( unsigned int nBins );
-  unsigned int GetNumSurfaceBins() const;
+	void SetNumSurfaceBins( unsigned int nBins );
+	unsigned int GetNumSurfaceBins() const;
 
 	void Make1DSurface(unsigned int nTrack, const char * name, bool doIt = true );
 	bool GetMake1DSurface(unsigned int nTrack, const char * name );
@@ -73,8 +73,11 @@ public:
 	void Make2DSurface(unsigned int nTrack, const char * name, unsigned int nTrack2, const char * name2, bool doIt = true );
 	bool GetMake2DSurface(unsigned int nTrack, const char * name, unsigned int nTrack2, const char * name2 );
 
-  void SetIsPiZeroFit(const bool &isPiZero);
-  bool GetIsPiZeroFit() const;
+	void SetIsPiZeroFit(const bool &isPiZero);
+	bool GetIsPiZeroFit() const;
+
+	void SetForcePiZeroMass(const bool &doIt = true);
+	bool GetForcePiZeroMass() const;
 
 	void PrintFitConfiguration();
 	void PrintPlotsConfiguration();
@@ -88,8 +91,8 @@ public:
 	void SetInputFileName(const char * inputfile);
 
 private:
-	WCSimFitterInterface();
 
+	WCSimFitterConfig * fFitterConfig;
 	TString fFileName;
 	unsigned int fNumTracks;
 	WCSimLikelihoodFitter * fFitter;

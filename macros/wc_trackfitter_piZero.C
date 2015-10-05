@@ -1,4 +1,4 @@
-void wc_trackfitter_twoTracks(const char * infile = "", int start=0, int fit=100){
+void wc_trackfitter_piZero(const char * infile = "", int start=0, int fit=100){
   // Path to WCSim ROOT file
   // =======================
   TString filename(infile);
@@ -23,15 +23,17 @@ void wc_trackfitter_twoTracks(const char * infile = "", int start=0, int fit=100
   // Load Data
   // =========
   WCSimInterface::LoadData(filename.Data());
-  
-  WCSimFitterInterface::Instance()->SetInputFileName(filename.Data()); // For inclusion in the fitterPlots file
-  WCSimFitterInterface::Instance()->SetNumTracks(2);
-  WCSimFitterInterface::Instance()->SetTrackType(0, "PhotonLike");
-  WCSimFitterInterface::Instance()->SetTrackType(1, "PhotonLike");
-  WCSimFitterInterface::Instance()->SetIsPiZeroFit(true);
+ 
+  WCSimFitterInterface myInterface; 
+  myInterface.SetInputFileName(filename.Data()); // For inclusion in the fitterPlots file
+  myInterface.SetNumTracks(2);
+  myInterface.SetTrackType(0, "PhotonLike");
+  myInterface.SetTrackType(1, "PhotonLike");
+  myInterface.SetIsPiZeroFit(true);
+  myInterface.SetForcePiZeroMass(true);
 
-//  WCSimFitterInterface::Instance()->SetTrackType(0, "MuonLike");
-//  WCSimFitterInterface::Instance()->SetTrackType(1, "MuonLike");
+//  myInterface.SetTrackType(0, "MuonLike");
+//  myInterface.SetTrackType(1, "MuonLike");
 
   // Set parameter(track number, "name", minimum, maximum, start, is fixed?)
   // Names are: kVtxX, kVtxY, kVtxZ, kDirTh, kDirPhi, kEnergy
@@ -53,31 +55,31 @@ void wc_trackfitter_twoTracks(const char * infile = "", int start=0, int fit=100
   double fTheta2 = TMath::ACos(fDirZ2);
   double fPhi2 = TMath::ATan2(fDirY2,fDirX2);
   //
-  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxX", -1200, 1200, fVtxX, fFixVtx);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxY", -1200, 1200, fVtxY, fFixVtx);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxZ", -900, 900, fVtxZ, fFixVtx);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxT", -900, 900, 0, true);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kDirTh", 0, TMath::Pi(), fTheta1, fFixDir);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kDirPhi", -TMath::Pi(), TMath::Pi(), fPhi1, fFixDir);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kEnergy", 500, 3000, 600, false);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kConversionDistance", 0, 200, 50, false);
+  myInterface.SetParameter(0, "kVtxX", -1200, 1200, fVtxX, fFixVtx);
+  myInterface.SetParameter(0, "kVtxY", -1200, 1200, fVtxY, fFixVtx);
+  myInterface.SetParameter(0, "kVtxZ", -900, 900, fVtxZ, fFixVtx);
+  myInterface.SetParameter(0, "kVtxT", -900, 900, 0, true);
+  myInterface.SetParameter(0, "kDirTh", 0, TMath::Pi(), fTheta1, fFixDir);
+  myInterface.SetParameter(0, "kDirPhi", -TMath::Pi(), TMath::Pi(), fPhi1, fFixDir);
+  myInterface.SetParameter(0, "kEnergy", 100, 3000, 600, false);
+  myInterface.SetParameter(0, "kConversionDistance", 0, 400, 50, false);
 
-  WCSimFitterInterface::Instance()->SetParameter(1, "kVtxX", -1200, 1200, fVtxX, fFixVtx);
-  WCSimFitterInterface::Instance()->SetParameter(1, "kVtxY", -1200, 1200, fVtxY, fFixVtx);
-  WCSimFitterInterface::Instance()->SetParameter(1, "kVtxZ", -900, 900, fVtxZ, fFixVtx);
-  WCSimFitterInterface::Instance()->SetParameter(1, "kVtxT", -900, 900, 0, true);
-  WCSimFitterInterface::Instance()->SetParameter(1, "kDirTh", 0, TMath::Pi(), fTheta2, fFixDir);
-  WCSimFitterInterface::Instance()->SetParameter(1, "kDirPhi", -TMath::Pi(), TMath::Pi(), fPhi2, fFixDir);
-  WCSimFitterInterface::Instance()->SetParameter(1, "kEnergy", 500, 3000, 600, false);
-  WCSimFitterInterface::Instance()->SetParameter(1, "kConversionDistance", 0, 200, 50, false);
+  myInterface.SetParameter(1, "kVtxX", -1200, 1200, fVtxX, fFixVtx);
+  myInterface.SetParameter(1, "kVtxY", -1200, 1200, fVtxY, fFixVtx);
+  myInterface.SetParameter(1, "kVtxZ", -900, 900, fVtxZ, fFixVtx);
+  myInterface.SetParameter(1, "kVtxT", -900, 900, 0, true);
+  myInterface.SetParameter(1, "kDirTh", 0, TMath::Pi(), fTheta2, fFixDir);
+  myInterface.SetParameter(1, "kDirPhi", -TMath::Pi(), TMath::Pi(), fPhi2, fFixDir);
+  myInterface.SetParameter(1, "kEnergy", 500, 3000, 600, false);
+  myInterface.SetParameter(1, "kConversionDistance", 0, 400, 50, false);
 
-  WCSimFitterInterface::Instance()->JoinParametersTogether(0,1,"kVtxX");
-  WCSimFitterInterface::Instance()->JoinParametersTogether(0,1,"kVtxY");
-  WCSimFitterInterface::Instance()->JoinParametersTogether(0,1,"kVtxZ");
-  WCSimFitterInterface::Instance()->JoinParametersTogether(0,1,"kVtxT");
+  myInterface.JoinParametersTogether(0,1,"kVtxX");
+  myInterface.JoinParametersTogether(0,1,"kVtxY");
+  myInterface.JoinParametersTogether(0,1,"kVtxZ");
+  myInterface.JoinParametersTogether(0,1,"kVtxT");
 
   // Set up some initial parameters
-  if(WCSimFitterInterface::Instance()->GetTrackType(0) == TrackType::MuonLike){
+  if(myInterface.GetTrackType(0) == TrackType::MuonLike){
     WCSimParameters::Instance()->SetSlicerClusterDistance(250);
   }
   else{
@@ -87,36 +89,36 @@ void wc_trackfitter_twoTracks(const char * infile = "", int start=0, int fit=100
   WCSimParameters::Instance()->SetSlicerChargeCut(1.0);
 
   // Plot best-fit results
-  WCSimFitterInterface::Instance()->PlotForEachEvent("kVtxX");
-  WCSimFitterInterface::Instance()->PlotForEachEvent("kVtxY");
-  WCSimFitterInterface::Instance()->PlotForEachEvent("kVtxZ");
-  WCSimFitterInterface::Instance()->PlotForEachEvent("kVtxT");
-  WCSimFitterInterface::Instance()->PlotForEachEvent("kDirTh");
-  WCSimFitterInterface::Instance()->PlotForEachEvent("kDirPhi");
-  WCSimFitterInterface::Instance()->PlotForEachEvent("kEnergy");
+  myInterface.PlotForEachEvent("kVtxX");
+  myInterface.PlotForEachEvent("kVtxY");
+  myInterface.PlotForEachEvent("kVtxZ");
+  myInterface.PlotForEachEvent("kVtxT");
+  myInterface.PlotForEachEvent("kDirTh");
+  myInterface.PlotForEachEvent("kDirPhi");
+  myInterface.PlotForEachEvent("kEnergy");
 
   // Plot reco - true values
-  WCSimFitterInterface::Instance()->PlotRecoMinusTrue("kVtxX");
-  WCSimFitterInterface::Instance()->PlotRecoMinusTrue("kVtxY");
-  WCSimFitterInterface::Instance()->PlotRecoMinusTrue("kVtxZ");
-  WCSimFitterInterface::Instance()->PlotRecoMinusTrue("kVtxT");
-  WCSimFitterInterface::Instance()->PlotRecoMinusTrue("kDirTh");
-  WCSimFitterInterface::Instance()->PlotRecoMinusTrue("kDirPhi");
-  WCSimFitterInterface::Instance()->PlotRecoMinusTrue("kEnergy");
+  myInterface.PlotRecoMinusTrue("kVtxX");
+  myInterface.PlotRecoMinusTrue("kVtxY");
+  myInterface.PlotRecoMinusTrue("kVtxZ");
+  myInterface.PlotRecoMinusTrue("kVtxT");
+  myInterface.PlotRecoMinusTrue("kDirTh");
+  myInterface.PlotRecoMinusTrue("kDirPhi");
+  myInterface.PlotRecoMinusTrue("kEnergy");
 
   // Sweep out one variable
-  WCSimFitterInterface::Instance()->SetNumSurfaceBins(22);
-  WCSimFitterInterface::Instance()->Make1DSurface(0, "kEnergy");
-  //WCSimFitterInterface::Instance()->Make2DSurface(0, "kVtxX", 0, "kVtxY");
-  WCSimFitterInterface::Instance()->SetMakeFits(kTRUE);
-  WCSimFitterInterface::Instance()->SetMakeSurfaces(kFALSE);
+  myInterface.SetNumSurfaceBins(22);
+  myInterface.Make1DSurface(0, "kEnergy");
+  //myInterface.Make2DSurface(0, "kVtxX", 0, "kVtxY");
+  myInterface.SetMakeFits(kTRUE);
+  myInterface.SetMakeSurfaces(kFALSE);
 
 
 
-  WCSimFitterInterface::Instance()->Print();
-  WCSimFitterInterface::Instance()->SetNumEventsToFit(fit);
-  WCSimFitterInterface::Instance()->SetFirstEventToFit(start);
-  WCSimFitterInterface::Instance()->Run();
+  myInterface.Print();
+  myInterface.SetNumEventsToFit(fit);
+  myInterface.SetFirstEventToFit(start);
+  myInterface.Run();
   
   std::cout << "Done!" << std::endl;
 

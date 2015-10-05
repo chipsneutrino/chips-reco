@@ -38,6 +38,15 @@ public:
 											const double &theta,
 											const double &phi,
 											const double &energy);
+	static WCSimLikelihoodTrackBase * MakeTrack(const TrackType &type,
+												const double &x,
+												const double &y,
+												const double &z,
+												const double &t,
+												const double &theta,
+												const double &phi,
+												const double &energy,
+												const double &conv);
 
 };
 

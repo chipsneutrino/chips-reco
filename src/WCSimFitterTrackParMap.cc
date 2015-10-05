@@ -15,7 +15,9 @@
 ClassImp(WCSimFitterTrackParMap)
 #endif
 
-WCSimFitterTrackParMap::WCSimFitterTrackParMap() {
+WCSimFitterTrackParMap::WCSimFitterTrackParMap(WCSimFitterConfig * config) {
+	fFitterConfig = config;
+
 	// TODO Auto-generated constructor stub
 
 }
@@ -26,25 +28,25 @@ WCSimFitterTrackParMap::~WCSimFitterTrackParMap() {
 
 void WCSimFitterTrackParMap::Set() {
 	fTrackAndTypeIndexMap.clear();
-	unsigned int nTracks = WCSimFitterConfig::Instance()->GetNumTracks();
-  //std::cout << "Number of tracks in ::Set is " << nTracks << std::endl;
+	unsigned int nTracks = fFitterConfig->GetNumTracks();
+    std::cout << "Number of tracks in ::Set is " << nTracks << std::endl;
 
 	unsigned int arrayCounter = 0; // How many unique track parameters there are
 	for (unsigned int iTrack = 0; iTrack < nTracks; ++iTrack) {
 
 	  std::vector<FitterParameterType::Type> allTypes = 
-        FitterParameterType::GetAllAllowedTypes(WCSimFitterInterface::Instance()->GetTrackType(iTrack));
+        FitterParameterType::GetAllAllowedTypes(fFitterConfig->GetTrackType(iTrack));
 		for (unsigned int iParam = 0; iParam < allTypes.size(); ++iParam) {
 			// Is it joined?
 			TrackAndType trackPar(iTrack, allTypes.at(iParam));
 			unsigned int isJoinedWith =
-					WCSimFitterConfig::Instance()->GetTrackIsJoinedWith(iTrack,
+					fFitterConfig->GetTrackIsJoinedWith(iTrack,
 							FitterParameterType::AsString(trackPar.second).c_str());
 			if (isJoinedWith == iTrack) // Itself, i.e. not joined with any other track
 			{
 				// Then set it to the value from the first track
-        //std::cout << "Array counter = " << arrayCounter << "  " << "Independent params = " << WCSimFitterConfig::Instance()->GetNumIndependentParameters() << std::endl; 
-				assert(arrayCounter	< WCSimFitterConfig::Instance()->GetNumIndependentParameters());
+        //std::cout << "Array counter = " << arrayCounter << "  " << "Independent params = " << fFitterConfig->GetNumIndependentParameters() << std::endl;
+				assert(arrayCounter	< fFitterConfig->GetNumIndependentParameters());
 				fTrackAndTypeIndexMap[trackPar] = arrayCounter;
 				arrayCounter++;
 			}
@@ -65,12 +67,12 @@ void WCSimFitterTrackParMap::SetArrays()
 	ResizeVectors();
 
 	Int_t iParam = 0;
-	unsigned int numTracks = WCSimFitterConfig::Instance()->GetNumTracks();
+	unsigned int numTracks = fFitterConfig->GetNumTracks();
 
 
 	for(unsigned int jTrack = 0; jTrack < numTracks; ++jTrack)
 	{
-		fTypes.at(jTrack) = (WCSimFitterConfig::Instance()->GetTrackType(jTrack));
+		fTypes.at(jTrack) = (fFitterConfig->GetTrackType(jTrack));
 		std::vector<FitterParameterType::Type> paramTypes = FitterParameterType::GetAllAllowedTypes(fTypes.at(jTrack));
 		std::vector<FitterParameterType::Type>::const_iterator typeItr = paramTypes.begin();
 
@@ -78,16 +80,16 @@ void WCSimFitterTrackParMap::SetArrays()
 		{
 			const char * name  = FitterParameterType::AsString(*typeItr).c_str();
 
-			if(WCSimFitterConfig::Instance()->GetIsParameterJoined(jTrack, name)){
+			if(fFitterConfig->GetIsParameterJoined(jTrack, name)){
 				continue;
 			}
 			// Only set it if it's a unique parameter
 			else{
-				fCurrentValues[iParam] = WCSimFitterConfig::Instance()->GetParStart(jTrack,name);
-				fMinValues[iParam]   = WCSimFitterConfig::Instance()->GetParMin(jTrack,name);
-				fMaxValues[iParam]   = WCSimFitterConfig::Instance()->GetParMax(jTrack,name);
-				fSteps[iParam] = (WCSimFitterConfig::Instance()->GetParMax(jTrack,name) - WCSimFitterConfig::Instance()->GetParMin(jTrack, name)) / 250.0;
-				fAlwaysFixed[iParam] = WCSimFitterConfig::Instance()->GetIsFixedParameter(jTrack,name);
+				fCurrentValues[iParam] = fFitterConfig->GetParStart(jTrack,name);
+				fMinValues[iParam]   = fFitterConfig->GetParMin(jTrack,name);
+				fMaxValues[iParam]   = fFitterConfig->GetParMax(jTrack,name);
+				fSteps[iParam] = (fFitterConfig->GetParMax(jTrack,name) - fFitterConfig->GetParMin(jTrack, name)) / 250.0;
+				fAlwaysFixed[iParam] = fFitterConfig->GetIsFixedParameter(jTrack,name);
 				fCurrentlyFixed[iParam] = fAlwaysFixed[iParam];
 				TString parName = Form("%s_track%d", name, jTrack);
 				fNames[iParam]  = std::string(parName.Data());
@@ -119,8 +121,8 @@ void WCSimFitterTrackParMap::ResizeVectors()
 	fIsEnergy.resize(arraySize);
 	fSteps.resize(arraySize);
 	fNames.resize(arraySize);
-	fTypes.resize(WCSimFitterInterface::Instance()->GetNumTracks());
-  //std::cout << "WCSimFitterInterface::ResizeVectors() = " << WCSimFitterInterface::Instance()->GetNumTracks() << std::endl;
+	fTypes.resize(fFitterConfig->GetNumTracks());
+
 
 
 }
@@ -145,7 +147,7 @@ void WCSimFitterTrackParMap::FreeVertex(int track) {
 // if no argument given) if fixIt = true, otherwise frees it
 void WCSimFitterTrackParMap::FixOrFreeDirection(bool fixIt, int track) {
 	int firstTrack = (track != -1) ? track : 0;
-	int lastTrack = (track != -1) ? track : WCSimFitterInterface::Instance()->GetNumTracks();
+	int lastTrack = (track != -1) ? track : fFitterConfig->GetNumTracks();
 
 	for(int iTrack = firstTrack; iTrack < lastTrack; ++iTrack)
 	{
@@ -166,7 +168,7 @@ void WCSimFitterTrackParMap::FixOrFreeDirection(bool fixIt, int track) {
 // if no argument given) if fixIt = true, otherwise frees it
 void WCSimFitterTrackParMap::FixOrFreeVertex(bool fixIt, int track) {
 	int firstTrack = (track != -1) ? track : 0;
-	int lastTrack = (track != -1) ? track : WCSimFitterInterface::Instance()->GetNumTracks();
+	int lastTrack = (track != -1) ? track : fFitterConfig->GetNumTracks();
 
 	for(int iTrack = firstTrack; iTrack < lastTrack; ++iTrack)
 	{
@@ -200,7 +202,7 @@ void WCSimFitterTrackParMap::FreeEnergy(int track) {
 
 void WCSimFitterTrackParMap::FixOrFreeEnergy(bool fixIt, int track) {
 	int firstTrack = (track != -1) ? track : 0;
-		int lastTrack = (track != -1) ? track : WCSimFitterInterface::Instance()->GetNumTracks();
+		int lastTrack = (track != -1) ? track : fFitterConfig->GetNumTracks();
 
 		for(int iTrack = firstTrack; iTrack < lastTrack; ++iTrack)
 		{
@@ -219,7 +221,7 @@ void WCSimFitterTrackParMap::FreeTime(int track) {
 
 void WCSimFitterTrackParMap::FixOrFreeTime(bool fixIt, int track) {
 	int firstTrack = (track != -1) ? track : 0;
-		int lastTrack = (track != -1) ? track : WCSimFitterInterface::Instance()->GetNumTracks();
+		int lastTrack = (track != -1) ? track : fFitterConfig->GetNumTracks();
 
 		for(int iTrack = firstTrack; iTrack < lastTrack; ++iTrack)
 		{
@@ -239,7 +241,7 @@ void WCSimFitterTrackParMap::FreeConversionLength(int track) {
 
 void WCSimFitterTrackParMap::FixOrFreeConversionLength(bool fixIt, int track) {
 	int firstTrack = (track != -1) ? track : 0;
-		int lastTrack = (track != -1) ? track : WCSimFitterInterface::Instance()->GetNumTracks();
+		int lastTrack = (track != -1) ? track : fFitterConfig->GetNumTracks();
 
 		for(int iTrack = firstTrack; iTrack < lastTrack; ++iTrack)
 		{
@@ -297,12 +299,12 @@ void WCSimFitterTrackParMap::SetCurrentValue(int arrayIndex, double value) {
 	fCurrentValues.at(arrayIndex) = value;
 }
 
-int WCSimFitterTrackParMap::GetIndex(int track, FitterParameterType type) {
+unsigned int WCSimFitterTrackParMap::GetIndex(int track, FitterParameterType type) {
 	TrackAndType myPair(track, type);
 	return GetIndex(myPair);
 }
 
-int WCSimFitterTrackParMap::GetIndex(TrackAndType trackAndType) {
+unsigned int WCSimFitterTrackParMap::GetIndex(TrackAndType trackAndType) {
 	std::map<TrackAndType, unsigned int>::iterator findIndex = fTrackAndTypeIndexMap.find(trackAndType);
 	assert(findIndex != fTrackAndTypeIndexMap.end());
 	return (*findIndex).second;

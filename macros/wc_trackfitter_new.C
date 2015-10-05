@@ -23,53 +23,54 @@ void wc_trackfitter_new(const char * infile = "", int start=0, int fit=100){
   // Load Data
   // =========
   WCSimInterface::LoadData(filename.Data());
+
+  WCSimFitterInterface myFitter;
   
-  WCSimFitterInterface::Instance()->SetInputFileName(filename.Data()); // For inclusion in the fitterPlots file
-  WCSimFitterInterface::Instance()->SetNumTracks(1);
-  WCSimFitterInterface::Instance()->SetTrackType(0, "MuonLike");
+  myFitter.SetInputFileName(filename.Data()); // For inclusion in the fitterPlots file
+  myFitter.SetNumTracks(1);
+  myFitter.SetTrackType(0, "MuonLike");
 
   // Set parameter(track number, "name", minimum, maximum, start, is fixed?)
   // Names are: kVtxX, kVtxY, kVtxZ, kDirTh, kDirPhi, kEnergy
-  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxX", -1200, 1200, 0, false);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxY", -1200, 1200, 0, false);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxZ", -900, 900, 0, false);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kVtxT", 900, 1000, 935, false);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kDirTh", 0, TMath::Pi(), 0.0, false);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kDirPhi", -TMath::Pi(), TMath::Pi(), 0.0, false);
-  WCSimFitterInterface::Instance()->SetParameter(0, "kEnergy", 900, 3100, 1000, false);
+  myFitter.SetParameter(0, "kVtxZ", -900, 900, 0, false);
+  myFitter.SetParameter(0, "kVtxT", 900, 1000, 935, true);
+  myFitter.SetParameter(0, "kDirTh", 0, TMath::Pi(), 0.0, false);
+  myFitter.SetParameter(0, "kDirPhi", -TMath::Pi(), TMath::Pi(), 0.0, false);
+  myFitter.SetParameter(0, "kEnergy", 100, 4500, 1000, false);
+  myFitter.SetParameter(0, "kConversionDistance", 0, 250, 50, true);
 
 
   // Plot best-fit results
-  WCSimFitterInterface::Instance()->PlotForEachEvent("kVtxX");
-  WCSimFitterInterface::Instance()->PlotForEachEvent("kVtxY");
-  WCSimFitterInterface::Instance()->PlotForEachEvent("kVtxZ");
-  WCSimFitterInterface::Instance()->PlotForEachEvent("kVtxT");
-  WCSimFitterInterface::Instance()->PlotForEachEvent("kDirTh");
-  WCSimFitterInterface::Instance()->PlotForEachEvent("kDirPhi");
-  WCSimFitterInterface::Instance()->PlotForEachEvent("kEnergy");
+  myFitter.PlotForEachEvent("kVtxX");
+  myFitter.PlotForEachEvent("kVtxY");
+  myFitter.PlotForEachEvent("kVtxZ");
+  myFitter.PlotForEachEvent("kVtxT");
+  myFitter.PlotForEachEvent("kDirTh");
+  myFitter.PlotForEachEvent("kDirPhi");
+  myFitter.PlotForEachEvent("kEnergy");
 
   // Plot reco - true values
-  WCSimFitterInterface::Instance()->PlotRecoMinusTrue("kVtxX");
-  WCSimFitterInterface::Instance()->PlotRecoMinusTrue("kVtxY");
-  WCSimFitterInterface::Instance()->PlotRecoMinusTrue("kVtxZ");
-  WCSimFitterInterface::Instance()->PlotRecoMinusTrue("kVtxT");
-  WCSimFitterInterface::Instance()->PlotRecoMinusTrue("kDirTh");
-  WCSimFitterInterface::Instance()->PlotRecoMinusTrue("kDirPhi");
-  WCSimFitterInterface::Instance()->PlotRecoMinusTrue("kEnergy");
+  myFitter.PlotRecoMinusTrue("kVtxX");
+  myFitter.PlotRecoMinusTrue("kVtxY");
+  myFitter.PlotRecoMinusTrue("kVtxZ");
+  myFitter.PlotRecoMinusTrue("kVtxT");
+  myFitter.PlotRecoMinusTrue("kDirTh");
+  myFitter.PlotRecoMinusTrue("kDirPhi");
+  myFitter.PlotRecoMinusTrue("kEnergy");
 
   // Sweep out one variable
-  WCSimFitterInterface::Instance()->SetNumSurfaceBins(22);
-  WCSimFitterInterface::Instance()->Make1DSurface(0, "kEnergy");
-  //WCSimFitterInterface::Instance()->Make2DSurface(0, "kVtxX", 0, "kVtxY");
-  WCSimFitterInterface::Instance()->SetMakeFits(kTRUE);
-  WCSimFitterInterface::Instance()->SetMakeSurfaces(kFALSE);
+  myFitter.SetNumSurfaceBins(22);
+  myFitter.Make1DSurface(0, "kEnergy");
+  //myFitter.Make2DSurface(0, "kVtxX", 0, "kVtxY");
+  myFitter.SetMakeFits(kTRUE);
+  myFitter.SetMakeSurfaces(kFALSE);
 
 
 
-  WCSimFitterInterface::Instance()->Print();
-  WCSimFitterInterface::Instance()->SetNumEventsToFit(fit);
-  WCSimFitterInterface::Instance()->SetFirstEventToFit(start);
-  WCSimFitterInterface::Instance()->Run();
+  myFitter.Print();
+  myFitter.SetNumEventsToFit(fit);
+  myFitter.SetFirstEventToFit(start);
+  myFitter.Run();
   
   std::cout << "Done!" << std::endl;
 

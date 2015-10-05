@@ -95,4 +95,10 @@
 #pragma link C++ class WCSimTimeLikelihood2+;
 #pragma link C++ class WCSimDetectorParameters+;
 #pragma link C++ class WCSimPiZeroFitter+;
+#pragma link C++ class WCSimPiZeroSeeder+;
+#pragma link C++ class WCSimPiZeroSeedGenerator+;
+#pragma link C++ class WCSimPiZeroSeed+;
+#pragma link C++ class WCSimPiZeroSingleElectronSeeder+;
+#pragma link C++ class WCSimPiZeroHoughSeeder+;
+#pragma link C++ class WCSimPiZeroElectronAdjuster+;
 #endif
