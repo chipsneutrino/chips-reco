@@ -150,12 +150,12 @@ Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
   fTotalLikelihood->SetTracks(tracksToFit);
   minus2LnL = fTotalLikelihood->Calc2LnL();
 
-  // for(size_t iTrack = 0; iTrack < tracksToFit.size(); ++iTrack)
-  // {
-  //   tracksToFit.at(iTrack)->Print();
-  //   // std::cout << iTrack << "/" << tracksToFit.size() << std::endl;
-	//   delete (tracksToFit.at(iTrack));
-  // }
+  for(size_t iTrack = 0; iTrack < tracksToFit.size(); ++iTrack)
+  {
+    tracksToFit.at(iTrack)->Print();
+    // std::cout << iTrack << "/" << tracksToFit.size() << std::endl;
+	  delete (tracksToFit.at(iTrack));
+  }
   tracksToFit.clear();
   std::cout << "Function evaluated " << ++fCalls << " times for event " << fEvent << " ... " << " -2Ln(L) = " << minus2LnL << std::endl << std::endl;
   return minus2LnL;
@@ -408,27 +408,29 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
       }
       
       // Now fit the energy
+      std::cout << "Fitting energy only" << std::endl;
       FixVertex();
-      //FixDirection();
+      FixDirection();
       FitEnergy();
       FreeVertex();
-      //FreeDirection();
+      FreeDirection();
 
       // Fix the directions and energy and move the vertex
       // along the (average) momentum vector (helps because the seed
       // often gets this wrong in the direction of the track by 
       // changing the cone angle)
+      std::cout << "Fitting along track" << std::endl;
       FixDirection();
       // FixEnergy();
       FitAlongTrack();
       // MetropolisHastingsAlongTrack(250);
       FreeDirection();
-      // FreeEnergy();
+      FreeEnergy();
   
       // Now freely fit the vertex and direction    
       // FixEnergy();
-      // FitVertex();
-      // FreeEnergy();
+      FitVertex();
+      FreeEnergy();
   
       // And finally tidy up the energy
       FixVertex();
@@ -440,7 +442,7 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
       FreeVertex();
       FreeDirection();    
       FreeEnergy();
-      Fit("Simplex");
+      //Fit("Simplex");
       // MetropolisHastings(500);
       
     }
@@ -1049,12 +1051,12 @@ double WCSimLikelihoodFitter::FitAndGetLikelihood(const char * minAlgorithm)
 	{
 		// Sometimes the fast seed goes outside the allowed range:
 		if( currentlyFixed[i] ){
-      // std::cout << "Fixed: " << names[i] << "  Start: " << startVals[i] << std::endl;
+      std::cout << "Fixed: " << names[i] << "  Start: " << startVals[i] << std::endl;
 			min->SetFixedVariable(i, names[i], startVals[i]);
 		}
 		else{
 			isAnythingFree = true;
-      // std::cout << "Free: " << names[i] << "  Start: " << startVals[i] << "   Min: " << minVals[i] << "   Max: " << maxVals[i] << std::endl;
+      std::cout << "Free: " << names[i] << "  Start: " << startVals[i] << "   Min: " << minVals[i] << "   Max: " << maxVals[i] << std::endl;
 			min->SetLimitedVariable(i, names[i], startVals[i], steps[i], minVals[i], maxVals[i]);
 		}
 
@@ -1070,7 +1072,7 @@ double WCSimLikelihoodFitter::FitAndGetLikelihood(const char * minAlgorithm)
 	// Print the parameters we're using
 	for(UInt_t j = 0; j < nPars; ++j)
 	{
-		// std::cout << j << "   " << names[j] << "   " << startVals[j] << "   " << minVals[j] << "   " << maxVals[j] << std::endl;
+		std::cout << j << "   " << names[j] << "   " << startVals[j] << "   " << minVals[j] << "   " << maxVals[j] << std::endl;
 	}
 
 
@@ -1503,14 +1505,31 @@ void WCSimLikelihoodFitter::FitAlongTrack()
     TVector3 mins(fFitterTrackParMap.GetMinValue(0, FitterParameterType::kVtxX),
                   fFitterTrackParMap.GetMinValue(0, FitterParameterType::kVtxY),
                   fFitterTrackParMap.GetMinValue(0, FitterParameterType::kVtxZ));
-    double minVal = (mins.X() + mins.Y() + mins.Z()) / 3.0;
-
-
+    
     TVector3 maxes(fFitterTrackParMap.GetMaxValue(0, FitterParameterType::kVtxX),
                    fFitterTrackParMap.GetMaxValue(0, FitterParameterType::kVtxY),
                    fFitterTrackParMap.GetMaxValue(0, FitterParameterType::kVtxZ));
-    double maxVal = (maxes.X() + maxes.Y() + maxes.Z()) / 3.0;
-    std::cout << "MinVal = " << minVal << "  MaxVal = " << maxVal << std::endl;
+
+    std::vector<double> escapeDists;
+    for(int i = 0; i < 3; ++i)
+    {
+      if(fabs(direction[i]) > 1e-6)
+      {
+        escapeDists.push_back( (maxes[i] - startVertex[i])/direction[i] );
+        escapeDists.push_back( (mins[i] - startVertex[i])/direction[i] );
+      }
+    }
+    assert(escapeDists.size() > 1);
+    std::sort(escapeDists.begin(), escapeDists.end());
+    double maxVal = static_cast<unsigned int>(-1);
+    double minVal = -1.0 * maxVal;
+    std::cout << "minVal = " << minVal << " and start maxVal = " << maxVal << std::endl;
+    for(int i = 0; i < escapeDists.size(); ++i)
+    {
+      if(escapeDists[i] < 0 && escapeDists[i] > minVal){ minVal = escapeDists[i]; }
+      if(escapeDists[i] > 0 && escapeDists[i] < maxVal){ maxVal = escapeDists[i]; }
+    }
+    std::cout << "MinVal = " << minVal << " and maxVal = " << maxVal << std::endl;
 
     double stepSize = sqrt(pow((stepSizes.X() * direction.X()), 2) + pow((stepSizes.Y() * direction.Y()), 2) + pow((stepSizes.Z() * direction.Z()), 2));
     stepSize = 250;
@@ -1545,13 +1564,15 @@ void WCSimLikelihoodFitter::FitAlongTrack()
     for(unsigned int i = 0;  i < minE.size(); ++i)
     {
       TString name("Track %d energy", i);
-      min->SetLimitedVariable(1+1, "Energy", currE.at(i), stepE.at(i), minE.at(i), maxE.at(i));
+      min->SetLimitedVariable(i+1, "Energy", currE.at(i), stepE.at(i), minE.at(i), maxE.at(i));
     }
     min->Minimize();
 
     double finalDistance = min->X()[0];
     TVector3 newVertex = startVertex + finalDistance * direction;
     std::cout << "Shift track vertex by " << finalDistance << std::endl;
+    std::cout << "NewVertex = " << std::endl;
+    newVertex.Print();
     fFitterTrackParMap.SetCurrentValue(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxX), newVertex.X());
     fFitterTrackParMap.SetCurrentValue(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxY), newVertex.Y());
     fFitterTrackParMap.SetCurrentValue(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxZ), newVertex.Z());
