@@ -18,6 +18,7 @@
 #include <TFile.h>
 #include <TH1D.h>
 #include <TH2D.h>
+#include <TMarker.h>
 #include <TString.h>
 #include <TSystem.h>
 #include <TTimeStamp.h>
@@ -401,10 +402,18 @@ void WCSimFitterPlots::Fill1DProfile(std::pair<unsigned int, FitterParameterType
     //  std::cout << "Profile title = " << profile->GetTitle() << std::endl;
 		profile->SetBinContent(binNum, minus2LnL);
     TCanvas * can1 = new TCanvas("can1","can1",800,600);
+    int bin = profile->GetMinimumBin();
+    TMarker * marker = new TMarker(profile->GetXaxis()->GetBinCenter(bin), profile->GetBinContent(bin), 29);
+    marker->SetMarkerSize(1.8);
+    marker->SetMarkerColor(kGreen-2);
+
     profile->Draw();
+    marker->Draw();
     can1->SaveAs("can1.png");
 
     profile = 0x0;
+    delete marker;
+    delete can1;
 	}
   //  std::cout << "Done!" << std::endl;
 }
