@@ -32,11 +32,13 @@ void wc_trackfitter_new(const char * infile = "", int start=0, int fit=100){
 
   // Set parameter(track number, "name", minimum, maximum, start, is fixed?)
   // Names are: kVtxX, kVtxY, kVtxZ, kDirTh, kDirPhi, kEnergy
+  myFitter.SetParameter(0, "kVtxX", -1250, 1250, 0, false);
+  myFitter.SetParameter(0, "kVtxY", -1250, 1250, 0, false);
   myFitter.SetParameter(0, "kVtxZ", -900, 900, 0, false);
-  myFitter.SetParameter(0, "kVtxT", 900, 1000, 935, true);
-  myFitter.SetParameter(0, "kDirTh", 0, TMath::Pi(), 0.0, false);
-  myFitter.SetParameter(0, "kDirPhi", -TMath::Pi(), TMath::Pi(), 0.0, false);
-  myFitter.SetParameter(0, "kEnergy", 100, 4500, 1000, false);
+  myFitter.SetParameter(0, "kVtxT", 900, 1000, 935, false);
+  myFitter.SetParameter(0, "kDirTh", 0, TMath::Pi(), 0.6687, false);
+  myFitter.SetParameter(0, "kDirPhi", -TMath::Pi(), TMath::Pi(), -2.0109, false);
+  myFitter.SetParameter(0, "kEnergy", 1000, 2000, 1400, false);
   myFitter.SetParameter(0, "kConversionDistance", 0, 250, 50, true);
 
 
@@ -59,11 +61,11 @@ void wc_trackfitter_new(const char * infile = "", int start=0, int fit=100){
   myFitter.PlotRecoMinusTrue("kEnergy");
 
   // Sweep out one variable
-  myFitter.SetNumSurfaceBins(22);
+  myFitter.SetNumSurfaceBins(100);
   myFitter.Make1DSurface(0, "kEnergy");
   //myFitter.Make2DSurface(0, "kVtxX", 0, "kVtxY");
   myFitter.SetMakeFits(kTRUE);
-  myFitter.SetMakeSurfaces(kFALSE);
+  myFitter.SetMakeSurfaces(kTRUE);
 
 
 
