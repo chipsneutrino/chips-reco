@@ -135,18 +135,17 @@ TGraph * WCSimDetectorParameters::WorkOutAverageQE(const std::string& pmtName) {
 	}
 
   // For each distance bin, work out the wavelength averaged QE and fill the graph with it
-  for(int iBin = 1; iBin <= spectrumHist->GetNbinsX(); ++iBin)
+  for(int iBin = 1; iBin <= spectrumHist->GetNbinsY(); ++iBin)
   {
-    TH1D * spectrumAtDist = spectrumHist->ProjectionX("spectrumAtDist",iBin, iBin+1);
+    TH1D * spectrumAtDist = spectrumHist->ProjectionX("spectrumAtDist",iBin, iBin);
     // WCSim has a hardcoded PMT QE cutoff for wavelengths less than 280nm and greater than 660nm
     // in WCSimStackingAction.cc and WCSimWCSD.cc
     // n.b. WCSim calls GetPMTQE with a lower cutoff of 240nm, but the function itself has 280nm hardcoded
     // as well
     double wavelengthAveragedQE = AverageHistWithGraph(spectrumAtDist, qeGraph, 280.0, 660.0);
-    gMeanQEDistance->SetPoint(gMeanQEDistance->GetN(), spectrumAtDist->GetXaxis()->GetBinLowEdge(iBin), wavelengthAveragedQE);
+    gMeanQEDistance->SetPoint(gMeanQEDistance->GetN(), spectrumHist->GetYaxis()->GetBinLowEdge(iBin), wavelengthAveragedQE);
     delete spectrumAtDist;
   }
-  
   delete qeGraph;
   return gMeanQEDistance;
 }
@@ -167,7 +166,6 @@ void WCSimDetectorParameters::OpenFile() {
 
 double WCSimDetectorParameters::AverageHistWithGraph(TH1D* hist,
 		TGraph* graph) {
-  std::cout << "Graph = " << graph << " 1  "<< std::endl;
   double minX = TMath::MinElement(graph->GetN(),graph->GetX()); 
   double maxX = TMath::MaxElement(graph->GetN(),graph->GetX()); 
   return AverageHistWithGraph(hist, graph, minX, maxX);

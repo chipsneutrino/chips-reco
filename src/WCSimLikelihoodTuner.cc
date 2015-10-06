@@ -178,46 +178,55 @@ Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrackBase *
     TVector3 pmtToEm     = emissionPos - pmtPos;
     TVector3 pmtFace     = myDigit->GetFace();
 
-    Double_t cosTheta = pmtFace.Dot(pmtToEm) / pmtFace.Mag2(); 
-/*	  // The MiniBooNE method:
+    Double_t cosTheta = pmtFace.Dot(pmtToEm) / pmtToEm.Mag(); 
+    // cosTheta = pmtFace.Dot(pmtToEm) / pmtFace.Mag2(); 
+	  // The MiniBooNE method:
     // Double_t theta = TMath::ACos(cosTheta) * 180. / TMath::Pi();
     Double_t theta = TMath::ACos(cosTheta) * 180. / TMath::Pi();
     if( theta > 90.0 )
     {
       theta = 180.0 - theta;
     }
-	  efficiency =  (1 + (-1.182e-4) * pow(theta, 2) + 4.959e-9 * pow(theta, 4) - 7.371e-14 * pow(theta, 6));
-	}
-  //std::cout << "Efficiency = " << efficiency * (1-glassReflect) << std::endl;
+/*	  efficiency =  (1 + (-1.182e-4) * pow(theta, 2) + 4.959e-9 * pow(theta, 4) - 7.371e-14 * pow(theta, 6));
+    // std::cout << "Theta = " << theta << "    Efficiency = " << efficiency * (1-glassReflect) << std::endl;
+  }  
   return efficiency * (1-glassReflect);
 */
     // Function for the PMT acceptance's dependence on the angle: 
     // WCSim defines arrays of efficiency at 10 degree intervals and linearly interpolates
-	
-    if( cosTheta < 0.0 || cosTheta > 1.0 )
-    {
-    //  std::cout << "Behind the PMT, cosTheta = " << cosTheta << std::endl;
-    //  pmtPos.Print() ;
-    //  emissionPos.Print();
-        return 0.0;
-    }
-    Double_t theta = TMath::ACos(cosTheta) * 180.0 / TMath::Pi();
-    Double_t collection_angle[10]={0.,10.,20.,30.,40.,50.,60.,70.,80.,90.};
-    Double_t collection_eff[10]={100.,100.,99.,95.,90.,85.,80.,69.,35.,13.}; 
-    Int_t num_elements = sizeof( collection_angle ) / sizeof( collection_angle[0] );
-    
-    Double_t efficiency = 0.0;
-    for(int iEntry = 0; iEntry < num_elements-1; ++iEntry)
-    {
-      if( theta >= collection_angle[iEntry] && theta < collection_angle[iEntry+1])
-      { 
-        efficiency = collection_eff[iEntry] 
-                     + (theta - collection_angle[iEntry]) / (collection_angle[iEntry+1] - collection_angle[iEntry])
-                     * (collection_eff[iEntry+1] - collection_eff[iEntry]);
-      }
-    }
-  }
-  return (efficiency/100.) * (1.0 - glassReflect);
+// 	
+//     if( cosTheta < 0.0 || cosTheta > 1.0 )
+//     {
+//         /*std::cout << "Behind the PMT, cosTheta = " << cosTheta << std::endl;
+//         std::cout << "PMT" << std::endl;
+//         pmtPos.Print() ;
+//         std::cout << "Face" << std::endl;
+//         pmtFace.Print();
+//         std::cout << "Emitted at" << std::endl;
+//         emissionPos.Print();
+//         std::cout << "To emission" << std::endl;
+//         pmtToEm.Print();
+//         std::cout << "CosTheta = " << cosTheta << std::endl;
+//         */
+//         return 0.0;
+//     }
+//     Double_t theta = TMath::ACos(cosTheta) * 180.0 / TMath::Pi();
+//     theta = fabs(90.0 - theta);
+     Double_t collection_angle[10]={0.,10.,20.,30.,40.,50.,60.,70.,80.,90.};
+     Double_t collection_eff[10]={100.,100.,99.,95.,90.,85.,80.,69.,35.,13.}; 
+     Int_t num_elements = sizeof( collection_angle ) / sizeof( collection_angle[0] );
+     
+     for(int iEntry = 0; iEntry < num_elements-1; ++iEntry)
+     {
+       if( theta >= collection_angle[iEntry] && theta < collection_angle[iEntry+1])
+       { 
+         efficiency = collection_eff[iEntry] 
+                      + (theta - collection_angle[iEntry]) / (collection_angle[iEntry+1] - collection_angle[iEntry])
+                      * (collection_eff[iEntry+1] - collection_eff[iEntry]);
+       }
+     }
+   }
+   return (efficiency/100.) * (1.0 - glassReflect);
 }
 
 /*
@@ -300,13 +309,13 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ( Double_t s, WCSimLikelih
 
     // Work out the direct and indirect contributions to J
     // J[0] = J_dir, J[1] = J_ind
-//    if( s == 0.0)
-//    {
-//    	std::cout << "Transmission = " << this->TransmissionFunction(s, myTrack, myDigit) << std::endl
-//    			  		<< "Efficiency = " << this->Efficiency(s, myTrack, myDigit) << std::endl
-//    			  		<< "SolidAngle = " << this->SolidAngleFraction(s, myTrack, myDigit) << std::endl
-//    			  		<< "QE           = " << this->QuantumEfficiency(myTrack, myDigit) << std::endl;
-//    }
+    // if( myDigit->GetQ() > 10 && myDigit->GetTubeId() > 4000 && myDigit->GetTubeId() < 4100)
+    // {
+    // 	std::cout << "Transmission = " << this->TransmissionFunction(s, myTrack, myDigit) << std::endl
+    // 			  		<< "Efficiency = " << this->Efficiency(s, myTrack, myDigit) << std::endl
+    // 			  		<< "SolidAngle = " << this->SolidAngleFraction(s, myTrack, myDigit) << std::endl
+    // 			  		<< "QE           = " << this->QuantumEfficiency(s, myTrack, myDigit) << std::endl;
+    // }
 
     J.push_back(   this->TransmissionFunction(s, myTrack, myDigit) 
                  * this->Efficiency(s, myTrack, myDigit)
@@ -844,7 +853,7 @@ Double_t WCSimLikelihoodTuner::GetTrackLengthForPercentile(WCSimLikelihoodTrackB
 Double_t WCSimLikelihoodTuner::QuantumEfficiency(const double &s, WCSimLikelihoodTrackBase* myTrack, WCSimLikelihoodDigit * myDigit) {
   
   double distToPMT = (myTrack->GetPropagatedPos(s) - myDigit->GetPos()).Mag();
-  double qe =  (myDigit->GetAverageQE(0));
+  double qe =  (myDigit->GetAverageQE(distToPMT));
   return qe;
 }
 
