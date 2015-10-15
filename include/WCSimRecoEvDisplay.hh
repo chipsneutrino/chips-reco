@@ -123,6 +123,9 @@ protected:
   TH1D *fChargeRMTHist;
   TH1D *fTimeRMTHist;
 
+  std::vector<Int_t> fColoursNormal;
+  std::vector<Int_t> fColoursDiff;
+
 	ClassDef(WCSimRecoEvDisplay,0)
 };
 
