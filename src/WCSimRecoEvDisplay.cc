@@ -70,8 +70,8 @@ WCSimRecoEvDisplay::WCSimRecoEvDisplay(const TGWindow* p, UInt_t w, UInt_t h)
   
   // Create the TGraph vectors with default TGraphs
   this->MakeGraphColours();
-  gStyle->SetPalette(10,fColours);
-  for(unsigned int g = 0; g < 10; ++g){
+
+  for(unsigned int g = 0; g < fColours.size(); ++g){
     fTopGraphs.push_back(new TGraph());
     fBarrelGraphs.push_back(new TGraph());
     fBottomGraphs.push_back(new TGraph());
@@ -690,7 +690,6 @@ void WCSimRecoEvDisplay::FillPlotsFromRecoFile() {
   }
   // For now, always want charge to start at 0.
   fQMin = 0;
-  fTMax -= fTMin;
 
   this->CalculateChargeAndTimeBins();
   this->ResetGraphs();
@@ -709,7 +708,7 @@ void WCSimRecoEvDisplay::FillPlotsFromRecoFile() {
 		double pmtZ = pmt.GetPosition(2);
 		double pmtPhi = TMath::ATan2(pmtY,pmtX);
 		double pmtQ = wcSimDigiHit->GetQ();
-		double pmtT = wcSimDigiHit->GetT() - fTMin;
+		double pmtT = wcSimDigiHit->GetT();
 		// Set the z-axis to be charge or time.
 		double colourAxis = pmtQ;
     fBarrelHist->GetZaxis()->SetTitle("Charge (p.e.)");
@@ -740,14 +739,14 @@ void WCSimRecoEvDisplay::FillPlotsFromRecoFile() {
 
     // Make sure we pass the charge cut
     if(pmtQ > fChargeCut){
-    unsigned int bin;
-    if(fViewType == 0) bin = this->GetChargeBin(pmtQ);
-    else bin = this->GetTimeBin(pmtT);
+      unsigned int bin;
+      if(fViewType == 0){ bin = this->GetChargeBin(pmtQ);}
+      else{ bin = this->GetTimeBin(pmtT);}
 
-    // Set the underflow bin of the histograms to make sure the colour axis shows
-    fTopHist->SetBinContent(0,1);
-    fBarrelHist->SetBinContent(0,1);
-    fBottomHist->SetBinContent(0,1);
+      // Set the underflow bin of the histograms to make sure the colour axis shows
+      fTopHist->SetBinContent(0,1);
+      fBarrelHist->SetBinContent(0,1);
+      fBottomHist->SetBinContent(0,1);
     
 	  	// Top cap
   		if(pmt.GetCylLoc() == 0){
@@ -1013,6 +1012,9 @@ void WCSimRecoEvDisplay::SetPlotZAxes(){
     min = fTRMTMin;
     max = fTRMTMax;
   }
+
+  // Make sure we've updated the palette
+  gStyle->SetPalette(fColours.size(), &(fColours[0]));
 
 	// Make sure the histogram max / min are correct
 	fBarrelHist->SetMaximum(max);
@@ -1340,16 +1342,16 @@ void WCSimRecoEvDisplay::CalculateLnLBins(){
   // Firstly, clear the existing vector
   fLnLBins.clear();
   
-  double delta = (fLnLMax - fLnLMin) / 10.;
+  double delta = (fLnLMax - fLnLMin) / static_cast<double>(fColours.size());
 
-  for(int i = 0; i < 10; ++i){
+  for(size_t i = 0; i < fColours.size(); ++i){
     fLnLBins.push_back(fLnLMin+i*delta);
   }
 }
 
 unsigned int WCSimRecoEvDisplay::GetLnLBin(double lnl) const{
-  unsigned int bin = 9;
-  for(unsigned int i = 1; i < fLnLBins.size(); ++i){
+  unsigned int bin = fColours.size()-1;
+  for(size_t i = 0; i < fColours.size(); ++i){
     if(lnl < fLnLBins[i]){
       bin = i - 1;
       break;
@@ -1364,17 +1366,17 @@ void WCSimRecoEvDisplay::CalculateRMTBins(){
   fQRMTBins.clear();
   fTRMTBins.clear();
   
-  double deltaQ = (fQRMTMax - fQRMTMin) / 10.;
-  double deltaT = (fTRMTMax - fTRMTMin) / 10.;
+  double deltaQ = (fQRMTMax - fQRMTMin) / static_cast<double>(fColours.size());
+  double deltaT = (fTRMTMax - fTRMTMin) / static_cast<double>(fColours.size());
 
-  for(int i = 0; i < 10; ++i){
+  for(size_t i = 0; i < fColours.size(); ++i){
     fQRMTBins.push_back(fQRMTMin+i*deltaQ);
     fTRMTBins.push_back(fTRMTMin+i*deltaT);
   }
 }
 
 unsigned int WCSimRecoEvDisplay::GetQRMTBin(double rmt) const{
-  unsigned int bin = 9;
+  unsigned int bin = fColours.size()-1;
   for(unsigned int i = 1; i < fQRMTBins.size(); ++i){
     if(rmt < fQRMTBins[i]){
       bin = i - 1;
@@ -1385,7 +1387,7 @@ unsigned int WCSimRecoEvDisplay::GetQRMTBin(double rmt) const{
 }
 
 unsigned int WCSimRecoEvDisplay::GetTRMTBin(double rmt) const{
-  unsigned int bin = 9;
+  unsigned int bin = fTRMTBins.size()-1;
   for(unsigned int i = 1; i < fTRMTBins.size(); ++i){
     if(rmt < fTRMTBins[i]){
       bin = i - 1;
@@ -1454,34 +1456,47 @@ void WCSimRecoEvDisplay::UpdateRecoPads(){
 
 void WCSimRecoEvDisplay::MakeGraphColours(){
 
-  if(fViewType < 5){
-  // Make a palette
-    fColours[0] = TColor::GetColor("#330000");
-    fColours[1] = TColor::GetColor("#660000");
-    fColours[2] = TColor::GetColor("#990000");
-    fColours[3] = TColor::GetColor("#CC0000");
-    fColours[4] = TColor::GetColor("#FF0000");
-    fColours[5] = TColor::GetColor("#FF3300");
-    fColours[6] = TColor::GetColor("#FF6600");
-    fColours[7] = TColor::GetColor("#FF8800");
-    fColours[8] = TColor::GetColor("#FFAA00");
-    fColours[9] = TColor::GetColor("#FFCC00");
+  Int_t startColour = 0;
+  const Int_t nContours = 100;
+  if(fViewType < 5 && fColoursNormal.size() < nContours){
+    fColoursNormal.clear();
+    // Make a palette
+    const Int_t nRGBs = 5;
+    Double_t stops[nRGBs] = { 0.00, 0.25, 0.50, 0.75, 1.00 };
+    Double_t red[nRGBs]   = { 0.00, 0.50, 1.00, 1.00, 1.00 };
+    Double_t green[nRGBs] = { 0.00, 0.00, 0.44, 0.80, 0.96 };
+    Double_t blue[nRGBs]  = { 0.00, 0.00, 0.00, 0.00, 0.80 };
+    startColour = TColor::CreateGradientColorTable(nRGBs, stops, red, green, blue, nContours);
+    gStyle->SetNumberContours(nContours);
+    for(int i = 0; i < nContours; ++i)
+    {
+      fColoursNormal.push_back(startColour+i);
+    }
+  }
+  else if( fColoursDiff.size() < nContours){
+    // Make a palette
+    fColoursDiff.clear();
+    const Int_t nRGBs = 9;
+    Double_t stops[nRGBs] =  { 0.000, 0.125, 0.250, 0.375, 0.500, 0.625, 0.750, 0.875, 1.000 };
+    Double_t red[nRGBs] =    { 0.000, 0.250, 0.500, 0.750, 1.000, 1.000, 1.000, 1.000, 1.000 };
+    Double_t green[nRGBs] =  { 0.000, 0.250, 0.500, 0.750, 0.750, 0.750, 0.500, 0.250, 0.000 };
+    Double_t blue[nRGBs] =   { 1.000, 1.000, 1.000, 1.000, 1.000, 0.750, 0.500, 0.250, 0.000 };
+    startColour = TColor::CreateGradientColorTable(nRGBs, stops, red, green, blue, nContours);
+    gStyle->SetNumberContours(nContours);
+    for(int i = 0; i < nContours; ++i)
+    {
+      fColoursDiff.push_back(startColour+i);
+    }
+  }
+  
+  // Update the palette
+  if( fViewType < 5 ){
+    fColours = fColoursNormal;
   }
   else{
-  // Make a palette
-    fColours[0] = TColor::GetColor("#0000FF");
-    fColours[1] = TColor::GetColor("#3333FF");
-    fColours[2] = TColor::GetColor("#6666FF");
-    fColours[3] = TColor::GetColor("#9999FF");
-    fColours[4] = TColor::GetColor("#CCCCFF");
-    fColours[5] = TColor::GetColor("#FFCCCC");
-    fColours[6] = TColor::GetColor("#FF9999");
-    fColours[7] = TColor::GetColor("#FF6666");
-    fColours[8] = TColor::GetColor("#FF3333");
-    fColours[9] = TColor::GetColor("#FF0000");
+    fColours = fColoursDiff;
   }
-  // Update the palette
-  gStyle->SetPalette(10,fColours);
+
   for(unsigned int g = 0; g < fTopGraphs.size(); ++g){
     // Initialise the graphs
     this->InitialiseGraph(fTopGraphs[g],g);
