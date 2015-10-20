@@ -561,6 +561,24 @@ void WCSimHoughTransformArray::FitMultiPeaksSmooth(std::vector<Double_t> &houghD
     std::pair<double,TVector2> tempPair(houghSpace->Interpolate(maxPhi,thetaArray1D[i]),tempVec);
     peakListToSort.push_back(tempPair);
   }
+  // Check to make sure we didn't miss a peak at theta = -1.
+  if(houghProjection1D->GetMaximumBin() == 1){
+    double thetaVal = houghProjection1D->GetXaxis()->GetBinCenter(1);
+    double maxPhi = 1;
+    double max = 0.0;
+    for(int xBin = 1; xBin < houghSpace->GetNbinsX(); ++xBin)
+    {
+      double tmp = houghSpace->GetBinContent(xBin, houghSpace->GetYaxis()->FindBin(thetaVal));
+      if(tmp > max)
+      { 
+        max = tmp; 
+        maxPhi = houghSpace->GetXaxis()->GetBinCenter(xBin);  
+      }
+    }
+    TVector2 tempVec(maxPhi - houghRotationPhi,thetaVal);
+    std::pair<double,TVector2> tempPair(houghSpace->Interpolate(maxPhi,thetaVal),tempVec);
+    peakListToSort.push_back(tempPair);
+  }
 
   std::sort(peakListToSort.begin(),peakListToSort.end(),PairSort);
 
