@@ -97,13 +97,9 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myEvent )
     TString name = myPMT.GetPMTName();
 
 	  new(digitArray[arrayIndex]) WCSimLikelihoodDigit(pos[0], pos[1], pos[2], t, q, tubeID, face[0], face[1], face[2], name, WCSimDetectorParameters::WavelengthAveragedQE(name.Data()), WCSimDetectorParameters::QEAveragedRefIndex(name.Data()), WCSimDetectorParameters::PMTExposeHeight(name.Data()));
-    if(fNumHitPMTs == 1){
-      std::cout << "Time = " << t << std::endl;
-    }
     fNumHitPMTs++;
     filterIter++;
 	}
-  std::cout << "here 55" << std::endl;
 	
   // Now fill all the unhit PMTs with an empty (q = 0) hit
 	for(int arrayIndex = 0; arrayIndex < numPMT; ++arrayIndex)
