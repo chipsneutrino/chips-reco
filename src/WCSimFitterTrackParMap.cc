@@ -207,7 +207,9 @@ void WCSimFitterTrackParMap::FixOrFreeEnergy(bool fixIt, int track) {
 		for(int iTrack = firstTrack; iTrack < lastTrack; ++iTrack)
 		{
 			TrackAndType myEnergy(iTrack, FitterParameterType::kEnergy);
-			fCurrentlyFixed.at(fTrackAndTypeIndexMap[myEnergy]) = fixIt;
+      if(!fAlwaysFixed.at(fTrackAndTypeIndexMap[myEnergy])){
+			  fCurrentlyFixed.at(fTrackAndTypeIndexMap[myEnergy]) = fixIt;
+      }
 		}
 }
 
