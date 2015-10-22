@@ -55,7 +55,7 @@ void WCSimPiZeroSingleElectronSeeder::MakeSeeds()
 	std::cout << "Seed single electron" << std::endl;
 	SeedEvent();
 	std::cout << "Fit single electron track" << std::endl;
-	fMinus2LnL = FitSingleTrack();
+	FitEventNumber(fEvent);
 	std::cout << "Done single electron fit" << std::endl;
 
 	if(fSingleElectronSeed != 0x0)

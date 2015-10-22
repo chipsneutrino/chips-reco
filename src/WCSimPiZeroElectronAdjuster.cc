@@ -45,6 +45,7 @@ WCSimPiZeroElectronAdjuster::~WCSimPiZeroElectronAdjuster()
 void WCSimPiZeroElectronAdjuster::MakeSeeds()
 {
 	fPiZeroSeeds = IterateOverConversionDistances();
+	fMadeSeeds = true;
 }
 
 
@@ -52,10 +53,10 @@ std::vector<WCSimPiZeroSeed*> WCSimPiZeroElectronAdjuster::IterateOverConversion
 {
 	std::vector<WCSimPiZeroSeed*> allTracks;
 
-	static const int numDists = 2;
+	static const int numDists = 1;
 	static const double firstDist = 50.0; //cm
-	static const double secondDist = 250.0; //cm
-	double conversionDistancesToTry[2] = { firstDist, secondDist };
+	// static const double secondDist = 250.0; //cm
+	double conversionDistancesToTry[numDists] = { firstDist }; //, secondDist };
 	for(int iTrack1Dist = 0; iTrack1Dist < numDists; ++iTrack1Dist )
 	{
 		for(int iTrack2Dist = 0; iTrack2Dist < numDists; ++iTrack2Dist)
@@ -69,12 +70,12 @@ std::vector<WCSimPiZeroSeed*> WCSimPiZeroElectronAdjuster::IterateOverConversion
 			{
 				std::cout << "Final seed tracks here are: " << std::endl;
 				trackOptions.at(iTrack)->Print();
-				trackOptions.at(iTrack)->Print();
 				allTracks.push_back(trackOptions.at(iTrack));
+				std::cout << "Size of allTracks = " << allTracks.size() << std::endl;
 			}
 		}
 	}
-
+	std::cout << "Final size of allTracks = " << allTracks.size() << std::endl;
 	return allTracks;
 }
 
@@ -242,7 +243,6 @@ std::vector<TVector3> WCSimPiZeroElectronAdjuster::GetFirstTrackDirectionsToTry(
 
 	// Work out the major and minor axes of the ellipse in the normal (x,y,z) coordinates of the detector
 	TVector2 eigenvector(eigenvectors(secondVectorIsMajorAxis,0), eigenvectors(secondVectorIsMajorAxis,1));
-	double phi = eigenvector.Phi();  // Angle to rotate th elipse by - again, just for the plot
 	TVector3 majorAxis = eigenvector.X() * planeAxis1 + eigenvector.Y() * planeAxis2;
 	eigenvector = TVector2(eigenvectors(!secondVectorIsMajorAxis,0), eigenvectors(!secondVectorIsMajorAxis,1));
 	TVector3 minorAxis = eigenvector.X() * planeAxis1 + eigenvector.Y() * planeAxis2;
@@ -275,6 +275,12 @@ std::vector<TVector3> WCSimPiZeroElectronAdjuster::GetFirstTrackDirectionsToTry(
 		tmp.Rotate(rotationsAboutMinor[jRot], minorAxis);
 		directionsToTry.push_back(tmp);
 	}
+
+	directionsToTry.clear();
+	TVector3 tmp = fSingleElectronTrack->GetDir(); // TVector3::Rotate overwrites the vector, so need a copy
+	tmp.Rotate(rotationsAboutMajor[0], majorAxis);
+	directionsToTry.push_back(tmp);
+
 	return directionsToTry;
 }
 

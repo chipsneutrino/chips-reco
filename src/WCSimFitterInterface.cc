@@ -29,11 +29,12 @@ WCSimFitterInterface::WCSimFitterInterface() :
 	ts.GetTime(true, 0, &hour, &minute, &second);
 	TString saveName = Form("fitterPlots_%02d%02d%02d_%02d%02d%02d", year, month, day, hour, minute, second);
 
-  	  fFitterConfig = new WCSimFitterConfig();
-      fFitterPlots = new WCSimFitterPlots(saveName);
-      fFitterTree = new WCSimFitterTree(saveName);
-      fFitter = NULL;
-      Init();
+	fFitterConfig = new WCSimFitterConfig();
+	fFitterPlots = new WCSimFitterPlots(saveName);
+	fFitterTree = new WCSimFitterTree(saveName);
+	fFitter = NULL;
+	fPiZeroFitter = NULL;
+	Init();
 	// TODO Auto-generated constructor stub
 }
 
@@ -47,12 +48,16 @@ WCSimFitterInterface::~WCSimFitterInterface() {
 
 void WCSimFitterInterface::Init()
 {
-  if( fFitter == NULL ) { fFitter = new WCSimLikelihoodFitter(fFitterConfig) ; }
-  if( fPiZeroFitter == NULL ) { fPiZeroFitter = new WCSimPiZeroFitter(fFitterConfig) ; }
-  fFitter->SetFitterPlots( fFitterPlots );
-  fFitter->SetFitterTree( fFitterTree );
-  fPiZeroFitter->SetFitterPlots( fFitterPlots );
-  fPiZeroFitter->SetFitterTree( fFitterTree );
+  if( fFitter == NULL && !GetIsPiZeroFit()) { 
+    fFitter = new WCSimLikelihoodFitter(fFitterConfig) ; 
+    fFitter->SetFitterPlots( fFitterPlots );
+    fFitter->SetFitterTree( fFitterTree );
+  }
+  else if( fPiZeroFitter == NULL && GetIsPiZeroFit() ) { 
+    fPiZeroFitter = new WCSimPiZeroFitter(fFitterConfig) ; 
+    fPiZeroFitter->SetFitterPlots( fFitterPlots );
+    fPiZeroFitter->SetFitterTree( fFitterTree );
+  }
 }
 
 //  void WCSimFitterInterface::SetFile(const char * fileName) {
