@@ -162,16 +162,19 @@ void WCSimFitterTree::MakeTree() {
   fHitComparisonTree->Branch("pmtX",&(fHitComparison->pmtX));
   fHitComparisonTree->Branch("pmtY",&(fHitComparison->pmtY));
   fHitComparisonTree->Branch("pmtZ",&(fHitComparison->pmtZ));
-  fHitComparisonTree->Branch("predT",&(fHitComparison->predT));
   fHitComparisonTree->Branch("trueT",&(fHitComparison->trueT));
-
+  fHitComparisonTree->Branch("predT",&(fHitComparison->predT));
+  fHitComparisonTree->Branch("correctPredT",&(fHitComparison->correctPredT));
   fHitComparisonTree->Branch("predQ",&(fHitComparison->predQ));
   fHitComparisonTree->Branch("trueQ",&(fHitComparison->trueQ));
-  fHitComparisonTree->Branch("minus2LnL",&(fHitComparison->minus2LnL));
   fHitComparisonTree->Branch("correctPredQ",&(fHitComparison->correctPredQ));
+  fHitComparisonTree->Branch("minus2LnL",&(fHitComparison->minus2LnL));
   fHitComparisonTree->Branch("correctMinus2LnL",&(fHitComparison->correctMinus2LnL));
   fHitComparisonTree->Branch("charge2LnL",&(fHitComparison->charge2LnL));
+  fHitComparisonTree->Branch("correctCharge2LnL",&(fHitComparison->correctCharge2LnL));
+
   fHitComparisonTree->Branch("time2LnL",&(fHitComparison->time2LnL));
+  fHitComparisonTree->Branch("correctTime2LnL",&(fHitComparison->correctTime2LnL));
 
   fRecoFailureTree->Branch("failedEvent",&fFailedEvent);
   fEvent = 0;
@@ -377,10 +380,13 @@ void WCSimFitterTree::FillHitComparison(
 		const std::vector<double>& correctPredictedCharges,
 		const std::vector<double>& measuredCharges,
     const std::vector<double>& predictedTimes,
+    const std::vector<double>& correctPredictedTimes,
 		const std::vector<double>& total2LnLs,
 		const std::vector<double>& correct2LnLs,
 		const std::vector<double>& q2LnLs,
-		const std::vector<double>& t2LnLs) {
+		const std::vector<double>& correctQ2LnLs,
+		const std::vector<double>& t2LnLs,
+    const std::vector<double>& correctT2LnLs) {
   assert(predictedCharges.size() == measuredCharges.size() && predictedCharges.size() == total2LnLs.size() && predictedTimes.size() == predictedCharges.size());
   fEvent = event;
   for(unsigned int iPMT = 0; iPMT < predictedCharges.size(); ++iPMT)
@@ -390,13 +396,16 @@ void WCSimFitterTree::FillHitComparison(
     fHitComparison->Set(iPMT, digit->GetX(), digit->GetY(), digit->GetZ(), 
                         digit->GetT(),
                         predictedTimes.at(iPMT),
+                        correctPredictedTimes.at(iPMT),
                         measuredCharges.at(iPMT),
                         predictedCharges.at(iPMT),
                         correctPredictedCharges.at(iPMT),
                         total2LnLs.at(iPMT),
                         correct2LnLs.at(iPMT),
                         q2LnLs.at(iPMT),
-                        t2LnLs.at(iPMT));
+                        correctQ2LnLs.at(iPMT),
+                        t2LnLs.at(iPMT),
+                        correctT2LnLs.at(iPMT));
     fHitComparisonTree->Fill();
   }
 }

@@ -113,29 +113,39 @@ double WCSimTimePredictor::GetTravelDistance(WCSimLikelihoodTrackBase* myTrack,
   // (myTrack->GetDir() * (1.0 / (myTrack->GetDir().Mag()))).Print();
   
   TVector3 direction = myTrack->GetDir() * (1.0/ (myTrack->GetDir().Mag()));
-	double cosCherenkovAngle = TMath::Cos(41.0/180.0 * 2.0 * TMath::Pi());
+  double angToDir = (pmt-vertex).Angle(direction);
+  if(angToDir > 0.5 * TMath::Pi()){ return -999; }
+  double refInd = myDigit->GetAverageRefIndex();
+	double cosCherenkovAngle = TMath::Cos(39.0/180.0 * 2.0 * TMath::Pi());
+  cosCherenkovAngle = 1.0 / refInd;
+  double cherenkovAngle = TMath::ACos(cosCherenkovAngle);
 
-	double a = 1.0 - cosCherenkovAngle;
-	double b =    direction.Dot(pmt) * (1+2*cosCherenkovAngle)
-				+ direction.Dot(vertex) * (2*cosCherenkovAngle - 1.0);
-	double c = -cosCherenkovAngle * (pmt.Mag2() + vertex.Mag2() - 2.0 * pmt.Dot(vertex));
+  double a = 1.0;
+  double b = -2.0 * (pmt - vertex).Mag() * TMath::Cos(angToDir);
+  double c = (pmt - vertex).Mag2() * ( 1 - ( (TMath::Sin(angToDir) * TMath::Sin(angToDir)) / (TMath::Power(TMath::Sin(cherenkovAngle),2)) ) );
 
+
+  double toReturn = -999;
 	double discrim = b*b - 4*a*c;
 	if( discrim < 0 ) { return -999; }
 	else
 	{
 		double s1 = -b + sqrt(discrim);
 		double s2 = -b - sqrt(discrim);
-		if( s1 < 0 && s2 < 0 )
+		if( s1 <= 0 && s2 <= 0 )
 		{
 			return -999;
 		}
-		else if( s1 > 0 && s2 < 0 ){ return s1; }
-		else if( s2 > 0 && s1 < 0 ){ return s2; }
-		else if( s1 > 0 && s2 > 0 && s1 > s2){ return s2; }
-		else{ return s1; }
+		else if( s1 > 0 && s2 <= 0 ){ /*std::cout << "s1 = " << s1 << std::endl;*/ toReturn = s1; }
+		else if( s2 > 0 && s1 <= 0 ){ /*std::cout << "s2 = " << s2 << std::endl;*/ toReturn = s2; }
+		else if( s1 > 0 && s2 > 0 && s1 > s2){ /*std::cout << "s2 = " << s2 << std::endl;*/ toReturn = s2; }
+		else if( s2 > 0 && s1 > 0 && s2 < s1){ /*std::cout << "s1 = " << s1 << std::endl;*/ toReturn = s1; }
+    // if(myDigit->GetZ() < -900 && toReturn)
+    // {
+    //   std::cout << "Digit " << myDigit->GetTubeId() << "  Z = " <<myDigit->GetZ() << "   distance = " << toReturn << "    s1 = " << s1 << "    s2 = " << s2 << std::endl;
+    // }
 	}
-	return -999;
+	return toReturn;
 }
 
 std::vector<double> WCSimTimePredictor::GetAllPredictedTimes() {
@@ -187,13 +197,13 @@ double WCSimTimePredictor::GetHitTime(WCSimLikelihoodTrackBase* myTrack,
 	// How far does particle have to travel before light given out at Cherenkov angle hits the PMT?
 	double travelDistance = GetTravelDistance(myTrack, myDigit);
 
-	if( travelDistance != -999 && travelDistance < survivalDistance && travelDistance < escapeDistance )
+	if( (travelDistance > 0) && (travelDistance < survivalDistance) && (travelDistance < escapeDistance) )
 	{
 		double photonDistance = (myDigit->GetPos() - myTrack->GetPropagatedPos(travelDistance)).Mag();
 
-		double n = 4.0/3.0;
+		double n = myDigit->GetAverageRefIndex();
 		arrivalTime = myTrack->GetT() + (0.01 * travelDistance / TMath::C() + 0.01 * photonDistance / (TMath::C() / n)) * 1e9;
-    //std::cout << "TravelDistance = " << travelDistance << " and photonDistance = " << photonDistance << " and c = " << TMath::C() << " so arrives as " << arrivalTime << std::endl;
+		//std::cout << "TravelDistance = " << travelDistance << " and photonDistance = " << photonDistance << " and c = " << TMath::C() << " so arrives as " << arrivalTime << std::endl;
 	}
 
 	isHit = (arrivalTime != -999);

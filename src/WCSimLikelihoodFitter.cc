@@ -55,6 +55,7 @@ bool WCSimLikelihoodFitter::RingSort(const std::pair<WCSimRecoRing*,double> &a, 
  */
 WCSimLikelihoodFitter::WCSimLikelihoodFitter(WCSimFitterConfig * config) : fFitterTrackParMap(config)
 {
+  fCalls = 0;
   fEvent = -999;
   fFitterConfig = config;
   fFitterPlots = NULL;
@@ -196,6 +197,7 @@ double WCSimLikelihoodFitter::WrapFuncAlongTrack(const Double_t * x)
     directions.push_back(directionTmp);
     energies.push_back(x[i+1]);
   }
+  double time = fFitterTrackParMap.GetCurrentValue(trackParT) + x[0]/30.0 + x[nTracks+1];
 
   TVector3 direction(0,0,0);
   for(unsigned int i = 0; i < nTracks; ++i)
@@ -208,6 +210,7 @@ double WCSimLikelihoodFitter::WrapFuncAlongTrack(const Double_t * x)
   TVector3 newVertex = vertex + direction * x[0];
   std::cout << "x = " << x[0] << " So vertex goes from (" << vertex.X() << ", " << vertex.Y() << ", " << vertex.Z() << ") to ("
             << newVertex.X() << ", " << newVertex.Y() << ", " << newVertex.Z() << ")" << std::endl;
+  std::cout << "Time is now " << time << " and energy is " << energies.at(0) << std::endl;
 
   for(unsigned int i  = 0 ; i < nTracks; ++i)
   {
@@ -216,7 +219,7 @@ double WCSimLikelihoodFitter::WrapFuncAlongTrack(const Double_t * x)
 		    	  	  	  	  	  newVertex.X(),
 		    	  	  	  	  	  newVertex.Y(),
 		    	  	  	  	  	  newVertex.Z(),
-		    	  	  	  	  	  fFitterTrackParMap.GetCurrentValue(i, FitterParameterType::kVtxT),
+                            time,
 		    	  	  	  	  	  fFitterTrackParMap.GetCurrentValue(i, FitterParameterType::kDirTh),
 		    	  	  	  	  	  fFitterTrackParMap.GetCurrentValue(i, FitterParameterType::kDirPhi),
 		    	  	  	  	  	  energies.at(i)
@@ -316,15 +319,17 @@ double WCSimLikelihoodFitter::WrapFuncPiZero(const Double_t * x)
   tracksToFit.push_back(track);
 
 
-  // if(fIsFirstCall ) // TEMP: Print it out all the time for now
-  // {
+  //if(fIsFirstCall ) // TEMP: Print it out all the time for now
+  //{
   //   std::cout << "Tracks used for first call:" << std::endl;
-  //   std::vector<WCSimLikelihoodTrackBase>::iterator itr = tracksToFit.begin();
-  //   for( ; itr < tracksToFit.end(); ++itr)
+  //   std::vector<WCSimLikelihoodTrackBase*>::iterator itr = tracksToFit.begin();
+  //   int i = 0;
+  //   for( ; itr != tracksToFit.end(); ++itr)
   //   {
-  //     (*itr).Print();
+  //  	 ++i;
+  //     (*itr)->Print();
   //   }
-  // }
+  //}
 
   Double_t minus2LnL = 0.0;
   fTotalLikelihood->SetTracks(tracksToFit);
@@ -367,7 +372,7 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
 	SetEvent(iEvent);
 
 
-	if(fFitterConfig->GetMakeFits() ) {
+	if(fFitterConfig->GetMakeFits() && CanFitEvent()) {
     std::cout << "Fitting event " << iEvent << std::endl;
 
     if(fFitterConfig->GetIsPiZeroFit())
@@ -408,12 +413,31 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
       }
       
       // Now fit the energy
+      bool switchBack = false;
+      if( WCSimAnalysisConfig::Instance()->GetUseChargeAndTime())
+      {
+        WCSimAnalysisConfig::Instance()->SetUseChargeOnly();
+        switchBack = true;
+      }
+      //
+      //
       std::cout << "Fitting energy only" << std::endl;
       FixVertex();
       FixDirection();
-      FitEnergy();
+      FixTime();
+      if( WCSimAnalysisConfig::Instance()->GetUseChargeAndTime())
+      {
+        WCSimAnalysisConfig::Instance()->SetUseChargeOnly();
+        FitEnergy();
+        WCSimAnalysisConfig::Instance()->SetUseChargeAndTime();
+      }
+      else
+      {
+        FitEnergy();
+      }
       FreeVertex();
       FreeDirection();
+      FreeTime();
 
       // Fix the directions and energy and move the vertex
       // along the (average) momentum vector (helps because the seed
@@ -422,13 +446,32 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
       std::cout << "Fitting along track" << std::endl;
       FixDirection();
       // FixEnergy();
-      FitAlongTrack();
+      if(WCSimAnalysisConfig::Instance()->GetUseTimeOnly())
+      {
+        // MetropolisHastingsAlongTrack(500);
+        FreeTime();
+        FitAlongTrack();
+      }
+      else if( WCSimAnalysisConfig::Instance()->GetUseChargeAndTime())
+      {
+        WCSimAnalysisConfig::Instance()->SetUseChargeOnly();
+        FixTime();
+        FitAlongTrack();
+        FreeTime();
+        WCSimAnalysisConfig::Instance()->SetUseChargeAndTime();
+        FitAlongTrack();
+      }
+      else if( WCSimAnalysisConfig::Instance()->GetUseChargeOnly())
+      {
+    	  FixTime();
+    	  FitAlongTrack();
+      }
       // MetropolisHastingsAlongTrack(250);
       FreeDirection();
       FreeEnergy();
   
       // Now freely fit the vertex and direction    
-      // FixEnergy();
+      FixEnergy();
       FitVertex();
       FreeEnergy();
   
@@ -436,14 +479,49 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
       FixVertex();
       FixDirection();
       FreeEnergy();
-      FitEnergy();
-  
+      if( WCSimAnalysisConfig::Instance()->GetUseChargeAndTime())
+      {
+    	  WCSimAnalysisConfig::Instance()->SetUseChargeOnly();
+		  FitEnergy();
+		  WCSimAnalysisConfig::Instance()->SetUseChargeAndTime();
+      }
+      else
+      {
+    	  FitEnergy();
+      }
       // Leave everything free at the end
       FreeVertex();
       FreeDirection();    
       FreeEnergy();
       //Fit("Simplex");
-      // MetropolisHastings(500);
+      // MetropolisHastings(2500);
+      //
+      if( switchBack )
+      {
+        std::cout << "Switching back to charge AND time" << std::endl;
+        WCSimAnalysisConfig::Instance()->SetUseTimeOnly();
+        FixVertex();
+        FixDirection();
+        FixEnergy();
+        FreeTime();
+        FitTime();
+        WCSimAnalysisConfig::Instance()->SetUseChargeAndTime();
+        FreeVertex();
+        FreeDirection();
+        FitVertex();
+
+        WCSimAnalysisConfig::Instance()->SetUseChargeOnly();
+        FreeEnergy();
+        FixVertex();
+        FixDirection();
+        FixTime();
+        FitEnergy();
+        FreeVertex();
+        FreeDirection();
+        FreeEnergy();
+        FreeTime();
+        WCSimAnalysisConfig::Instance()->SetUseChargeAndTime();
+      }
       
     }
   /*
@@ -453,18 +531,8 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
   		Minimize2LnL();
   */
 		fTrueLikelihoodTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
-    if( fMinimum > 0 )
-    {
-		  FillPlots();
-		  FillTree();
-		  FillHitComparison();
-    }
-    else
-    {
-      fFitterTree->FillRecoFailures(iEvent);
-    }
-	}
-  std::cout << "Fitted event numbet " << iEvent << std::endl;
+  }
+  std::cout << "Fitted event number " << iEvent << std::endl;
 	return;
 }
 
@@ -550,8 +618,11 @@ void WCSimLikelihoodFitter::FillHitComparison() {
 	fTotalLikelihood->SetTracks(*correctTracks);
 	fTotalLikelihood->Calc2LnL();
 	std::vector<double> correctPredictedCharges = fTotalLikelihood->GetPredictedChargeVector();
+	std::vector<double> correctPredictedTimes = fTotalLikelihood->GetPredictedTimeVector();
+	std::vector<double> correctCharge2LnLs = fTotalLikelihood->GetCharge2LnLVector();
+	std::vector<double> correctTime2LnLs = fTotalLikelihood->GetTime2LnLVector();
 	std::vector<double> correct2LnLs = fTotalLikelihood->GetTotal2LnLVector();
-	fFitterTree->FillHitComparison(fEvent, fLikelihoodDigitArray, predictedCharges, correctPredictedCharges, measuredCharges, predictedTimes, best2LnLs, correct2LnLs, charge2LnLs, time2LnLs);
+	fFitterTree->FillHitComparison(fEvent, fLikelihoodDigitArray, predictedCharges, correctPredictedCharges, measuredCharges, predictedTimes, correctPredictedTimes, best2LnLs, correct2LnLs, charge2LnLs, correctCharge2LnLs, time2LnLs, correctTime2LnLs);
 
 }
 
@@ -601,7 +672,17 @@ void WCSimLikelihoodFitter::RunFits() {
 	for(UInt_t iEvent = firstEvent; iEvent < firstEvent + numEventsToFit ; ++iEvent)
 	{
 		FitEventNumber(iEvent);
-		fFitterTree->SaveTree();
+	    if( fMinimum > 0 )
+	    {
+			  FillPlots();
+			  FillTree();
+			  FillHitComparison();
+	    }
+	    else
+	    {
+	      fFitterTree->FillRecoFailures(iEvent);
+	    }
+	    fFitterTree->SaveTree();
 		fFitterPlots->SavePlots();
 	}
 }
@@ -1330,117 +1411,296 @@ void WCSimLikelihoodFitter::MetropolisHastings(const int nTries)
 
 void WCSimLikelihoodFitter::MetropolisHastingsAlongTrack(const int nTries)
 {
-  const unsigned int nTracks = fFitterConfig->GetNumTracks();
-  if(nTracks != 1) { return;}
-    
-  TrackType::Type trackType = fFitterTrackParMap.GetTrackType(0);
-  std::vector<FitterParameterType::Type> allTypes = FitterParameterType::GetAllAllowedTypes(trackType);
-  TrackAndType trackParX = std::make_pair(0, FitterParameterType::kVtxX);
-  TrackAndType trackParY = std::make_pair(0, FitterParameterType::kVtxY);
-  TrackAndType trackParZ = std::make_pair(0, FitterParameterType::kVtxZ);
-  TrackAndType trackParT = std::make_pair(0, FitterParameterType::kVtxT);
-  TrackAndType trackParTh = std::make_pair(0, FitterParameterType::kDirTh);
-  TrackAndType trackParPhi = std::make_pair(0, FitterParameterType::kDirPhi);
-  TrackAndType trackParE = std::make_pair(0, FitterParameterType::kEnergy);
+	const unsigned int nTracks = fFitterConfig->GetNumTracks();
+	const double cInCmPerNs = 29.9792458;  // Speed of light
 
-  TVector3 direction;
-  direction.SetMagThetaPhi(1.0, 
-                           fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kDirTh), 
-                           fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kDirPhi)
-                          );
+	if(nTracks != 1) { return;}
 
-  TVector3 startVertex(fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxX),
-                       fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxY),
-                       fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxZ)
-                       );
-
-  TVector3 stepSizes(fFitterTrackParMap.GetStep(0, FitterParameterType::kVtxX),
-                     fFitterTrackParMap.GetStep(0, FitterParameterType::kVtxY),
-                     fFitterTrackParMap.GetStep(0, FitterParameterType::kVtxZ)
-                     );
-  double stepSize = sqrt(pow((stepSizes.X() * direction.X()), 2) + pow((stepSizes.Y() * direction.Y()), 2) + pow((stepSizes.Z() * direction.Z()), 2)) * 2;
-  std::cout << "Step size  =  " << stepSize << std::endl;
- 
-	std::vector<double> markovChain;
-
-	std::vector<double> startVals = fFitterTrackParMap.GetCurrentValues();
-	std::vector<double> minVals = fFitterTrackParMap.GetMinValues();
-	std::vector<double> maxVals = fFitterTrackParMap.GetMaxValues();
-	std::vector<double> steps = fFitterTrackParMap.GetSteps();
-	std::vector<bool> currentlyFixed = fFitterTrackParMap.GetCurrentlyFixed();
-
-	markovChain.push_back(0);
-	double * startX = &(startVals[0]);
-	double old2LnL = WrapFunc(startX);
-
-
-	int iTry = 0;
-	TRandom3 ran;
-	int accepted = 0;
-	while(iTry < nTries)
+	// If we don't have only one track, make sure they share a vertex
+	double sharedVertex = true;
+	if(nTracks > 1)
 	{
-		std::cout << "Metropolis-Hastings iteration " << iTry << std::endl;
-		double oldDistance = markovChain.at(markovChain.size() - 1);
-	  double newDistance = ran.Gaus(oldDistance, stepSize);
-    TVector3 newVertex = startVertex + newDistance * direction;
-
-    std::vector<double> newParams;
-    for(unsigned int i = 0; i < startVals.size(); ++i)
-    {
-      newParams.push_back(startVals.at(i));
-    }
-
-    newParams.at(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxX)) = newVertex.X();
-    newParams.at(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxY)) = newVertex.Y();
-    newParams.at(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxZ)) = newVertex.Z();
-
-  	double * x = &(newParams[0]);
-		double new2LnL = WrapFunc(x);
-
-		if( new2LnL < old2LnL ) // they're -ve log likelihoods
+		sharedVertex = true;
+		for(unsigned int i = 1; i < nTracks; ++i)
 		{
-			markovChain.push_back(newDistance);
-			accepted++;
-		}
-		else
-		{
-			double uniform = ran.Rndm();
-			if(uniform < TMath::Exp(0.5*(old2LnL - new2LnL)))
+			if(   fFitterConfig->GetTrackIsJoinedWith(i, "kVtxX") != 0
+					|| fFitterConfig->GetTrackIsJoinedWith(i, "kVtxY") != 0
+					|| fFitterConfig->GetTrackIsJoinedWith(i, "kVtxZ") != 0 )
 			{
-				markovChain.push_back(newDistance);
+				sharedVertex = false;
+			}
+		}
+	}
+
+	if(nTracks == 1 || (nTracks > 1 && sharedVertex) )
+	{
+		// Are we allowed to move the vertex freely?
+		bool canMove = (   !fFitterTrackParMap.GetIsFixed(0, FitterParameterType::kVtxX)
+				&& !fFitterTrackParMap.GetIsFixed(0, FitterParameterType::kVtxY)
+				&& !fFitterTrackParMap.GetIsFixed(0, FitterParameterType::kVtxZ)
+		);
+
+		// Fill vectors of each track's seed direction, and allowed energies
+		std::vector<TVector3> directions;
+		std::vector<double> minE, maxE, currE, stepE;
+		std::vector<bool> fixE;
+		for(unsigned int i = 0; i < nTracks; ++i)
+		{
+			TVector3 direction;
+			direction.SetMagThetaPhi(1.0,
+					fFitterTrackParMap.GetCurrentValue(i, FitterParameterType::kDirTh),
+					fFitterTrackParMap.GetCurrentValue(i, FitterParameterType::kDirPhi)
+			);
+			directions.push_back(direction);
+
+			minE.push_back(fFitterTrackParMap.GetMinValue(i, FitterParameterType::kEnergy));
+			maxE.push_back(fFitterTrackParMap.GetMaxValue(i, FitterParameterType::kEnergy));
+			currE.push_back(fFitterTrackParMap.GetCurrentValue(i, FitterParameterType::kEnergy));
+			stepE.push_back(fFitterTrackParMap.GetStep(i, FitterParameterType::kEnergy));
+			fixE.push_back(fFitterTrackParMap.GetIsFixed(i, FitterParameterType::kEnergy));
+		}
+
+		// Average the directions of all of the tracks.  We're not weighting by energy here, although perhaps we could
+		TVector3 direction(0,0,0);
+		for(unsigned int i = 0; i < nTracks; ++i)
+		{
+			direction += (directions.at(i));
+		}
+		direction *= 1.0 / directions.size();
+
+		// Now find the allowed range for the vertex time
+		double minT, maxT, currT, stepT;
+		bool fixT;
+		minT = fFitterTrackParMap.GetMinValue(0, FitterParameterType::kVtxT);
+		maxT = fFitterTrackParMap.GetMaxValue(0, FitterParameterType::kVtxT);
+		currT = fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxT);
+		stepT = 0.5; // ns
+		fixT = (fFitterTrackParMap.GetIsFixed(0, FitterParameterType::kVtxT) || !WCSimAnalysisConfig::Instance()->GetUseTime());
+
+
+		// Get the allowed ranges for the vertex positions
+		TVector3 startVertex(fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxX),
+				fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxY),
+				fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxZ)
+		);
+
+		TVector3 mins(fFitterTrackParMap.GetMinValue(0, FitterParameterType::kVtxX),
+				fFitterTrackParMap.GetMinValue(0, FitterParameterType::kVtxY),
+				fFitterTrackParMap.GetMinValue(0, FitterParameterType::kVtxZ));
+
+		TVector3 maxes(fFitterTrackParMap.GetMaxValue(0, FitterParameterType::kVtxX),
+				fFitterTrackParMap.GetMaxValue(0, FitterParameterType::kVtxY),
+				fFitterTrackParMap.GetMaxValue(0, FitterParameterType::kVtxZ));
+
+		// To work out the maximum and minimum distance we can move the vertex, we need to
+		// figure out where the track would escape the detector
+		std::vector<double> escapeDists;
+		for(int i = 0; i < 3; ++i)
+		{
+			if(fabs(direction[i]) > 1e-6)
+			{
+				escapeDists.push_back( (maxes[i] - startVertex[i])/direction[i] );
+				escapeDists.push_back( (mins[i] - startVertex[i])/direction[i] );
+			}
+		}
+		assert(escapeDists.size() > 1);
+		std::sort(escapeDists.begin(), escapeDists.end());
+		double maxVal = static_cast<unsigned int>(-1);
+		double minVal = -1.0 * maxVal;
+		std::cout << "minVal = " << minVal << " and start maxVal = " << maxVal << std::endl;
+		for(unsigned int i = 0; i < escapeDists.size(); ++i)
+		{
+			if(escapeDists[i] < 0 && escapeDists[i] > minVal){ minVal = escapeDists[i]; }
+			if(escapeDists[i] > 0 && escapeDists[i] < maxVal){ maxVal = escapeDists[i]; }
+		}
+		std::cout << "MinVal = " << minVal << " and maxVal = " << maxVal << std::endl;
+
+
+		// Calculate the step size by projecting the (x,y,z) step sizes along the average direction
+		TVector3 stepSizes(fFitterTrackParMap.GetStep(0, FitterParameterType::kVtxX),
+				fFitterTrackParMap.GetStep(0, FitterParameterType::kVtxY),
+				fFitterTrackParMap.GetStep(0, FitterParameterType::kVtxZ)
+		);
+		double stepSize = sqrt(pow((stepSizes.X() * direction.X()), 2) + pow((stepSizes.Y() * direction.Y()), 2) + pow((stepSizes.Z() * direction.Z()), 2));
+    stepSize = 50;
+		std::cout << "Step size = " << stepSize << std::endl;
+		//////////////////////////////////////////////////////
+
+
+		TrackType::Type trackType = fFitterTrackParMap.GetTrackType(0);
+		std::vector<FitterParameterType::Type> allTypes = FitterParameterType::GetAllAllowedTypes(trackType);
+		TrackAndType trackParX = std::make_pair(0, FitterParameterType::kVtxX);
+		TrackAndType trackParY = std::make_pair(0, FitterParameterType::kVtxY);
+		TrackAndType trackParZ = std::make_pair(0, FitterParameterType::kVtxZ);
+		TrackAndType trackParT = std::make_pair(0, FitterParameterType::kVtxT);
+		TrackAndType trackParTh = std::make_pair(0, FitterParameterType::kDirTh);
+		TrackAndType trackParPhi = std::make_pair(0, FitterParameterType::kDirPhi);
+		TrackAndType trackParE = std::make_pair(0, FitterParameterType::kEnergy);
+
+
+		// Now do the actual Markov chain stepping
+		std::vector<std::vector<double> > markovChain;
+
+		std::vector<double> startVals = fFitterTrackParMap.GetCurrentValues();
+		std::vector<double> minVals = fFitterTrackParMap.GetMinValues();
+		std::vector<double> maxVals = fFitterTrackParMap.GetMaxValues();
+		std::vector<double> steps = fFitterTrackParMap.GetSteps();
+		std::vector<bool> currentlyFixed = fFitterTrackParMap.GetCurrentlyFixed();
+
+		// Build a vector of the initial parameters to be the first entry in the chain
+		std::vector<double> startParams;
+		startParams.push_back(0.0); // Vertex shift
+		startParams.push_back(0.0); // Vertex time shift
+		for(size_t iTrack = 0; iTrack < currE.size(); ++iTrack)
+		{
+			startParams.push_back(currE.at(iTrack));  // Energy of each track
+		}
+		markovChain.push_back(startParams);
+
+
+		double * startX = &(startVals[0]);
+		double old2LnL = WrapFunc(startX);
+
+
+		int iTry = 0;
+		TRandom3 ran;
+		int accepted = 0;
+		while(iTry < nTries)
+		{
+			std::cout << "Metropolis-Hastings along track iteration " << iTry << std::endl;
+			std::vector<double> oldParams = markovChain.back();
+
+			// Vary the distance
+			double newDistance = ran.Gaus(oldParams.at(0), stepSize);
+			TVector3 newVertex = startVertex + newDistance * direction;
+
+			// Vary the time - compensate for the shift in vertex
+
+			double adjustedTime = currT - newDistance/cInCmPerNs; // Purely accounting for the change in vertex
+
+			double timeShift = ran.Gaus(oldParams.at(1), stepT); // Also shift the time by a random amount
+			double newTime = adjustedTime + timeShift;
+
+			// Vary the energy
+			std::vector<double> newEnergies;
+			for(size_t iTrack = 0; iTrack < nTracks; ++iTrack)
+			{
+				if(!fixE.at(iTrack))
+				{
+					newEnergies.push_back(ran.Gaus(oldParams.at(iTrack+2), stepE.at(iTrack)));
+				}
+			}
+
+			// Make a single vector of all the track params to pass to WrapFunc
+			std::vector<double> newParams;
+			for(unsigned int i = 0; i < startVals.size(); ++i)
+			{
+				newParams.push_back(startVals.at(i));
+			}
+			newParams.at(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxX)) = newVertex.X();
+			newParams.at(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxY)) = newVertex.Y();
+			newParams.at(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxZ)) = newVertex.Z();
+			newParams.at(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxT)) = newTime;
+
+			// Only set the new energies if they're free
+			for(size_t iTrack = 0; iTrack < nTracks; ++iTrack)
+			{
+				if(!fixE.at(iTrack))
+				{
+					newParams.at(fFitterTrackParMap.GetIndex(iTrack, FitterParameterType::kEnergy)) = newEnergies.at(iTrack);
+				}
+			}
+
+			// Work out the likelihood
+			double * x = &(newParams[0]);
+			double new2LnL = WrapFunc(x);
+
+			// Put the adjust parameters into a vector that we can append to the Markov chain
+			std::vector<double> shiftedParams;
+			shiftedParams.push_back(newDistance);
+			shiftedParams.push_back(timeShift);
+			for(size_t iTrack = 0; iTrack < nTracks; ++iTrack)
+			{
+
+				if(!fixE.at(iTrack))
+				{
+
+					shiftedParams.push_back(newParams.at(fFitterTrackParMap.GetIndex(iTrack, FitterParameterType::kEnergy)));
+				}
+			}
+			std::cout << "Shifted params: " << " x = " << newDistance << "   time = " << timeShift << "   so new time = " << newTime << std::endl;
+
+			// Keep the new parameters if they improve the log-likelihood
+			if( new2LnL < old2LnL ) // they're -ve log likelihoods
+			{
+				markovChain.push_back(shiftedParams);
 				accepted++;
 			}
-			else 
+			else
 			{
-				markovChain.push_back(oldDistance);
+				double uniform = ran.Rndm();
+				// Or keep them if they get lucky
+				if(uniform < TMath::Exp(0.5*(old2LnL - new2LnL)))
+				{
+					markovChain.push_back(shiftedParams);
+					accepted++;
+				}
+				// Otherwise retain the old ones
+				else
+				{
+					markovChain.push_back(oldParams);
+				}
+			}
+			++iTry;
+		}
+
+
+		// Give the chain some time to settle by getting rid of early entries
+		// I'm only throwing away the first 1/4 because the seed should be right-ish to begin with
+		std::vector<std::vector<double> > cleaned;
+		for(unsigned int i = markovChain.size()/4 + 1; i < markovChain.size(); ++i)
+		{
+			cleaned.push_back(markovChain.at(i));
+		}
+
+		// Average the remaining entries
+		std::vector<double> runningTotals;
+		double numToAverage = 0.0;
+		for(unsigned int iChain = 0; iChain < cleaned.size(); iChain += 5)
+		{
+			for(unsigned int iVariable = 0; iVariable < cleaned.at(iChain).size(); ++iVariable)
+			{
+				if(iVariable == runningTotals.size())
+				{
+					runningTotals.push_back(0.0);
+				}
+				runningTotals.at(iVariable) += markovChain.at(iChain).at(iVariable);
+			}
+			numToAverage++;
+
+		}
+		assert(numToAverage);
+
+		double finalDistance = runningTotals.at(0)/numToAverage;
+		double finalTimeShift = runningTotals.at(1)/numToAverage;
+
+		TVector3 newVertex = startVertex + finalDistance * direction;
+		double newTime = currT - finalDistance/cInCmPerNs + finalTimeShift;
+		std::cout << "Shift track vertex by " << finalDistance << std::endl;
+		fFitterTrackParMap.SetCurrentValue(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxX), newVertex.X());
+		fFitterTrackParMap.SetCurrentValue(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxY), newVertex.Y());
+		fFitterTrackParMap.SetCurrentValue(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxZ), newVertex.Z());
+		fFitterTrackParMap.SetCurrentValue(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxT), newTime);
+
+		for(size_t iTrack = 0; iTrack < nTracks; ++iTrack)
+		{
+			if(!fixE.at(iTrack))
+			{
+				fFitterTrackParMap.SetCurrentValue(fFitterTrackParMap.GetIndex(iTrack, FitterParameterType::kEnergy), runningTotals.at(2+iTrack));
 			}
 		}
-		++iTry;
+		UpdateBestFits();
 	}
-	std::vector<double> cleaned;
-	for(unsigned int i = markovChain.size()/5 + 1; i < markovChain.size(); ++i)
-	{
-		cleaned.push_back(markovChain.at(i));
-	}
-	
-
-	double runningTotal = 0.0;
-  double numToAverage = 0.0;
-  for(unsigned int iChain = 0; iChain < cleaned.size(); iChain += 5)
-	{
-	  runningTotal += markovChain.at(iChain);
-		numToAverage++;
-	}
-	assert(numToAverage);
-
-  double finalDistance = runningTotal/numToAverage;
-  TVector3 newVertex = startVertex + finalDistance * direction;
-  std::cout << "Shift track vertex by " << finalDistance << std::endl;
-  fFitterTrackParMap.SetCurrentValue(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxX), newVertex.X());
-  fFitterTrackParMap.SetCurrentValue(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxY), newVertex.Y());
-  fFitterTrackParMap.SetCurrentValue(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxZ), newVertex.Z());
-
-  UpdateBestFits();
 	return;
 }
 
@@ -1466,9 +1726,15 @@ void WCSimLikelihoodFitter::FitAlongTrack()
 
   if(nTracks == 1 || (nTracks > 1 && sharedVertex) )
   {
+
+    bool canMove = (   !fFitterTrackParMap.GetIsFixed(0, FitterParameterType::kVtxX)
+                    && !fFitterTrackParMap.GetIsFixed(0, FitterParameterType::kVtxY)
+                    && !fFitterTrackParMap.GetIsFixed(0, FitterParameterType::kVtxZ)
+                   );
       
     std::vector<TVector3> directions;
     std::vector<double> minE, maxE, currE, stepE;
+    std::vector<bool> fixE;
     for(unsigned int i = 0; i < nTracks; ++i)
     {
       TVector3 direction;
@@ -1482,6 +1748,7 @@ void WCSimLikelihoodFitter::FitAlongTrack()
       maxE.push_back(fFitterTrackParMap.GetMaxValue(i, FitterParameterType::kEnergy));
       currE.push_back(fFitterTrackParMap.GetCurrentValue(i, FitterParameterType::kEnergy));
       stepE.push_back(fFitterTrackParMap.GetStep(i, FitterParameterType::kEnergy));
+      fixE.push_back(fFitterTrackParMap.GetIsFixed(i, FitterParameterType::kEnergy));
     }
 
     TVector3 direction(0,0,0);
@@ -1490,7 +1757,14 @@ void WCSimLikelihoodFitter::FitAlongTrack()
       direction += (directions.at(i));
     }
     direction *= 1.0 / directions.size();
-
+  
+    double minT, maxT, currT, stepT;
+    bool fixT;
+    minT = fFitterTrackParMap.GetMinValue(0, FitterParameterType::kVtxT);
+    maxT = fFitterTrackParMap.GetMaxValue(0, FitterParameterType::kVtxT);
+    currT = fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxT);
+    stepT = fFitterTrackParMap.GetStep(0, FitterParameterType::kVtxT);
+    fixT = (fFitterTrackParMap.GetIsFixed(0, FitterParameterType::kVtxT) || !WCSimAnalysisConfig::Instance()->GetUseTime());
 
     TVector3 startVertex(fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxX),
                          fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxY),
@@ -1524,7 +1798,7 @@ void WCSimLikelihoodFitter::FitAlongTrack()
     double maxVal = static_cast<unsigned int>(-1);
     double minVal = -1.0 * maxVal;
     std::cout << "minVal = " << minVal << " and start maxVal = " << maxVal << std::endl;
-    for(int i = 0; i < escapeDists.size(); ++i)
+    for(unsigned int i = 0; i < escapeDists.size(); ++i)
     {
       if(escapeDists[i] < 0 && escapeDists[i] > minVal){ minVal = escapeDists[i]; }
       if(escapeDists[i] > 0 && escapeDists[i] < maxVal){ maxVal = escapeDists[i]; }
@@ -1542,8 +1816,8 @@ void WCSimLikelihoodFitter::FitAlongTrack()
 	  // ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "GSLSimAn");
 
 
-	  min->SetMaxFunctionCalls(500);
-	  min->SetMaxIterations(1);
+	  min->SetMaxFunctionCalls(2500);
+	  min->SetMaxIterations(10);
 	  min->SetPrintLevel(3);
 	  //min->SetTolerance(0.);
     min->SetErrorDef(1.0);
@@ -1551,7 +1825,14 @@ void WCSimLikelihoodFitter::FitAlongTrack()
 	  std::cout << " Tolerance = " << min->Tolerance() << std::endl;
 
 	  // Convert nTracks into number of parameters
-	  const unsigned int nPars = 1;
+	  unsigned int nParsNoConst = 1;
+    // nParsNoConst += (int)(fixT);
+    for(unsigned int i = 0; i < fixE.size(); ++i)
+    {
+      nParsNoConst =+ (int)(fixE.at(i));
+    }
+    const unsigned int nPars = nParsNoConst;
+
 
 	  // Tell the minimizer the function to minimize
 	  // We have to wrap it in this functor because it's a member function of this class
@@ -1560,11 +1841,34 @@ void WCSimLikelihoodFitter::FitAlongTrack()
 
 	  // Tell the minimizer the functor and variables to consider
 	  min->SetFunction(func);
-	  min->SetLimitedVariable(0, "Distance from seed", minVal, stepSize, minVal, maxVal);
+    if( canMove )
+    {
+	    min->SetLimitedVariable(0, "Distance from seed", minVal, stepSize, minVal, maxVal);
+    }
+    else
+    {
+      min->SetFixedVariable(0, "Distance from seed", 0);
+    }
     for(unsigned int i = 0;  i < minE.size(); ++i)
     {
       TString name("Track %d energy", i);
-      min->SetLimitedVariable(i+1, "Energy", currE.at(i), stepE.at(i), minE.at(i), maxE.at(i));
+      if(fixE.at(i) == false)
+      {
+        min->SetLimitedVariable(i+1, "Energy", currE.at(i), stepE.at(i), minE.at(i), maxE.at(i));
+      }
+      else
+      {
+        min->SetFixedVariable(i+1, "Energy", currE.at(i));
+      }
+    }
+    
+    if(fixT == false && WCSimAnalysisConfig::Instance()->GetUseTime())
+    {
+      min->SetLimitedVariable(minE.size()+1, "Time shift", 0, 1., -3, 3);
+    }
+    else
+    {
+      min->SetFixedVariable(minE.size()+1, "Time shift",0);
     }
     min->Minimize();
 
@@ -1576,6 +1880,7 @@ void WCSimLikelihoodFitter::FitAlongTrack()
     fFitterTrackParMap.SetCurrentValue(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxX), newVertex.X());
     fFitterTrackParMap.SetCurrentValue(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxY), newVertex.Y());
     fFitterTrackParMap.SetCurrentValue(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxZ), newVertex.Z());
+    fFitterTrackParMap.SetCurrentValue(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxT), fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxT) + finalDistance/30.0 + min->X()[minE.size()+1]);
     for(unsigned int iTrack = 0; iTrack < minE.size(); ++iTrack)
     {
       fFitterTrackParMap.SetCurrentValue(fFitterTrackParMap.GetIndex(iTrack, FitterParameterType::kEnergy), min->X()[iTrack+1]);
@@ -1695,4 +2000,9 @@ void WCSimLikelihoodFitter::SetEvent(Int_t iEvent)
 	{
 		fTotalLikelihood = new WCSimTotalLikelihood(fLikelihoodDigitArray);
 	}
+}
+
+Bool_t WCSimLikelihoodFitter::CanFitEvent() const
+{
+  return (fLikelihoodDigitArray->GetNHits() > 0);
 }

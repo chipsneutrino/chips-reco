@@ -102,6 +102,14 @@ Double_t WCSimTotalLikelihood::Calc2LnL()
 	  }
   } //for iDigit
 
+  double chargeLnL = 0.0;
+  double timeLnL = 0.0;
+  for(int iDigit = 0; iDigit < fLikelihoodDigitArray->GetNDigits(); ++iDigit)
+  {
+    if(fCharge2LnL.at(iDigit) > 0) { chargeLnL += fCharge2LnL.at(iDigit); }
+    if(fTime2LnL.at(iDigit) > 0) { timeLnL += fTime2LnL.at(iDigit); }
+  }
+  std::cout << "Time component = " << timeLnL << " and charge component = " << chargeLnL << std::endl;
   fSetVectors = true;
   // std::cout << "-2 ln(Likelihood) = " << minus2LnL << std::endl;
   return minus2LnL;
@@ -131,38 +139,54 @@ std::vector<Double_t> WCSimTotalLikelihood::CalcPredictedCharges(unsigned int iD
 
 Double_t WCSimTotalLikelihood::Calc2LnL(int iDigit)
 {
+  if(iDigit == 0 ) { std::cout << fLikelihoodDigitArray->GetNDigits() << "  " << fLikelihoodDigitArray->GetNHits() << std::endl;}
+
   WCSimLikelihoodDigit *digit = fLikelihoodDigitArray->GetDigit(iDigit);
-  // if(digit->GetQ() == 0) { return 0; }
+  double minus2LnL = 0.0;
+    // if(digit->GetQ() == 0) { return 0; }
   // std::cout << "Size of predicted charge vector = " << predictedCharges.size() << std::endl;
   //  for(unsigned int i = 0; i<predictedCharges.size(); ++i)
   //  {
   //    std::cout << "predictedCharges[" << i << "] = " << predictedCharges.at(i) << std::endl;
   //  }
-  double totalCharge = CalcPredictedCharge(iDigit);
-  if( TMath::IsNaN( totalCharge ) )
+
+  if( WCSimAnalysisConfig::Instance()->GetUseCharge())
   {
-    return -99999;
+	  double totalCharge = CalcPredictedCharge(iDigit);
+	  if( TMath::IsNaN( totalCharge ) )
+	  {
+		return -99999;
+	  }
+	  double chargePart = fDigitizerLikelihood.GetMinus2LnL(totalCharge, digit->GetQ());
+	  minus2LnL += chargePart;
+	  fPredictedCharges.at(iDigit) = totalCharge;
+	  fCharge2LnL.at(iDigit) = chargePart;
+  }
+  else
+  {
+	  fPredictedCharges.at(iDigit) = -999.9;
+	  fCharge2LnL.at(iDigit) = -999.9;
   }
 
-
-  double chargePart = fDigitizerLikelihood.GetMinus2LnL(totalCharge, digit->GetQ());
-  double minus2LnL = chargePart;
-  double timePart = 0.0;
-  if(WCSimAnalysisConfig::Instance()->GetUseChargeAndTime())
+  if( WCSimAnalysisConfig::Instance()->GetUseTime())
   {
-    timePart = fTimeLikelihood->Calc2LnL(iDigit);
+	  double timePart = 0.0;
+		timePart = fTimeLikelihood->Calc2LnL(iDigit);
+	  minus2LnL += timePart;
+	  fTime2LnL.at(iDigit) = timePart;
   }
-  minus2LnL += timePart;
- 
-  /*if(digit->GetQ() > 10)
+  else
   {
-    std::cout << "Recorded charge = " << digit->GetQ() << " and predicted charge before effiencies = " << totalCharge << " so charge adds " << chargePart << " to -2LnL and time adds " << timePart << std::endl;
-  }*/
+	  fTime2LnL.at(iDigit) = -999.9;
+  }
+
+  // if(digit->GetQ() > 10)
+  // {
+  //   std::cout << "Recorded charge = " << digit->GetQ() << " and predicted charge before effiencies = " << totalCharge << " so charge adds " << chargePart << " to -2LnL and time adds " << timePart << std::endl;
+  // }
+
   fMeasuredCharges.at(iDigit) = digit->GetQ();
-  fPredictedCharges.at(iDigit) = totalCharge;
   fTotal2LnL.at(iDigit) = minus2LnL;
-  fCharge2LnL.at(iDigit) = chargePart;
-  fTime2LnL.at(iDigit) = timePart;
   return minus2LnL;
 }
 
@@ -224,7 +248,7 @@ std::vector<double> WCSimTotalLikelihood::GetPredictedTimeVector() const {
 		std::cerr << "       Have you reset the tracks or likelihood digit array since calculating the likelihood?" << std::endl;
 		assert(fSetVectors);
 	}
-  if(! WCSimAnalysisConfig::Instance()->GetUseChargeAndTime())
+  if(! WCSimAnalysisConfig::Instance()->GetUseTime())
   {
     std::cerr << "You're asking for the predicted time vector, but the time component of the likelihood is switched off" << std::endl;
     std::cerr << "Returning a vector of zeroes" << std::endl;

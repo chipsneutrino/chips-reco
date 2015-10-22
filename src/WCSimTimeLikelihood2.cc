@@ -131,18 +131,24 @@ double WCSimTimeLikelihood2::GetPMTTimeResolution(WCSimLikelihoodDigit * myDigit
 
 double WCSimTimeLikelihood2::GetGaussianMinusTwoLnL(const double& x,
 		const double& mean, const double& sigma) {
+  // If the PMT is hit but we don't expect it to be, assume we have scattered light:
+  double scatteringProb = 0.005; // 0.5% chance
+  double minus2LnL = 0.0;
   
-  if( mean > 0 ){
-  // std::cout << "x = " << x << " mean = " << mean  << "  sigma = " << sigma << std::endl;
+  if(mean <= 0 && x > 0) // PMT hit when it wasn't expected to: assume scattering
+  {
+	  minus2LnL = -2.0 * TMath::Log(scatteringProb);
   }
-  if( mean < 0 ) { 
-    return 50;
-  }
-  
-  // Calculate the likelihood:
-  double lnl = 2*TMath::Log(sqrt(2*TMath::Pi())*sigma) + ((x - mean)*(x - mean) / (sigma*sigma));
 
-	return lnl;
+  if( mean > 0 && x >= 0 ){
+	  // Calculate the likelihood:
+
+	  double tmp = 2*TMath::Log(sqrt(2*TMath::Pi())*sigma) + ((x - mean)*(x - mean) / (sigma*sigma));
+	  if( tmp < 25 ) { minus2LnL = tmp; }
+    else{ minus2LnL = 25; }
+  }
+  //std::cout << mean << "  " << x << "  " << minus2LnL << std::endl;
+  return minus2LnL;
 }
 
 

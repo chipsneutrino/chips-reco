@@ -182,6 +182,7 @@ class WCSimLikelihoodFitter
                                            Double_t th, Double_t phi, Double_t E,
                                            TrackType::Type type);
         
+        Bool_t CanFitEvent() const;
 
         Bool_t fUseHoughFitterForSeed;
 

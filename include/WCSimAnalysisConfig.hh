@@ -80,6 +80,20 @@ public:
     Bool_t GetUseGlassCathodeReflection() const;
 
     /**
+     * Should we use the charge to help calculate the likelihood?
+     * Says nothing about using time
+     * @return True if we should use the charge
+     */
+    Bool_t GetUseCharge() const;
+
+    /**
+     * Should we use the time to help calculate the likelihood?
+     * Says nothing about using charge
+     * @return True if we should use the time
+     */
+    Bool_t GetUseTime() const;
+
+    /**
      * Should we only use the charge to calculate the likelihood?
      * @return True if we should only use the charge
      */
@@ -103,6 +117,12 @@ public:
      * @return True if we should seed using the old fitter
      */
     Bool_t GetUseHoughFitterForSeed() const;
+
+
+    void SetUseTimeOnly(Bool_t doIt = true);
+    void SetUseChargeOnly(Bool_t doIt = true);
+    void SetUseChargeAndTime(Bool_t doIt = true);
+
 
 
 private:

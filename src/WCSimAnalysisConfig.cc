@@ -117,6 +117,15 @@ Bool_t WCSimAnalysisConfig::GetUseHoughFitterForSeed() const
 	return fUseHoughFitterForSeed;
 }
 
+Bool_t WCSimAnalysisConfig::GetUseCharge() const
+{
+    return fUseCharge;
+}
+Bool_t WCSimAnalysisConfig::GetUseTime() const
+{
+    return fUseTime;
+}
+
 void WCSimAnalysisConfig::LoadConfig()
 {
     // Open the file and test opening:
@@ -432,3 +441,37 @@ WCSimAnalysisConfig* WCSimAnalysisConfig::Instance()
 
   return fgConfig;
 }
+
+void WCSimAnalysisConfig::SetUseTimeOnly(Bool_t doIt)
+{
+  if(doIt)
+  {
+    std::cout << " *** WCSimAnalysisConfig::SetUseTimeOnly *** " << std::endl;
+    fUseTime = true;
+    fUseCharge = false;
+  }
+  return;
+}
+
+void WCSimAnalysisConfig::SetUseChargeOnly(Bool_t doIt)
+{
+  if(doIt)
+  {
+    std::cout << " *** WCSimAnalysisConfig::SetUseChargeOnly *** " << std::endl;
+    fUseCharge = true;
+    fUseTime = false;
+  }
+  return;
+}
+
+void WCSimAnalysisConfig::SetUseChargeAndTime(Bool_t doIt)
+{
+  if(doIt)
+  {
+    std::cout << " *** WCSimAnalysisConfig::SetUseChargeAndTime *** " << std::endl;
+    fUseCharge = true;
+    fUseTime = true;
+  }
+  return;
+}
+
