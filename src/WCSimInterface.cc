@@ -259,7 +259,7 @@ void WCSimInterface::BuildTrueLikelihoodTracks() {
 		  									sum.GetVertexX() * mm_to_cm,
 		  									sum.GetVertexY() * mm_to_cm,
 		  									sum.GetVertexZ() * mm_to_cm,
-		  									0,
+                        sum.GetVertexT(),
 		  									sum.GetBeamDir().Theta(),
 		  									sum.GetBeamDir().Phi(),
 		  									sum.GetBeamEnergy() - beamParticle->Mass() * 1000 ); // Mass comes in GeV but we work in MeV
@@ -844,13 +844,13 @@ std::vector<WCSimLikelihoodTrackBase*> WCSimInterface::GetPi0PhotonTracks(const 
     extraPars[type] = 0.0;
 
     track = WCSimLikelihoodTrackFactory::MakeTrack(TrackType::PhotonLike, 
-                                                   pi0Vtx.X(), pi0Vtx.Y(), pi0Vtx.Z(), 0,
+                                                   pi0Vtx.X(), pi0Vtx.Y(), pi0Vtx.Z(), sum.GetVertexT(),
                                                    TMath::ACos(photonDir1.Z()), TMath::ATan2(photonDir1.Y(),photonDir1.X()),
                                                    photonEn1,
                                                    extraPars);
     photons.push_back(track);
     track = WCSimLikelihoodTrackFactory::MakeTrack(TrackType::PhotonLike, 
-                                                   pi0Vtx.X(), pi0Vtx.Y(), pi0Vtx.Z(), 0,
+                                                   pi0Vtx.X(), pi0Vtx.Y(), pi0Vtx.Z(), sum.GetVertexT(),
                                                    TMath::ACos(photonDir2.Z()), TMath::ATan2(photonDir2.Y(),photonDir2.X()),
                                                    photonEn2,
                                                    extraPars);
