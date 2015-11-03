@@ -179,6 +179,33 @@ void WCSimRecoSlicer::BuildEvents(){
 //    sortVec.push_back(std::make_pair<unsigned int, WCSimRecoEvent*>(fSlicedDigits[v].size(),newEvt));
   }
 
+  if(fSlicedEvents.size() == 0)
+  {
+    std::cout << "Found no slices: taking the whole event instead" << std::endl;
+    WCSimRecoEvent* newEvt = new WCSimRecoEvent();
+    // Initialise the event from the input event
+    newEvt->SetHeader(fInputEvent->GetRun(), fInputEvent->GetEvent(), fInputEvent->GetTrigger());
+    newEvt->SetVertex(fInputEvent->GetVtxX(), fInputEvent->GetVtxY(), fInputEvent->GetVtxZ(), fInputEvent->GetVtxTime());
+    newEvt->SetDirection(fInputEvent->GetVtxX(), fInputEvent->GetVtxY(), fInputEvent->GetVtxZ());
+    newEvt->SetConeAngle(fInputEvent->GetConeAngle());
+    newEvt->SetTrackLength(fInputEvent->GetTrackLength());
+    newEvt->SetVtxFOM(fInputEvent->GetVtxFOM(), fInputEvent->GetVtxIterations(), fInputEvent->GetVtxPass());
+    newEvt->SetVtxStatus(fInputEvent->GetVtxStatus());
+
+    if(fInputEvent->IsFilterDone()){ newEvt->SetFilterDone();}
+    if(fInputEvent->IsVertexFinderDone()){ newEvt->SetVertexFinderDone();}
+    if(fInputEvent->IsRingFinderDone()){ newEvt->SetRingFinderDone();}
+
+    // Add the digits
+    for(int d = 0; d < fInputEvent->GetNDigits(); ++d){
+      newEvt->AddDigit(fInputEvent->GetDigit(d));
+    }
+    for(int fd = 0; fd < fInputEvent->GetNFilterDigits(); ++fd){
+      newEvt->AddDigit(fInputEvent->GetFilterDigit(fd));
+    }
+    fSlicedEvents.push_back(newEvt);
+  }
+
   // Now we want to sort the vector by the number of digits.
   std::sort(fSlicedEvents.begin(),fSlicedEvents.end(),SortTheSlices);
 
