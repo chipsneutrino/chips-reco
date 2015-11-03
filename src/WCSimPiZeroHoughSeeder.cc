@@ -47,6 +47,8 @@ void WCSimPiZeroHoughSeeder::MakeSeeds()
 
 	// Do we get two separate vertices or one?
 	FitUsingHoughResults();
+	std::cout << "There are " << fLikelihoodDigitArray->GetNDigits() << " digits" << std::endl;
+			std::cout << "Digit 0 charge = "; std::cout << fLikelihoodDigitArray->GetDigit(0)->GetQ() << std::endl;
 
 	fMadeSeeds = true;
 	return;
@@ -158,6 +160,10 @@ void WCSimPiZeroHoughSeeder::RunHough()
 			SetStartingEnergies(ringList.at(0).first, ringList.at(1).first, track1, track2);
 
 			fHoughResults.push_back(std::make_pair(track1, track2));
+		}
+		else
+		{
+			std::cout << "Didn't find two rings with the Hough transform" << std::endl;
 		}
 	}
 
