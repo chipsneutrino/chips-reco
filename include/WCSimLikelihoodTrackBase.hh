@@ -69,9 +69,10 @@ public:
  protected:
    void LoadEmissionProfile(WCSimLikelihoodTrackBase * myTrack);
    double fVtx[3];	    ///< Vertex position
+   double fDir[3];		///< (x,y,z) components of direction - calculate it once every time theta and phi are set
    double fT0;			///< Vertex time
-   double fTheta0;	    ///< Polar angle to z axis
-   double fPhi0;		///< Azimuthal angle
+   double fTheta0;	    ///< Polar angle to z axis of direction
+   double fPhi0;		///< Azimuthal angle of direction
    double fE0;			///< Kinetic energy
    double fConversionDistance; ///< Distance from the vertex to the point where Cherenkov light is first emitted (zero unless a photon)
 

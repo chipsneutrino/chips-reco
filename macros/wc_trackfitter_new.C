@@ -65,7 +65,7 @@ void wc_trackfitter_new(const char * infile = "", int start=0, int fit=100){
   myFitter.Make1DSurface(0, "kEnergy");
   //myFitter.Make2DSurface(0, "kVtxX", 0, "kVtxY");
   myFitter.SetMakeFits(kTRUE);
-  myFitter.SetMakeSurfaces(kTRUE);
+  myFitter.SetMakeSurfaces(kFALSE);
 
 
 

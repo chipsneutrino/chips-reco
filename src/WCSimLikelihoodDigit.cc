@@ -133,20 +133,44 @@ double WCSimLikelihoodDigit::GetFaceZ() const
     return fFace[2];
 }
 
+// Relies on the fact that points in the QE graph are evenly spaced to avoid costly TGraph::Eval calls
 double WCSimLikelihoodDigit::GetAverageQE(const double &distanceToPMT) const
 {
-    double xLo, yLo;
-    double xHi, yHi;
-    fAverageQE->GetPoint(0, xLo, yLo);
-    fAverageQE->GetPoint(fAverageQE->GetN()-1, xHi, yHi);
-    if( distanceToPMT < xLo )
+    double xMin, yMin;
+    double xMax, yMax;
+    fAverageQE->GetPoint(0, xMin, yMin);
+    assert(fAverageQE->GetN() > 1);
+
+    fAverageQE->GetPoint(fAverageQE->GetN()-1, xMax, yMax);
+    assert(xMax > xMin);
+    if( distanceToPMT < xMin )
     {
-      std::cerr << "WCSimLikelihoodDigit::GetAverageQE - Warning: distance to PMT of " << distanceToPMT << " is less than the minimum x-value in the graph, of " << xLo << std::endl;
+      std::cerr << "WCSimLikelihoodDigit::GetAverageQE - Warning: distance to PMT of " << distanceToPMT << " is less than the minimum x-value in the graph, of " << xMin << std::endl;
     }
-    if( distanceToPMT > xHi )
+    if( distanceToPMT > xMax )
     {
-      std::cerr << "WCSimLikelihoodDigit::GetAverageQE - Warning: distance to PMT of " << distanceToPMT << " is greater than the maximum x-value in the graph, of " << xHi << std::endl;
+      std::cerr << "WCSimLikelihoodDigit::GetAverageQE - Warning: distance to PMT of " << distanceToPMT << " is greater than the maximum x-value in the graph, of " << xMax << std::endl;
     }
+
+    double xTwo, yTwo;
+    fAverageQE->GetPoint(1, xTwo, yTwo);
+    int point = (int)(distanceToPMT / ( (xMax - xMin)/(fAverageQE->GetN()-1) ) );
+    if( point == fAverageQE->GetN()-1)
+    {
+      double x1,x2, y1, y2;
+      fAverageQE->GetPoint(point, x1, y1);
+      fAverageQE->GetPoint(point+1, x2, y2);
+      return (y1 * (x2-distanceToPMT) + y2 * (distanceToPMT - x1)) / (x2 - x1);
+    }
+    else if( point > 0 )
+    {
+      double x1,x2, y1, y2;
+      fAverageQE->GetPoint(point-1, x1, y1);
+      fAverageQE->GetPoint(point, x2, y2);
+      return (y1 * (x2-distanceToPMT) + y2 * (distanceToPMT - x1)) / (x2 - x1);
+      
+    }
+      
     return fAverageQE->Eval(distanceToPMT);
 }
 
@@ -174,4 +198,23 @@ void WCSimLikelihoodDigit::Print() const
 
 TString WCSimLikelihoodDigit::GetPMTName() const {
 	return fPMTName;
+}
+
+bool WCSimLikelihoodDigit::operator == (const WCSimLikelihoodDigit &other) const
+{
+	return (
+		       fTubeId == other.fTubeId     ///< Unique PMT ID number from WCSim
+		        && fQ == other.fQ       ///< Digitized charge (P.E.)
+		        && fT == other.fT       ///< Time of hit
+		        && fPos[0] == other.fPos[0] ///< (x,y,z) co-ordinates of the PMT location
+            && fPos[1] == other.fPos[1]
+            && fPos[2] == other.fPos[2]
+		        && fFace[0] == other.fFace[0] ///< (x,y,z) components of the direction normal to the PMT
+            && fFace[1] == other.fFace[1]
+            && fFace[2] == other.fFace[2]
+		        && fPMTName == other.fPMTName ///< Name of PMT type, e.g. 3_inch_HQE
+            && fAverageQE == other.fAverageQE ///< Average QE of the PMT, from weighting QE(wavelength) by the average Cherenkov spectrum - as a function of photon travel distance
+		        && fAverageRefIndex == other.fAverageRefIndex ///< Weight WCSim's refractive index by (wavelength * PMT QE(wavelength))
+		        && fExposeHeight == other.fExposeHeight ///< Height of PMT dome expose through the detector liner
+			  );
 }

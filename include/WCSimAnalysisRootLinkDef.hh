@@ -55,6 +55,7 @@
 #pragma link C++ class WCSimTotalLikelihood+;
 #pragma link C++ class WCSimLikelihoodFitter+;
 #pragma link C++ class WCSimLikelihoodTuner+;
+#pragma link C++ class WCSimLikelihoodTunerCache+;
 #pragma link C++ class WCSimChargePredictor+;
 #pragma link C++ class WCSimLikelihoodDigit+;
 #pragma link C++ class WCSimLikelihoodDigitArray+;
@@ -101,4 +102,7 @@
 #pragma link C++ class WCSimPiZeroSingleElectronSeeder+;
 #pragma link C++ class WCSimPiZeroHoughSeeder+;
 #pragma link C++ class WCSimPiZeroElectronAdjuster+;
+#pragma link C++ class WCSimTransmissionFunctionLookupTable+;
+#pragma link C++ class vector<WCSimTransmissionFunctionLookupTable>+;
+#pragma link C++ class WCSimTransmissionFunctionLookup+;
 #endif

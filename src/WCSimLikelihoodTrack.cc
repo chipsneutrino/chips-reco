@@ -25,9 +25,12 @@ WCSimLikelihoodTrack::WCSimLikelihoodTrack( double x, double y, double z, double
 	fT0     = t;
 	fTheta0 = theta;
 	fPhi0   = phi;
+	fDir[0] = (TMath::Sin(fTheta0) * TMath::Cos(fPhi0));
+	fDir[1] = (TMath::Sin(fTheta0) * TMath::Sin(fPhi0));
+	fDir[2] = (TMath::Cos(fTheta0));
 	fE0     = E;
-  fType   = myType;
-  fConversionDistance = 0.0;
+	fType   = myType;
+	fConversionDistance = 0.0;
 	return;
 }
 

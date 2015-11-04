@@ -19,9 +19,12 @@ WCSimLikelihoodPhotonTrack::WCSimLikelihoodPhotonTrack(double x, double y,
 	fVtx[0] = x;
 	fVtx[1] = y;
 	fVtx[2] = z;
-	fT0     = t;
 	fTheta0 = theta;
 	fPhi0   = phi;
+	fDir[0] = (TMath::Sin(fTheta0) * TMath::Cos(fPhi0));
+	fDir[1] = (TMath::Sin(fTheta0) * TMath::Sin(fPhi0));
+	fDir[2] = (TMath::Cos(fTheta0));
+	fT0     = t;
 	fE0     = E;
   fType   = TrackType::PhotonLike;
   SetConversionDistance(convDistance);

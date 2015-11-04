@@ -46,11 +46,11 @@ WCSimEmissionProfiles::WCSimEmissionProfiles() {
 	fGCoarse = 0x0;
 	fGFine = 0x0;
 
-  fLastPercentile = 0;
-  fPercentileTrackLength = 0;
+	fLastPercentile = 0;
+	fPercentileTrackLength = 0;
 
-  fType = TrackType::Unknown;
-  fEnergy = -999.9;
+	fType = TrackType::Unknown;
+	fEnergy = -999.9;
 }
 
 WCSimEmissionProfiles::~WCSimEmissionProfiles() {
@@ -337,6 +337,8 @@ void WCSimEmissionProfiles::LoadFile(const TrackType::Type &type, const double &
 	SetEnergy(energy);
 
 	if(fDebug) { SaveProfiles(type, energy); }
+
+	fStoppingDistance = -999.9;
 	return;
 
 }
@@ -379,6 +381,8 @@ void WCSimEmissionProfiles::InterpolateRho(const double &energy) {
   int bin = GetArrayBin(energy);
 	// std::cerr << "Warning: not doing any interpolation, just getting the nearest profile - bin = " << bin << std::endl;
 	fRhoInterp = (TH1F*)(fRhoArray->At(bin)->Clone());
+	fStoppingDistance = -999.9;
+	fStoppingDistance = GetStoppingDistance();
 	fRhoInterp->SetDirectory(0);
 	// std::cout << "Energy = " << myTrack->GetE() << "  integral = " << fRhoInterp->Integral("W");
 	return;
@@ -827,8 +831,12 @@ void WCSimEmissionProfiles::SaveProfiles(const TrackType::Type &type, const doub
 
 Double_t WCSimEmissionProfiles::GetStoppingDistance()
 {
-	Int_t bin = fRhoInterp->FindLastBinAbove(0);
-	return (fRhoInterp->GetBinCenter(bin));
+	if(fStoppingDistance == -999.9)
+	{
+		Int_t bin = fRhoInterp->FindLastBinAbove(0);
+		fStoppingDistance = fRhoInterp->GetBinCenter(bin);
+	}
+	return fStoppingDistance;
 }
 
 TH1F * WCSimEmissionProfiles::GetRho()

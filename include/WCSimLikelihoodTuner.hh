@@ -27,6 +27,32 @@
 #include "WCSimTrackParameterEnums.hh"
 #include "WCSimPMTManager.hh"
 
+class WCSimLikelihoodTunerCache
+{
+public:
+  WCSimLikelihoodTunerCache();
+  WCSimLikelihoodTunerCache( double const &s, WCSimLikelihoodDigit const * digit, WCSimLikelihoodTrackBase const * track);
+  bool Contains(double const &s, WCSimLikelihoodDigit const * digit, WCSimLikelihoodTrackBase const * track);
+
+  TVector3 GetEmissionPos();
+  TVector3 GetToPMT();
+  double GetAngleToPMT();
+  double GetCosAngleToPMT();
+  double GetDistanceToPMT();
+  WCSimLikelihoodDigit const * GetDigit();
+  double GetS();
+
+private:
+  WCSimLikelihoodDigit const * fDigit;
+  WCSimLikelihoodTrackBase const * fTrack;
+  double fS;
+  TVector3 fEmissionPos;
+  TVector3 fToPMT;
+  double fAngleToPMT;
+  double fCosAngleToPMT;
+  double fDistanceToPMT;
+
+};
 
 
 class WCSimLikelihoodTuner
@@ -61,7 +87,7 @@ class WCSimLikelihoodTuner
          * @param myDigit PMT the photon is travelling to
          * @return Probability the photon survives to the PMT without being absorbed
          */
-        Double_t TransmissionFunction(Double_t s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit);
+        Double_t TransmissionFunction();
 
         /**
          * Probability that the PMT registers a hit as a function of the incoming photon angle
@@ -70,13 +96,13 @@ class WCSimLikelihoodTuner
          * @param myDigit PMT the photon is travelling to
          * @return Probability that the PMT registers a hit due to the photon
          */
-        Double_t Efficiency(Double_t s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit);
+        Double_t Efficiency();
 
         /**
          * Apply the wavelength-weighted relative quantum efficiency
          * @param myTrack Track that emitted the photon
          */
-        Double_t QuantumEfficiency(const double &s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit);
+        Double_t QuantumEfficiency();
 
         /**
          * Factor for the solid angle of the PMT as viewed from where the photon was emitted
@@ -85,7 +111,7 @@ class WCSimLikelihoodTuner
          * @param myDigit PMT the photon is travelling to
          * @return Total (not fractional) solid angle of the photon
          */
-        Double_t SolidAngleFraction(Double_t s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit);
+        Double_t SolidAngleFraction();
 
         /**
          * Relates the amount of direct and indirect light as a function of several geometric factors
@@ -233,10 +259,11 @@ class WCSimLikelihoodTuner
 
         Double_t fDirCoeffs[3]; ///< Quadratic expansion coefficients to multiply the track integrals, for direct light
         Double_t fIndCoeffs[3]; ///< Quadratic expansion coefficients to multiply the track integrals, for indirect light
-		Double_t fAverageQE;    ///< Quantum efficiency averaged over all emitted wavelenghts (not used any more)
+    		Double_t fAverageQE;    ///< Quantum efficiency averaged over all emitted wavelenghts (not used any more)
 
         Double_t fExtent[3];    ///< Dimensions of the detector: (x,y,z) for mailbox, (r,r,z) for cylinder
         Bool_t fConstrainExtent; ///< Should we stop integrating when we reach the edge of the detector?
+        double fMaxDistance;  ///< The furthest a photon can travel to hit a PMT (i.e. distance from the bottom left to top right of the detector)
         WCSimLikelihoodDigitArray::GeomType_t fGeomType; ///< Detector geometry type
 
 
@@ -244,11 +271,17 @@ class WCSimLikelihoodTuner
         WCSimLikelihoodTrackBase * fLastCutoff; ///< The last track we calculated a cutoff for (for cacheing)
         Double_t fCutoffIntegral; ///< Distance along the particle's trajectory where it leaves the detector
 
-	  	Bool_t   fCalculateIntegrals;  ///< True if we should calculate integrals numerically, false to look them up in a table
+	    	Bool_t   fCalculateIntegrals;  ///< True if we should calculate integrals numerically, false to look them up in a table
       
-	  	TrackType::Type fIntegralParticleType; ///< The particle type whose table we've already loaded
-	  	WCSimEmissionProfileManager * fEmissionProfileManager; ///< The emission profile handler
-	  	WCSimPMTManager * fPMTManager;
+	  	  TrackType::Type fIntegralParticleType; ///< The particle type whose table we've already loaded
+	  	  WCSimEmissionProfileManager * fEmissionProfileManager; ///< The emission profile handler
+	  	  WCSimPMTManager * fPMTManager;
+
+        void MakeCache(const double &s , WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit);
+        WCSimLikelihoodTunerCache fCache;
+
+
+
 
 };
 

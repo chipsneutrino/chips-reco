@@ -9,9 +9,9 @@
 
 CXX						= g++
 CXXDEPEND     = -MM
-CXXFLAGS      = -g -Wall -fPIC
+CXXFLAGS      = -g -O3 -Wall -fPIC
 LD            = g++
-LDFLAGS       = -g 
+LDFLAGS       = -g -O3
 
 ROOTCFLAGS   := $(shell root-config --cflags)
 ROOTLDFLAGS  := $(shell root-config --ldflags)
@@ -50,7 +50,7 @@ ROOTDICT := $(SRCDIR)/WCSimAnalysisRootDict.cc
 
 # This is the list of all the ROOT-based classes we need to worry about.
 # Assumes that each class has src/*.cc, include/*.hh and tmp/*.o files.
-ROOTCLASS := WCSimPiZeroSeed WCSimPiZeroSeedGenerator WCSimPiZeroSeeder WCSimPiZeroHoughSeeder WCSimPiZeroSingleElectronSeeder WCSimPiZeroElectronAdjuster WCSimPiZeroFitter WCSimDetectorParameters WCSimTimePredictor WCSimTimeLikelihood2 WCSimLikelihoodTrackFactory WCSimLikelihoodTrackBase WCSimLikelihoodPhotonTrack WCSimFitterTrackParMap WCSimIntegralLookupMaker3D WCSimIntegralLookup3D WCSimIntegralLookupReader WCSimIntegralLookup WCSimIntegralLookupMaker WCSimRecoEvDisplay WCSimRecoSummary WCSimEmissionProfileManager WCSimEmissionProfiles WCSimFitterConfig WCSimFitterInterface WCSimFitterParameters WCSimFitterTree WCSimFitterPlots WCSimTimeLikelihood WCSimAnalysisConfig WCSimDigitizerLikelihood WCSimTotalLikelihood WCSimLikelihoodTrack WCSimLikelihoodDigit WCSimLikelihoodDigitArray WCSimLikelihoodTuner WCSimLikelihoodFitter WCSimDisplayViewer WCSimDisplayFactory WCSimDisplay WCSimDisplayAB WCSimEveDisplay WCSimEventWriter WCSimGeometry WCSimInterface WCSimParameters WCSimRecoObjectTable WCSimRecoFactory WCSimReco WCSimRecoAB WCSimRecoDigit WCSimRecoCluster WCSimRecoClusterDigit WCSimRecoRing WCSimRecoVertex WCSimRecoEvent WCSimTrueEvent WCSimTrueTrack WCSimHoughTransform WCSimHoughTransformArray WCSimDataCleaner WCSimVertexFinder WCSimVertexGeometry WCSimVertexViewer WCSimRingFinder WCSimRingViewer WCSimNtupleFactory WCSimNtuple WCSimRecoNtuple WCSimVertexNtuple WCSimVertexSeedNtuple WCSimNtupleWriter WCSimMsg WCSimChargePredictor WCSimRecoSeed WCSimRecoSlicer 
+ROOTCLASS := WCSimTransmissionFunctionLookup WCSimPiZeroSeed WCSimPiZeroSeedGenerator WCSimPiZeroSeeder WCSimPiZeroHoughSeeder WCSimPiZeroSingleElectronSeeder WCSimPiZeroElectronAdjuster WCSimPiZeroFitter WCSimDetectorParameters WCSimTimePredictor WCSimTimeLikelihood2 WCSimLikelihoodTrackFactory WCSimLikelihoodTrackBase WCSimLikelihoodPhotonTrack WCSimFitterTrackParMap WCSimIntegralLookupMaker3D WCSimIntegralLookup3D WCSimIntegralLookupReader WCSimIntegralLookup WCSimIntegralLookupMaker WCSimRecoEvDisplay WCSimRecoSummary WCSimEmissionProfileManager WCSimEmissionProfiles WCSimFitterConfig WCSimFitterInterface WCSimFitterParameters WCSimFitterTree WCSimFitterPlots WCSimTimeLikelihood WCSimAnalysisConfig WCSimDigitizerLikelihood WCSimTotalLikelihood WCSimLikelihoodTrack WCSimLikelihoodDigit WCSimLikelihoodDigitArray WCSimLikelihoodTuner WCSimLikelihoodFitter WCSimDisplayViewer WCSimDisplayFactory WCSimDisplay WCSimDisplayAB WCSimEveDisplay WCSimEventWriter WCSimGeometry WCSimInterface WCSimParameters WCSimRecoObjectTable WCSimRecoFactory WCSimReco WCSimRecoAB WCSimRecoDigit WCSimRecoCluster WCSimRecoClusterDigit WCSimRecoRing WCSimRecoVertex WCSimRecoEvent WCSimTrueEvent WCSimTrueTrack WCSimHoughTransform WCSimHoughTransformArray WCSimDataCleaner WCSimVertexFinder WCSimVertexGeometry WCSimVertexViewer WCSimRingFinder WCSimRingViewer WCSimNtupleFactory WCSimNtuple WCSimRecoNtuple WCSimVertexNtuple WCSimVertexSeedNtuple WCSimNtupleWriter WCSimMsg WCSimChargePredictor WCSimRecoSeed WCSimRecoSlicer 
 
 # Create the ROOTINC list from the class list, remembering to also add the LinkDef file
 ROOTINC = $(ROOTCLASS:%=$(INCDIR)/%.hh)
@@ -69,7 +69,7 @@ ROOTEXTOBJS := $(WCSIM_LIBDIR)/WCSimRootEvent.o $(WCSIM_LIBDIR)/WCSimRootGeom.o 
 $(TMPDIR)/%.o : $(SRCDIR)/%.cc
 	@echo "<**Compiling $@**>"
 	@mkdir -p $(@D)
-	$(CXX) $(CXXFLAGS) $(INCLUDES) $(WCSIM_INCLUDES) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(INCLUDES) $(WCSIM_INCLUDES) -c $< -o $@ 
 
 $(TMPDIR)/%.d: $(SRCDIR)/%.cc
 	@echo "<**Depend $@**>"
@@ -96,7 +96,7 @@ evDisp:
 	$(CXX) `root-config --cflags --glibs --libs --evelibs` -I./include ${WCSIM_INCLUDES} -L${WCSIMANAHOME} -L${WCSIMHOME} -o evDisplay evDisplay.cc ${WCSIMHOME}/src/WCSimRootDict.cc ${WCSIMANAHOME}/src/WCSimAnalysisRootDict.cc -lWCSim -lWCSimAnalysis -lEG -lSpectrum -lMinuit
 
 fitterProfile:
-	$(CXX) `root-config --cflags --glibs --libs --evelibs` -I./include ${WCSIM_INCLUDES} -L${WCSIMANAHOME} -L${WCSIMHOME} -L/home/ajperch/software/gperftools/lib/ -o fitterProfile runFitterProfile.cc ${WCSIMHOME}/src/WCSimRootDict.cc ${WCSIMANAHOME}/src/WCSimAnalysisRootDict.cc -lWCSim -lWCSimAnalysis -lEG -lSpectrum -lMinuit -lprofiler
+	$(CXX) $(CXXFLAGS) `root-config --cflags --glibs --libs --evelibs` -I./include ${WCSIM_INCLUDES} -L${WCSIMANAHOME} -L${WCSIMHOME} -L/home/ajperch/software/gperftools/lib/ -o fitterProfile runFitterProfile.cc ${WCSIMHOME}/src/WCSimRootDict.cc ${WCSIMANAHOME}/src/WCSimAnalysisRootDict.cc -lWCSim -lWCSimAnalysis -lEG -lSpectrum -lMinuit -lprofiler
 
 clean :
 	@echo "<**Clean**>"

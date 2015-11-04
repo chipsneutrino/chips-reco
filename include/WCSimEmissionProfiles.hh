@@ -108,6 +108,8 @@ private:
   double fLastPercentile;
   double fPercentileTrackLength;
 
+  double fStoppingDistance;
+
   TrackType::Type fType;
   double fEnergy;
   ClassDef(WCSimEmissionProfiles,1)

@@ -94,44 +94,52 @@ double WCSimTimePredictor::GetHitTime(WCSimLikelihoodTrackBase* myTrack,
 }
 
 double WCSimTimePredictor::GetSurvivalDistance(WCSimLikelihoodTrackBase* myTrack) {
-	double distance = fEmissionProfileManager->GetStoppingDistance(myTrack);
-	return distance;
+	return fEmissionProfileManager->GetStoppingDistance(myTrack);
 }
 
 // Get the distance the charge particle travels before photons released at the Cherenkov angle start
 double WCSimTimePredictor::GetTravelDistance(WCSimLikelihoodTrackBase* myTrack,
 		WCSimLikelihoodDigit* myDigit) {
 
+	// We need the distance and angle from vertex to PMT
 	TVector3 pmt = myDigit->GetPos(); // Get it in metres
 	TVector3 vertex = myTrack->GetVtx(); // Get it into metres
-	
-  // std::cout << "PMT:" << std::endl;
-  // pmt.Print();
-  // std::cout << "Vtx: " << std::endl;
-  // vertex.Print();
-  // std::cout << "Direction: " << std::endl;
-  // (myTrack->GetDir() * (1.0 / (myTrack->GetDir().Mag()))).Print();
-  
-  TVector3 direction = myTrack->GetDir() * (1.0/ (myTrack->GetDir().Mag()));
-  double angToDir = (pmt-vertex).Angle(direction);
-  if(angToDir > 0.5 * TMath::Pi()){ return -999; }
-  double refInd = myDigit->GetAverageRefIndex();
-	double cosCherenkovAngle = TMath::Cos(39.0/180.0 * 2.0 * TMath::Pi());
-  cosCherenkovAngle = 1.0 / refInd;
-  double cherenkovAngle = TMath::ACos(cosCherenkovAngle);
+	double dist = (pmt - vertex).Mag();
 
-  double a = 1.0;
-  double b = -2.0 * (pmt - vertex).Mag() * TMath::Cos(angToDir);
-  double c = (pmt - vertex).Mag2() * ( 1 - ( (TMath::Sin(angToDir) * TMath::Sin(angToDir)) / (TMath::Power(TMath::Sin(cherenkovAngle),2)) ) );
+	TVector3 direction = myTrack->GetDir();
+	double cosAngToDir = (pmt - vertex).Dot(direction) / dist; // We need the cosine later so work it out first to save a cos() call
+	double angToDir = TMath::ACos(cosAngToDir);
 
+	// Cherenkov angle needs to be < 90 so we can give up here if angToDir isn't
+	if(angToDir > 0.5 * TMath::Pi()){ return -999; }
+	double sinAngToDir = TMath::Sin(angToDir);  // We'll also need the sine later
 
-  double toReturn = -999;
+	// std::cout << "PMT:" << std::endl;
+	// pmt.Print();
+	// std::cout << "Vtx: " << std::endl;
+	// vertex.Print();
+	// std::cout << "Direction: " << std::endl;
+	// (myTrack->GetDir() * (1.0 / (myTrack->GetDir().Mag()))).Print();
+
+	// Now get some values relating to the Cherenkov angle
+	double refInd = myDigit->GetAverageRefIndex();
+	double cosCherenkovAngle = 1.0 / refInd;
+	double sinCherenkovAngle = sqrt(1.0 - cosCherenkovAngle * cosCherenkovAngle);  // Is about 40 degrees so no floating point worries
+
+	// We want the s distance at which a photon emitted at the Cherenkov angle hits the PMT
+	// This eventually gives us a quadratic in s to solve, of the form as^2 + bs + c = 0
+	double a = 1.0;
+	double b = -2.0 * dist * cosAngToDir;
+	double c = dist * dist * ( 1 - ((sinAngToDir * sinAngToDir) / (sinCherenkovAngle * sinCherenkovAngle)) );
+
+	double toReturn = -999;
 	double discrim = b*b - 4*a*c;
+	double sqrtDiscrim = sqrt(discrim);
 	if( discrim < 0 ) { return -999; }
 	else
 	{
-		double s1 = -b + sqrt(discrim);
-		double s2 = -b - sqrt(discrim);
+		double s1 = -b + sqrtDiscrim;
+		double s2 = -b - sqrtDiscrim;
 		if( s1 <= 0 && s2 <= 0 )
 		{
 			return -999;
@@ -140,10 +148,10 @@ double WCSimTimePredictor::GetTravelDistance(WCSimLikelihoodTrackBase* myTrack,
 		else if( s2 > 0 && s1 <= 0 ){ /*std::cout << "s2 = " << s2 << std::endl;*/ toReturn = s2; }
 		else if( s1 > 0 && s2 > 0 && s1 > s2){ /*std::cout << "s2 = " << s2 << std::endl;*/ toReturn = s2; }
 		else if( s2 > 0 && s1 > 0 && s2 < s1){ /*std::cout << "s1 = " << s1 << std::endl;*/ toReturn = s1; }
-    // if(myDigit->GetZ() < -900 && toReturn)
-    // {
-    //   std::cout << "Digit " << myDigit->GetTubeId() << "  Z = " <<myDigit->GetZ() << "   distance = " << toReturn << "    s1 = " << s1 << "    s2 = " << s2 << std::endl;
-    // }
+		// if(myDigit->GetZ() < -900 && toReturn)
+		// {
+		//   std::cout << "Digit " << myDigit->GetTubeId() << "  Z = " <<myDigit->GetZ() << "   distance = " << toReturn << "    s1 = " << s1 << "    s2 = " << s2 << std::endl;
+		// }
 	}
 	return toReturn;
 }

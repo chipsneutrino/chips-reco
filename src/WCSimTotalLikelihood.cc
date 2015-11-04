@@ -139,7 +139,6 @@ std::vector<Double_t> WCSimTotalLikelihood::CalcPredictedCharges(unsigned int iD
 
 Double_t WCSimTotalLikelihood::Calc2LnL(int iDigit)
 {
-  if(iDigit == 0 ) { std::cout << fLikelihoodDigitArray->GetNDigits() << "  " << fLikelihoodDigitArray->GetNHits() << std::endl;}
 
   WCSimLikelihoodDigit *digit = fLikelihoodDigitArray->GetDigit(iDigit);
   double minus2LnL = 0.0;

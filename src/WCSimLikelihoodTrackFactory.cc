@@ -55,7 +55,6 @@ WCSimLikelihoodTrackBase* WCSimLikelihoodTrackFactory::MakeTrack(
 		const double& y, const double& z, const double& t, const double& theta,
 		const double& phi, const double& energy,
 		std::map<FitterParameterType::Type, double> &extraPars) {
-	std::cout << "Making track of type " << type << std::endl;
 	if(	   type == TrackType::ElectronLike
 		|| type == TrackType::MuonLike 	)
 	{
