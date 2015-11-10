@@ -120,7 +120,7 @@ class WCSimLikelihoodTuner
          * @param s Distance from track vertex
          * @return
          */
-        Double_t ScatteringTable(Double_t s);
+        Double_t ScatteringTable(Double_t s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit);
 
         /**
          * Get efficiency * transmission * solid angle for direct and indirect photons

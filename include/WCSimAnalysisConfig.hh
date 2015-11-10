@@ -118,6 +118,7 @@ public:
      */
     Bool_t GetUseHoughFitterForSeed() const;
 
+    Bool_t GetUseScatteringTable() const;
 
     void SetUseTimeOnly(Bool_t doIt = true);
     void SetUseChargeOnly(Bool_t doIt = true);
@@ -186,6 +187,7 @@ private:
     Bool_t        fUseTime;                    ///< True if we should include timing information in the likelihood
     Bool_t        fUseCharge;                  ///< True if we should include charge information in the likelihood
     Bool_t 	      fUseHoughFitterForSeed;	   ///< True if we should use the old Hough transform fitter to seed the start values
+    Bool_t        fUseScatteringTable;  ///< True if we should use the scattering table, false for flat 1% chance
     std::string   fDigiType;            ///< Name of digitizer type to use in WCSimDigitizerLikelihood::DigiType_t
 
     std::map<std::string, std::string> fMap; ///< Map to store key names and their values to set

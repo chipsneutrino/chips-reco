@@ -32,6 +32,7 @@ WCSimAnalysisConfig::WCSimAnalysisConfig()
     fUseCharge                 = true;
     fUseTime                   = true; 
     fUseHoughFitterForSeed			   = true;
+    fUseScatteringTable  = true;
     // Load the file with the default configuration
     // and update the member variables above as necessary
     fConfName = getenv("WCSIMANAHOME");
@@ -60,6 +61,7 @@ void WCSimAnalysisConfig::Print()
               << "fUseGlassCathodeReflection = " << fUseGlassCathodeReflection << std::endl
               << "fUseTime = " << fUseTime << std::endl
               << "fUseCharge = " << fUseCharge << std::endl
+              << "fUseScatteringTable = " << fUseScatteringTable << std::endl
     		  << "fSeedWithHough = " << fUseHoughFitterForSeed << std::endl;
     return; 
 }
@@ -124,6 +126,11 @@ Bool_t WCSimAnalysisConfig::GetUseCharge() const
 Bool_t WCSimAnalysisConfig::GetUseTime() const
 {
     return fUseTime;
+}
+
+Bool_t WCSimAnalysisConfig::GetUseScatteringTable() const
+{
+  return fUseScatteringTable;
 }
 
 void WCSimAnalysisConfig::LoadConfig()
@@ -417,6 +424,23 @@ void WCSimAnalysisConfig::SetFromMap()
             else
             {
               std::cerr << "Error: " << (*itr).first << " = " << (*itr).second
+                           << " should equal true/false or 1/0" << std::endl;
+              exit(EXIT_FAILURE);
+            }
+        }
+       else if((*itr).first.compare("UseScatteringTable") == 0)
+        {
+            if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+            {
+                fUseScatteringTable = true;
+            }
+            else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+            {
+                fUseScatteringTable = false;
+            }
+            else
+            {
+              std::cerr << "Error: " << (*itr).first << " = " << (*itr).second 
                            << " should equal true/false or 1/0" << std::endl;
               exit(EXIT_FAILURE);
             }

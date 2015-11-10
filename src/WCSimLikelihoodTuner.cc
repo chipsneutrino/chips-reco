@@ -32,6 +32,7 @@
 #include "WCSimAnalysisConfig.hh"
 #include "WCSimPMTManager.hh"
 #include "WCSimTransmissionFunctionLookup.hh"
+#include "WCSimScatteringTableManager.hh"
 
 /**
 * Constructor - if the Tuner is created without
@@ -250,10 +251,52 @@ Double_t WCSimLikelihoodTuner::SolidAngleFraction()
 // a factor dependent on geometry, energy etc.
 // It's small and computationally intensive to tabulate, so we're taking a constant initially
 /////////////////////////////////////////////////////////////////////////////////////////////
-Double_t WCSimLikelihoodTuner::ScatteringTable(Double_t s)
+Double_t WCSimLikelihoodTuner::ScatteringTable(Double_t s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit)
 {
-    // A fixed percentage of scattered light for now
+  // If we are not using the scattering table, just use a value of 1%
+  if(WCSimAnalysisConfig::Instance()->GetUseScatteringTable() == false){
     return 0.01;
+  }
+
+  // Calculate the values of the six required coordinates.
+  std::vector<float> coordinates;
+
+  // Vertex R and Z components first.
+  TVector3 vtx = myTrack->GetPropagatedPos(s);
+  TVector3 vtx2D(vtx.X(),vtx.Y(),0.);
+  coordinates.push_back(sqrt(vtx.X()*vtx.X() + vtx.Y()*vtx.Y())); // Vertex R position first
+  coordinates.push_back(vtx.Z()); // Vertex Z position next.
+
+  // Get the PMT and its position (convert from cm -> mm).
+  WCSimRootPMT myPMT = ((WCSimRootGeom*) (WCSimGeometry::Instance())->GetWCSimGeometry())->GetPMTFromTubeID(myDigit->GetTubeId());
+  TVector3 pmtPos(myPMT.GetPosition(0)*10., myPMT.GetPosition(1)*10., myPMT.GetPosition(2)*10.);
+  TVector3 pmtPos2D(pmtPos.X(),pmtPos.Y(),0.);
+  coordinates.push_back(vtx2D.Angle(pmtPos2D)); // Angle zeta between the 2D vtx position and 2D pmt position
+
+  // The PMT position (this is R for caps, and Z for the barrel).
+  float pmtCoord = 0.;
+  if(myPMT.GetCylLoc() != 1){
+    pmtCoord = sqrt(pmtPos.X()*pmtPos.X() + pmtPos.Y()*pmtPos.Y());
+  }
+  else{
+    pmtCoord = pmtPos.Z();
+  }
+  coordinates.push_back(pmtCoord);   
+
+  // Now for the theta and phi directions
+  TVector3 trkDir = myTrack->GetDir();
+  coordinates.push_back(TMath::ACos(trkDir.Z())); // Theta direction
+  coordinates.push_back(TMath::ATan2(trkDir.Y(),trkDir.X())); // Phi direction
+
+  WCSimScatteringTableManager* scatteringManager = WCSimScatteringTableManager::Instance();
+
+  Double_t scatteringValue = scatteringManager->GetScatteringValue(coordinates,myPMT.GetCylLoc());
+//  std::cout << scatteringValue << std::endl;
+
+  if(scatteringValue < 1e-4) scatteringValue = 1e-4;
+
+  return scatteringValue;
+
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -298,7 +341,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ( Double_t s, WCSimLikelih
 				* this->Efficiency()
 				* this->QuantumEfficiency()
 				* this->SolidAngleFraction());
-	J.push_back(J.at(0) * this->ScatteringTable(s));
+	J.push_back(J.at(0) * this->ScatteringTable(s,myTrack,myDigit));
 	return J;
 }
 
