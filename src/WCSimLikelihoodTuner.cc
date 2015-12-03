@@ -190,7 +190,7 @@ Double_t WCSimLikelihoodTuner::Efficiency()
 	  TVector3 pmtToEm     = -fCache.GetToPMT();	// Vector from PMT to photon emission point
 	  TVector3 pmtFace     = fCache.GetDigit()->GetFace();	// Direction PMT is facing (unit vector)
 	  Double_t cosTheta    = pmtFace.Dot(pmtToEm) / fCache.GetDistanceToPMT();  // Quicker dot product because |pmtFace| = 1
-	  Double_t theta 	   = TMath::ACos(cosTheta) * TMath::DegToRad();
+	  Double_t theta 	   = TMath::ACos(cosTheta) * TMath::RadToDeg();
 	  if( theta > 90.0 )
 	  {
 		  theta = 180.0 - theta;
@@ -232,9 +232,8 @@ Double_t WCSimLikelihoodTuner::SolidAngleFraction()
   // These are from WCSim so they're in cm
   TVector3 pmtDomePos  = fCache.GetDigit()->GetPos() + WCSimPMTRadius * fCache.GetDigit()->GetFace();
   TVector3 emissionPos = fCache.GetEmissionPos();
-  const Double_t r = fCache.GetDistanceToPMT();
+  const Double_t r = (pmtDomePos - emissionPos).Mag();
   const Double_t rPlusExpHeight = r + exposeHeight;
-
   // Purely geometry: we need the solid angle of a cone whose bottom is a circle of the same radius as the circle of PMT poking
   // through the blacksheet.  This is 2pi( 1 - cos(coneAngle) ) where coneAngle can be deduced from trig and the PMT geometry
 
@@ -361,7 +360,6 @@ void WCSimLikelihoodTuner::CalculateCoefficients(WCSimLikelihoodTrackBase * myTr
         fDirCoeffs[i] = 0.0;    // Coefficients for direct (Cherenkov) light
         fIndCoeffs[i] = 0.0;    // And for indirect light
      }
-
     // Calculate the 3 s values we care about: s=0, s where integral(rho(s') ds')_0^{s} = 0.75, and double that
     Double_t s[3];
     s[0] = 10.0;
@@ -466,7 +464,7 @@ void WCSimLikelihoodTuner::CalculateCutoff( WCSimLikelihoodTrackBase * myTrack )
   if(fLastCutoff != 0x0 && myTrack->IsSameTrack(fLastCutoff)) { return; }
   
   Double_t cutoff = fEmissionProfileManager->GetStoppingDistance(myTrack);
-//  std::cout << "From profile, cutoff = " << cutoff << std::endl;
+  //  std::cout << "From profile, cutoff = " << cutoff << std::endl;
 
   if( fConstrainExtent )
   {
@@ -475,7 +473,7 @@ void WCSimLikelihoodTuner::CalculateCutoff( WCSimLikelihoodTrackBase * myTrack )
     if( fGeomType == WCSimLikelihoodDigitArray::kCylinder )
     {
       cutoff = CalculateCylinderCutoff( myTrack );
-//      std::cout << "Now cylinder cutoff = " << cutoff << std::endl;
+      //      std::cout << "Now cylinder cutoff = " << cutoff << std::endl;
     }
     else if( fGeomType == WCSimLikelihoodDigitArray::kMailBox )
     {
@@ -484,7 +482,7 @@ void WCSimLikelihoodTuner::CalculateCutoff( WCSimLikelihoodTrackBase * myTrack )
     else assert(false);
 
   }
-//  std::cout << "Energy = " << myTrack->GetE() << "   Cutoff = " << cutoff << ".... returning" << std::endl;
+  //  std::cout << "Energy = " << myTrack->GetE() << "   Cutoff = " << cutoff << ".... returning" << std::endl;
   fCutoffIntegral = cutoff;
   fLastCutoff     = myTrack;
   return;
