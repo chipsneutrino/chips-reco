@@ -147,6 +147,11 @@ Double_t WCSimLikelihoodTuner::TransmissionFunction(Double_t s, WCSimLikelihoodT
     // Assumes scattering length has not been edited down (abwff = 0.625) 
     Double_t nu[3] = {-1.01526e-05, -6.67164e-06, -1.41964e-04  };
     Double_t f[3] = {2.10578e-01, 7.40266e-01, 4.92259e-02 };
+
+    for(int i = 0; i < 3; ++i)
+    {
+      nu[i] = 1.0 / (1.0/nu[i] * 0.0737);
+    }
   
     // I made it giant for a test...
 //    Double_t nu[3] = {1.25e-6, 1.94e-7, 1.75e-7};
