@@ -31,6 +31,7 @@
 #include "WCSimGeometry.hh"
 #include "WCSimAnalysisConfig.hh"
 #include "WCSimPMTManager.hh"
+#include "WCSimTransmissionFunctionLookup.hh"
 
 /**
 * Constructor - if the Tuner is created without
@@ -48,10 +49,7 @@ WCSimLikelihoodTuner::WCSimLikelihoodTuner()
   	fExtent[2] = -1.0;
     fGeomType  = WCSimLikelihoodDigitArray::kUnknown;
     fLastCutoff = 0x0;
-    std::cout << "Make PMT manager" << std::endl;
     fPMTManager = new WCSimPMTManager();
-    std::cout << "Made PMT manager" << std::endl;
-  
     fAverageQE  = 1.0;
     fIntegralParticleType = TrackType::Unknown;
     fCutoffIntegral = 0.0;
@@ -74,7 +72,6 @@ WCSimLikelihoodTuner::WCSimLikelihoodTuner(WCSimLikelihoodDigitArray * myDigitAr
   	this->Initialize();
   	fPMTManager = new WCSimPMTManager();
     fEmissionProfileManager = myEmissionProfileManager;
-//    std::cout << "Done!!" << std::endl;
 }
 
 ///////////////////////////////////////////////////////////
@@ -86,9 +83,6 @@ WCSimLikelihoodTuner::WCSimLikelihoodTuner(WCSimLikelihoodDigitArray * myDigitAr
 void WCSimLikelihoodTuner::Initialize()
 {
   fAverageQE       = 1.0;
-
-  // Pointer to the last track for which we calculated the cutoff, to prevent repetition
-
   // The binning scheme for the direct integral tables
   fIntegralParticleType = TrackType::Unknown;
 
@@ -115,6 +109,14 @@ void WCSimLikelihoodTuner::UpdateDigitArray( WCSimLikelihoodDigitArray * myDigit
   fExtent[1] = myDigitArray->GetExtent(1);
   fExtent[2] = myDigitArray->GetExtent(2);
   fGeomType  = myDigitArray->GetGeomType();
+  if(fGeomType == WCSimLikelihoodDigitArray::kCylinder)
+  {
+	  fMaxDistance = 2.0 * sqrt( fExtent[0] * fExtent[0] + fExtent[2] * fExtent[2]);
+  }
+  else if(fGeomType == WCSimLikelihoodDigitArray::kMailBox)
+  {
+	  fMaxDistance = 2 * sqrt( fExtent[0] * fExtent[0] + fExtent[1]*fExtent[1] + fExtent[2] * fExtent[2]);
+  }
   // std::cout << "fConstrainExtent = " << fConstrainExtent << " and extent = (" 
             //<< fExtent[0] << "," << fExtent[1] << "," << fExtent[2] 
             //<< ")" << std::endl;
@@ -153,12 +155,11 @@ Double_t WCSimLikelihoodTuner::TransmissionFunction(Double_t s, WCSimLikelihoodT
       nu[i] = 1.0 / (1.0/nu[i] * 0.0737);
     }
   
-    // I made it giant for a test...
-//    Double_t nu[3] = {1.25e-6, 1.94e-7, 1.75e-7};
-//    Double_t f[3]  = {0.838, 0.056, 0.106};
-
     trans = 0.0;
-    for(int i = 0; i < 3; ++i){ trans+= f[i]*exp(1.0 * 10 * r * nu[i]);}  //Convert to cm -> factor 10
+    for(int i = 0; i < 3; ++i)
+    { 
+    	trans += WCSimTransmissionFunctionLookup::Instance()->GetExp(0, fMaxDistance*10, f[i], nu[i], r*10);
+    }
   }
   return trans;
 }
