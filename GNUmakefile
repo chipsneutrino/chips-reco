@@ -9,9 +9,9 @@
 
 CXX						= g++
 CXXDEPEND     = -MM
-CXXFLAGS      = -g -Wall -fPIC
-LD            = g++
-LDFLAGS       = -g 
+CXXFLAGS      = -g -O3 -Wall -fPIC
+LD            = g++ 
+LDFLAGS       = -g -O3  
 
 ROOTCFLAGS   := $(shell root-config --cflags)
 ROOTLDFLAGS  := $(shell root-config --ldflags)
