@@ -175,3 +175,22 @@ void WCSimLikelihoodDigit::Print() const
 TString WCSimLikelihoodDigit::GetPMTName() const {
 	return fPMTName;
 }
+
+bool WCSimLikelihoodDigit::operator == (const WCSimLikelihoodDigit &other) const
+{
+	return (
+		       fTubeId == other.fTubeId     ///< Unique PMT ID number from WCSim
+		        && fQ == other.fQ       ///< Digitized charge (P.E.)
+		        && fT == other.fT       ///< Time of hit
+		        && fPos[0] == other.fPos[0] ///< (x,y,z) co-ordinates of the PMT location
+            && fPos[1] == other.fPos[1]
+            && fPos[2] == other.fPos[2]
+		        && fFace[0] == other.fFace[0] ///< (x,y,z) components of the direction normal to the PMT
+            && fFace[1] == other.fFace[1]
+            && fFace[2] == other.fFace[2]
+		        && fPMTName == other.fPMTName ///< Name of PMT type, e.g. 3_inch_HQE
+            && fAverageQE == other.fAverageQE ///< Average QE of the PMT, from weighting QE(wavelength) by the average Cherenkov spectrum - as a function of photon travel distance
+		        && fAverageRefIndex == other.fAverageRefIndex ///< Weight WCSim's refractive index by (wavelength * PMT QE(wavelength))
+		        && fExposeHeight == other.fExposeHeight ///< Height of PMT dome expose through the detector liner
+			  );
+}
