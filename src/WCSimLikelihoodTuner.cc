@@ -128,28 +128,31 @@ void WCSimLikelihoodTuner::UpdateDigitArray( WCSimLikelihoodDigitArray * myDigit
 /////////////////////////////////////////////////////////////////////////////////////////
 // Work out the probability of light surviving to the PMT as it travels through the water
 /////////////////////////////////////////////////////////////////////////////////////////
-Double_t WCSimLikelihoodTuner::TransmissionFunction(Double_t s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit)
+Double_t WCSimLikelihoodTuner::TransmissionFunction()
 {
-	if( s== 0 ) { return 1.0; }
+	if( fCache.GetS() == 0 ) { return 1.0; }
 
-  Double_t trans = 1.0;
+  Double_t trans = (double)(!WCSimAnalysisConfig::Instance()->GetUseTransmission());
+  // Default to 1 if we're not using transmission
 
   if( WCSimAnalysisConfig::Instance()->GetUseTransmission() ) 
   {
+
     // First we need the distance from the photon emission to the PMT
-    TVector3 pmtPos      = myDigit->GetPos();
-    TVector3 emissionPos = myTrack->GetPropagatedPos(s);
-    Double_t r           = (pmtPos - emissionPos).Mag();
+    Double_t r           = fCache.GetDistanceToPMT();
 
     // We'll use a triple exponential to parameterise the transmission probability
+
     //    Double_t nu[3]     = {-1.137e-5,-5.212e-4, -4.359e-3}; // nu = 1/Decay length in mm
     //    Double_t f[3]      = {0.8827, 0.08162, 0.03515};
-    
-    
+        
     // Assumes scattering length has not been edited down (abwff = 0.625) 
-    Double_t nu[3] = {-1.01526e-05, -6.67164e-06, -1.41964e-04  };
+    // These are in inverse cm
+    Double_t nu[3] = {-1.01526e-04, -6.67164e-05, -1.41964e-03  };
     Double_t f[3] = {2.10578e-01, 7.40266e-01, 4.92259e-02 };
 
+    // Scale these down temporarily because I've scaled down the transmission length to 30m max
+    // Should eventually re-fit this properly
     for(int i = 0; i < 3; ++i)
     {
       nu[i] = 1.0 / (1.0/nu[i] * 0.0737);
@@ -158,7 +161,7 @@ Double_t WCSimLikelihoodTuner::TransmissionFunction(Double_t s, WCSimLikelihoodT
     trans = 0.0;
     for(int i = 0; i < 3; ++i)
     { 
-    	trans += WCSimTransmissionFunctionLookup::Instance()->GetExp(0, fMaxDistance*10, f[i], nu[i], r*10);
+    	trans += WCSimTransmissionFunctionLookup::Instance()->GetExp(0, fMaxDistance, f[i], nu[i], r);
     }
   }
   return trans;
@@ -299,36 +302,40 @@ Double_t WCSimLikelihoodTuner::ScatteringTable(Double_t s)
 /////////////////////////////////////////////////////////////////////////////////////////////
 std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ( Double_t s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit ) 
 {
-  std::vector<Double_t> J;
+	std::vector<Double_t> J;
 
-  // Check make sure the particle is still inside the detector
+	// Load in this combination of s, digit and track so we don't keep recalculating distances and angles
+	MakeCache(s, myTrack, myDigit);
+
+
+	// Check make sure the particle is still inside the detector
 	if( fConstrainExtent )
 	{
-	  TVector3 pos = myTrack->GetPropagatedPos(s);
-	  if( IsOutsideDetector(pos))
-	  {
-        J.push_back(0.0);
-        J.push_back(0.0);
-        return J;
-      }
-    }
+		TVector3 pos = fCache.GetEmissionPos();;
+		if( IsOutsideDetector(pos))
+		{
+			J.push_back(0.0);
+			J.push_back(0.0);
+			return J;
+		}
+	}
 
-    // Work out the direct and indirect contributions to J
-    // J[0] = J_dir, J[1] = J_ind
-    // if( myDigit->GetQ() > 10 && myDigit->GetTubeId() > 4000 && myDigit->GetTubeId() < 4100)
-    // {
-    // 	std::cout << "Transmission = " << this->TransmissionFunction(s, myTrack, myDigit) << std::endl
-    // 			  		<< "Efficiency = " << this->Efficiency(s, myTrack, myDigit) << std::endl
-    // 			  		<< "SolidAngle = " << this->SolidAngleFraction(s, myTrack, myDigit) << std::endl
-    // 			  		<< "QE           = " << this->QuantumEfficiency(s, myTrack, myDigit) << std::endl;
-    // }
+  // Work out the direct and indirect contributions to J
+  // J[0] = J_dir, J[1] = J_ind
+  // if( myDigit->GetQ() > 10 && myDigit->GetTubeId() > 4000 && myDigit->GetTubeId() < 4100)
+  // {
+  // 	std::cout << "Transmission = " << this->TransmissionFunction(s, myTrack, myDigit) << std::endl
+  // 			  		<< "Efficiency = " << this->Efficiency(s, myTrack, myDigit) << std::endl
+  // 			  		<< "SolidAngle = " << this->SolidAngleFraction(s, myTrack, myDigit) << std::endl
+  // 			  		<< "QE           = " << this->QuantumEfficiency(s, myTrack, myDigit) << std::endl;
+  // }
 
-    J.push_back(   this->TransmissionFunction(s, myTrack, myDigit) 
-                 * this->Efficiency(s, myTrack, myDigit)
-                 * this->QuantumEfficiency(s, myTrack, myDigit)
-                 * this->SolidAngleFraction(s, myTrack, myDigit));
-    J.push_back(J.at(0) * this->ScatteringTable(s));
-    return J;
+  J.push_back(   this->TransmissionFunction() 
+               * this->Efficiency(s, myTrack, myDigit)
+               * this->QuantumEfficiency(s, myTrack, myDigit)
+               * this->SolidAngleFraction(s, myTrack, myDigit));
+  J.push_back(J.at(0) * this->ScatteringTable(s));
+  return J;
 }
 
 
@@ -874,4 +881,82 @@ double WCSimLikelihoodTuner::GetCutoff(WCSimLikelihoodTrackBase* myTrack) {
       cutoff = CalculateMailBoxCutoff( myTrack );
     }
 	return cutoff;
+}
+
+void WCSimLikelihoodTuner::MakeCache(const double & s, WCSimLikelihoodTrackBase *myTrack, WCSimLikelihoodDigit *myDigit)
+{
+	if(!fCache.Contains(s, myDigit, myTrack))
+	{
+		fCache = WCSimLikelihoodTunerCache(s, myDigit, myTrack);
+	}
+	return;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+// WCSimLikelihoodTunerCache: A lot of functions need the same vector calculations, e.g.
+// take a track, travel some distance and work out how far from a given PMT it is - this
+// class works them out once per uniqe combination of track, distance and PMT and then
+// looks them up instead of recalculating them
+WCSimLikelihoodTunerCache::WCSimLikelihoodTunerCache( double const &s, WCSimLikelihoodDigit const * digit, WCSimLikelihoodTrackBase const * track)
+{
+	fDigit = digit;
+	fTrack = track;
+	fS = s;
+	fEmissionPos = fTrack->GetPropagatedPos(s);
+	fToPMT = digit->GetPos() - fEmissionPos;
+	fDistanceToPMT = fToPMT.Mag();
+	fCosAngleToPMT = fToPMT.Dot(fTrack->GetDir()) / fDistanceToPMT;
+	fAngleToPMT = TMath::ACos(fCosAngleToPMT);
+}
+
+WCSimLikelihoodTunerCache::WCSimLikelihoodTunerCache()
+{
+	fDigit = NULL;
+	fTrack = NULL;
+	fS = -999.9;
+	fEmissionPos = TVector3();
+	fToPMT = TVector3();
+	fDistanceToPMT = -999.9;
+	fCosAngleToPMT = -999.9;
+	fAngleToPMT = -999.9;
+}
+
+bool WCSimLikelihoodTunerCache::Contains(double const &s, WCSimLikelihoodDigit const * digit, WCSimLikelihoodTrackBase const * track)
+{
+	return ((s == fS) && (*digit == *fDigit) && (track->GetVtx() == fTrack->GetVtx()) && (track->GetDir() == fTrack->GetDir() ));
+}
+
+TVector3 WCSimLikelihoodTunerCache::GetEmissionPos()
+{
+	return fEmissionPos;
+}
+
+TVector3 WCSimLikelihoodTunerCache::GetToPMT()
+{
+	return fToPMT;
+}
+
+double WCSimLikelihoodTunerCache::GetAngleToPMT()
+{
+	return fAngleToPMT;
+}
+
+double WCSimLikelihoodTunerCache::GetCosAngleToPMT()
+{
+	return fCosAngleToPMT;
+}
+
+double WCSimLikelihoodTunerCache::GetDistanceToPMT()
+{
+	return fDistanceToPMT;
+}
+
+WCSimLikelihoodDigit const * WCSimLikelihoodTunerCache::GetDigit()
+{
+	return fDigit;
+}
+
+double WCSimLikelihoodTunerCache::GetS()
+{
+	return fS;
 }
