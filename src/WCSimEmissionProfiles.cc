@@ -15,10 +15,10 @@
 #include <TMath.h>
 #include <TString.h>
 #include <TFile.h>
-#include <TObjArray.h>
 #include <TObject.h>
 #include <TH1F.h>
 #include <TH2F.h>
+#include <TTree.h>
 #include <TCanvas.h>
 #include <cassert>
 #include <iostream>
@@ -35,78 +35,32 @@ WCSimEmissionProfiles::WCSimEmissionProfiles() {
 
 	fProfileFile = 0x0;
 
-	fRhoArray = 0x0;
-	fGCoarseArray = 0x0;
-	fGFineArray = 0x0;
 	fBinningHistogram = 0x0;
+  fProfileTree = 0x0;
 
-	fRhoInterp = 0x0;
-	fRhoInterpLo = 0x0;
-	fRhoInterpHi = 0x0;
+	fRho = 0x0;
 	fGCoarse = 0x0;
 	fGFine = 0x0;
 
-  fLastPercentile = 0;
-  fPercentileTrackLength = 0;
+	fLastPercentile = 0;
+	fPercentileTrackLength = 0;
 
-  fType = TrackType::Unknown;
-  fEnergy = -999.9;
+	fType = TrackType::Unknown;
+	fEnergy = -999.9;
 }
 
 WCSimEmissionProfiles::~WCSimEmissionProfiles() {
 	if(fProfileFile != 0x0)
 	{
-		// This also deletes fBinningHisto
+		// This also deletes fBinningHistogram
 		fProfileFile->Close();
 		delete fProfileFile;
 		fProfileFile = 0x0;
-	}
-	if(fRhoArray != 0x0)
-	{
-		delete fRhoArray;
-		fRhoArray = 0x0;
-	}
-	if(fGCoarseArray != 0x0)
-	{
-		delete fGCoarseArray;
-		fGCoarseArray = 0x0;
-	}
-	if(fGFineArray != 0x0)
-	{
-		delete fGFineArray;
-		fGFineArray = 0x0;
-	}
-
-	if( fRhoInterp != 0x0 )
-	{
-		delete fRhoInterp;
-		fRhoInterp = 0x0;
-	}
-
-	if(	fGCoarse != 0x0 )
-	{
-		delete fGCoarse;
+    fProfileTree = 0x0;
+		fRho = 0x0;
+		fGFine = 0x0;
 		fGCoarse = 0x0;
 	}
-
-	if(	fGFine != 0x0 )
-	{
-		delete fGFine;
-		fGFine = 0x0;
-	}
-
-	if(fRhoInterpLo != 0x0)
-	{
-		delete fRhoInterpLo;
-		fRhoInterpLo = 0x0;
-	}
-
-	if(fRhoInterpHi != 0x0)
-	{
-		delete fRhoInterpHi;
-		fRhoInterpHi = 0x0;
-	}
-
 }
 
 WCSimEmissionProfiles::WCSimEmissionProfiles(const TrackType::Type &type, const double &energy) {
@@ -115,29 +69,25 @@ WCSimEmissionProfiles::WCSimEmissionProfiles(const TrackType::Type &type, const 
 
 	fProfileFile = 0x0;
 
-	fRhoArray = 0x0;
-	fGCoarseArray = 0x0;
-	fGFineArray = 0x0;
 	fBinningHistogram = 0x0;
+  fProfileTree = 0x0;
 
-	fRhoInterp = 0x0;
+	fRho = 0x0;
 	fGCoarse = 0x0;
 	fGFine= 0x0;
 
-	fRhoInterp = 0x0;
-	fRhoInterpLo = 0x0;
-	fRhoInterpHi = 0x0;
+	fRho = 0x0;
 
 	LoadFile(type, energy);
 
 }
 
 Double_t WCSimEmissionProfiles::GetRho(const Double_t &s) {
-	return fRhoInterp->GetBinContent(fRhoInterp->GetXaxis()->FindBin(s));
+	return fRho->GetBinContent(fRho->GetXaxis()->FindBin(s));
 }
 
 Double_t WCSimEmissionProfiles::GetRhoWidth(const Double_t &s) {
-  return fRhoInterp->GetBinWidth(fRhoInterp->GetXaxis()->FindBin(s));
+  return fRho->GetBinWidth(fRho->GetXaxis()->FindBin(s));
 }
 
 Double_t WCSimEmissionProfiles::GetG(const Double_t &s, const Double_t &cosTheta) {
@@ -190,18 +140,18 @@ std::vector<Double_t> WCSimEmissionProfiles::GetRhoIntegrals(WCSimLikelihoodTrac
   endS -= myTrack->GetConversionDistance();
 
   // Now find the right bins:
-	Int_t startBin = fRhoInterp->GetXaxis()->FindBin(startS);
-	Int_t endBin = fRhoInterp->GetXaxis()->FindBin(endS);
+	Int_t startBin = fRho->GetXaxis()->FindBin(startS);
+	Int_t endBin = fRho->GetXaxis()->FindBin(endS);
   if(endBin < 1) { return integrals; } // We don't get to any emission, so can just return here
   if( startBin < 1 ) { startBin = 1; } // Are we starting off the end of the histogram? Let's not.
 
-  //	std::cout << fRhoInterp->GetBinContent(endBin) << std::endl;;
+  //	std::cout << fRho->GetBinContent(endBin) << std::endl;;
 	for(Int_t iBin = startBin; iBin < endBin; ++iBin)
 	{
-		Double_t binWidth = multiplyByWidth ? fRhoInterp->GetXaxis()->GetBinWidth(iBin) : 1;
+		Double_t binWidth = multiplyByWidth ? fRho->GetXaxis()->GetBinWidth(iBin) : 1;
     for(UInt_t iPower = 0; iPower < sPowers.size(); ++iPower)
     {
-     	integrals.at(iPower) += binWidth * fRhoInterp->GetBinContent(iBin) * pow(fRhoInterp->GetBinCenter(iBin), sPowers.at(iPower));
+     	integrals.at(iPower) += binWidth * fRho->GetBinContent(iBin) * pow(fRho->GetBinCenter(iBin), sPowers.at(iPower));
 	  }
   }
 	return integrals;
@@ -222,11 +172,11 @@ std::vector<Double_t> WCSimEmissionProfiles::GetRhoGIntegrals(WCSimLikelihoodTra
  
   // If the track has a conversion distance we need to subtract it off the cutoff to
   // work out how far through the emission profile we need to integrate  
-	Int_t startBin = fRhoInterp->GetXaxis()->FindBin(0.);
+	Int_t startBin = fRho->GetXaxis()->FindBin(0.);
   double emissionCutoff = myTrack->GetConversionDistance();
   if(emissionCutoff <= 0.0){ return integrals; }
 
-	Int_t endBin = fRhoInterp->GetXaxis()->FindBin(emissionCutoff);
+	Int_t endBin = fRho->GetXaxis()->FindBin(emissionCutoff);
 
   TVector3 pmtPos = myDigit->GetPos();
   TVector3 vtxPos = myTrack->GetVtx();
@@ -236,7 +186,7 @@ std::vector<Double_t> WCSimEmissionProfiles::GetRhoGIntegrals(WCSimLikelihoodTra
 
 	for(Int_t iBin = startBin; iBin < endBin; ++iBin)
 	{
-		Double_t s = fRhoInterp->GetBinCenter(iBin);
+		Double_t s = fRho->GetBinCenter(iBin);
     if( s < myTrack->GetConversionDistance() ) { continue; }
 
     Double_t emissionDistance = s - myTrack->GetConversionDistance();
@@ -256,13 +206,13 @@ std::vector<Double_t> WCSimEmissionProfiles::GetRhoGIntegrals(WCSimLikelihoodTra
 		for(UInt_t iPower = 0 ; iPower < sPowers.size() ; ++iPower)
 		{
 			// std::cout << "Binwidth   = " << binWidth << std::endl
-			//           << "fRhoInterp = " << fRhoInterp->GetBinContent(iBin) << std::endl
+			//           << "fRho = " << fRho->GetBinContent(iBin) << std::endl
 			//           << "fG         = " << fG->GetBinContent(fG->GetXaxis()->FindBin(cosTheta), iBin) << std::endl;
 
-			if(fRhoInterp->GetBinContent(iBin) == 0) { continue; }
+			if(fRho->GetBinContent(iBin) == 0) { continue; }
       adding =
                 binWidthS
-							* fRhoInterp->GetBinContent(iBin)
+							* fRho->GetBinContent(iBin)
 							* GetG(emissionDistance, cosTheta);
       integrals.at(iPower) += adding * pow(emissionDistance, sPowers.at(iPower));
 			// std::cout << "Now integrals.at(" << iPower << ") = " << integrals.at(iPower) <<  " sPower = " << sPowers.at(iPower) << std::endl;
@@ -278,7 +228,7 @@ std::vector<Double_t> WCSimEmissionProfiles::GetRhoGIntegrals(WCSimLikelihoodTra
 
 }
 
-UInt_t WCSimEmissionProfiles::GetArrayBin(Double_t energy) const{
+UInt_t WCSimEmissionProfiles::GetTreeEntry(Double_t energy) const{
 	// std::cout << "Binning histogram is " << fBinningHistogram << std::endl;
 	int iBin = fBinningHistogram->GetXaxis()->FindBin(energy) - 1;
 	if(iBin < 0)
@@ -291,7 +241,7 @@ UInt_t WCSimEmissionProfiles::GetArrayBin(Double_t energy) const{
 }
 
 UInt_t WCSimEmissionProfiles::GetHistBin(Double_t energy) const{
-	return GetArrayBin(energy)+1;
+	return GetTreeEntry(energy)+1;
 }
 
 Double_t WCSimEmissionProfiles::GetFractionThroughBin(Double_t energy) const{
@@ -312,7 +262,7 @@ void WCSimEmissionProfiles::LoadFile(const TrackType::Type &type, const double &
     case TrackType::PhotonLike:
       // Fall through to the electron track
 		case TrackType::ElectronLike:
-			fProfileFileName.Append("/config/emissionProfilesElectronsFull.root");
+			fProfileFileName.Append("/config/emissionProfilesElectrons.root");
 			break;
 		case TrackType::MuonLike:
 			fProfileFileName.Append("/config/emissionProfilesMuons.root");
@@ -322,21 +272,23 @@ void WCSimEmissionProfiles::LoadFile(const TrackType::Type &type, const double &
 			exit(EXIT_FAILURE);
 	}
 
+  // Open the files and ge the profile tree
+  std::cout << "Profile file name = " << fProfileFileName << std::endl;
 	fProfileFile      = new TFile(fProfileFileName.Data(),"READ");
-
-  fProfileFile->GetObject("histArray",fRhoArray);
-  fProfileFile->GetObject("angHistFineArray",fGFineArray);
-  fProfileFile->GetObject("angHistCoarseArray",fGCoarseArray);
+  fProfileFile->GetObject("fProfileTree",fProfileTree);
   fProfileFile->GetObject("hWhichHisto",fBinningHistogram);
 
-	fRhoArray->SetOwner(kTRUE);
-	fGCoarseArray->SetOwner(kTRUE);
-	fGFineArray->SetOwner(kTRUE);
+  // Set the tree branches
+  fProfileTree->SetBranchAddress("hRho",&fRho);
+  fProfileTree->SetBranchAddress("hGFine",&fGFine);
+  fProfileTree->SetBranchAddress("hGCoarse",&fGCoarse);
 
   fType = type;
 	SetEnergy(energy);
 
 	if(fDebug) { SaveProfiles(type, energy); }
+
+	fStoppingDistance = -999.9;
 	return;
 
 }
@@ -344,8 +296,11 @@ void WCSimEmissionProfiles::LoadFile(const TrackType::Type &type, const double &
 void WCSimEmissionProfiles::SetEnergy(const double &energy)
 {
   fEnergy = energy;
-  InterpolateProfiles(energy);
+  int bin = fBinningHistogram->GetXaxis()->FindBin(energy) - 1;
+  assert(bin <= fProfileTree->GetEntries());
+  fProfileTree->GetEntry(bin);
 
+  return;
 }
 
 Double_t WCSimEmissionProfiles::GetCriticalDistance(
@@ -360,312 +315,6 @@ Double_t WCSimEmissionProfiles::GetCriticalDistance(
       assert(0);
 	}
   return 0;
-}
-
-void WCSimEmissionProfiles::InterpolateProfiles(const double &energy) {
-	InterpolateRho(energy);
-	InterpolateG(energy);
-}
-
-void WCSimEmissionProfiles::InterpolateRho(const double &energy) {
-	if(fRhoInterp != 0x0)
-	{
-    // std::cout << fRhoInterp << std::endl;
-    // std::cout << fRhoInterp->GetName() << std::endl;
-		delete fRhoInterp;
-		fRhoInterp = 0x0;
-	}
-
-  int bin = GetArrayBin(energy);
-	// std::cerr << "Warning: not doing any interpolation, just getting the nearest profile - bin = " << bin << std::endl;
-	fRhoInterp = (TH1F*)(fRhoArray->At(bin)->Clone());
-	fRhoInterp->SetDirectory(0);
-	// std::cout << "Energy = " << myTrack->GetE() << "  integral = " << fRhoInterp->Integral("W");
-	return;
-
-
-	// There are two kinds of interpolation that need to happen here:
-	// 1) Between emission profiles - need to smoothly transition from one profile to another
-  //	  as energy increases, such that if energy exactly matches the emission profile binning
-	//    we get that exact plot, and otherwise we combine the two plots either side
-	// 2) Between bins of s - emission profiles are binned in s, so when we work out how much
-	//    of each plot we take, we need to make sure there aren't discrete steps when the energy
-	//    increases by just enough to take the track length into the next bin
-
-
-  // std::cout << "Getting profiles from array bin " << GetArrayBin(energy) << std::endl;
-	TH1F * profileLo = (TH1F*)fRhoArray->At(GetArrayBin(energy));
-	TH1F * profileHi = (TH1F*)fRhoArray->At(GetArrayBin(energy)+1);
-
-	// Get the energies these two profiles correspond to
-	Double_t upEnergy = fBinningHistogram->GetXaxis()->GetBinUpEdge(GetArrayBin(energy)+1);
-	Double_t downEnergy = fBinningHistogram->GetXaxis()->GetBinLowEdge(GetArrayBin(energy)+1);
-	// std::cout << "upEnergy = " << upEnergy << std::endl;
-  // std::cout << "downEnergy = " << downEnergy << std::endl;
-
-  // What fraction of the way between the two energies is the energy we're considering?
-	Double_t fracHi = GetFractionThroughBin(energy);
-  if(fracHi < 0 || fracHi > 1.0){
-    // std::cout << "energy = " << energy << "   fracHi = " << fracHi << std::endl;
-    assert(!(fracHi < 0 || fracHi > 1.0));
-  }
-
-  // Now make some histograms to add together in these fractions
-  fRhoInterpLo = (TH1F*)profileLo->Clone(); // Clone to steal the binning
-  fRhoInterpHi = (TH1F*)profileHi->Clone();
-  fRhoInterpLo->Reset();
-  fRhoInterpHi->Reset();
-  fRhoInterpLo->SetDirectory(0);
-  fRhoInterpHi->SetDirectory(0);
-  
-	// This will be our final interpolated histogram
-	fRhoInterp = new TH1F("fRho","fRho", profileLo->GetNbinsX(), profileLo->GetXaxis()->GetXmin(), profileLo->GetXaxis()->GetXmax());
-  fRhoInterp->SetDirectory(0);
-
-  // Get the distances to the shoulder for each of the three energies
-  Double_t hiDist = GetCriticalDistance(fType, upEnergy);
-  Double_t loDist = GetCriticalDistance(fType, downEnergy);
-  Double_t truDist = GetCriticalDistance(fType, energy);
-  // std::cout << "hiDist  = " << hiDist << std::endl;
-  // std::cout << "loDist  = " << loDist << std::endl;
-  // std::cout << "truDist  = " << truDist << std::endl;
-
-  // Work out which bins to steal from the higher energy profile
-  double distanceToSteal = truDist - loDist;
-  double distanceToSkip = hiDist - distanceToSteal;
-  double exactNumBins = distanceToSteal / (fRhoInterpHi->GetXaxis()->GetBinWidth(1));
-  double exactStartBin = distanceToSkip / (fRhoInterpHi->GetXaxis()->GetBinWidth(1));
-  // e.g. we need to fill in 3.2 bins' worth of distance, starting from bin 110.5
-  // so bins to steal for roudning down:
-  int nBinsToStealLo = (int)floor(exactNumBins);
-  int nBinsToStealHi = nBinsToStealLo+1;
-  int firstBinToStealLo = (int)ceil(exactStartBin);
-  int firstBinToStealHi = firstBinToStealLo - 1;
-  double scaleStolenBinsLo = 1.0 - (exactNumBins - (int)exactNumBins); // Does the ratio between high and low x bins
-  double normStolenBinsLo = (1.0/profileHi->GetBinContent(firstBinToStealLo+nBinsToStealLo)) * profileLo->GetBinContent(1);
-  double normStolenBinsHi = (1.0/profileHi->GetBinContent(firstBinToStealHi+nBinsToStealHi)) * profileLo->GetBinContent(1);
-  // std::cout << "Scale stolen bins " << scaleStolenBinsLo << std::endl;
-  // std::cout << "Norm stolen bins low: " << normStolenBinsLo << std::endl;
-  // std::cout << "Norm stolen bins high: " << normStolenBinsHi << std::endl;
-
-
-
-  // Work out how far to push to high energy histogram across
-  double distanceToPush = hiDist - truDist;
-  double exactNumBinsToPush = distanceToPush / (fRhoInterpHi->GetXaxis()->GetBinWidth(1));
-  int firstBinForHiHistoLo = (int)floor(exactNumBinsToPush);
-  int firstBinForHiHistoHi = firstBinForHiHistoLo+1;
-  double scalePushHistoLo = 1.0 - (exactNumBinsToPush - (int)exactNumBinsToPush);
-
-
-  // There's probably a much more efficient way of doing this that doesn't involve multiple loops, but
-  // for now I want it to be readable...
-
-  ////////////////////////////////////
-  // First fill the low histogram:
-  for(int iBin = 1; iBin <= nBinsToStealLo ; ++iBin)
-  {
-  	double content = fRhoInterpLo->GetBinContent(iBin);
-  	fRhoInterpLo->SetBinContent(iBin, content + scaleStolenBinsLo * normStolenBinsLo * profileHi->GetBinContent(firstBinToStealLo+iBin-1));
-  }
-  for( int iBin = 1; iBin <= nBinsToStealHi; ++iBin)
-  {
-  	double content = fRhoInterpLo->GetBinContent(iBin);
-  	fRhoInterpLo->SetBinContent(iBin, content + (1-scaleStolenBinsLo) * normStolenBinsHi * profileHi->GetBinContent(firstBinToStealHi+iBin-1));
-  }
-
-
-  // Now fill the shifted part
-  for(int iBin = nBinsToStealLo+1; iBin < fRhoInterpLo->GetNbinsX(); ++iBin)
-  {
-  	double content = fRhoInterpLo->GetBinContent(iBin);
-  	fRhoInterpLo->SetBinContent(iBin, content + scaleStolenBinsLo * profileLo->GetBinContent(iBin-nBinsToStealLo));
-  }
-  for(int iBin = nBinsToStealHi+1; iBin < fRhoInterpLo->GetNbinsX(); ++iBin)
-  {
-  	double content = fRhoInterpLo->GetBinContent(iBin);
-  	fRhoInterpLo->SetBinContent(iBin, content + (1-scaleStolenBinsLo) * profileLo->GetBinContent(iBin - nBinsToStealHi));
-  }
-  ////////////////////////////////////
-
-  //////////////////////////////////////
-  // Now we'll fill the high energy one
-  for(int iBin = 1; iBin < fRhoInterpHi->GetNbinsX(); ++iBin)
-  {
-  	double content = fRhoInterpHi->GetBinContent(iBin);
-  	if(firstBinForHiHistoLo+iBin <= profileHi->GetNbinsX())
-  	{
-  		fRhoInterpHi->SetBinContent( iBin, content + scalePushHistoLo * profileHi->GetBinContent(firstBinForHiHistoLo + iBin));
-  	}
-  	content = fRhoInterpHi->GetBinContent(iBin);
-  	if(firstBinForHiHistoHi+iBin <= profileLo->GetNbinsX())
-  	{
-  		fRhoInterpHi->SetBinContent( iBin, content + (1-scalePushHistoLo) * profileHi->GetBinContent(firstBinForHiHistoHi + iBin));
-  	}
-  }
-  /////////////////////////////////////
-
-
-
-
-
-
-  /*
-
-  for(int i = 1 ; i <= nBinsToAverageLargeShift; ++i)
-  {
-    double hiContent = profileHi->GetBinContent(profileHi->GetXaxis()->FindBin(hiDist - truDist) + i - 1);
-    if( hiContent > 0 )
-    {
-    	double toAddSmallShift = (profileLo->GetBinContent(i) / hiContent) / nBinsToAverageSmallShift;
-    	double toAddLargeShift = (profileLo->GetBinContent(i) / hiContent) / nBinsToAverageLargeShift;
-      scaleAddedLargeShift += toAddSmallShift;
-      if(i <= nBinsToAverageSmallShift)
-      {
-      	scaleAddedSmallShift += toAddLargeShift;
-      }
-    }
-  }
-
-	for(Int_t iBin = 1; iBin <= fRhoInterp->GetNbinsX(); ++iBin)
-	{
-		// Double_t binContent = 0.0;
-    Double_t binContentLo = 0.0;
-    Double_t binContentHi = 0.0;
-    /////
-
-    // This is shifting the low histogram to the right
-    if(iBin >= binForLowHistLo)
-    {
-      binContentLo += binFracForLoHist * profileLo->GetBinContent(iBin - binForLowHist);
-    }
-
-    if(iBin >= binForLowHistHi)
-    {
-    	binContentLo += (1.0 - binFracForLoHist) * profileLo->GetBinContent(iBin - binForLowHist);
-    }
-
-    // This is filling in the gap where we've shifted the low histogram
-    // TODO: Need to double this up for low and high bins
-    if(iBin < binForLowHistLo && iBin + nBinsToAverageSmallShift - 1 < fRhoInterp->GetXaxis()->GetNbins())
-    {
-      binContentLo = binFracForLoHist * profileHi->GetBinContent(iBin + nBinsToAverageSmallShift) * scaleAddedSmallShift;
-    }
-    if(iBin < binForLowHistLo && iBin + nBinsToAverageLargeShift - 1 < fRhoInterp->GetXaxis()->GetNbins())
-    {
-      binContentLo = (1-binFracForLoHist) * profileHi->GetBinContent(iBin + nBinsToAverageLargeShift) * scaleAddedLargeShift;
-    }
-
-
-
-    // This is shifting the high histogram to the left
-    if( iBin + binForHiHistHi - 1 <= fRhoInterp->GetXaxis()->GetNbins() )
-    {
-      binContentHi += binFracForHiHist * profileHi->GetBinContent(iBin + binForHiHistHi - 1);
-      if( iBin + binForHiHistLo - 1 <= fRhoInterp->GetXaxis()->GetNbins() )
-      {
-      	binContentHi += (1-binFracForHiHist) * profileHi->GetBinContent(iBin + binForHiHistLo - 1);
-      }
-
-    }
-
- */
-
-
-    /////
-    /*
-		if(iBin + upShiftBin -1 <= fRhoInterp->GetNbinsX())
-		{
-			binContent += upScale * profileHi->GetBinContent(iBin + upShiftBin - 1 ) * fracHi;
-      binContentHi = upScale * profileHi->GetBinContent(iBin + upShiftBin - 1) * fracHi;
-
-		}
-
-		if(iBin + toAddFrom <= toAddTo)
-		{
-			binContent += (1-fracHi) * profileLo->GetBinContent(iBin - toAddFrom + 1);
-      binContentLo = (1-fracHi) * profileLo->GetBinContent(iBin - toAddFrom + 1);
-
-		}
-		else
-		{
-			binContent += (1-fracHi) * scaleAdded * profileHi->GetBinContent(iBin+toAddFrom);
-      binContentLo = (1-fracHi) * scaleAdded * profileHi->GetBinContent(iBin+toAddFrom);
-		}
-  }
-    */
-
-  TString title = TString::Format("Energy = %.01f", energy);
-  fRhoInterp->SetTitle(title.Data());
-  fRhoInterpLo->SetLineColor(kAzure);
-  fRhoInterpHi->SetLineColor(kMagenta);
-  fRhoInterpLo->SetLineWidth(2);
-  fRhoInterpHi->SetLineWidth(2);
-
-
-  // TString canName1 = TString::Format("can_%01f_before.png", energy);
-  // TCanvas * can1 = new TCanvas("can","can",700,500);
-  // fRhoInterpLo->Draw();
-  // fRhoInterpHi->Draw("SAME");
-  // can1->SaveAs(canName1);
-  // delete can1;
-
-  fRhoInterpLo->Scale(1.0/fRhoInterpLo->Integral("width"));
-  fRhoInterpHi->Scale(1.0/fRhoInterpHi->Integral("width"));
-
-  fRhoInterp->Reset();
-  fRhoInterp->Add(fRhoInterpLo, fRhoInterpHi, 1.-fracHi, fracHi);
-
-  // TString canName = TString::Format("can_%.01f_rho.png",energy);
-
-  // TCanvas * can = new TCanvas("can","can",700,500);
-  // fRhoInterp->Draw();
-  // fRhoInterpLo->Draw("SAME");
-  // fRhoInterpHi->Draw("SAME");
-  // can->SaveAs(canName.Data());
-  // delete can;
-
-  return;
-}
-
-void WCSimEmissionProfiles::InterpolateG(const double &energy) {
-
-	if(fGCoarse != 0x0)
-	{
-		delete fGCoarse;
-		fGCoarse = 0x0;
-	}
-
-	if(fGFine != 0x0)
-	{
-		delete fGFine;
-		fGFine = 0x0;
-	}
-
-  int bin = GetArrayBin(energy);
-	// std::cerr << "Warning: not doing any interpolation, just getting the nearest profile - bin = " << bin << std::endl;
-	fGCoarse = (TH2F*)(fGCoarseArray->At(bin)->Clone());
-	fGCoarse->SetDirectory(0);
-	fGFine = (TH2F*)(fGFineArray->At(bin)->Clone());
-	fGFine->SetDirectory(0);
-	return;
-
-/*
-    TH2F * hGLo = (TH2F*)fGArray->At(GetArrayBin(energy));
-    TH2F * hGHi = (TH2F*)fGArray->At(GetArrayBin(energy)+1);
-
-    Double_t fracHi =  (myTrack->GetE() - fBinningHistogram->GetXaxis()->GetBinLowEdge(GetArrayBin(energy)+1))
-    		 	            /(fBinningHistogram->GetXaxis()->GetBinWidth(GetArrayBin(energy)+1));
-    Double_t fracLo = (1.0 - fracHi);
-
-    if( fG != 0x0 ){ std::cout << "fG = " << fG << std::endl; std::cout << "Name = " << fG->GetName() << std::endl; delete fG; fG = 0x0;}
-    fG = new TH2F("fG","fG", hGLo->GetNbinsX(), hGLo->GetXaxis()->GetXmin(), hGLo->GetXaxis()->GetXmax(),
-    						 hGLo->GetNbinsY(), hGLo->GetYaxis()->GetXmin(), hGLo->GetYaxis()->GetXmax());
-    fG->Add(hGLo, hGHi, fracLo, fracHi);
-    fG->SetDirectory(0);
-
-    return;
-*/
 }
 
 std::vector<Double_t> WCSimEmissionProfiles::GetProfileEnergies() const
@@ -728,13 +377,13 @@ Double_t WCSimEmissionProfiles::GetTrackLengthForPercentile(Double_t percentile)
   if(fLastPercentile == percentile) { return fPercentileTrackLength; }
   Double_t runningTotal = 0.0;
   Int_t iBin = 0;
-  while(iBin < fRhoInterp->GetNbinsX() && runningTotal < 0.75)
+  while(iBin < fRho->GetNbinsX() && runningTotal < 0.75)
   {
       iBin++;
-      runningTotal += fRhoInterp->GetBinContent(iBin) * fRhoInterp->GetXaxis()->GetBinWidth(iBin);
+      runningTotal += fRho->GetBinContent(iBin) * fRho->GetXaxis()->GetBinWidth(iBin);
   }
   fLastPercentile = percentile;
-  fPercentileTrackLength = fRhoInterp->GetXaxis()->GetBinCenter(iBin);
+  fPercentileTrackLength = fRho->GetXaxis()->GetBinCenter(iBin);
   return fPercentileTrackLength;
 
 }
@@ -743,53 +392,21 @@ void WCSimEmissionProfiles::SaveProfiles(const TrackType::Type &type, const doub
 {
   return;
   TCanvas * canRho = new TCanvas("canRho", "canRho", 800, 600);
-  fRhoInterp->Draw();
-  fRhoInterp->SetLineWidth(2);
-  fRhoInterp->SetLineColor(kBlue);
-  fRhoInterp->GetXaxis()->SetTitle("s/cm");
-  fRhoInterp->GetYaxis()->SetTitle("rho(s)");
-  fRhoInterp->GetXaxis()->CenterTitle();
-  fRhoInterp->GetYaxis()->CenterTitle();
+  fRho->Draw();
+  fRho->SetLineWidth(2);
+  fRho->SetLineColor(kBlue);
+  fRho->GetXaxis()->SetTitle("s/cm");
+  fRho->GetYaxis()->SetTitle("rho(s)");
+  fRho->GetXaxis()->CenterTitle();
+  fRho->GetYaxis()->CenterTitle();
   TString rhoTitle("");
   rhoTitle.Form("rho_%d_", (int)energy);
   rhoTitle += TrackType::AsString(type);
-  fRhoInterp->SetTitle(rhoTitle.Data());
+  fRho->SetTitle(rhoTitle.Data());
 
   canRho->SaveAs( (rhoTitle + TString(".png")).Data());
   canRho->SaveAs( (rhoTitle + TString(".C")).Data());
   
-  TCanvas * canRhoLo = new TCanvas("canRhoLo", "canRhoLo", 800, 600);
-  fRhoInterpLo->Draw();
-  fRhoInterpLo->SetLineWidth(2);
-  fRhoInterpLo->SetLineColor(kRed);
-  fRhoInterpLo->GetXaxis()->SetTitle("s/cm");
-  fRhoInterpLo->GetYaxis()->SetTitle("rho(s)");
-  fRhoInterpLo->GetXaxis()->CenterTitle();
-  fRhoInterpLo->GetYaxis()->CenterTitle();
-  TString rhoLoTitle("");
-  rhoLoTitle.Form("rhoLo_%d_", (int)energy);
-  rhoLoTitle += TrackType::AsString(type);
-  fRhoInterpLo->SetTitle(rhoLoTitle.Data());
-  canRhoLo->SaveAs( (rhoLoTitle + TString(".png")).Data());
-  canRhoLo->SaveAs( (rhoLoTitle + TString(".C")).Data());
-  
-  TCanvas * canRhoHi = new TCanvas("canRhoHi", "canRhoHi", 800, 600);
-  fRhoInterpHi->Draw();
-  fRhoInterpHi->SetLineWidth(2);
-  fRhoInterpHi->SetLineColor(kRed);
-  fRhoInterpHi->GetXaxis()->SetTitle("s/cm");
-  fRhoInterpHi->GetYaxis()->SetTitle("rho(s)");
-  fRhoInterpHi->GetXaxis()->CenterTitle();
-  fRhoInterpHi->GetYaxis()->CenterTitle();
-  TString rhoHiTitle("");
-  rhoHiTitle.Form("rhoHi_%d_", (int)energy);
-  rhoHiTitle += TrackType::AsString(type);
-  fRhoInterpHi->SetTitle(rhoHiTitle.Data());
-  canRhoHi->SaveAs( (rhoHiTitle + TString(".png")).Data());
-  canRhoHi->SaveAs( (rhoHiTitle + TString(".C")).Data());
-
-
-
   TCanvas * canG = new TCanvas("canG", "canG", 800, 600);
   fGCoarse->Draw("COLZ");
   fGCoarse->GetXaxis()->SetTitle("cos#theta");
@@ -818,8 +435,6 @@ void WCSimEmissionProfiles::SaveProfiles(const TrackType::Type &type, const doub
   canG->SaveAs( (gTitle + TString(".C")).Data());
   delete canRho;
   delete canG;
-  delete canRhoHi;
-  delete canRhoLo;
 
   return;
 
@@ -827,13 +442,17 @@ void WCSimEmissionProfiles::SaveProfiles(const TrackType::Type &type, const doub
 
 Double_t WCSimEmissionProfiles::GetStoppingDistance()
 {
-	Int_t bin = fRhoInterp->FindLastBinAbove(0);
-	return (fRhoInterp->GetBinCenter(bin));
+	if(fStoppingDistance == -999.9)
+	{
+		Int_t bin = fRho->FindLastBinAbove(0);
+		fStoppingDistance = fRho->GetBinCenter(bin);
+	}
+	return fStoppingDistance;
 }
 
 TH1F * WCSimEmissionProfiles::GetRho()
 {
-	return fRhoInterp;
+	return fRho;
 }
 
 TH2F * WCSimEmissionProfiles::GetGCoarse()
