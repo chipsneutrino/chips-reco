@@ -380,39 +380,11 @@ void WCSimLikelihoodTuner::CalculateCoefficients(WCSimLikelihoodTrackBase * myTr
     jIndVec[2][0] = JInd[2];
     TMatrixD coeffsInd = jDistMat * jIndVec;
 
+    // Finally set the indirect coeffients
     fIndCoeffs[0] = coeffsInd[0][0];
     fIndCoeffs[1] = coeffsInd[1][0];
     fIndCoeffs[2] = coeffsInd[2][0];
 
-
-    //    if((myDigit->GetZ() > 900))
-    //    {
-    //      TGraph * gr = new TGraph();
-    //      for(int i = 0; i < hProfile->GetNbinsX(); ++i)
-    //      {
-    //        double tempS = hProfile->GetXaxis()->GetBinCenter(i);
-    //        std::vector<Double_t> tempJ = this->CalculateJ(tempS, myTrack, myDigit);
-    //        gr->SetPoint(gr->GetN(), tempS, tempJ.at(1));
-    //      }
-    //      TF1 * jInd = new TF1("jInd","[0] + [1] * x + [2] * x * x", 0, hProfile->GetXaxis()->GetXmax());
-    //      jInd->SetParameters(fIndCoeffs[0], fIndCoeffs[1], fIndCoeffs[2]);
-    //
-    //      TCanvas * c1 = new TCanvas("c1","c1", 800, 600);
-    //      gr->SetLineColor(kBlue);
-    //      gr->SetLineWidth(2);
-    //      gr->Draw("ALP");
-    //      jInd->SetLineColor(kRed);
-    //      jInd->SetLineWidth(2);
-    //      jInd->Draw("same");
-    //      TString str;
-    //      str.Form("jInd%d.png",myDigit->GetTubeId());
-    //      c1->SaveAs(str.Data());
-    //      delete c1;
-    //      delete jInd;
-    //      delete gr;
-    //    }
-  
-    // std::cout << "Done here" << std::endl;  
     return;
 }
 
@@ -468,51 +440,59 @@ void WCSimLikelihoodTuner::CalculateCutoff( WCSimLikelihoodTrackBase * myTrack )
 /// Calculate where the integral should be cut off if the detector is a cylinder
 Double_t WCSimLikelihoodTuner::CalculateCylinderCutoff(WCSimLikelihoodTrackBase * myTrack)
 {
-    TVector3 vtx     = myTrack->GetVtx();
-    TVector3 dir     = myTrack->GetDir();
+  TVector3 vtx     = myTrack->GetVtx();
+  TVector3 dir     = myTrack->GetDir();
 
-    // std::cout << "Vertex is " << std::endl;
-    // vtx.Print();
-
-    // std::cout << "Direction is " << std::endl;
-    // dir.Print();
     Double_t cutoff = fEmissionProfileManager->GetStoppingDistance(myTrack);
 
   // std::cout << "cutoff = fSMax = " << fSMax << std::endl;
   Double_t sMax[3] = {0., 0.,0.};
  
-  TVector3 flatDir( dir(0), dir(1), 0);
-  TVector3 flatVtx( vtx(0), vtx(1), 0); 
+  // Make some pseudo-2D vectors that only contain the x and y components of the vertex and direction
+  TVector3 flatDir( dir.X(), dir.Y(), 0);
+  double flatDirMag2 = flatDir.Mag2(); // This gets used a few times, so remember it
 
+  // Make sure there's a component in the (x,y) plane and find the distance where the particle escapes radially
+  if(flatDirMag2 > 1e-6)
+  {
+	  TVector3 flatVtx( vtx.X(), vtx.Y(), 0);
 
-  // Escapes in r
-  Double_t xDotD = flatVtx.Dot(flatDir);
-  Double_t part1 = -1 * xDotD;
-  Double_t part2 = TMath::Sqrt( xDotD * xDotD  - flatDir.Mag2() * (flatVtx.Mag2() - fExtent[0]*fExtent[0])  );
+	  // Find where it escapes in r - this is solving the quadratic described by |flatVtx + s * flatDir| = fExtent[0]
+	  Double_t xDotD = flatVtx.Dot(flatDir);
+	  Double_t part1 = -1 * xDotD;
+	  Double_t part2 = TMath::Sqrt( xDotD * xDotD  - flatDirMag2 * (flatVtx.Mag2() - fExtent[0]*fExtent[0])  );
 
-  Double_t s1    = (part1 + part2) / flatDir.Mag2();
-  Double_t s2    = (part1 - part2) / flatDir.Mag2();
-  if( s1 > 0) {      sMax[0] = s1; }
-  else if( s2 > 0) { sMax[0] = s2; }
+	  Double_t s1    = (part1 + part2) / flatDirMag2;
+	  Double_t s2    = (part1 - part2) / flatDirMag2;
+	  // For a vertex inside the detector only one solution can be positive
+	  if( s1 > 0) {      sMax[0] = s1; }
+	  else if( s2 > 0) { sMax[0] = s2; }
 
-  sMax[1] = sMax[0];
-  //std::cout << "It's a cylinder, sR = " << sMax[0] <<std::endl;
+	  // With cylinders we return (r,r,z)
+	  sMax[1] = sMax[0];
+//	  std::cout << "It's a cylinder, sR = " << sMax[0] <<std::endl;
+  }
+  else
+  {
+	  sMax[0] = cutoff;
+	  sMax[1] = cutoff;
+  }
 
   // The z coordinate
-  if( dir(2) > 1e-6 )
+  if( dir.Z() > 1e-6 )
   {
+	  // It escapes upwards
       sMax[2] = (  fExtent[2] - vtx(2) ) / ( dir(2) );
-      //std::cout << "Direction " << 2 << " cutoff is " << sMax[2] << std::endl;
   }
-  else if( dir(2) < -1e-6 )
+  else if( dir.Z() < -1e-6 )
   {
-      sMax[2] = ( -fExtent[2] - vtx(2) ) / ( dir(2) );
-      // std::cout << "Direction " << 2 << " (negative) cutoff is " << sMax[2] << std::endl;
+	  // Or downwards
+	  sMax[2] = ( -fExtent[2] - vtx(2) ) / ( dir(2) );
   }
-  else { sMax[2] = cutoff; }
-  // std::cout << sMax[2] << std::endl;
+  else { sMax[2] = cutoff; } // Or it doesn't go along Z at all
+
   
-  // The world's laziest sorting algorithm:
+  // Figure out which of the r and z escape distance it smaller and choose that one
   if( sMax[0] > 0 && sMax[0] < cutoff) { cutoff = sMax[0]; }
   if( sMax[2] > 0 && sMax[2] < cutoff) { cutoff = sMax[2]; }
 
@@ -525,30 +505,27 @@ Double_t WCSimLikelihoodTuner::CalculateMailBoxCutoff(WCSimLikelihoodTrackBase *
     TVector3 vtx     = myTrack->GetVtx();
     TVector3 dir     = myTrack->GetDir();
 
-    // std::cout << "Vertex is " << std::endl;
-    // vtx.Print();
-
-    // std::cout << "Direction is " << std::endl;
-    // dir.Print();
     Double_t cutoff = fEmissionProfileManager->GetStoppingDistance(myTrack);
     Double_t sMax[3] = {0., 0.,0.};
   
-  // Escapes in r
+  // Iterate over the x, y, and z directions to figure out when it escapes
   for(Int_t i = 0 ; i < 3; ++i )
   {
-    if( dir(i) > 1e-6 )
+	// Particle is going forwards in this direction
+	if( dir(i) > 1e-6 )
     {
         sMax[i] = (  fExtent[i] - vtx(i) ) / ( dir(i) );
-        // std::cout << "Direction " << i << " cutoff is " << sMax[i] << std::endl;
     }
+	// Or it's going backwards
     else if( dir(i) < -1e-6 )
     {
         sMax[i] = ( -fExtent[i] - vtx(i) ) / ( dir(i) );
         // std::cout << "Direction " << i << " (negative) cutoff is " << sMax[i] << std::endl;
     }
+	// Or it doesn't have a direction component in this coordinate at all
     else { sMax[i] = cutoff; }
-    // std::cout << sMax[i] << std::endl;
   }
+
   // The world's laziest sorting algorithm:
   if( sMax[0] < cutoff) { cutoff = sMax[0]; }
   if( sMax[1] < cutoff) { cutoff = sMax[1]; }
@@ -557,16 +534,14 @@ Double_t WCSimLikelihoodTuner::CalculateMailBoxCutoff(WCSimLikelihoodTrackBase *
   return cutoff;
 }
 
-
-
 ///////////////////////////////////////////////////////////////////////////
 //  Get the integrals along the track, using the config file to decide if
 //  they should be looked-up or calculated numerically
 ///////////////////////////////////////////////////////////////////////////
-// First the contribution from Cherenkov light
+
+// First the contribution from Cherenkov light: get the integral with a single power of s under the integral sign
 double WCSimLikelihoodTuner::GetChIntegrals(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit, Int_t sPower)
 {
-    // Get the integral with a single power of s under the integral sign
     if(fCalculateIntegrals == true)
     {
       std::cout << "Calculating the Cherenkov integrals" << std::endl;
@@ -579,9 +554,9 @@ double WCSimLikelihoodTuner::GetChIntegrals(WCSimLikelihoodTrackBase * myTrack, 
     }
 }
 
+// Contribution from Cherenkov light: if we want all s powers (we usually do) then this is quicker as there's only one loop over digits
 std::vector<Double_t> WCSimLikelihoodTuner::GetChIntegrals(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit)
 {
-    // If we want all 3 powers it's quicker to get them all at once as it only involves one loop
     if(fCalculateIntegrals == true)
     {
       // std::cout << "Calculating the Cherenkov integrals" << std::endl;
@@ -594,7 +569,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::GetChIntegrals(WCSimLikelihoodTrackB
     }
 }
 
-// Now the same for indirect light
+// Contribution from indirect light, considering only one power of s
 double WCSimLikelihoodTuner::GetIndIntegrals(WCSimLikelihoodTrackBase * myTrack, Int_t sPower)
 {
     // Get the integral with a single power of s under the integral sign
@@ -605,6 +580,7 @@ double WCSimLikelihoodTuner::GetIndIntegrals(WCSimLikelihoodTrackBase * myTrack,
     else return this->LookupIndIntegrals(myTrack, sPower);
 }
 
+// Contribution from indirect light considering all powers of s (the usual case)
 std::vector<Double_t> WCSimLikelihoodTuner::GetIndIntegrals(WCSimLikelihoodTrackBase * myTrack)
 {
     // If we want all 3 powers it's quicker to get them all at once as it only involves one loop
@@ -648,7 +624,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::LookupChIntegrals(WCSimLikelihoodTra
   // So we'll take care of it here instead
   TVector3 emissionStart = myTrack->GetFirstEmissionVtx();
   double emissionCutoff = fCutoffIntegral - myTrack->GetConversionDistance();
-  emissionCutoff *= (emissionCutoff > 0);
+  emissionCutoff *= (emissionCutoff > 0); // We don't want it to be negative if the particle doesn't convert until after it's escaped
 
   if(emissionCutoff == 0){ 
     integralsVec.push_back(0);
@@ -796,7 +772,16 @@ Bool_t WCSimLikelihoodTuner::GetCalculateIntegrals() const
 
 Bool_t WCSimLikelihoodTuner::IsOutsideDetector(const TVector3 &pos)
 {
-    return (fabs(pos.X()) > fExtent[0] || fabs(pos.Y()) > fExtent[1] || fabs(pos.Z()) > fExtent[2]);
+	if( fGeomType == WCSimLikelihoodDigitArray::kCylinder )
+	{
+		return ( (pos.Perp() > fExtent[0]) || (pos.Z() > fExtent[2]) );
+	}
+	else
+	{
+		return (fabs(pos.X()) > fExtent[0] || fabs(pos.Y()) > fExtent[1] || fabs(pos.Z()) > fExtent[2]);
+	}
+	assert(std::cerr << "Error: I don't think the detector is a cylinder or a box" << std::endl && false );
+	return false;
 }
 
 Double_t WCSimLikelihoodTuner::GetLightFlux(WCSimLikelihoodTrackBase * myTrack)
