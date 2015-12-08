@@ -172,7 +172,7 @@ Double_t WCSimLikelihoodTuner::TransmissionFunction()
 // This uses the same formula as WCSim.  Quantum efficiency (QE) is accounted for here.
 // Efficiency of digitization is handled elsewhere
 ///////////////////////////////////////////////////////////////////////////////////////
-Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit)
+Double_t WCSimLikelihoodTuner::Efficiency()
 {
   Double_t glassReflect = 0.0;
   if(WCSimAnalysisConfig::Instance()->GetUseGlassCathodeReflection()) { glassReflect = 0.24; }
@@ -182,105 +182,60 @@ Double_t WCSimLikelihoodTuner::Efficiency(Double_t s, WCSimLikelihoodTrackBase *
   { 
 
     // We need the angle of incidence at the PMT
-    TVector3 pmtPos      = myDigit->GetPos();
-    TVector3 emissionPos = myTrack->GetPropagatedPos(s);
-    TVector3 pmtToEm     = emissionPos - pmtPos;
-    TVector3 pmtFace     = myDigit->GetFace();
-
-    Double_t cosTheta = pmtFace.Dot(pmtToEm) / pmtToEm.Mag(); 
-    // cosTheta = pmtFace.Dot(pmtToEm) / pmtFace.Mag2(); 
-	  // The MiniBooNE method:
-    // Double_t theta = TMath::ACos(cosTheta) * 180. / TMath::Pi();
-    Double_t theta = TMath::ACos(cosTheta) * 180. / TMath::Pi();
+	  TVector3 pmtToEm     = -fCache.GetToPMT();	// Vector from PMT to photon emission point
+	  TVector3 pmtFace     = fCache.GetDigit()->GetFace();	// Direction PMT is facing (unit vector)
+	  Double_t cosTheta    = pmtFace.Dot(pmtToEm) / fCache.GetDistanceToPMT();  // Quicker dot product because |pmtFace| = 1
+	  Double_t theta 	   = TMath::ACos(cosTheta) * TMath::RadToDeg();
     if( theta > 90.0 )
     {
       theta = 180.0 - theta;
     }
-/*	  efficiency =  (1 + (-1.182e-4) * pow(theta, 2) + 4.959e-9 * pow(theta, 4) - 7.371e-14 * pow(theta, 6));
-    // std::cout << "Theta = " << theta << "    Efficiency = " << efficiency * (1-glassReflect) << std::endl;
-  }  
-  return efficiency * (1-glassReflect);
-*/
-    // Function for the PMT acceptance's dependence on the angle: 
-    // WCSim defines arrays of efficiency at 10 degree intervals and linearly interpolates
-// 	
-//     if( cosTheta < 0.0 || cosTheta > 1.0 )
-//     {
-//         /*std::cout << "Behind the PMT, cosTheta = " << cosTheta << std::endl;
-//         std::cout << "PMT" << std::endl;
-//         pmtPos.Print() ;
-//         std::cout << "Face" << std::endl;
-//         pmtFace.Print();
-//         std::cout << "Emitted at" << std::endl;
-//         emissionPos.Print();
-//         std::cout << "To emission" << std::endl;
-//         pmtToEm.Print();
-//         std::cout << "CosTheta = " << cosTheta << std::endl;
-//         */
-//         return 0.0;
-//     }
-//     Double_t theta = TMath::ACos(cosTheta) * 180.0 / TMath::Pi();
-//     theta = fabs(90.0 - theta);
-     Double_t collection_angle[10]={0.,10.,20.,30.,40.,50.,60.,70.,80.,90.};
-     Double_t collection_eff[10]={100.,100.,99.,95.,90.,85.,80.,69.,35.,13.}; 
-     Int_t num_elements = sizeof( collection_angle ) / sizeof( collection_angle[0] );
      
-     for(int iEntry = 0; iEntry < num_elements-1; ++iEntry)
-     {
-       if( theta >= collection_angle[iEntry] && theta < collection_angle[iEntry+1])
-       { 
-         efficiency = collection_eff[iEntry] 
-                      + (theta - collection_angle[iEntry]) / (collection_angle[iEntry+1] - collection_angle[iEntry])
-                      * (collection_eff[iEntry+1] - collection_eff[iEntry]);
-       }
-     }
-   }
-   return (efficiency/100.) * (1.0 - glassReflect);
-}
+	  // The PMT angular efficiency taken directly from WCSim
+	  const int num_elements = 10;
+	  Double_t collection_angle[num_elements]={0.,10.,20.,30.,40.,50.,60.,70.,80.,90.};
+	  Double_t collection_eff[num_elements]={1.,1.,0.99,0.95,0.90,0.85,0.80,0.69,0.35,0.13};
 
-/*
-//////////////////////////////////////////////////////////////////////////////////////////
-// Scale the expected photons by the quantum efficiency, which for now we treat as a 
-// constant by averaging the QE over the wavelength spectrum for all emitted photons
-// and scaling the predicted charge by this number
-//////////////////////////////////////////////////////////////////////////////////////////
-Double_t WCSimLikelihoodTuner::QuantumEfficiency(WCSimLikelihoodTrackBase * myTrack)
-{
-	WCSimTrackParameterEnums::TrackType type = myTrack->GetType();
-	if(type == TrackType::MuonLike) return 0.05;
-	else if(type == TrackType::ElectronLike) return 1.0;
-	else return 1.0;
+    // Interpolate between the efficiencies for the closes two angles
+	  for(int iEntry = 0; iEntry < num_elements-1; ++iEntry)
+	  {
+		  if( theta >= collection_angle[iEntry] && theta < collection_angle[iEntry+1])
+		  {
+			  efficiency =   collection_eff[iEntry]
+			               + (theta - collection_angle[iEntry]) / (collection_angle[iEntry+1] - collection_angle[iEntry])
+			               * (collection_eff[iEntry+1] - collection_eff[iEntry]);
+		  }
+	  }
+  }
+  return (efficiency) * (1.0 - glassReflect);
 }
-*/
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // Work out the effect of solid angle on the probability of photon incidenc; pure geometry
 //////////////////////////////////////////////////////////////////////////////////////////
-Double_t WCSimLikelihoodTuner::SolidAngleFraction(Double_t s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit)
+Double_t WCSimLikelihoodTuner::SolidAngleFraction()
 {
-  // Now some physical parameters of the phototube
-  WCSimRootPMT myPMT     = ((WCSimRootGeom*) (WCSimGeometry::Instance())->GetWCSimGeometry())->GetPMTFromTubeID(myDigit->GetTubeId());
-  // 
-  Double_t mm_to_cm = 0.1;
-	Double_t WCSimPMTRadius = myPMT.GetRadius() * mm_to_cm;
-  Double_t exposeHeight = myDigit->GetExposeHeight() * mm_to_cm;
+  // Some physical parameters of the phototube
+  WCSimRootPMT myPMT     = ((WCSimRootGeom*) (WCSimGeometry::Instance())->GetWCSimGeometry())->GetPMTFromTubeID(fCache.GetDigit()->GetTubeId());
+  const Double_t mm_to_cm = 0.1;
+  const Double_t WCSimPMTRadius = myPMT.GetRadius() * mm_to_cm;  // Radius of the PMT sphere
+  const Double_t exposeHeight = fCache.GetDigit()->GetExposeHeight() * mm_to_cm; // Height of the PMT sphere poking through the blacksheet
 
-	// // Double_t WCSimPMTExposeHeight = WCSimPMTRadius - 1.0;
-	
 
   // We need the distance from emission to the PMT
   // These are from WCSim so they're in cm
-  TVector3 pmtDomePos  = myDigit->GetPos() + WCSimPMTRadius * myDigit->GetFace();
-  TVector3 emissionPos = myTrack->GetPropagatedPos(s);
-  TVector3 toPMT = pmtDomePos - emissionPos;
-  Double_t r = toPMT.Mag();
-
+  TVector3 pmtDomePos  = fCache.GetDigit()->GetPos() + WCSimPMTRadius * fCache.GetDigit()->GetFace();
+  TVector3 emissionPos = fCache.GetEmissionPos();
+  const Double_t r = (pmtDomePos - emissionPos).Mag();
+  const Double_t rPlusExpHeight = r + exposeHeight;
   // Purely geometry: we need the solid angle of a cone whose bottom is a circle of the same radius as the circle of PMT poking
   // through the blacksheet.  This is 2pi( 1 - cos(coneAngle) ) where coneAngle can be deduced from trig and the PMT geometry
-	// So the fraction of total solid angle is this/4pi = 0.5(1 - cos(coneAngle))
-	Double_t solidAngle = 2.0*TMath::Pi()*(1.0 - ((r+exposeHeight)/sqrt( (r + exposeHeight)*(r + exposeHeight) + WCSimPMTRadius*WCSimPMTRadius)))  ;
-   // std::cout << "Solid angle = " << solidAngle << "   c.f. " << 2.0 * TMath::Pi()*(1.0 - (r/sqrt(r*r + WCSimPMTRadius * WCSimPMTRadius))) << std::endl;
-	return solidAngle / (4.0*TMath::Pi());
+
+  // So the fraction of total solid angle is this/4pi = 0.5(1 - cos(coneAngle))
+  const Double_t solidAngleFrac = 0.5 * (1.0 - ((rPlusExpHeight)/sqrt( (rPlusExpHeight*rPlusExpHeight) + WCSimPMTRadius*WCSimPMTRadius)))  ;
+
+  // std::cout << "Solid angle = " << solidAngle << "   c.f. " << 2.0 * TMath::Pi()*(1.0 - (r/sqrt(r*r + WCSimPMTRadius * WCSimPMTRadius))) << std::endl;
+  return solidAngleFrac;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -331,9 +286,9 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ( Double_t s, WCSimLikelih
   // }
 
   J.push_back(   this->TransmissionFunction() 
-               * this->Efficiency(s, myTrack, myDigit)
-               * this->QuantumEfficiency(s, myTrack, myDigit)
-               * this->SolidAngleFraction(s, myTrack, myDigit));
+               * this->Efficiency()
+               * this->QuantumEfficiency()
+               * this->SolidAngleFraction());
   J.push_back(J.at(0) * this->ScatteringTable(s));
   return J;
 }
@@ -705,7 +660,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::LookupChIntegrals(WCSimLikelihoodTra
     TVector3 vtxDir = myTrack->GetDir();
 	  TVector3 toPMT = pmtPos - emissionStart; // The vector from where the track starts emitting Cherenkov light to the PMT
     Double_t R0 = toPMT.Mag();
-	  Double_t cosTheta0 = TMath::Cos(vtxDir.Angle( toPMT ));
+    Double_t cosTheta0 = (vtxDir.Dot( toPMT ))/R0;
  	  
  	  double E = myTrack->GetE();
  	  TrackType::Type type = myTrack->GetType();
@@ -863,11 +818,10 @@ Double_t WCSimLikelihoodTuner::GetTrackLengthForPercentile(WCSimLikelihoodTrackB
   return length;
 }
 
-Double_t WCSimLikelihoodTuner::QuantumEfficiency(const double &s, WCSimLikelihoodTrackBase* myTrack, WCSimLikelihoodDigit * myDigit) {
+Double_t WCSimLikelihoodTuner::QuantumEfficiency() {
   
-  double distToPMT = (myTrack->GetPropagatedPos(s) - myDigit->GetPos()).Mag();
-  double qe =  (myDigit->GetAverageQE(distToPMT));
-  return qe;
+  double distToPMT = fCache.GetDistanceToPMT();
+  return (fCache.GetDigit()->GetAverageQE(distToPMT));
 }
 
 double WCSimLikelihoodTuner::GetCutoff(WCSimLikelihoodTrackBase* myTrack) {

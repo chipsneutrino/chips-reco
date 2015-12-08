@@ -96,13 +96,13 @@ class WCSimLikelihoodTuner
          * @param myDigit PMT the photon is travelling to
          * @return Probability that the PMT registers a hit due to the photon
          */
-        Double_t Efficiency(Double_t s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit);
+        Double_t Efficiency();
 
         /**
          * Apply the wavelength-weighted relative quantum efficiency
          * @param myTrack Track that emitted the photon
          */
-        Double_t QuantumEfficiency(const double &s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit);
+        Double_t QuantumEfficiency();
 
         /**
          * Factor for the solid angle of the PMT as viewed from where the photon was emitted
@@ -111,7 +111,7 @@ class WCSimLikelihoodTuner
          * @param myDigit PMT the photon is travelling to
          * @return Total (not fractional) solid angle of the photon
          */
-        Double_t SolidAngleFraction(Double_t s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit);
+        Double_t SolidAngleFraction();
 
         /**
          * Relates the amount of direct and indirect light as a function of several geometric factors
