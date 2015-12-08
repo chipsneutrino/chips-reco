@@ -237,6 +237,7 @@ class WCSimLikelihoodTuner
 
         Double_t fExtent[3];    ///< Dimensions of the detector: (x,y,z) for mailbox, (r,r,z) for cylinder
         Bool_t fConstrainExtent; ///< Should we stop integrating when we reach the edge of the detector?
+        double fMaxDistance;  ///< The furthest a photon can travel to hit a PMT (i.e. distance from the bottom left to top right of the detector)
         WCSimLikelihoodDigitArray::GeomType_t fGeomType; ///< Detector geometry type
 
 

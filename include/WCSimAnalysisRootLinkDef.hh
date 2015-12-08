@@ -89,6 +89,7 @@
 #pragma link C++ class WCSimIntegralLookupReader+;
 #pragma link C++ class WCSimFitterTrackParMap+;
 #pragma link C++ class WCSimLikelihoodTrackBase+;
+#pragma link C++ class vector<WCSimLikelihoodTrackBase*>;
 #pragma link C++ class WCSimLikelihoodPhotonTrack+;
 #pragma link C++ class WCSimLikelihoodTrackFactory+;
 #pragma link C++ class WCSimTimePredictor+;
@@ -101,4 +102,7 @@
 #pragma link C++ class WCSimPiZeroSingleElectronSeeder+;
 #pragma link C++ class WCSimPiZeroHoughSeeder+;
 #pragma link C++ class WCSimPiZeroElectronAdjuster+;
+#pragma link C++ class WCSimTransmissionFunctionLookupTable+;
+#pragma link C++ class vector<WCSimTransmissionFunctionLookupTable>+;
+#pragma link C++ class WCSimTransmissionFunctionLookup+;
 #endif
