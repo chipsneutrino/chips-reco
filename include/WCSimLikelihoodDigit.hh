@@ -71,6 +71,7 @@ public:
     TString GetPMTName() const;
 
     void Print() const;
+    bool operator == (const WCSimLikelihoodDigit &other) const;
 
 protected:
 private:
