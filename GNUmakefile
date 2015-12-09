@@ -10,6 +10,8 @@
 CXX						= g++
 CXXDEPEND     = -MM
 CXXFLAGS      = -g -O3 -Wall -fPIC
+LD            = g++ 
+CXXFLAGS      = -g -O3 -Wall -fPIC
 LD            = g++
 LDFLAGS       = -g -O3
 

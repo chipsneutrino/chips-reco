@@ -1752,7 +1752,7 @@ void WCSimGeometry::ProjectToEdge(Bool_t useFarEdge, Double_t x0, Double_t y0, D
     }
 
     // found projection
-    if( foundProjection = 1 ){
+    if( foundProjection == 1 ){
 
       x1 = x0 + t1*px;
       y1 = y0 + t1*py;

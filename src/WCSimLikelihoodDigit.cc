@@ -140,7 +140,7 @@ double WCSimLikelihoodDigit::GetAverageQE(const double &distanceToPMT) const
     double xMax, yMax;
     fAverageQE->GetPoint(0, xMin, yMin);
     assert(fAverageQE->GetN() > 1);
-
+    
     fAverageQE->GetPoint(fAverageQE->GetN()-1, xMax, yMax);
     assert(xMax > xMin);
     if( distanceToPMT < xMin )
@@ -152,8 +152,6 @@ double WCSimLikelihoodDigit::GetAverageQE(const double &distanceToPMT) const
       std::cerr << "WCSimLikelihoodDigit::GetAverageQE - Warning: distance to PMT of " << distanceToPMT << " is greater than the maximum x-value in the graph, of " << xMax << std::endl;
     }
 
-    double xTwo, yTwo;
-    fAverageQE->GetPoint(1, xTwo, yTwo);
     int point = (int)(distanceToPMT / ( (xMax - xMin)/(fAverageQE->GetN()-1) ) );
     if( point == fAverageQE->GetN()-1)
     {
@@ -170,7 +168,6 @@ double WCSimLikelihoodDigit::GetAverageQE(const double &distanceToPMT) const
       return (y1 * (x2-distanceToPMT) + y2 * (distanceToPMT - x1)) / (x2 - x1);
       
     }
-      
     return fAverageQE->Eval(distanceToPMT);
 }
 

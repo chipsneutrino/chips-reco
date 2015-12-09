@@ -146,22 +146,21 @@ Double_t WCSimLikelihoodTuner::TransmissionFunction()
 
     //    Double_t nu[3]     = {-1.137e-5,-5.212e-4, -4.359e-3}; // nu = 1/Decay length in mm
     //    Double_t f[3]      = {0.8827, 0.08162, 0.03515};
-    
+        
     // Assumes scattering length has not been edited down (abwff = 0.625) 
-    Double_t nu[3] = {-1.01526e-05, -6.67164e-06, -1.41964e-04  };
+    // These are in inverse cm
+    Double_t nu[3] = {-1.01526e-04, -6.67164e-05, -1.41964e-03  };
     Double_t f[3] = {2.10578e-01, 7.40266e-01, 4.92259e-02 };
 
-    // Sum up three exponentials
- /*   for(int i = 0; i < 3; ++i)
-    {
-    	trans+= f[i]*WCSimNvidiaTrig::exp5(1.0 * 10 * r * nu[i]);
-    }  //Convert from cm -> mm with factor 10
-*/
-    double maxDist = 0.0;
-
-
+    // Scale these down temporarily because I've scaled down the transmission length to 30m max
+    // Should eventually re-fit this properly
     for(int i = 0; i < 3; ++i)
     {
+      nu[i] = 1.0 / (1.0/nu[i] * 0.0737);
+    }
+  
+    for(int i = 0; i < 3; ++i)
+    { 
     	trans += WCSimTransmissionFunctionLookup::Instance()->GetExp(0, fMaxDistance, f[i], nu[i], r);
     }
   }
@@ -201,7 +200,7 @@ Double_t WCSimLikelihoodTuner::Efficiency()
 	  Double_t collection_angle[num_elements]={0.,10.,20.,30.,40.,50.,60.,70.,80.,90.};
 	  Double_t collection_eff[num_elements]={1.,1.,0.99,0.95,0.90,0.85,0.80,0.69,0.35,0.13};
 
-	  // Interpolate between the efficiencies for the closes two angles
+    // Interpolate between the efficiencies for the closes two angles
 	  for(int iEntry = 0; iEntry < num_elements-1; ++iEntry)
 	  {
 		  if( theta >= collection_angle[iEntry] && theta < collection_angle[iEntry+1])
@@ -220,9 +219,8 @@ Double_t WCSimLikelihoodTuner::Efficiency()
 //////////////////////////////////////////////////////////////////////////////////////////
 Double_t WCSimLikelihoodTuner::SolidAngleFraction()
 {
-  // Now some physical parameters of the phototube
+  // Some physical parameters of the phototube
   WCSimRootPMT myPMT     = ((WCSimRootGeom*) (WCSimGeometry::Instance())->GetWCSimGeometry())->GetPMTFromTubeID(fCache.GetDigit()->GetTubeId());
-
   const Double_t mm_to_cm = 0.1;
   const Double_t WCSimPMTRadius = myPMT.GetRadius() * mm_to_cm;  // Radius of the PMT sphere
   const Double_t exposeHeight = fCache.GetDigit()->GetExposeHeight() * mm_to_cm; // Height of the PMT sphere poking through the blacksheet
@@ -250,7 +248,7 @@ Double_t WCSimLikelihoodTuner::SolidAngleFraction()
 // a factor dependent on geometry, energy etc.
 // It's small and computationally intensive to tabulate, so we're taking a constant initially
 /////////////////////////////////////////////////////////////////////////////////////////////
-Double_t WCSimLikelihoodTuner::ScatteringTable(Double_t s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit)
+Double_t WCSimLikelihoodTuner::ScatteringTable()
 {
   // If we are not using the scattering table, just use a value of 1%
   if(WCSimAnalysisConfig::Instance()->GetUseScatteringTable() == false){
@@ -261,13 +259,13 @@ Double_t WCSimLikelihoodTuner::ScatteringTable(Double_t s, WCSimLikelihoodTrackB
   std::vector<float> coordinates;
 
   // Vertex R and Z components first.
-  TVector3 vtx = myTrack->GetPropagatedPos(s);
+  TVector3 vtx = fCache.GetEmissionPos();
   TVector3 vtx2D(vtx.X(),vtx.Y(),0.);
   coordinates.push_back(sqrt(vtx.X()*vtx.X() + vtx.Y()*vtx.Y())); // Vertex R position first
   coordinates.push_back(vtx.Z()); // Vertex Z position next.
 
   // Get the PMT and its position (convert from cm -> mm).
-  WCSimRootPMT myPMT = ((WCSimRootGeom*) (WCSimGeometry::Instance())->GetWCSimGeometry())->GetPMTFromTubeID(myDigit->GetTubeId());
+  WCSimRootPMT myPMT = ((WCSimRootGeom*) (WCSimGeometry::Instance())->GetWCSimGeometry())->GetPMTFromTubeID(fCache.GetDigit()->GetTubeId());
   TVector3 pmtPos(myPMT.GetPosition(0)*10., myPMT.GetPosition(1)*10., myPMT.GetPosition(2)*10.);
   TVector3 pmtPos2D(pmtPos.X(),pmtPos.Y(),0.);
   coordinates.push_back(vtx2D.Angle(pmtPos2D)); // Angle zeta between the 2D vtx position and 2D pmt position
@@ -283,9 +281,8 @@ Double_t WCSimLikelihoodTuner::ScatteringTable(Double_t s, WCSimLikelihoodTrackB
   coordinates.push_back(pmtCoord);   
 
   // Now for the theta and phi directions
-  TVector3 trkDir = myTrack->GetDir();
-  coordinates.push_back(TMath::ACos(trkDir.Z())); // Theta direction
-  coordinates.push_back(TMath::ATan2(trkDir.Y(),trkDir.X())); // Phi direction
+  coordinates.push_back(fCache.GetTrack()->GetTheta()); // Theta direction
+  coordinates.push_back(fCache.GetTrack()->GetPhi()); // Phi direction
 
   WCSimScatteringTableManager* scatteringManager = WCSimScatteringTableManager::Instance();
 
@@ -323,25 +320,22 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ( Double_t s, WCSimLikelih
 		}
 	}
 
-	// Work out the direct and indirect contributions to J
-	// J[0] = J_dir, J[1] = J_ind
-	/*if( myDigit->GetQ() > 10 && myDigit->GetTubeId() > 4000 && myDigit->GetTubeId() < 4100)
-	{
-		std::cout << "Transmission = " << this->TransmissionFunction() << std::endl
-				  		<< "Efficiency = " << this->Efficiency() << std::endl
-				  		<< "SolidAngle = " << this->SolidAngleFraction() << std::endl
-				  		<< "QE           = " << this->QuantumEfficiency() << std::endl;
-	}
-	*/
-	//
+  // Work out the direct and indirect contributions to J
+  // J[0] = J_dir, J[1] = J_ind
+  // if( myDigit->GetQ() > 10 && myDigit->GetTubeId() > 4000 && myDigit->GetTubeId() < 4100)
+  // {
+  // 	std::cout << "Transmission = " << this->TransmissionFunction(s, myTrack, myDigit) << std::endl
+  // 			  		<< "Efficiency = " << this->Efficiency(s, myTrack, myDigit) << std::endl
+  // 			  		<< "SolidAngle = " << this->SolidAngleFraction(s, myTrack, myDigit) << std::endl
+  // 			  		<< "QE           = " << this->QuantumEfficiency(s, myTrack, myDigit) << std::endl;
+  // }
 
-	// These don't take s, track, digit arguments because they use the cache for them
-	J.push_back(  this->TransmissionFunction()
-				* this->Efficiency()
-				* this->QuantumEfficiency()
-				* this->SolidAngleFraction());
-	J.push_back(J.at(0) * this->ScatteringTable(s,myTrack,myDigit));
-	return J;
+  J.push_back(   this->TransmissionFunction() 
+               * this->Efficiency()
+               * this->QuantumEfficiency()
+               * this->SolidAngleFraction());
+  J.push_back(J.at(0) * this->ScatteringTable());
+  return J;
 }
 
 
@@ -495,7 +489,6 @@ Double_t WCSimLikelihoodTuner::CalculateCylinderCutoff(WCSimLikelihoodTrackBase 
   TVector3 dir     = myTrack->GetDir();
   Double_t cutoff = fEmissionProfileManager->GetStoppingDistance(myTrack);  // Default to where the track stops
 
-//  std::cout << "cutoff from stopping distance = " << cutoff << std::endl;
   Double_t sMax[3] = {0., 0.,0.};
  
   // Make some pseudo-2D vectors that only contain the x and y components of the vertex and direction
@@ -945,6 +938,11 @@ double WCSimLikelihoodTunerCache::GetDistanceToPMT()
 WCSimLikelihoodDigit const * WCSimLikelihoodTunerCache::GetDigit()
 {
 	return fDigit;
+}
+
+WCSimLikelihoodTrackBase const * WCSimLikelihoodTunerCache::GetTrack()
+{
+	return fTrack;
 }
 
 double WCSimLikelihoodTunerCache::GetS()

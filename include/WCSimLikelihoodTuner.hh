@@ -41,6 +41,7 @@ public:
   double GetDistanceToPMT();
   WCSimLikelihoodDigit const * GetDigit();
   double GetS();
+  WCSimLikelihoodTrackBase const * GetTrack();
 
 private:
   WCSimLikelihoodDigit const * fDigit;
@@ -53,7 +54,6 @@ private:
   double fDistanceToPMT;
 
 };
-
 
 class WCSimLikelihoodTuner
 {
@@ -120,7 +120,7 @@ class WCSimLikelihoodTuner
          * @param s Distance from track vertex
          * @return
          */
-        Double_t ScatteringTable(Double_t s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit);
+        Double_t ScatteringTable();
 
         /**
          * Get efficiency * transmission * solid angle for direct and indirect photons
@@ -259,7 +259,7 @@ class WCSimLikelihoodTuner
 
         Double_t fDirCoeffs[3]; ///< Quadratic expansion coefficients to multiply the track integrals, for direct light
         Double_t fIndCoeffs[3]; ///< Quadratic expansion coefficients to multiply the track integrals, for indirect light
-    		Double_t fAverageQE;    ///< Quantum efficiency averaged over all emitted wavelenghts (not used any more)
+    	Double_t fAverageQE;    ///< Quantum efficiency averaged over all emitted wavelenghts (not used any more)
 
         Double_t fExtent[3];    ///< Dimensions of the detector: (x,y,z) for mailbox, (r,r,z) for cylinder
         Bool_t fConstrainExtent; ///< Should we stop integrating when we reach the edge of the detector?
