@@ -697,6 +697,7 @@ void WCSimFitterPlots::MakeSaveFileName() {
     }
 
     fSaveFileName = fileNameCompare;
+	fSaveFile = new TFile(fSaveFileName.Data(), "CREATE");
 
     std::cout << "  Plots to be saved in file: " << fSaveFileName.Data() << std::endl;
 

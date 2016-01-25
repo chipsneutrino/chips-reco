@@ -24,12 +24,41 @@
 #include <cmath>
 #include <map>
 
+#include "WCSimInterface.hh"
 #include "TGraphErrors.h"
+#include "TH2D.h"
 #include "TCanvas.h"
+#include "TDirectory.h"
+#include "TF1.h"
 
 #ifndef REFLEX_DICTIONARY
 ClassImp(WCSimTimeLikelihood3)
 #endif
+double ConvertMeanTimeToMeanFirstTime(double * x, double * par)
+{
+	double &nPhotons = (par[0]);
+	double &mean = (par[1]);
+	double &sigma = (par[2]);
+	double &t = (x[0]);
+
+	double prob =   nPhotons / (pow(2, nPhotons) * sigma * sqrt(2*M_PI))
+			 	  * pow(1.0 - TMath::Erf((t - mean)/(TMath::Sqrt2()*sigma)), nPhotons-1)
+				  * exp(-(t - mean)*(t - mean) / (2 * sigma * sigma));
+	return prob;
+}
+
+double IntegrateMeanTimeToMeanFirstTime(double * x, double * par)
+{
+  double &nPhotons = (par[0]);
+  double &mean = (par[1]);
+  double &sigma = (par[2]);
+  double &t = (x[0]);
+
+  double integral = 1.0 - 1.0/(pow(2,nPhotons)) * TMath::Power((1.0 - TMath::Erf((t - mean)/(TMath::Sqrt2() * sigma))), nPhotons);
+  return integral;
+}
+
+
 WCSimTimeLikelihood3::WCSimTimeLikelihood3() {
 	// TODO Auto-generated constructor stub
 	fLikelihoodDigitArray = 0x0;
@@ -54,6 +83,8 @@ WCSimTimeLikelihood3::WCSimTimeLikelihood3( WCSimLikelihoodDigitArray * myDigitA
 	fTMinusTPredSource->SetName("fTMinusTPredSource");
   fTMinusTPredVsQ = new TGraphErrors();
   fTMinusTPredVsQ->SetName("fTMinusTPredVsQ");
+  fHitQVsRMS = new TH2D("fHitQVsRMS", ";ceil(Total number of photons);Predicted RMS arrival time",20,1,21,20,0,10);
+
   return;
 }
 
@@ -93,15 +124,31 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
 	{
     // std::cout << "Digit " << myDigit << " is good!" << std::endl;
 		std::pair<double, double> arrivalMeanSigma = GetArrivalTimeMeanSigma(myTrack, myDigit);
-    // std::cout << "Arrival time: mean = " << arrivalMeanSigma.first << " and rms = " << arrivalMeanSigma.second << std::endl;
+//    std::cout << "Arrival time: mean = " << arrivalMeanSigma.first << " and rms = " << arrivalMeanSigma.second << " and t = " << myDigit->GetT() << std::endl;
 
 		double reso = GetPMTTimeResolution(myDigit);
 		double pScatter = 0.01;
 
 		double sigmaSquared = reso * reso + arrivalMeanSigma.second * arrivalMeanSigma.second;
+		double sigma = sqrt(sigmaSquared);
 		// std::cout << "SigmaSquared = " << sigmaSquared << std::endl;
 		double chisq = (myDigit->GetT() - arrivalMeanSigma.first) * (myDigit->GetT() - arrivalMeanSigma.first) / (2. * sigmaSquared);
-		double likelihood =   (1. - pScatter) * ( 1.0 / (sqrt(2*TMath::Pi()*sigmaSquared)) * exp(-chisq) ) + pScatter;
+
+		double nPhotons = myDigit->GetQ();
+
+		TF1 * f = new TF1("")
+		double timeLikelihood = 0.0;
+		if(arrivalMeanSigma.second > 0)
+		{
+			timeLikelihood =   nPhotons / (pow(2, nPhotons) * sigma * sqrt(2*M_PI))
+				 				* pow(1.0 - TMath::Erf((myDigit->GetT() - arrivalMeanSigma.first)/(TMath::Sqrt2()*sigma)), nPhotons-1)
+								* exp(-(myDigit->GetT() - arrivalMeanSigma.first)*(myDigit->GetT() - arrivalMeanSigma.first) / (2 * sigmaSquared));
+//		std::cout << "first part " << nPhotons / (pow(2, nPhotons) * sigma * sqrt(2*M_PI)) << std::endl
+//				  << "second part " << pow(1.0 - TMath::Erf((myDigit->GetT() - arrivalMeanSigma.first)/(TMath::Sqrt2()*sigma)), nPhotons-1) << std::endl
+//				  << "third part " << exp(-(myDigit->GetT() - arrivalMeanSigma.first)*(myDigit->GetT() - arrivalMeanSigma.first) / (2 * sigmaSquared)) << std::endl;
+
+		}
+		double likelihood =   (1. - pScatter) * (timeLikelihood) + pScatter;
 		if(likelihood <= 0 || likelihood > 1)
 		{
 		  std::cout << "iDigt = " << iDigit << " and likelihood = " << likelihood << std::endl;
@@ -116,6 +163,9 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
 
 		double distance = (myDigit->GetPos() - myTrack->GetVtx()).Mag();
 
+		double meanFirstTime =
+
+
 		fDistVsPred->SetPoint(fDistVsPred->GetN(), distance, arrivalMeanSigma.first);
 		fDistVsPred->SetPointError(fDistVsPred->GetN()-1, 0, arrivalMeanSigma.second);
 
@@ -125,8 +175,9 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
 		fTMinusTPredSource->SetPointError(fTMinusTPredSource->GetN()-1, 0, arrivalMeanSigma.second);
 		fTMinusTPredAll->SetPoint(fTMinusTPredAll->GetN(), distance, (myDigit->GetT()-arrivalMeanSigma.first));
 		fTMinusTPredAll->SetPointError(fTMinusTPredAll->GetN()-1, 0, sqrt(sigmaSquared));
-    fTMinusTPredVsQ->SetPoint(fTMinusTPredVsQ->GetN(), myDigit->GetQ(), myDigit->GetT()-arrivalMeanSigma.first);
-    fTMinusTPredVsQ->SetPointError(fTMinusTPredVsQ->GetN()-1, 0, sqrt(sigmaSquared));
+		fTMinusTPredVsQ->SetPoint(fTMinusTPredVsQ->GetN(), myDigit->GetQ(), myDigit->GetT()-arrivalMeanSigma.first);
+		fTMinusTPredVsQ->SetPointError(fTMinusTPredVsQ->GetN()-1, 0, sqrt(sigmaSquared));
+		fHitQVsRMS->Fill(ceil(myDigit->GetQ()), arrivalMeanSigma.second);
 
 	}
 	return -2.0 * lnL;
@@ -238,7 +289,7 @@ std::pair<double, double> WCSimTimeLikelihood3::GetArrivalTimeMeanSigma(WCSimLik
   else
   {
 	  speedOfParticle = myTrack->GetPropagationSpeedFrac() * speedOfLightInCmPerNs;
-    std::cout << "Speed = " << speedOfParticle / speedOfLightInCmPerNs << "c" << std::endl;;
+    // std::cout << "Speed = " << speedOfParticle / speedOfLightInCmPerNs << "c" << std::endl;;
   }
 
   if(WCSimAnalysisConfig::Instance()->GetUseCustomSpeedOfLight())
@@ -348,61 +399,74 @@ std::vector<double> WCSimTimeLikelihood3::GetAllPredictedTimes()
 
 void WCSimTimeLikelihood3::SavePlot()
 {
+	return;
 	TCanvas * can = new TCanvas("can","",800,600);
-	fDistVsPred->Draw("AP");
-	fDistVsPred->GetXaxis()->SetTitle("Distance from vertex");
-	fDistVsPred->GetYaxis()->SetTitle("Predicted arrival time");
-	fDistVsPred->SetMarkerStyle(20);
-	fDistVsPred->SetMarkerSize(0.8);
-	fDistVsPred->SetMarkerColor(kRed);
-	can->SaveAs("fDistVsPred.png");
-	can->SaveAs("fDistVsPred.C");
-	can->SaveAs("fDistVsPred.root");
-	fDistVsProb->Draw("AP");
-	fDistVsProb->GetXaxis()->SetTitle("Distance from vertex");
-	fDistVsProb->GetYaxis()->SetTitle("-2Ln(L)");
-	fDistVsProb->SetMarkerStyle(20);
-	fDistVsProb->SetMarkerSize(0.8);
-	fDistVsProb->SetMarkerColor(kRed);
-	can->SaveAs("fDistVsProb.png");
-	can->SaveAs("fDistVsProb.C");
-	can->SaveAs("fDistVsProb.root");
-	fDistVsSpreadProb->Draw("AP");
-	fDistVsSpreadProb->GetXaxis()->SetTitle("Distance from vertex");
-	fDistVsSpreadProb->GetYaxis()->SetTitle("-2Ln(L)");
-	fDistVsSpreadProb->SetMarkerStyle(20);
-	fDistVsSpreadProb->SetMarkerSize(0.8);
-	fDistVsSpreadProb->SetMarkerColor(kRed);
-	can->SaveAs("fDistVsSpreadProb.png");
-	can->SaveAs("fDistVsSpreadProb.C");
-	can->SaveAs("fDistVsSpreadProb.root");
-	fTMinusTPredAll->Draw("AP");
-	fTMinusTPredSource->Draw("|| SAME");
-	fTMinusTPredAll->GetXaxis()->SetTitle("Distance from vertex");
-	fTMinusTPredAll->GetYaxis()->SetTitle("T_{hit} - T_{pred} (ns)");
-	fTMinusTPredAll->SetMarkerStyle(20);
-	fTMinusTPredAll->SetMarkerSize(0.6);
-	fTMinusTPredAll->SetMarkerColor(kRed);
-	fTMinusTPredAll->SetLineColor(kBlack);
-	fTMinusTPredSource->GetXaxis()->SetTitle("Distance from vertex");
-	fTMinusTPredSource->GetYaxis()->SetTitle("T_{hit} - T_{pred} (ns)");
-	fTMinusTPredSource->SetMarkerStyle(20);
-	fTMinusTPredSource->SetMarkerSize(0.6);
-	fTMinusTPredSource->SetMarkerColor(kRed+1);
-	fTMinusTPredSource->SetLineColor(kRed+1);
-	can->SaveAs("fTMinusT0.png");
-	can->SaveAs("fTMinusT0.C");
-	can->SaveAs("fTMinusT0.root");
-	fTMinusTPredVsQ->Draw("AP");
-	fTMinusTPredVsQ->GetXaxis()->SetTitle("Hit charge (p.e.)");
-	fTMinusTPredVsQ->GetYaxis()->SetTitle("t_{hit} - t_{pred} (ns)");
-	fTMinusTPredVsQ->SetMarkerStyle(20);
-	fTMinusTPredVsQ->SetMarkerSize(0.8);
-	fTMinusTPredVsQ->SetMarkerColor(kCyan+2);
-  fTMinusTPredVsQ->Draw("AP");
-  can->SaveAs("fTMinusTPRedVsQ.png");
-  can->SaveAs("fTMinusTPRedVsQ.C");
-  can->SaveAs("fTMinusTPRedVsQ.root");
-	delete can;
+//	fDistVsPred->Draw("AP");
+//	fDistVsPred->GetXaxis()->SetTitle("Distance from vertex");
+//	fDistVsPred->GetYaxis()->SetTitle("Predicted arrival time");
+//	fDistVsPred->SetMarkerStyle(20);
+//	fDistVsPred->SetMarkerSize(0.8);
+//	fDistVsPred->SetMarkerColor(kRed);
+//	can->SaveAs("fDistVsPred.png");
+//	can->SaveAs("fDistVsPred.C");
+//	can->SaveAs("fDistVsPred.root");
+//	fDistVsProb->Draw("AP");
+//	fDistVsProb->GetXaxis()->SetTitle("Distance from vertex");
+//	fDistVsProb->GetYaxis()->SetTitle("-2Ln(L)");
+//	fDistVsProb->SetMarkerStyle(20);
+//	fDistVsProb->SetMarkerSize(0.8);
+//	fDistVsProb->SetMarkerColor(kRed);
+//	can->SaveAs("fDistVsProb.png");
+//	can->SaveAs("fDistVsProb.C");
+//	can->SaveAs("fDistVsProb.root");
+//	fDistVsSpreadProb->Draw("AP");
+//	fDistVsSpreadProb->GetXaxis()->SetTitle("Distance from vertex");
+//	fDistVsSpreadProb->GetYaxis()->SetTitle("-2Ln(L)");
+//	fDistVsSpreadProb->SetMarkerStyle(20);
+//	fDistVsSpreadProb->SetMarkerSize(0.8);
+//	fDistVsSpreadProb->SetMarkerColor(kRed);
+////	can->SaveAs("fDistVsSpreadProb.png");
+////	can->SaveAs("fDistVsSpreadProb.C");
+////	can->SaveAs("fDistVsSpreadProb.root");
+//	fTMinusTPredAll->Draw("AP");
+//	fTMinusTPredSource->Draw("|| SAME");
+//	fTMinusTPredAll->GetXaxis()->SetTitle("Distance from vertex");
+//	fTMinusTPredAll->GetYaxis()->SetTitle("T_{hit} - T_{pred} (ns)");
+//	fTMinusTPredAll->SetMarkerStyle(20);
+//	fTMinusTPredAll->SetMarkerSize(0.6);
+//	fTMinusTPredAll->SetMarkerColor(kRed);
+//	fTMinusTPredAll->SetLineColor(kBlack);
+//	fTMinusTPredSource->GetXaxis()->SetTitle("Distance from vertex");
+//	fTMinusTPredSource->GetYaxis()->SetTitle("T_{hit} - T_{pred} (ns)");
+//	fTMinusTPredSource->SetMarkerStyle(20);
+//	fTMinusTPredSource->SetMarkerSize(0.6);
+//	fTMinusTPredSource->SetMarkerColor(kRed+1);
+//	fTMinusTPredSource->SetLineColor(kRed+1);
+//	TString name = Form("fTMinusTPred_%.02fc", WCSimAnalysisConfig::Instance()->GetCustomParticleSpeed());
+//	can->SaveAs((name+TString(".png")).Data());
+//	can->SaveAs((name+TString(".C")).Data());
+//	can->SaveAs((name+TString(".root")).Data());
+//	fTMinusTPredVsQ->Draw("AP");
+//	fTMinusTPredVsQ->GetXaxis()->SetTitle("Hit charge (p.e.)");
+//	fTMinusTPredVsQ->GetYaxis()->SetTitle("t_{hit} - t_{pred} (ns)");
+//	fTMinusTPredVsQ->SetMarkerStyle(20);
+//	fTMinusTPredVsQ->SetMarkerSize(0.8);
+//	fTMinusTPredVsQ->SetMarkerColor(kCyan+2);
+//  fTMinusTPredVsQ->Draw("AP");
+//  can->SaveAs("fTMinusTPRedVsQ.png");
+//  can->SaveAs("fTMinusTPRedVsQ.C");
+//  can->SaveAs("fTMinusTPRedVsQ.root");
+//  int event = WCSimInterface::GetEventNumber();
+//  fHitQVsRMS->Draw("BOX");
+//  fHitQVsRMS->SetDirectory(0);
+//  TDirectory * tmpDir = gDirectory;
+//  TFile f(TString::Format("fHitQVsRMSFile_%d.root", event).Data(), "RECREATE");
+//  fHitQVsRMS->Write();
+//  f.Close();
+//  tmpDir->cd();
+//  can->SaveAs(TString::Format("fHitQVsRMS_%d.png", event).Data());
+//  can->SaveAs(TString::Format("fHitQVsRMS_%d.C", event).Data());
+//  can->SaveAs(TString::Format("fHitQVsRMS_%d.root", event).Data());
+//	delete can;
 }
 
