@@ -59,6 +59,7 @@ class WCSimInterface : public TObject {
 
   WCSimTrueEvent* GetTrueEvent(){ return fTrueEvent; }
   WCSimRecoEvent* GetRecoEvent(){ return fRecoEvent; }
+  WCSimTruthSummary GetTruthSummary(){ return fEvent->GetTruthSummary(); }
 
   WCSimRootEvent* GetWCSimEvent(){ return fEvent; }
   WCSimRootTrigger* GetWCSimTrigger(){ return fTrigger; }
