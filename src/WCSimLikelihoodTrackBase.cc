@@ -135,3 +135,20 @@ void WCSimLikelihoodTrackBase::Print()
            fVtx[0], fVtx[1], fVtx[2], fT0, fTheta0, fPhi0, fE0, TrackType::AsString(fType).c_str(), fConversionDistance);
 
 }
+
+double WCSimLikelihoodTrackBase::GetPropagationSpeedFrac() const{
+  double speed = 1.0;
+  switch(fType){
+    case TrackType::PhotonLike:
+      // Fall through
+    case TrackType::ElectronLike:
+      speed =  0.56;
+      break;
+    case TrackType::MuonLike:
+      speed =  0.90;
+      break;
+    default:
+      break;
+  }
+  return speed;
+}

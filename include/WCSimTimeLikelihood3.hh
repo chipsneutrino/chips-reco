@@ -18,6 +18,15 @@ class WCSimTimePredictor;
 class WCSimLikelihoodDigitArray;
 class TGraph;
 class TGraphErrors;
+class TGraphAsymmErrors;
+class TH2D;
+class TH1D; 
+
+
+double ConvertMeanTimeToMeanFirstTime(double * x, double * par);
+double ConvertMeanTimeToMeanFirstTime(const double &t, const double &mean, const double &sigma, const double &nPhotons);
+double IntegrateMeanTimeToMeanFirstTime(double * x, double * par);
+double IntegrateMeanTimeToMeanFirstTime( const double &t, const double &mean, const double &sigma, const double &nPhotons);
 
 class WCSimTimeLikelihood3 {
 public:
@@ -96,14 +105,18 @@ private:
     std::vector<double> fAllPreds; ///< Vector of the mean predicted arrival time for each PMT
     std::map<TString, double> fPMTTimeConstantMap; ///< Map that stores the time constant used to calculate the time resolution for each unique PMT name
 	TGraphErrors * fDistVsPred;
-	TGraphErrors * fTMinusTPredAll;
-	TGraphErrors * fTMinusTPredSource;
+	TGraphAsymmErrors * fTMinusTPredAll;
+	TGraphAsymmErrors * fTMinusTPredSource;
 	TGraph * fDistVsProb;
 	TGraph * fDistVsSpreadProb;
   TGraphErrors * fTMinusTPredVsQ;
+  TH2D * fHitQVsRMS;
+  TH1D * fTMinusTPredHist;
+  TH1D * fTMinusTPredSharpHist;
     ClassDef(WCSimTimeLikelihood3,0)
 
-
+  float fSpeedOfParticle;
 };
+double ConvertMeanTimeToMeanFirstTime(double * x, double * par);
 
 #endif /* INCLUDE_WCSIMTIMELIKELIHOOD3_HH_ */

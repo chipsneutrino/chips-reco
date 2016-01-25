@@ -1,3 +1,4 @@
+
 /**
  * \class WCSimTotalLikelihood
  * This class wraps around WCSimChargeLikelihood and
@@ -9,7 +10,7 @@
 #define WCSIMTOTALLIKELIHOOD_H
 
 #include "WCSimChargePredictor.hh"
-#include "WCSimTimeLikelihood2.hh"
+#include "WCSimTimeLikelihood3.hh"
 #include "WCSimLikelihoodDigitArray.hh"
 #include "WCSimLikelihoodTrackBase.hh"
 #include "WCSimEmissionProfileManager.hh"
@@ -83,7 +84,7 @@ class WCSimTotalLikelihood : public TObject
 
       WCSimLikelihoodDigitArray * fLikelihoodDigitArray; ///< Event to build likelihood for
       std::vector<WCSimChargePredictor> fChargeLikelihoodVector; ///< Charge component of likelihood calculation
-      WCSimTimeLikelihood2 * fTimeLikelihood; ///< Time component of likelihood calculation
+      WCSimTimeLikelihood3 * fTimeLikelihood; ///< Time component of likelihood calculation
       WCSimDigitizerLikelihood fDigitizerLikelihood;
       std::vector<WCSimLikelihoodTrackBase*> fTracks; ///< Tracks to consider when calculating the likelihood
 

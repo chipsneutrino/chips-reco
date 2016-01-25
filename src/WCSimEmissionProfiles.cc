@@ -47,6 +47,12 @@ WCSimEmissionProfiles::WCSimEmissionProfiles() {
 
 	fType = TrackType::Unknown;
 	fEnergy = -999.9;
+
+	fTimeCosThetaMax = 1.0;
+	fTimeCosThetaMin = -1.0;
+	fSForTime = 0x0;
+	fSCosThetaForTime = 0x0;
+
 }
 
 WCSimEmissionProfiles::~WCSimEmissionProfiles() {
@@ -56,10 +62,12 @@ WCSimEmissionProfiles::~WCSimEmissionProfiles() {
 		fProfileFile->Close();
 		delete fProfileFile;
 		fProfileFile = 0x0;
-    fProfileTree = 0x0;
+		fProfileTree = 0x0;
 		fRho = 0x0;
 		fGFine = 0x0;
 		fGCoarse = 0x0;
+		fSCosThetaForTime = 0x0;
+		fSForTime = 0x0;
 	}
 }
 
@@ -70,13 +78,16 @@ WCSimEmissionProfiles::WCSimEmissionProfiles(const TrackType::Type &type, const 
 	fProfileFile = 0x0;
 
 	fBinningHistogram = 0x0;
-  fProfileTree = 0x0;
+	fProfileTree = 0x0;
 
 	fRho = 0x0;
 	fGCoarse = 0x0;
 	fGFine= 0x0;
 
-	fRho = 0x0;
+	fSCosThetaForTime = 0x0;
+	fSForTime = 0x0;
+	fTimeCosThetaMin = -1.0;
+	fTimeCosThetaMax = 1.0;
 
 	LoadFile(type, energy);
 
@@ -259,8 +270,8 @@ void WCSimEmissionProfiles::LoadFile(const TrackType::Type &type, const double &
 	fProfileFileName = TString(getenv("WCSIMANAHOME"));
 	switch( type )
 	{
-    case TrackType::PhotonLike:
-      // Fall through to the electron track
+    	case TrackType::PhotonLike:
+    		// Fall through to the electron track
 		case TrackType::ElectronLike:
 			fProfileFileName.Append("/config/emissionProfilesElectrons.root");
 			break;
@@ -274,22 +285,33 @@ void WCSimEmissionProfiles::LoadFile(const TrackType::Type &type, const double &
 
   // Open the files and ge the profile tree
   std::cout << "Profile file name = " << fProfileFileName << std::endl;
-	fProfileFile      = new TFile(fProfileFileName.Data(),"READ");
+  fProfileFile = new TFile(fProfileFileName.Data(),"READ");
   fProfileFile->GetObject("fProfileTree",fProfileTree);
   fProfileFile->GetObject("hWhichHisto",fBinningHistogram);
 
   // Set the tree branches
+  std::cout << "Set branch for rho" << std::endl;
   fProfileTree->SetBranchAddress("hRho",&fRho);
+  std::cout << "Set branch for GFine" << std::endl;
   fProfileTree->SetBranchAddress("hGFine",&fGFine);
+  std::cout << "Set branch for GCoarse" << std::endl;
   fProfileTree->SetBranchAddress("hGCoarse",&fGCoarse);
+  std::cout << "Set branch for SCosThetaForTime" << std::endl;
+  fProfileTree->SetBranchAddress("hSCosThetaForTime",&fSCosThetaForTime);
+  std::cout << "Set branch for SForTime" << std::endl;
+  fProfileTree->SetBranchAddress("hSForTime",&fSForTime);
+  std::cout << "Set branch for timeCosThetaMin" << std::endl;
+  fProfileTree->SetBranchAddress("timeCosThetaMin",&fTimeCosThetaMin);
+  std::cout << "Set branch for timeCosThetaMax" << std::endl;
+  fProfileTree->SetBranchAddress("timeCosThetaMax",&fTimeCosThetaMax);
 
   fType = type;
-	SetEnergy(energy);
+  SetEnergy(energy); // This calls GetEntry
 
-	if(fDebug) { SaveProfiles(type, energy); }
+  if(fDebug) { SaveProfiles(type, energy); }
 
-	fStoppingDistance = -999.9;
-	return;
+  fStoppingDistance = -999.9;
+  return;
 
 }
 
@@ -474,3 +496,25 @@ TH1F * WCSimEmissionProfiles::GetEnergyHist()
 {
 	return fBinningHistogram;
 }
+
+TH2F * WCSimEmissionProfiles::GetSCosThetaForTime()
+{
+	return fSCosThetaForTime;
+}
+
+TH1F * WCSimEmissionProfiles::GetSForTime()
+{
+	return fSForTime;
+}
+
+double WCSimEmissionProfiles::GetTimeCosThetaMin()
+{
+	return fTimeCosThetaMin;
+}
+
+double  WCSimEmissionProfiles::GetTimeCosThetaMax()
+{
+	return fTimeCosThetaMax;
+}
+
+

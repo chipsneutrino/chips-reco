@@ -65,6 +65,7 @@ public:
      Int_t GetPDG() const;
      bool operator == (const WCSimLikelihoodTrackBase &b) const;
      bool IsSameTrack(WCSimLikelihoodTrackBase * b) const;
+     double GetPropagationSpeedFrac() const;
 
  protected:
    void LoadEmissionProfile(WCSimLikelihoodTrackBase * myTrack);

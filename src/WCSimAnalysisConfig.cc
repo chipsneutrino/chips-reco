@@ -33,6 +33,9 @@ WCSimAnalysisConfig::WCSimAnalysisConfig()
     fUseTime                   = true; 
     fUseHoughFitterForSeed			   = true;
     fUseScatteringTable  = true;
+
+    fUseCustomParticleSpeed = false;
+    fCustomParticleSpeed = 1.0;
     // Load the file with the default configuration
     // and update the member variables above as necessary
     fConfName = getenv("WCSIMANAHOME");
@@ -131,6 +134,26 @@ Bool_t WCSimAnalysisConfig::GetUseTime() const
 Bool_t WCSimAnalysisConfig::GetUseScatteringTable() const
 {
   return fUseScatteringTable;
+}
+
+Bool_t WCSimAnalysisConfig::GetUseCustomParticleSpeed() const
+{
+	return fUseCustomParticleSpeed;
+}
+
+Double_t WCSimAnalysisConfig::GetCustomParticleSpeed() const
+{
+	return fCustomParticleSpeed;
+}
+
+Bool_t WCSimAnalysisConfig::GetUseCustomSpeedOfLight() const
+{
+	return fUseCustomSpeedOfLight;
+}
+
+Double_t WCSimAnalysisConfig::GetCustomSpeedOfLight() const
+{
+	return fCustomSpeedOfLight;
 }
 
 void WCSimAnalysisConfig::LoadConfig()
@@ -499,3 +522,36 @@ void WCSimAnalysisConfig::SetUseChargeAndTime(Bool_t doIt)
   return;
 }
 
+void WCSimAnalysisConfig::SetUseCustomParticleSpeed(Bool_t doIt)
+{
+  if(doIt)
+  {
+    // std::cout << " *** WCSimAnalysisConfig::SetUseCustomParticleSpeed *** " << std::endl;
+    fUseCustomParticleSpeed = doIt;
+  }
+  return;
+}
+
+void WCSimAnalysisConfig::SetUseCustomSpeedOfLight(Bool_t doIt)
+{
+  if(doIt)
+  {
+    // std::cout << " *** WCSimAnalysisConfig::SetUseCustomSpeedOfLight *** " << std::endl;
+    fUseCustomSpeedOfLight = doIt;
+  }
+  return;
+}
+
+void WCSimAnalysisConfig::SetCustomParticleSpeed(const Double_t& speed)
+{
+  std::cout << " *** WCSimAnalysisConfig::SetCustomParticleSpeed to " << speed << "c ***" << std::endl;
+  fCustomParticleSpeed = speed;
+  return;
+}
+
+void WCSimAnalysisConfig::SetCustomSpeedOfLight(const Double_t& speed)
+{
+  // std::cout << " *** WCSimAnalysisConfig::SetCustomSpeedOfLight to " << speed << "c ***" << std::endl;
+  fCustomSpeedOfLight = speed;
+  return;
+}
