@@ -290,7 +290,6 @@ double WCSimChargePredictor::GetMuDirect(Int_t trackIndex)
 */
 double WCSimChargePredictor::GetMuIndirect(Int_t trackIndex)
 {
-//  return 0.01;
   //std::cout << "*** WCSimChargeLikelihood::GetMuIndirect() *** Calculating the indirect light contribution to the expected charge" << std::endl;
   double muIndirect = 0.0;
   if(fGotTrackParameters != trackIndex) { this->GetTrackParameters(trackIndex); }
