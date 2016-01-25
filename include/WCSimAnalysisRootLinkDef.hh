@@ -106,4 +106,5 @@
 #pragma link C++ class WCSimTransmissionFunctionLookupTable+;
 #pragma link C++ class vector<WCSimTransmissionFunctionLookupTable>+;
 #pragma link C++ class WCSimTransmissionFunctionLookup+;
+#pragma link C++ class WCSimTimeLikelihood3+;
 #endif
