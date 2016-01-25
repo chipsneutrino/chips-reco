@@ -200,27 +200,27 @@ double WCSimIntegralLookupReader::GetRhoGSSIntegral(const TrackType::Type& type,
 }
 
 TString WCSimIntegralLookupReader::GetLookupFilename(const TrackType::Type& type) {
-	TString str;
+	TString str(getenv("WCSIMANAHOME"));
 	if( type == TrackType::MuonLike)
 	{
 		if(WCSimAnalysisConfig::Instance()->GetTruncateIntegrals())
 		{
-			str = "config/muonIntegrals.root";
+			str += "/config/muonIntegrals.root";
 		}
 		else
 		{
-			str = "config/muonIntegralsSmall.root";
+			str += "/config/muonIntegralsSmall.root";
 		}
 	}
 	else if( type == TrackType::ElectronLike || type == TrackType::PhotonLike)
 	{
 		if(WCSimAnalysisConfig::Instance()->GetTruncateIntegrals())
 		{
-			str = "config/electronIntegrals.root";
+			str += "/config/electronIntegrals.root";
 		}
 		else
 		{
-			str = "config/electronIntegralsSmall.root";
+			str += "/config/electronIntegralsSmall.root";
 		}
 	}
 	else
