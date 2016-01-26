@@ -24,9 +24,11 @@
 
 #include "TClonesArray.h"
 #include "TCollection.h"
+#include "TDatabasePDG.h"
 #include "TLorentzVector.h"
 #include "TMath.h"
 #include "TMinuit.h"
+#include "TParticlePDG.h"
 #include "TRandom3.h"
 #include "TStopwatch.h"
 
@@ -137,13 +139,13 @@ Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
 
 
 
-  // if(fIsFirstCall ) // TEMP: Print it out all the time for now
+  // if( fIsFirstCall ) // TEMP: Print it out all the time for now
   // {
   //   std::cout << "Tracks used for first call:" << std::endl;
-  //   std::vector<WCSimLikelihoodTrackBase>::iterator itr = tracksToFit.begin();
-  //   for( ; itr < tracksToFit.end(); ++itr)
+  //   std::vector<WCSimLikelihoodTrackBase*>::iterator itr = tracksToFit.begin();
+  //   for( ; itr != tracksToFit.end(); ++itr)
   //   {
-  //     (*itr).Print();
+  //     (*itr)->Print();
   //   }
   // }
 
@@ -153,9 +155,9 @@ Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
 
   for(size_t iTrack = 0; iTrack < tracksToFit.size(); ++iTrack)
   {
-    tracksToFit.at(iTrack)->Print();
+    // tracksToFit.at(iTrack)->Print();
     // std::cout << iTrack << "/" << tracksToFit.size() << std::endl;
-	  delete (tracksToFit.at(iTrack));
+	delete (tracksToFit.at(iTrack));
   }
   tracksToFit.clear();
   std::cout << "Function evaluated " << ++fCalls << " times for event " << fEvent << " ... " << " -2Ln(L) = " << minus2LnL << std::endl << std::endl;
@@ -164,7 +166,7 @@ Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
 
 double WCSimLikelihoodFitter::WrapFuncAlongTrack(const Double_t * x)
 {
-  UInt_t nTracks = fFitterConfig->GetNumTracks();
+  Int_t nTracks = fFitterConfig->GetNumTracks();
 
   // If we've fixed some track parameters together, then our array of fit parameters won't just be of size
   // n tracks * m parameters per track, and we need to work out which entry corresponds to which parameter
@@ -387,7 +389,6 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
   
       // Run seed
       SeedEvent();
-  
       // Fit directions
       if(fFitterConfig->GetNumTracks() > 1)
       {
@@ -522,7 +523,7 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
         FreeTime();
         WCSimAnalysisConfig::Instance()->SetUseChargeAndTime();
       }
-      
+
     }
   /*
   
@@ -1708,7 +1709,7 @@ void WCSimLikelihoodFitter::FitAlongTrack()
 {
   const unsigned int nTracks = fFitterConfig->GetNumTracks();
 
-  // Do all the tracks share the same vertex
+  // Check if all the tracks share the same vertex
   double sharedVertex = true;
   if(nTracks > 1)
   {
@@ -1723,172 +1724,206 @@ void WCSimLikelihoodFitter::FitAlongTrack()
       }
     }
   }
-
-  if(nTracks == 1 || (nTracks > 1 && sharedVertex) )
+  if( (nTracks != 1) && !(nTracks > 1 && sharedVertex) )
   {
+      return;
+  }
 
-    bool canMove = (   !fFitterTrackParMap.GetIsFixed(0, FitterParameterType::kVtxX)
-                    && !fFitterTrackParMap.GetIsFixed(0, FitterParameterType::kVtxY)
-                    && !fFitterTrackParMap.GetIsFixed(0, FitterParameterType::kVtxZ)
-                   );
-      
-    std::vector<TVector3> directions;
-    std::vector<double> minE, maxE, currE, stepE;
-    std::vector<bool> fixE;
-    for(unsigned int i = 0; i < nTracks; ++i)
-    {
-      TVector3 direction;
-      direction.SetMagThetaPhi(1.0, 
-                               fFitterTrackParMap.GetCurrentValue(i, FitterParameterType::kDirTh), 
-                               fFitterTrackParMap.GetCurrentValue(i, FitterParameterType::kDirPhi)
-                              );
-      directions.push_back(direction);
 
-      minE.push_back(fFitterTrackParMap.GetMinValue(i, FitterParameterType::kEnergy));
-      maxE.push_back(fFitterTrackParMap.GetMaxValue(i, FitterParameterType::kEnergy));
-      currE.push_back(fFitterTrackParMap.GetCurrentValue(i, FitterParameterType::kEnergy));
-      stepE.push_back(fFitterTrackParMap.GetStep(i, FitterParameterType::kEnergy));
-      fixE.push_back(fFitterTrackParMap.GetIsFixed(i, FitterParameterType::kEnergy));
-    }
+  bool canMove = (   !fFitterTrackParMap.GetIsFixed(0, FitterParameterType::kVtxX)
+                  && !fFitterTrackParMap.GetIsFixed(0, FitterParameterType::kVtxY)
+                  && !fFitterTrackParMap.GetIsFixed(0, FitterParameterType::kVtxZ)
+                 );
+    
+  // Work out how far we can move each track's vertex in its propagation direction before it ends
+  // up outside the detector
+  std::vector<TVector3> momenta;
+  std::vector<double> minE, maxE, currE, stepE;
+  std::vector<bool> fixE;
+  TDatabasePDG db;
+  TParticlePDG * particle = 0x0;
+  for(unsigned int i = 0; i < nTracks; ++i)
+  {
+    // Get each track's momentum
+    TVector3 direction;
+    particle = db.GetParticle(TrackType::GetPDGFromType(fFitterTrackParMap.GetTrackType(i)));
 
-    TVector3 direction(0,0,0);
-    for(unsigned int i = 0; i < nTracks; ++i)
-    {
-      direction += (directions.at(i));
-    }
-    direction *= 1.0 / directions.size();
+    direction.SetMagThetaPhi(fFitterTrackParMap.GetCurrentValue(i, FitterParameterType::kEnergy) - particle->Mass()*1000, 
+                             fFitterTrackParMap.GetCurrentValue(i, FitterParameterType::kDirTh), 
+                             fFitterTrackParMap.GetCurrentValue(i, FitterParameterType::kDirPhi)
+                            );
+    momenta.push_back(direction);
+
+    // The minimum and maximum energies come direct from the fitter parameters
+    minE.push_back(fFitterTrackParMap.GetMinValue(i, FitterParameterType::kEnergy));
+    maxE.push_back(fFitterTrackParMap.GetMaxValue(i, FitterParameterType::kEnergy));
+    currE.push_back(fFitterTrackParMap.GetCurrentValue(i, FitterParameterType::kEnergy));
+    stepE.push_back(fFitterTrackParMap.GetStep(i, FitterParameterType::kEnergy));
+    fixE.push_back(fFitterTrackParMap.GetIsFixed(i, FitterParameterType::kEnergy));
+  }
+
+
+  // Work out the average momentum and then normalise it to 1 to get a direction
+  TVector3 direction(0,0,0);
+  for(unsigned int i = 0; i < nTracks; ++i)
+  {
+    direction += (momenta.at(i));
+  }
+  direction *= 1.0 / direction.Mag();
   
-    double minT, maxT, currT, stepT;
-    bool fixT;
-    minT = fFitterTrackParMap.GetMinValue(0, FitterParameterType::kVtxT);
-    maxT = fFitterTrackParMap.GetMaxValue(0, FitterParameterType::kVtxT);
-    currT = fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxT);
-    stepT = fFitterTrackParMap.GetStep(0, FitterParameterType::kVtxT);
-    fixT = (fFitterTrackParMap.GetIsFixed(0, FitterParameterType::kVtxT) || !WCSimAnalysisConfig::Instance()->GetUseTime());
 
-    TVector3 startVertex(fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxX),
-                         fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxY),
-                         fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxZ)
-                         );
+  // Get the bounds and step sizes of the shared vertex time
+  double minT, maxT, currT, stepT;
+  bool fixT;
+  minT = fFitterTrackParMap.GetMinValue(0, FitterParameterType::kVtxT);
+  maxT = fFitterTrackParMap.GetMaxValue(0, FitterParameterType::kVtxT);
+  currT = fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxT);
+  stepT = fFitterTrackParMap.GetStep(0, FitterParameterType::kVtxT);
+  fixT = (fFitterTrackParMap.GetIsFixed(0, FitterParameterType::kVtxT) || !WCSimAnalysisConfig::Instance()->GetUseTime());
 
-    TVector3 stepSizes(fFitterTrackParMap.GetStep(0, FitterParameterType::kVtxX),
-                       fFitterTrackParMap.GetStep(0, FitterParameterType::kVtxY),
-                       fFitterTrackParMap.GetStep(0, FitterParameterType::kVtxZ)
+
+  // Get the bounds, step sizes and starting values of the vertex positions
+  TVector3 startVertex(fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxX),
+                       fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxY),
+                       fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxZ)
                        );
 
-    TVector3 mins(fFitterTrackParMap.GetMinValue(0, FitterParameterType::kVtxX),
-                  fFitterTrackParMap.GetMinValue(0, FitterParameterType::kVtxY),
-                  fFitterTrackParMap.GetMinValue(0, FitterParameterType::kVtxZ));
-    
-    TVector3 maxes(fFitterTrackParMap.GetMaxValue(0, FitterParameterType::kVtxX),
-                   fFitterTrackParMap.GetMaxValue(0, FitterParameterType::kVtxY),
-                   fFitterTrackParMap.GetMaxValue(0, FitterParameterType::kVtxZ));
+  TVector3 stepSizes(fFitterTrackParMap.GetStep(0, FitterParameterType::kVtxX),
+                     fFitterTrackParMap.GetStep(0, FitterParameterType::kVtxY),
+                     fFitterTrackParMap.GetStep(0, FitterParameterType::kVtxZ)
+                     );
 
-    std::vector<double> escapeDists;
-    for(int i = 0; i < 3; ++i)
-    {
-      if(fabs(direction[i]) > 1e-6)
-      {
-        escapeDists.push_back( (maxes[i] - startVertex[i])/direction[i] );
-        escapeDists.push_back( (mins[i] - startVertex[i])/direction[i] );
-      }
-    }
-    assert(escapeDists.size() > 1);
-    std::sort(escapeDists.begin(), escapeDists.end());
-    double maxVal = static_cast<unsigned int>(-1);
-    double minVal = -1.0 * maxVal;
-    std::cout << "minVal = " << minVal << " and start maxVal = " << maxVal << std::endl;
-    for(unsigned int i = 0; i < escapeDists.size(); ++i)
-    {
-      if(escapeDists[i] < 0 && escapeDists[i] > minVal){ minVal = escapeDists[i]; }
-      if(escapeDists[i] > 0 && escapeDists[i] < maxVal){ maxVal = escapeDists[i]; }
-    }
-    std::cout << "MinVal = " << minVal << " and maxVal = " << maxVal << std::endl;
+  TVector3 mins(fFitterTrackParMap.GetMinValue(0, FitterParameterType::kVtxX),
+                fFitterTrackParMap.GetMinValue(0, FitterParameterType::kVtxY),
+                fFitterTrackParMap.GetMinValue(0, FitterParameterType::kVtxZ));
+  
+  TVector3 maxes(fFitterTrackParMap.GetMaxValue(0, FitterParameterType::kVtxX),
+                 fFitterTrackParMap.GetMaxValue(0, FitterParameterType::kVtxY),
+                 fFitterTrackParMap.GetMaxValue(0, FitterParameterType::kVtxZ));
 
-    double stepSize = sqrt(pow((stepSizes.X() * direction.X()), 2) + pow((stepSizes.Y() * direction.Y()), 2) + pow((stepSizes.Z() * direction.Z()), 2));
-    stepSize = 250;
-    std::cout << "Step size = " << stepSize << std::endl;
+
+  // escapeDists will hold the maximum distance we're allowed to travel forwards before the
+  // x, y, and z coordinates exceeding the fitter's limits
+  std::vector<double> escapeDists;
+  for(int i = 0; i < 3; ++i)
+  {
+    if(fabs(direction[i]) > 1e-6) 
+    {
+      escapeDists.push_back( (maxes[i] - startVertex[i])/direction[i] );
+      escapeDists.push_back( (mins[i] - startVertex[i])/direction[i] );
+    }
+  }
+  assert(escapeDists.size() > 1);
+
+
+  // Now find the escape distances: these are as far as we can move the vertex along 
+  // the direction of the event's momentum, forwards or backwards
+  std::sort(escapeDists.begin(), escapeDists.end());
+  double maxVal = static_cast<unsigned int>(-1); // Some big numbers
+  double minVal = -1.0 * maxVal;                 // ====== "" =======
+  for(unsigned int i = 0; i < escapeDists.size(); ++i)
+  {
+    // Find the closest to zero in the forwards and backwards direction
+    if(escapeDists[i] < 0 && escapeDists[i] > minVal){ minVal = escapeDists[i]; }
+    if(escapeDists[i] > 0 && escapeDists[i] < maxVal){ maxVal = escapeDists[i]; }
+  }
+  std::cout << "MinVal = " << minVal << " and maxVal = " << maxVal << std::endl;
+
+
+  // The step size is the length of the vector defined by taking a single 
+  // step in each of the x, y, and z directions
+  double stepSize = sqrt(pow((stepSizes.X() * direction.X()), 2) + pow((stepSizes.Y() * direction.Y()), 2) + pow((stepSizes.Z() * direction.Z()), 2));
+  stepSize = 250;
+  std::cout << "Step size = " << stepSize << std::endl;
  
 
-	  ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Simplex");
 
-	  // Alternatively: use a different algorithm to check the minimizer works
-	  // ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "GSLSimAn");
+  // Now we have all the bounds set up we can perform the actual minimisation 
+  // by varying the distance we move along the track, adjusting the vertex time
+  // to compensate for the step, and also varying the energy and time slightly
+  ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("Minuit2", "Simplex");
 
+  // Alternatively: use a different algorithm to check the minimizer works
+  // ROOT::Math::Minimizer* min = ROOT::Math::Factory::CreateMinimizer("GSLMultiMin", "GSLSimAn");
 
-	  min->SetMaxFunctionCalls(2500);
-	  min->SetMaxIterations(10);
-	  min->SetPrintLevel(3);
-	  //min->SetTolerance(0.);
-    min->SetErrorDef(1.0);
-	  min->SetStrategy(2);
-	  std::cout << " Tolerance = " << min->Tolerance() << std::endl;
+  min->SetMaxFunctionCalls(2500);
+  min->SetMaxIterations(10);
+  min->SetPrintLevel(3);
+  //min->SetTolerance(0.);
+  min->SetErrorDef(1.0);
+  min->SetStrategy(2);
+  std::cout << " Tolerance = " << min->Tolerance() << std::endl;
 
-	  // Convert nTracks into number of parameters
-	  unsigned int nParsNoConst = 1;
-    // nParsNoConst += (int)(fixT);
-    for(unsigned int i = 0; i < fixE.size(); ++i)
-    {
-      nParsNoConst =+ (int)(fixE.at(i));
-    }
-    const unsigned int nPars = nParsNoConst;
-
-
-	  // Tell the minimizer the function to minimize
-	  // We have to wrap it in this functor because it's a member function of this class
-	  ROOT::Math::Functor func(this,&WCSimLikelihoodFitter::WrapFuncAlongTrack, nPars);
-
-
-	  // Tell the minimizer the functor and variables to consider
-	  min->SetFunction(func);
-    if( canMove )
-    {
-	    min->SetLimitedVariable(0, "Distance from seed", minVal, stepSize, minVal, maxVal);
-    }
-    else
-    {
-      min->SetFixedVariable(0, "Distance from seed", 0);
-    }
-    for(unsigned int i = 0;  i < minE.size(); ++i)
-    {
-      TString name("Track %d energy", i);
-      if(fixE.at(i) == false)
-      {
-        min->SetLimitedVariable(i+1, "Energy", currE.at(i), stepE.at(i), minE.at(i), maxE.at(i));
-      }
-      else
-      {
-        min->SetFixedVariable(i+1, "Energy", currE.at(i));
-      }
-    }
-    
-    if(fixT == false && WCSimAnalysisConfig::Instance()->GetUseTime())
-    {
-      min->SetLimitedVariable(minE.size()+1, "Time shift", 0, 1., -3, 3);
-    }
-    else
-    {
-      min->SetFixedVariable(minE.size()+1, "Time shift",0);
-    }
-    min->Minimize();
-
-    double finalDistance = min->X()[0];
-    TVector3 newVertex = startVertex + finalDistance * direction;
-    std::cout << "Shift track vertex by " << finalDistance << std::endl;
-    std::cout << "NewVertex = " << std::endl;
-    newVertex.Print();
-    fFitterTrackParMap.SetCurrentValue(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxX), newVertex.X());
-    fFitterTrackParMap.SetCurrentValue(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxY), newVertex.Y());
-    fFitterTrackParMap.SetCurrentValue(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxZ), newVertex.Z());
-    fFitterTrackParMap.SetCurrentValue(fFitterTrackParMap.GetIndex(0, FitterParameterType::kVtxT), fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxT) + finalDistance/30.0 + min->X()[minE.size()+1]);
-    for(unsigned int iTrack = 0; iTrack < minE.size(); ++iTrack)
-    {
-      fFitterTrackParMap.SetCurrentValue(fFitterTrackParMap.GetIndex(iTrack, FitterParameterType::kEnergy), min->X()[iTrack+1]);
-    }
-    UpdateBestFits();
+  // Convert nTracks into number of parameters
+  unsigned int nParsNoConst = 1;
+  for(unsigned int i = 0; i < fixE.size(); ++i)
+  {
+    nParsNoConst =+ (int)(fixE.at(i));
   }
-  else{ assert(0); }
-	return;
+  const unsigned int nPars = nParsNoConst; // ROOT::Math::Functor needs const
+
+
+  // Tell the minimizer the function to minimize
+  // We have to wrap it in this functor because it's a member of this class
+  ROOT::Math::Functor func(this,&WCSimLikelihoodFitter::WrapFuncAlongTrack, nPars);
+
+
+  // Tell the minimizer the functor and variables to consider
+  min->SetFunction(func);
+  if( canMove ) // Adjust the vertex
+  {
+      min->SetLimitedVariable(0, "Distance from seed", minVal, stepSize, minVal, maxVal);
+  }
+  else
+  {
+    min->SetFixedVariable(0, "Distance from seed", 0);
+  }
+
+  for(unsigned int i = 0;  i < minE.size(); ++i) // Adjust the energy
+  {
+    TString name("Track %d energy", i);
+    if(fixE.at(i) == false)
+    {
+      min->SetLimitedVariable(i+1, "Energy", currE.at(i), stepE.at(i), minE.at(i), maxE.at(i));
+    }
+    else
+    {
+      min->SetFixedVariable(i+1, "Energy", currE.at(i));
+    }
+  }
+  
+  if(fixT == false && WCSimAnalysisConfig::Instance()->GetUseTime()) // Adjust the time
+  {
+    min->SetLimitedVariable(minE.size()+1, "Time shift", 0, 1., -3, 3);
+  }
+  else
+  {
+    min->SetFixedVariable(minE.size()+1, "Time shift",0);
+  }
+  min->Minimize();
+
+
+  // Get the final fitted parameters from the minimiser
+  double finalDistance = min->X()[0];
+  TVector3 newVertex = startVertex + finalDistance * direction;
+  std::cout << "Started at " << startVertex.X() << ", " << startVertex.Y() << ", " << startVertex.Z() << std::endl;
+  std::cout << "Shift track vertex by " << finalDistance << " to" << std::endl;
+  newVertex.Print();
+  WCSimFitterTrackParMap& ftpm = fFitterTrackParMap; // Reference this so our lines aren't giant unreadable garbage
+  ftpm.SetCurrentValue(ftpm.GetIndex(0, FitterParameterType::kVtxX), newVertex.X());
+  ftpm.SetCurrentValue(ftpm.GetIndex(0, FitterParameterType::kVtxY), newVertex.Y());
+  ftpm.SetCurrentValue(ftpm.GetIndex(0, FitterParameterType::kVtxZ), newVertex.Z());
+  ftpm.SetCurrentValue(ftpm.GetIndex(0, FitterParameterType::kVtxT), 
+                                        ftpm.GetCurrentValue(0, FitterParameterType::kVtxT) 
+                                        + finalDistance/30.0 
+                                        + min->X()[minE.size()+1]); // Speed of light in cm/ns ~ 30
+  for(unsigned int iTrack = 0; iTrack < minE.size(); ++iTrack)
+  {
+    ftpm.SetCurrentValue(ftpm.GetIndex(iTrack, FitterParameterType::kEnergy), min->X()[iTrack+1]);
+  }
+  UpdateBestFits();
+  
+  return;
 }
 
 void WCSimLikelihoodFitter::FitPiZeroEvent()
