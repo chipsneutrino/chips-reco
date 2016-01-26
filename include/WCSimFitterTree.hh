@@ -102,9 +102,9 @@ public:
                const std::vector<double> &t2LnLs,
                const std::vector<double> &correctT2LnLs);
   void FillRecoFailures(const int &event);
+  void MakeSaveFile();
 
 private:
-  	  void MakeSaveFileName();
 	void MakeRecoSummary(std::vector<WCSimLikelihoodTrackBase *> bestFitTracks);
 
 	TFile * fSaveFile;

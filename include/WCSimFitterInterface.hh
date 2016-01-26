@@ -21,7 +21,9 @@ class WCSimFitterInterface {
 public:
 	virtual ~WCSimFitterInterface();
 	WCSimFitterInterface();
-	void Init();
+
+    void InitOutputFiles(); 
+	void InitFitter();
 
 	// void SetFile(const char * fileName);
 	void SetNumTracks( unsigned int numTracks );

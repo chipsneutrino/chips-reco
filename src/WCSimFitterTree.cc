@@ -24,50 +24,23 @@
 
 #include <vector>
 
-WCSimFitterTree::WCSimFitterTree(const TString &saveFileName) {
+WCSimFitterTree::WCSimFitterTree(const TString &saveFileName) : 
+                fFitTree(0x0), fTrueTree(0x0), fRecoSummaryTree(0x0),
+                fWCSimTree(0x0), fGeoTree(0x0), fHitComparisonTree(0x0),
+                fRecoFailureTree(0x0), fGeometry(0x0), fWCSimRootEvent(0x0),
+                fEvent(0), fFitTrackNum(-999), f2LnL(-999.9),
+                fFitVtxX(-999.9), fFitVtxY(-999.9), fFitVtxZ(-999.9),
+                fFitVtxT(-999.9), fFitDirTheta(-999.9), fFitDirPhi(-999.9),
+                fFitEnergy(-999.9), fFitPDG(-999),
+                fTrueTrackNum(-999),
+                fTrueVtxX(-999.9), fTrueVtxY(-999.9), fTrueVtxZ(-999.9),
+                fTrueVtxT(-999.9), fTrueDirTheta(-999.9), fTrueDirPhi(-999.9),
+                fTrueEnergy(-999.9), fTruePDG(-999), fHitComparison(0x0){
+
 	// TODO Auto-generated constructor stub
-	fFitTree = 0x0;
-	fTrueTree = 0x0;
-	fRecoSummaryTree = 0x0;
-	fWCSimTree = 0x0;
-	fGeoTree = 0x0;
-  fHitComparisonTree = 0x0;
-  fRecoFailureTree = 0x0;
-//	fWCSimLikelihoodRecoEvent = 0x0;
-
-
 	fSaveFileName.Form("%s_tree.root", saveFileName.Data());
-	MakeSaveFileName();
-
-	fGeometry = 0x0;
-	fWCSimRootEvent = 0x0;
 	fRecoSummary = new WCSimRecoSummary();
-
-	fEvent = 0;
-
-	fFitTrackNum = -999;
-	f2LnL = -9999.99;
-	fFitVtxX = -9999.99;
-	fFitVtxY = -9999.99;
-	fFitVtxZ = -9999.99;
-	fFitVtxT = -9999.99;
-	fFitDirTheta = -9999.99;
-	fFitDirPhi = -9999.99;
-	fFitEnergy = -9999.99;
-	fFitPDG = -999;
-
-	// The truth variables:
-	fTrueTrackNum = -999;
-	fTrueVtxX = -9999.99;
-	fTrueVtxY = -9999.99;
-	fTrueVtxZ = -9999.99;
-	fTrueVtxT = -9999.99;
-	fTrueDirTheta = -9999.99;
-	fTrueDirPhi = -9999.99;
-	fTrueEnergy = -9999.99;
-	fTruePDG = -999;
-
-  fHitComparison = 0x0;
+    fSaveFile = 0x0;
 }
 
 WCSimFitterTree::~WCSimFitterTree() {
@@ -76,6 +49,7 @@ WCSimFitterTree::~WCSimFitterTree() {
 }
 
 void WCSimFitterTree::MakeTree() {
+    std::cout << "fSaveFileName = " << fSaveFileName << " and file is " << fSaveFile << std::endl;
 	fSaveFile->cd();
 	if(fTrueTree != 0x0)
 	{
@@ -417,22 +391,21 @@ void WCSimFitterTree::FillRecoFailures(const int &event)
 
 }
 
-void WCSimFitterTree::MakeSaveFileName()
+void WCSimFitterTree::MakeSaveFile()
 {
+    std::cout << " *** WCSimFitterTree::MakeSaveFile *** " << std::endl;
+    if(fSaveFile != NULL)
+    {
+        std::cerr << "Save file already exists, so you can't make it again" << std::endl;
+        std::cout << "Name is " << fSaveFileName.Data() << std::endl;
+        return;
+    }
 	TDirectory * tmpd = gDirectory;
 
     // Check if the file exists first
     long int tempId, tempSize, tempFlags, tempModtime;
-    Int_t toAdd = 0;
-    TString fileNameCompare = fSaveFileName;
-	fSaveFileName.ReplaceAll(".root","");
-    while( toAdd == 0 || gSystem->GetPathInfo(fileNameCompare.Data(), &tempId, &tempSize, &tempFlags, &tempModtime) == 0)
-    {
-    	fileNameCompare.Form("%s_%03d.root", fSaveFileName.Data(), toAdd++);
-    }
 
-    fSaveFileName = fileNameCompare;
-	  fSaveFile = new TFile(fSaveFileName.Data(), "CREATE");
+	fSaveFile = new TFile(fSaveFileName.Data(), "CREATE");
     std::cout << "  Plots to be saved in file: " << fSaveFileName.Data() << std::endl;
 
     tmpd->cd();
