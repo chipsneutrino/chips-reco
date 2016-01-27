@@ -62,6 +62,8 @@ WCSimRecoEvDisplay::WCSimRecoEvDisplay(const TGWindow* p, UInt_t w, UInt_t h)
 	fWhichPads = 0; // Default is reco
 	fTruthTextMain = new TPaveText(0.05, 0.45, 0.95, 0.90, "NDC");
 	fTruthTextPrimaries = new TPaveText(0.05, 0.1, 0.95, 0.40, "NDC");
+  // The above TPaveText objects will be resized should we need to show this.
+  fTruthTextOverlay = new TPaveText(0.05,0.05,0.95,0.15,"NDC");
 	fDatabasePDG = 0x0;
 
 	// Initialise the TGNumberEntry
