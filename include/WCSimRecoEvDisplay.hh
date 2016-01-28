@@ -81,6 +81,7 @@ protected:
 	void ResizePads();
 	TPad * fFitOverlayPad;
 	TPad * fFitPad;
+  void ResizeFitTexts(bool commonVertex);
 
   // Need to overload the SetPlotZAxes function
   void SetPlotZAxes();

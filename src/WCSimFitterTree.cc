@@ -362,11 +362,12 @@ void WCSimFitterTree::MakeRecoSummary(
     std::cout << "track:" << track->GetX() << ", " << track->GetY() << ", " << track->GetZ() << "    ";
     std::cout << track->GetType() << std::endl;
     track->Print();
-		if(iTrack == 0)
-		{
-			fRecoSummary->SetVertex( 10*track->GetX(), 10*track->GetY(), 10*track->GetZ() ); // Convert cm to mm
-      fRecoSummary->SetVertexT(track->GetT());
-		}
+//		if(iTrack == 0)
+//		{
+//			fRecoSummary->SetVertex( 10*track->GetX(), 10*track->GetY(), 10*track->GetZ() ); // Convert cm to mm
+//      fRecoSummary->SetVertexT(track->GetT());
+//		}
+    fRecoSummary->AddVertex(10*track->GetX(), 10*track->GetY(), 10*track->GetZ(),track->GetT()); // Convert cm to mm
     std::cout << "Making reco summary" << std::endl;
 		fRecoSummary->AddPrimary(track->GetPDG(), track->GetE(), track->GetDir());
 	}

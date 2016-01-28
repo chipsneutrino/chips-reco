@@ -167,6 +167,7 @@ WCSimRecoEvDisplay::~WCSimRecoEvDisplay() {
 
 void WCSimRecoEvDisplay::UpdateFitPad() {
 
+
 	  fFitPad->cd();
 	  fFitTextMain->Draw();
 	  fFitTextPrimaries->Draw();
@@ -325,7 +326,7 @@ void WCSimRecoEvDisplay::DrawFitRing(unsigned int particleNo, int colour) {
 	  if(fRecoSummary==0x0) return;
 
 	  // Get the track vertex and direction
-	  TVector3 trkVtx = fRecoSummary->GetVertex();
+	  TVector3 trkVtx = fRecoSummary->GetVertex(particleNo);
 	  trkVtx = trkVtx * 0.1; // Convert to cm
 	  TVector3 trkDir;
 	  trkDir = fRecoSummary->GetPrimaryDir(particleNo);
@@ -468,7 +469,7 @@ void WCSimRecoEvDisplay::ShowFit() {
 			std::cout << "== Event Fit Information ==" << std::endl;
 
 			std::string intType = this->ConvertTrueEventType();
-			TVector3 vtx = fRecoSummary->GetVertex();
+			TVector3 vtx = fRecoSummary->GetVertex(0);
 			// The interaction
 			std::cout << "= Interaction = " << std::endl;
 			std::cout << " - Vertex   : (" << vtx.X() << ","
@@ -510,15 +511,18 @@ void WCSimRecoEvDisplay::UpdateFitPave() {
 
 	  // Stream to parse things into strings
 	  std::stringstream tmpS;
-	  TVector3 vtx = fRecoSummary->GetVertex();
 
-	  std::cout << "Vertex = " << vtx.X() << ", " << vtx.Y() << ", " << vtx.Z() << std::endl;
-	  std::cout << "Radius = " << fWCRadius << ", " << "Height = " << fWCLength << std::endl;
-	  tmpS << vtx.X() << "," << vtx.Y() << "," << vtx.Z();
-	  fFitTextMain->AddText(("Vertex at ("+tmpS.str()+") mm").c_str());
-    tmpS.str("");
-    tmpS << "Vertex time = " << fRecoSummary->GetVertexT() << " ns";
-    fFitTextMain->AddText(tmpS.str().c_str());
+    if(fRecoSummary->HasCommonVertex()){
+  	  TVector3 vtx = fRecoSummary->GetVertex(0);
+  
+  	  std::cout << "Vertex = " << vtx.X() << ", " << vtx.Y() << ", " << vtx.Z() << std::endl;
+  	  std::cout << "Radius = " << fWCRadius << ", " << "Height = " << fWCLength << std::endl;
+  	  tmpS << vtx.X() << "," << vtx.Y() << "," << vtx.Z();
+  	  fFitTextMain->AddText(("Vertex at ("+tmpS.str()+") mm").c_str());
+      tmpS.str("");
+      tmpS << "Vertex time = " << fRecoSummary->GetVertexT(0) << " ns";
+      fFitTextMain->AddText(tmpS.str().c_str());
+    }
 	  int nFitRings = 0;
 	  // Create the TLegend for the truth overlays
 	  if(fFitLegend != 0x0){
@@ -547,6 +551,12 @@ void WCSimRecoEvDisplay::UpdateFitPave() {
 
 	      dir = fRecoSummary->GetPrimaryDir(n);
 		  tmpS.str("");
+      if(fRecoSummary->HasCommonVertex() == false){
+  	    TVector3 vtx = fRecoSummary->GetVertex(n);
+    	  tmpS << "Vertex = (" << vtx.X() << "," << vtx.Y() << "," << vtx.Z() << ") mm";
+		    fFitTextPrimaries->AddText(tmpS.str().c_str());
+        tmpS.str("");
+      }
 		  tmpS << mod << " ";
 		  tmpS << "Particle: " << pdg;
 		  tmpS << " with energy " << energy;
@@ -1399,8 +1409,32 @@ unsigned int WCSimRecoEvDisplay::GetTRMTBin(double rmt) const{
   return bin;
 }
 
+// Change the size of the reco text displays
+void WCSimRecoEvDisplay::ResizeFitTexts(bool commonVertex){
+ if(commonVertex){
+    fFitTextMain->SetY1NDC(0.45);
+    fFitTextPrimaries->SetY1NDC(0.10);
+    fFitTextPrimaries->SetY2NDC(0.40);
+  }
+  else{
+    fFitTextMain->SetY1NDC(0.89);
+    fFitTextPrimaries->SetY1NDC(0.10);
+    fFitTextPrimaries->SetY2NDC(0.90);
+  }
+  fFitPad->cd();
+  fFitTextMain->Draw();
+  fFitTextPrimaries->Draw();
+  fFitPad->Modified();
+  fFitPad->Update();
+  fHitMapCanvas->GetCanvas()->cd();
+  fHitMapCanvas->GetCanvas()->Modified();
+  fHitMapCanvas->GetCanvas()->Update();
+}
+
 // Draw the reco plots to the reco pads
 void WCSimRecoEvDisplay::UpdateRecoPads(){
+
+  this->ResizeFitTexts(fRecoSummary->HasCommonVertex());
 
   this->MakeGraphColours();
 
