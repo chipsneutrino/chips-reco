@@ -1948,7 +1948,8 @@ void WCSimVertexFinder::FitTimePropertiesFoM(Double_t& vtxTime, Double_t& vtxFOM
   fMinuitTimeFit->mncler();
   fMinuitTimeFit->SetFCN(vertex_time_fom);
   fMinuitTimeFit->mnexcm("SET STR",arglist,1,err);
-  fMinuitTimeFit->mnparm(0,"vtxTime",seedTime,50.0,0.0,2000.0,err);
+  // Leigh: Make sure the vertex time can vary within the full range 0 - 10000ns.
+  fMinuitTimeFit->mnparm(0,"vtxTime",seedTime,50.0,0.0,10000.0,err);
   
   flag = fMinuitTimeFit->Migrad();
   fMinuitTimeFit->GetParameter(0,fitTime,fitTimeErr);
@@ -2005,7 +2006,8 @@ void WCSimVertexFinder::FitPointTimePropertiesLnL(Double_t& vtxTime, Double_t& v
   fMinuitTimeFit->mncler();
   fMinuitTimeFit->SetFCN(vertex_time_lnl);
   fMinuitTimeFit->mnexcm("SET STR",arglist,1,err);
-  fMinuitTimeFit->mnparm(0,"vtxTime",seedTime,50.0,0.0,2000.0,err);
+  // Leigh: Make sure the vertex time can vary within the full range 0 - 10000ns.
+  fMinuitTimeFit->mnparm(0,"vtxTime",seedTime,50.0,0.0,10000.0,err);
   
   flag = fMinuitTimeFit->Migrad();
   fMinuitTimeFit->GetParameter(0,fitTime,fitTimeErr);
@@ -2076,7 +2078,8 @@ void WCSimVertexFinder::FitExtendedTimePropertiesLnL(Double_t& vtxTime, Double_t
   fMinuitTimeFit->mncler();
   fMinuitTimeFit->SetFCN(vertex_time_lnl);
   fMinuitTimeFit->mnexcm("SET STR",arglist,1,err);
-  fMinuitTimeFit->mnparm(0,"vtxTime",seedTime,50.0,0.0,2000.0,err);
+  // Leigh: Make sure the vertex time can vary within the full range 0 - 10000ns.
+  fMinuitTimeFit->mnparm(0,"vtxTime",seedTime,50.0,0.0,10000.0,err);
   fMinuitTimeFit->mnparm(1,"vtxParam",seedParam,0.05,0.0,1.0,err);
   
   flag = fMinuitTimeFit->Migrad();
