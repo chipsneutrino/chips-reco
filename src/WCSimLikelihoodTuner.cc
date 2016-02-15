@@ -256,19 +256,19 @@ Double_t WCSimLikelihoodTuner::ScatteringTable()
   }
 
   // Calculate the values of the six required coordinates.
-  std::vector<float> coordinates;
+  std::vector<float> coordinates(6, 0.0);
 
   // Vertex R and Z components first.
   TVector3 vtx = fCache.GetEmissionPos();
   TVector3 vtx2D(vtx.X(),vtx.Y(),0.);
-  coordinates.push_back(sqrt(vtx.X()*vtx.X() + vtx.Y()*vtx.Y())); // Vertex R position first
-  coordinates.push_back(vtx.Z()); // Vertex Z position next.
+  coordinates[0] = sqrt(vtx.X()*vtx.X() + vtx.Y()*vtx.Y()); // Vertex R position first
+  coordinates[1] = vtx.Z(); // Vertex Z position next.
 
   // Get the PMT and its position (convert from cm -> mm).
   WCSimRootPMT myPMT = ((WCSimRootGeom*) (WCSimGeometry::Instance())->GetWCSimGeometry())->GetPMTFromTubeID(fCache.GetDigit()->GetTubeId());
   TVector3 pmtPos(myPMT.GetPosition(0)*10., myPMT.GetPosition(1)*10., myPMT.GetPosition(2)*10.);
   TVector3 pmtPos2D(pmtPos.X(),pmtPos.Y(),0.);
-  coordinates.push_back(vtx2D.Angle(pmtPos2D)); // Angle zeta between the 2D vtx position and 2D pmt position
+  coordinates[2] = vtx2D.Angle(pmtPos2D); // Angle zeta between the 2D vtx position and 2D pmt position
 
   // The PMT position (this is R for caps, and Z for the barrel).
   float pmtCoord = 0.;
@@ -278,11 +278,11 @@ Double_t WCSimLikelihoodTuner::ScatteringTable()
   else{
     pmtCoord = pmtPos.Z();
   }
-  coordinates.push_back(pmtCoord);   
+  coordinates[3] = pmtCoord;   
 
   // Now for the theta and phi directions
-  coordinates.push_back(fCache.GetTrack()->GetTheta()); // Theta direction
-  coordinates.push_back(fCache.GetTrack()->GetPhi()); // Phi direction
+  coordinates[4] = (fCache.GetTrack()->GetTheta()); // Theta direction
+  coordinates[5] = (fCache.GetTrack()->GetPhi()); // Phi direction
 
   WCSimScatteringTableManager* scatteringManager = WCSimScatteringTableManager::Instance();
 
@@ -302,7 +302,7 @@ Double_t WCSimLikelihoodTuner::ScatteringTable()
 /////////////////////////////////////////////////////////////////////////////////////////////
 std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ( Double_t s, WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit ) 
 {
-	std::vector<Double_t> J;
+	std::vector<Double_t> J(2, 0.0);
 
 	// Load in this combination of s, digit and track so we don't keep recalculating distances and angles
 	MakeCache(s, myTrack, myDigit);
@@ -314,9 +314,7 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ( Double_t s, WCSimLikelih
 		TVector3 pos = fCache.GetEmissionPos();;
 		if( IsOutsideDetector(pos))
 		{
-			J.push_back(0.0);
-			J.push_back(0.0);
-			return J;
+			return J; // It already contains zeros
 		}
 	}
 
@@ -330,11 +328,11 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ( Double_t s, WCSimLikelih
   // 			  		<< "QE           = " << this->QuantumEfficiency(s, myTrack, myDigit) << std::endl;
   // }
 
-  J.push_back(   this->TransmissionFunction() 
-               * this->Efficiency()
-               * this->QuantumEfficiency()
-               * this->SolidAngleFraction());
-  J.push_back(J.at(0) * this->ScatteringTable());
+  J[0] = (this->TransmissionFunction() 
+          * this->Efficiency()
+          * this->QuantumEfficiency()
+          * this->SolidAngleFraction());
+  J[1] = (J.at(0) * this->ScatteringTable());
   return J;
 }
 
@@ -440,9 +438,9 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateCoefficientsVector(WCSimLik
     this->CalculateCoefficients(myTrack, myDigit);
     
     // Return these in a vector
-    std::vector<Double_t> coeffs;
-    for(int j = 0; j < 3; ++j){ coeffs.push_back(fDirCoeffs[j]); }
-    for(int j = 0; j < 3; ++j){ coeffs.push_back(fIndCoeffs[j]); }
+    std::vector<Double_t> coeffs(6, 0.0);
+    for(int j = 0; j < 3; ++j){ coeffs[j] = fDirCoeffs[j]; }
+    for(int j = 3; j < 6; ++j){ coeffs[j] = fIndCoeffs[j-3]; }
     return coeffs;
 }
 
@@ -715,24 +713,19 @@ Double_t WCSimLikelihoodTuner::LookupIndIntegrals(WCSimLikelihoodTrackBase * myT
 std::vector<Double_t> WCSimLikelihoodTuner::LookupIndIntegrals(WCSimLikelihoodTrackBase * myTrack)
 {
   // std::cout << "*** WCSimLikelihoodTuner::LookupChIntegrals() *** Looking up the tabulated integrals for direct Cherenkov light" << std::endl;
-	std::vector<Double_t> integralsVec;
+	std::vector<Double_t> integralsVec(3, 0.0);
   
   // Photons have a conversion distance so don't start emitting until they've travelled a certain length
   // Need to allow for this in where we cut off the integral
   double emissionCutoff = fCutoffIntegral - myTrack->GetConversionDistance();
   emissionCutoff *= (emissionCutoff > 0);
 
-  if(emissionCutoff == 0){ 
-    integralsVec.push_back(0);
-    integralsVec.push_back(0);
-    integralsVec.push_back(0);
-  }
-  else{
+  if(emissionCutoff != 0){ 
  	  double E = myTrack->GetE();
  	  TrackType::Type type = myTrack->GetType();
-  	integralsVec.push_back(WCSimIntegralLookupReader::Instance()->GetRhoIntegral(type, E, fCutoffIntegral));
-	  integralsVec.push_back(WCSimIntegralLookupReader::Instance()->GetRhoSIntegral(type, E, fCutoffIntegral));
-	  integralsVec.push_back(WCSimIntegralLookupReader::Instance()->GetRhoSSIntegral(type, E, fCutoffIntegral));
+  	  integralsVec[0] = WCSimIntegralLookupReader::Instance()->GetRhoIntegral(type, E, fCutoffIntegral);
+	  integralsVec[1] = WCSimIntegralLookupReader::Instance()->GetRhoSIntegral(type, E, fCutoffIntegral);
+	  integralsVec[2] = WCSimIntegralLookupReader::Instance()->GetRhoSSIntegral(type, E, fCutoffIntegral);
   }
 
   return integralsVec;
