@@ -65,9 +65,8 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myEvent )
 	}
 
   // For now, find the trigger with the largest number of hits
-  WCSimRootTrigger * myTrigger = WCSimInterface::FilterTrigger( myEvent );
-	WCSimReco * myReco = WCSimRecoFactory::Instance()->MakeReco(); // This calls new() - delete when done
-	WCSimRecoEvent* myRecoEvent = WCSimInterface::RecoEvent();
+  WCSimReco * myReco = WCSimRecoFactory::Instance()->MakeReco(); // This calls new() - delete when done
+  WCSimRecoEvent* myRecoEvent = WCSimInterface::RecoEvent();
   myReco->RunFilter(myRecoEvent);
 
 	// Use this trigger to flag the tubes that were hit and fill the ClonesArray with
