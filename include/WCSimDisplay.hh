@@ -5,6 +5,7 @@
 
 #include "WCSimRecoEvent.hh"
 #include "WCSimTrueEvent.hh"
+#include "WCSimRootEvent.hh"
 
 class WCSimDisplay : public TObject {
 
@@ -16,7 +17,7 @@ class WCSimDisplay : public TObject {
   virtual void DrawCleanDisplay(WCSimRecoEvent* recoevent) { }
 
   virtual void DrawRecoEvent(WCSimRecoEvent* recoevent) { }
-  virtual void DrawTrueEvent(WCSimTrueEvent* trueevent) { }
+  virtual void DrawTrueEvent(WCSimRootEvent* rootevent) { }
 
   virtual void ResetDisplay() { }
   virtual void PrintDisplay() { } 
