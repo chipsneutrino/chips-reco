@@ -181,7 +181,7 @@ WCSimFitterParameters::~WCSimFitterParameters() {
 
 void WCSimFitterParameters::SetNumTracks(unsigned int nTracks)
 {
-  int tracksNeeded = fNumTracks;
+  unsigned int tracksNeeded = fNumTracks;
   if(tracksNeeded < nTracks)
   {
     for(unsigned int toAdd = 0; toAdd < (nTracks - tracksNeeded) ; ++toAdd)
