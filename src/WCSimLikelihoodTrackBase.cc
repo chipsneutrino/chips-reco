@@ -137,12 +137,17 @@ void WCSimLikelihoodTrackBase::Print()
 }
 
 double WCSimLikelihoodTrackBase::GetPropagationSpeedFrac() const{
+    return GetPropagationSpeedFrac(fType);
+}
+
+double WCSimLikelihoodTrackBase::GetPropagationSpeedFrac(const TrackType &type)
+{
   double speed = 1.0;
-  switch(fType){
+  switch(type){
     case TrackType::PhotonLike:
       // Fall through
     case TrackType::ElectronLike:
-      speed =  0.56;
+      speed = 0.85684;
       break;
     case TrackType::MuonLike:
       speed =  0.90;

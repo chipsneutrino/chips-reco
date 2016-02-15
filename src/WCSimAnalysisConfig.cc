@@ -36,6 +36,8 @@ WCSimAnalysisConfig::WCSimAnalysisConfig()
 
     fUseCustomParticleSpeed = false;
     fCustomParticleSpeed = 1.0;
+    fUseCustomSpeedOfLight = false;
+    fCustomSpeedOfLight = 1.0;
     // Load the file with the default configuration
     // and update the member variables above as necessary
     fConfName = getenv("WCSIMANAHOME");

@@ -66,6 +66,7 @@ public:
      bool operator == (const WCSimLikelihoodTrackBase &b) const;
      bool IsSameTrack(WCSimLikelihoodTrackBase * b) const;
      double GetPropagationSpeedFrac() const;
+     static double GetPropagationSpeedFrac(const TrackType &type);
 
  protected:
    void LoadEmissionProfile(WCSimLikelihoodTrackBase * myTrack);

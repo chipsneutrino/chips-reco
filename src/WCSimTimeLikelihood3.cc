@@ -4,8 +4,6 @@
  *  Created on: 8 Jul 2015
  *      Author: andy
  */
-
-
 #include "WCSimAnalysisConfig.hh"
 #include "WCSimEmissionProfileManager.hh"
 #include "WCSimLikelihoodDigit.hh"
@@ -29,6 +27,7 @@
 #include "TCanvas.h"
 #include "TDirectory.h"
 #include "TF1.h"
+#include "TGraph.h"
 #include "TGraphAsymmErrors.h"
 #include "TGraphErrors.h"
 #include "TH1D.h"
@@ -97,7 +96,7 @@ double IntegrateMeanTimeToMeanFirstTime(double * x, double * par)
 double MinimumOfArrivalAndResolution(const double &t, const double &meanArr, const double rmsArr, const double pmtTime, const double &pmtRes, const double &nPhotons)
 {
   double arrivalPDF = ConvertMeanTimeToMeanFirstTime(t, meanArr, rmsArr, nPhotons);
-  double resolutionPDF = 1.0 / (pmtRes * TMath::Sqrt(2*TMath::Pi())) * TMath::Exp( - (t - pmtTime)*(t - pmtTime) / (2 * pmtRes * pmtRes));
+  double resolutionPDF = 1.0 / (pmtRes * TMath::Sqrt(2 * TMath::Pi())) * TMath::Exp( - (t - pmtTime)*(t - pmtTime) / (2 * pmtRes * pmtRes));
   if( TMath::IsNaN(arrivalPDF) || TMath::IsNaN(resolutionPDF))
   {
 
@@ -127,24 +126,36 @@ double MinimumOfArrivalAndResolution( double * x, double * par )
 
 WCSimTimeLikelihood3::WCSimTimeLikelihood3() : fSpeedOfParticle(1.0 * TMath::C() * 1e-7){
 	// TODO Auto-generated constructor stub
+	fDistVsPred = 0x0;
+	fDistVsProb = 0x0;
+	fDistVsSpreadProb = 0x0;
+	fTMinusTPredAll = 0x0;
+	fTMinusTPredSource = 0x0;
+    fTMinusTPredVsQ = 0x0;
+    fTMinusTPredHist = 0x0;
+    fTMinusTPredSharpHist = 0x0;
+    fHitQVsRMS = 0x0;
+
+
 	fLikelihoodDigitArray = 0x0;
   fEmissionProfileManager = 0x0;
 	fPMTManager = new WCSimPMTManager();
 }
 
-WCSimTimeLikelihood3::WCSimTimeLikelihood3( WCSimLikelihoodDigitArray * myDigitArray, WCSimEmissionProfileManager * myEmissionProfileManager)
+WCSimTimeLikelihood3::WCSimTimeLikelihood3( WCSimLikelihoodDigitArray * myDigitArray, WCSimEmissionProfileManager * myEmissionProfileManager) :
+			fSpeedOfParticle(1.0 * TMath::C() * 1e-7)
 {
   fLikelihoodDigitArray = myDigitArray;
   fEmissionProfileManager = myEmissionProfileManager;
   fPMTManager = new WCSimPMTManager();
-	fDistVsPred = new TGraphErrors();
-	fDistVsPred->SetName("fDistVsPred");
-	fDistVsProb = new TGraph();
-	fDistVsProb->SetName("fDistVsProb");
-	fDistVsSpreadProb = new TGraph();
-	fDistVsSpreadProb->SetName("fDistVsSpreadProb");
-	fTMinusTPredAll = new TGraphAsymmErrors();
-	fTMinusTPredSource = new TGraphAsymmErrors();
+  fDistVsPred = new TGraphErrors();
+  fDistVsPred->SetName("fDistVsPred");
+  fDistVsProb = new TGraph();
+  fDistVsProb->SetName("fDistVsProb");
+  fDistVsSpreadProb = new TGraph();
+  fDistVsSpreadProb->SetName("fDistVsSpreadProb");
+  fTMinusTPredAll = new TGraphAsymmErrors();
+  fTMinusTPredSource = new TGraphAsymmErrors();
 	fTMinusTPredAll->SetName("fTMinusTPredAll");
 	fTMinusTPredSource->SetName("fTMinusTPredSource");
   fTMinusTPredVsQ = new TGraphErrors();
@@ -153,13 +164,21 @@ WCSimTimeLikelihood3::WCSimTimeLikelihood3( WCSimLikelihoodDigitArray * myDigitA
   fTMinusTPredHist = new TH1D(histName.Data(),"All PMTs;t_{hit} - t_{pred} (ns);PMTs",500,-50,50);
   fTMinusTPredSharpHist = new TH1D("fTMinusTPredSharpHist","All PMTs with #sigma < 2.0ns;t_{hit} - t_{pred} (ns);PMTs",500,-50,50);
   fHitQVsRMS = new TH2D("fHitQVsRMS", ";ceil(Total number of photons);Predicted RMS arrival time",20,1,21,20,0,10);
-
   return;
 }
 
 WCSimTimeLikelihood3::~WCSimTimeLikelihood3() {
 	// TODO Auto-generated destructor stub
 	if(fPMTManager != 0x0) { delete fPMTManager; }
+    if( fTMinusTPredHist != 0x0){ delete fTMinusTPredHist; }
+    if( fTMinusTPredSharpHist != NULL ){ delete fTMinusTPredSharpHist; }
+    if( fHitQVsRMS != NULL ){ delete fHitQVsRMS; }
+    if( fDistVsPred != NULL ){ delete fDistVsPred; }
+    if( fDistVsProb != NULL ){ delete fDistVsProb; }
+    if( fDistVsSpreadProb != NULL ){ delete fDistVsSpreadProb; }
+    if( fTMinusTPredAll != NULL ){ delete fTMinusTPredAll; }
+    if( fTMinusTPredSource != NULL ){ delete fTMinusTPredSource; }
+    if( fTMinusTPredVsQ != NULL ){ delete fTMinusTPredVsQ; }
 	// I don't new the likelihooddigitarray so I don't delete it
 }
 
@@ -173,7 +192,7 @@ void WCSimTimeLikelihood3::SetTracks(
 }
 
 void WCSimTimeLikelihood3::ResetTracks() {
-	//std::cout << "Reset tracks!" << std::endl;
+  //std::cout << "Reset tracks!" << std::endl;
   fTracks.clear();
   fAllPreds.clear();
 }
@@ -191,14 +210,12 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
 	WCSimLikelihoodTrackBase * myTrack = fTracks.at(0);
 	if(IsGoodDigit(myDigit))
 	{
-    // std::cout << "Digit " << myDigit << " is good!" << std::endl;
+     // std::cout << "Digit " << myDigit << " is good!" << std::endl;
 		std::pair<double, double> arrivalMeanSigma = GetArrivalTimeMeanSigma(myTrack, myDigit);
-    // std::cout << "Arrival time: mean = " << arrivalMeanSigma.first << " and rms = " << arrivalMeanSigma.second << " and t = " << myDigit->GetT() << " and nPhotons = " << myDigit->GetQ() << std::endl;
 
 		double reso = GetPMTTimeResolution(myDigit);
 		double pScatter = 0.01;
 
-		double sigmaSquared = arrivalMeanSigma.second * arrivalMeanSigma.second;
 		double& sigma = arrivalMeanSigma.second;
         double& mean = arrivalMeanSigma.first;
 		// std::cout << "sigma = " << sigma << std::endl;
@@ -224,17 +241,15 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
 		  std::cout << "Digit is " << iDigit << " and likelihood is " << likelihood << " because arrives at " << myDigit->GetT() << " and predict " << arrivalMeanSigma.first << " with width " << arrivalMeanSigma.second << " and res " << reso << std::endl;
 		  assert(!TMath::IsNaN(lnL));
 		}
-		double distance = (myDigit->GetPos() - myTrack->GetVtx()).Mag();
-        double sqrtPi = 1.772453851;
         double start = arrivalMeanSigma.first - 10 * arrivalMeanSigma.second;
         double end   = arrivalMeanSigma.first + 10 * arrivalMeanSigma.second;
 
         TF1 * fMean = new TF1("fMean", ConvertMeanTimeToMeanFirstTime, start, end, 3);
-       // fMean->SetParameters(nPhotons, arrivalMeanSigma.first, arrivalMeanSigma.second);
-       // fMean->SetNpx(1000);
+        fMean->SetParameters(nPhotons, arrivalMeanSigma.first, arrivalMeanSigma.second);
+        fMean->SetNpx(1000);
         TF1 * fInt = new TF1("fInt", IntegrateMeanTimeToMeanFirstTime, start, end, 3);
-       //  fInt->SetParameters(nPhotons, arrivalMeanSigma.first, arrivalMeanSigma.second);
-       // fInt->SetNpx(1000);
+        fInt->SetParameters(nPhotons, arrivalMeanSigma.first, arrivalMeanSigma.second);
+        fInt->SetNpx(1000);
        //  TF1 * fOverlap = new TF1("fOverlap", MinimumOfArrivalAndResolution, start, end, 5);
        //  fOverlap->SetParameters(nPhotons, mean, sigma, myDigit->GetT(), reso);
        //  fOverlap->SetNpx(1000);
@@ -243,6 +258,7 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
        //  TCanvas* can11 = new TCanvas("can11","",800,600);
        //  TH1D hTemplate("hTemplate","Calculating the time likelihood;Arrival time (ns);P(t)",100, start, end);
        //  hTemplate.SetMaximum(1.2 * fMean->GetMaximum());
+       //fAllPreds[myDigit->GetTubeId()-1] = fMean->Mean(start, end, fMean->GetParameters());
        //  TLegend leg1(0.55, 0.85, 0.8, 0.6);
        //  leg1.AddEntry(fMean,"PDF for arrival time","L");
        //  leg1.AddEntry(fPMTTimeRes,"PMT time measurement","L");
@@ -267,36 +283,33 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
         // can11->SaveAs((name + ".C").Data());
         // can11->SaveAs((name + ".root").Data());
         //  delete can11;
-        /*
-        
-        double predMean = fMean->GetX(fMean->Mean(start, end, fMean->GetParameters()));
-        double errLow = predMean - fInt->GetX(0.32);
-        double errHi = fInt->GetX(0.68) - predMean;
-        //std::cout << "nPhotons = " << nPhotons << "  ArrivalMeanSigma = (" << arrivalMeanSigma.first << ", " << arrivalMeanSigma.second << ")   PredMean = " << predMean << " and errors are " << fInt->GetX(0.32) << "  " << fInt->GetX(0.68) << std::endl;
-        double delta = myDigit->GetT() - predMean;
-        if( delta > 50 ) { delta = 50.0; }
-        fTMinusTPredSource->SetPoint(fTMinusTPredSource->GetN(), distance, delta);
-        fTMinusTPredSource->SetPointError(fTMinusTPredSource->GetN()-1, 0, 0, errLow, errHi);
+        //double predMean = fMean->GetX(fMean->Mean(start, end, fMean->GetParameters()));
+        //double errLow = predMean - fInt->GetX(0.32);
+        //double errHi = fInt->GetX(0.68) - predMean;
+        ////std::cout << "nPhotons = " << nPhotons << "  ArrivalMeanSigma = (" << arrivalMeanSigma.first << ", " << arrivalMeanSigma.second << ")   PredMean = " << predMean << " and errors are " << fInt->GetX(0.32) << "  " << fInt->GetX(0.68) << std::endl;
+        //double delta = myDigit->GetT() - predMean;
+        //if( delta > 50 ) { delta = 50.0; }
+        //fTMinusTPredSource->SetPoint(fTMinusTPredSource->GetN(), distance, delta);
+        //fTMinusTPredSource->SetPointError(fTMinusTPredSource->GetN()-1, 0, 0, errLow, errHi);
 
 
 
-		fDistVsPred->SetPoint(fDistVsPred->GetN(), distance, arrivalMeanSigma.first);
-		fDistVsPred->SetPointError(fDistVsPred->GetN()-1, 0, arrivalMeanSigma.second);
+		//fDistVsPred->SetPoint(fDistVsPred->GetN(), distance, arrivalMeanSigma.first);
+		//fDistVsPred->SetPointError(fDistVsPred->GetN()-1, 0, arrivalMeanSigma.second);
 
-		fDistVsProb->SetPoint(fDistVsProb->GetN(), distance, -2.0*lnL);
-		fDistVsSpreadProb->SetPoint(fDistVsSpreadProb->GetN(), distance, -2.0*lnL);
-        //fTMinusTPredSource->SetPoint(fTMinusTPredSource->GetN(), distance, (myDigit->GetT()-arrivalMeanSigma.first));
-		//fTMinusTPredSource->SetPointError(fTMinusTPredSource->GetN()-1, 0, arrivalMeanSigma.second);
-		fTMinusTPredAll->SetPoint(fTMinusTPredAll->GetN(), distance, delta);
-		fTMinusTPredAll->SetPointError(fTMinusTPredAll->GetN()-1, 0, 0, sqrt(reso * reso + errLow*errLow), sqrt(reso * reso  +errHi * errHi));
-		fTMinusTPredVsQ->SetPoint(fTMinusTPredVsQ->GetN(), myDigit->GetQ(), myDigit->GetT()-arrivalMeanSigma.first);
-		fTMinusTPredVsQ->SetPointError(fTMinusTPredVsQ->GetN()-1, 0, sqrt(sigmaSquared));
-		fHitQVsRMS->Fill(ceil(myDigit->GetQ()), arrivalMeanSigma.second);
-        fTMinusTPredHist->Fill(delta);
-        if( errLow < 1.0 ){
-          fTMinusTPredSharpHist->Fill(delta);
-        }
-        */
+		//fDistVsProb->SetPoint(fDistVsProb->GetN(), distance, -2.0*lnL);
+		//fDistVsSpreadProb->SetPoint(fDistVsSpreadProb->GetN(), distance, -2.0*lnL);
+        ////fTMinusTPredSource->SetPoint(fTMinusTPredSource->GetN(), distance, (myDigit->GetT()-arrivalMeanSigma.first));
+		////fTMinusTPredSource->SetPointError(fTMinusTPredSource->GetN()-1, 0, arrivalMeanSigma.second);
+		//fTMinusTPredAll->SetPoint(fTMinusTPredAll->GetN(), distance, delta);
+		//fTMinusTPredAll->SetPointError(fTMinusTPredAll->GetN()-1, 0, 0, sqrt(reso * reso + errLow*errLow), sqrt(reso * reso  +errHi * errHi));
+		//fTMinusTPredVsQ->SetPoint(fTMinusTPredVsQ->GetN(), myDigit->GetQ(), myDigit->GetT()-arrivalMeanSigma.first);
+		//fTMinusTPredVsQ->SetPointError(fTMinusTPredVsQ->GetN()-1, 0, sqrt(sigmaSquared));
+		//fHitQVsRMS->Fill(ceil(myDigit->GetQ()), arrivalMeanSigma.second);
+        //fTMinusTPredHist->Fill(delta);
+        //if( errLow < 1.0 ){
+        //  fTMinusTPredSharpHist->Fill(delta);
+        //}
         delete fInt;
         delete fMean;
         // delete fOverlap;
@@ -350,6 +363,7 @@ std::pair<double, double> WCSimTimeLikelihood3::GetArrivalTimeMeanSigma(WCSimLik
   double minCosTheta = fEmissionProfileManager->GetEmissionProfile(myTrack)->GetTimeCosThetaMin();
   double maxCosTheta = fEmissionProfileManager->GetEmissionProfile(myTrack)->GetTimeCosThetaMax();
   double n = myDigit->GetAverageRefIndex();
+  //std::cout << "Average refractive index is " << n << " so speed = " << 1.0/n << "c" << std::endl;
   // std::cout << "Loading hS and hSCosTheta " << std::endl;
 
   // We'll avoid doing lots of GetXaxis()->FindBin calls by calculating all the cosTheta values ahead of time
@@ -366,20 +380,26 @@ std::pair<double, double> WCSimTimeLikelihood3::GetArrivalTimeMeanSigma(WCSimLik
   double magToPMT = 0.0;
   double cosTheta = 0.0;
   TVector3 toPMT;
+
+  // Step through the bins in s and work out cosTheta, the s bin, dCosTheta across 
+  // that bin and the distance to the PMT, for each of the bins
+  double s = hS->GetXaxis()->GetBinCenter(1);    // Assumes all bins have the same width
+  double sWidth = hS->GetXaxis()->GetBinWidth(1); // to save on GetBinLowEdge() calls
+  s = s - sWidth;   // Want bin 1 to start in the right place after adding sWidth
   for( int iSBin = 1; iSBin <= hS->GetNbinsX(); ++iSBin )
   {
-	  double s = hS->GetXaxis()->GetBinLowEdge(iSBin);
+	  double s = s + sWidth; 
 	  if( dCos == -999)
 	  {
 		  toPMT = pmt - myTrack->GetPropagatedPos(s);
-		  magToPMT = toPMT.Mag();
+		  magToPMT = toPMT.Mag() - myDigit->GetExposeHeight()/10.0;
 		  cosTheta = dir.Dot(toPMT)/magToPMT;
 	  }
 
 	  // Update it to work out the width in cosTheta that we traverse
 	  // Then remember it because it'll be the starting point for the next loop iteration
-	  toPMT = pmt - myTrack->GetPropagatedPos(hS->GetXaxis()->GetBinUpEdge(iSBin));
-	  magToPMT = toPMT.Mag();
+	  toPMT = pmt - myTrack->GetPropagatedPos(s + sWidth);
+	  magToPMT = toPMT.Mag() - myDigit->GetExposeHeight()/10.;
 	  double newCos = dir.Dot(toPMT) / magToPMT;
 	  if(! (cosTheta < minCosTheta || cosTheta >= maxCosTheta) )
 	  {
@@ -403,7 +423,6 @@ std::pair<double, double> WCSimTimeLikelihood3::GetArrivalTimeMeanSigma(WCSimLik
   double sumOfWeights = 0.0;
 
   double speedOfLightInCmPerNs = TMath::C() * 1e-7;
-   // std::cout << "n = " << n << " so speed of light = " << speedOfLightInCmPerNs/n << std::endl;
   if(WCSimAnalysisConfig::Instance()->GetUseCustomParticleSpeed())
   {
 	  fSpeedOfParticle = WCSimAnalysisConfig::Instance()->GetCustomParticleSpeed() * speedOfLightInCmPerNs;
@@ -417,10 +436,15 @@ std::pair<double, double> WCSimTimeLikelihood3::GetArrivalTimeMeanSigma(WCSimLik
   {
     n = 1.0 / WCSimAnalysisConfig::Instance()->GetCustomSpeedOfLight();
   }
+  //std::cout << "n = " << n << " so speed of light = " << speedOfLightInCmPerNs/n << std::endl;
+  //std::cout << "Particle speed " << fSpeedOfParticle << "cm/ns = " << fSpeedOfParticle/speedOfLightInCmPerNs << "c" << std::endl;
 
   std::vector<double> times(cosSAndDelta.size());
   std::vector<double> probs(cosSAndDelta.size());
   int index = 0;
+
+  double maxProb = 0.0;
+  double peakTime = 0.0;
   for(std::vector<std::vector<double> >::iterator thItr = cosSAndDelta.begin(); thItr != cosSAndDelta.end(); ++thItr)
   {
 	  // Had cosTheta outside the allowed range
@@ -433,13 +457,20 @@ std::pair<double, double> WCSimTimeLikelihood3::GetArrivalTimeMeanSigma(WCSimLik
 			  lastBin = thBin;
 
 			  double t =   myTrack->GetT()
-					     + hS->GetBinLowEdge(thItr->at(1)) / fSpeedOfParticle
-					     + n * thItr->at(3) / speedOfLightInCmPerNs; // Make c into cm/ns
-  //      std::cout << "Digit " << (int)myDigit->GetTubeId() << "  Track t = " << myTrack->GetT() << " and pred t  = " << t << std::endl;
+					     + hS->GetBinCenter(thItr->at(1)) / fSpeedOfParticle
+					     + n * thItr->at(3) / speedOfLightInCmPerNs;
+			  //std::cout << "Starting time = " << myTrack->GetT() << " and particle travels " << hS->GetBinLowEdge(thItr->at(1)) << "cm in " << hS->GetBinLowEdge(thItr->at(1)) / fSpeedOfParticle << "ns, and photon travels "
 			  double prob =   hS->GetBinContent(thItr->at(1))
 							* hS->GetBinWidth(thItr->at(1))
-					        * hSCosTheta->GetBinContent(thBin, thItr->at(1))
-							* thItr->at(2);
+					        * hSCosTheta->GetBinContent(thBin, thItr->at(1));
+
+              //std::cout << "Digit " << myDigit->GetTubeId() << " and s  = " << hS->GetBinLowEdge(thItr->at(1)) << " and J = " << j << std::endl;
+              //std::cout << "Digit " << myDigit->GetTubeId() << " has prob = " << prob << " and width gives factor " << thItr->at(2)/hSCosTheta->GetXaxis()->GetBinWidth(1) << std::endl;
+              if(prob > maxProb)
+              {
+                maxProb = prob;
+                peakTime = t;
+              }
 			  weightedSum += prob * t;
 			  sumOfWeights += prob;
 
@@ -482,14 +513,14 @@ std::pair<double, double> WCSimTimeLikelihood3::GetArrivalTimeMeanSigma(WCSimLik
   }
 
 
-  // printf("So mean = %f and RMS = %f at (%.01f, %.01f, %.01f) for digit %d hit at %f", mean, rms, myDigit->GetX(), myDigit->GetY(), myDigit->GetZ(), myDigit->GetTubeId(), myDigit->GetT());
+  // printf("So mean = %f, peak = %f and RMS = %f at (%.01f, %.01f, %.01f) for digit %d hit at %f, with %f, %s\n", mean, peakTime, rms, myDigit->GetX(), myDigit->GetY(), myDigit->GetZ(), myDigit->GetTubeId(), myDigit->GetT(), myDigit->GetQ(), flag.c_str());
   // std::cout << "So mean = " << mean << " and RMS = " << rms << " at " << myDigit->GetX() << "," << myDigit->GetY() << ", " << myDigit->GetZ() << std::endl;
-  fAllPreds[myDigit->GetTubeId()] = mean;
+  fAllPreds[myDigit->GetTubeId()-1] = mean;
 
   if(debug && false)
   {
     TGraph * gr = new TGraph();
-    gr->SetName("Arrival times");
+    gr->SetName(TString::Format("ArrivalTimes_%d", myDigit->GetTubeId()).Data());
     for(int i = 0; i < index; ++i)
     {
       gr->SetPoint(gr->GetN(), times[i], probs[i]);
@@ -502,11 +533,10 @@ std::pair<double, double> WCSimTimeLikelihood3::GetArrivalTimeMeanSigma(WCSimLik
     gr->SetMarkerSize(0.8);
     gr->SetMarkerColor(kBlue);
     can->SaveAs(TString::Format("fDigitHitProbabilities_%d.png", myDigit->GetTubeId()).Data());
+    can->SaveAs(TString::Format("fDigitHitProbabilities_%d.pdf", myDigit->GetTubeId()).Data());
     can->SaveAs(TString::Format("fDigitHitProbabilities_%d.C", myDigit->GetTubeId()).Data());
-    can->SaveAs("fDigitHitProbabilities.C");
     delete can;
     delete gr;
-    // assert(0);
 
     
   }
@@ -549,11 +579,11 @@ void WCSimTimeLikelihood3::SavePlot()
 	can->SaveAs("fDistVsSpreadProb.png");
 	can->SaveAs("fDistVsSpreadProb.C");
 	can->SaveAs("fDistVsSpreadProb.root");
-  TH1D hTemplate("hTemplate",";Distance from vertex (cm);T_{hit} - T_{first, pred} (ns)", 250, 0, 2500);
-  hTemplate.SetStats(0);
-  hTemplate.Draw();
-  hTemplate.SetMinimum(-50.0);
-  hTemplate.SetMaximum(50.0);
+    TH1D hTemplate("hTemplate",";Distance from vertex (cm);T_{hit} - T_{first, pred} (ns)", 250, 0, 2500);
+    hTemplate.SetStats(0);
+    hTemplate.Draw();
+    hTemplate.SetMinimum(-50.0);
+    hTemplate.SetMaximum(50.0);
 	fTMinusTPredAll->Draw("P SAME");
 	fTMinusTPredSource->Draw("|| SAME");
 	fTMinusTPredAll->GetXaxis()->SetTitle("Distance from vertex");
@@ -578,28 +608,28 @@ void WCSimTimeLikelihood3::SavePlot()
 	fTMinusTPredVsQ->SetMarkerStyle(20);
 	fTMinusTPredVsQ->SetMarkerSize(0.8);
 	fTMinusTPredVsQ->SetMarkerColor(kCyan+2);
-  fTMinusTPredVsQ->Draw("AP");
-  can->SaveAs("fTMinusTPRedVsQ.png");
-  can->SaveAs("fTMinusTPRedVsQ.C");
-  can->SaveAs("fTMinusTPRedVsQ.root");
-  int event = WCSimInterface::GetEventNumber();
-  fHitQVsRMS->Draw("BOX");
-  fHitQVsRMS->SetDirectory(0);
-  TDirectory * tmpDir = gDirectory;
-  TFile f(TString::Format("fHitQVsRMSFile_%d.root", event).Data(), "RECREATE");
-  fHitQVsRMS->Write();
-  f.Close();
-  tmpDir->cd();
-  can->SaveAs(TString::Format("fHitQVsRMS_%d.png", event).Data());
-  can->SaveAs(TString::Format("fHitQVsRMS_%d.C", event).Data());
-  can->SaveAs(TString::Format("fHitQVsRMS_%d.root", event).Data());
+    fTMinusTPredVsQ->Draw("AP");
+    can->SaveAs("fTMinusTPRedVsQ.png");
+    can->SaveAs("fTMinusTPRedVsQ.C");
+    can->SaveAs("fTMinusTPRedVsQ.root");
+    int event = WCSimInterface::GetEventNumber();
+    fHitQVsRMS->Draw("BOX");
+    fHitQVsRMS->SetDirectory(0);
+    TDirectory * tmpDir = gDirectory;
+    TFile f(TString::Format("fHitQVsRMSFile_%d.root", event).Data(), "RECREATE");
+    fHitQVsRMS->Write();
+    f.Close();
+    tmpDir->cd();
+    can->SaveAs(TString::Format("fHitQVsRMS_%d.png", event).Data());
+    can->SaveAs(TString::Format("fHitQVsRMS_%d.C", event).Data());
+    can->SaveAs(TString::Format("fHitQVsRMS_%d.root", event).Data());
 
-  fTMinusTPredHist->SetDirectory(0);
-  TFile f2("fTMinusTPredHistFile.root","UPDATE");
-  fTMinusTPredHist->Write();
-  f2.Close();
-  tmpDir->cd();
-  fTMinusTPredHist->Draw();
+    fTMinusTPredHist->SetDirectory(0);
+    TFile f2("fTMinusTPredHistFile.root","UPDATE");
+    fTMinusTPredHist->Write();
+    f2.Close();
+    tmpDir->cd();
+    fTMinusTPredHist->Draw();
   fTMinusTPredHist->SetLineColor(kRed+1);
   fTMinusTPredHist->SetLineWidth(2);
   fTMinusTPredHist->SetFillColor(kRed);
