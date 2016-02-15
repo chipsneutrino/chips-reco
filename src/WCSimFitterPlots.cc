@@ -230,7 +230,6 @@ void WCSimFitterPlots::MakeRecoMinusTrue(WCSimFitterConfig* fitterConfig) {
 
 void WCSimFitterPlots::Make1DSurfaces(WCSimFitterConfig* fitterConfig) {
 	std::map<std::pair<unsigned int, FitterParameterType::Type>, TH1D *>::iterator plotItr = fSurfaces1D.begin();
-	int i = 0;
 	for( ; plotItr != fSurfaces1D.end(); ++plotItr)
 	{
 		//  std::cout << "Making 1D surface number " << i << std::endl;
@@ -690,12 +689,8 @@ void WCSimFitterPlots::MakeSaveFile() {
 	TDirectory * tmpd = gDirectory;
     std::cout << " *** WCSimFitter::SavePlots() *** " << std::endl;
 
-    // Check if the file exists first
-    long int tempId, tempSize, tempFlags, tempModtime;
-    Int_t toAdd = 0;
     TString fileNameCompare = fSaveFileName;
 	fSaveFile = new TFile(fSaveFileName.Data(), "CREATE");
-
 
     std::cout << "  Plots to be saved in file: " << fSaveFileName.Data() << std::endl;
 
