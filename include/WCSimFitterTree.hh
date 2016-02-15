@@ -115,11 +115,15 @@ private:
 	TTree * fWCSimTree;
 	TTree * fGeoTree;
 	TTree * fComparisonTree;
-  TTree * fHitComparisonTree;
-  TTree * fRecoFailureTree;
+    TTree * fHitComparisonTree;
+    TTree * fRecoFailureTree;
+	
+    WCSimRootGeom * fGeometry;
+	WCSimRecoSummary * fRecoSummary;
+	WCSimRootEvent * fWCSimRootEvent;
 
-  // Failed reco events
-  int fFailedEvent;
+    // Failed reco events
+    int fFailedEvent;
 
 	// The best-fit variables
 	Int_t fEvent;
@@ -132,7 +136,7 @@ private:
 	Double_t fFitDirTheta;
 	Double_t fFitDirPhi;
 	Double_t fFitEnergy;
-  Double_t fFitConversionDistance;
+    Double_t fFitConversionDistance;
 	Bool_t fFitEscapes;
 	Int_t fFitPDG;
 
@@ -148,14 +152,10 @@ private:
 	Bool_t fTrueEscapes;
 	Int_t fTruePDG;
 
-	WCSimRootGeom * fGeometry;
-	WCSimRecoSummary * fRecoSummary;
-	WCSimRootEvent * fWCSimRootEvent;
-
 
 	std::vector<WCSimLikelihoodTrackBase *> fFitTracks;
 	std::vector<WCSimLikelihoodTrackBase *> fTruthTracks;
-  HitComparison * fHitComparison;
+    HitComparison * fHitComparison;
 
 };
 

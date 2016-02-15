@@ -25,17 +25,20 @@
 #include <vector>
 
 WCSimFitterTree::WCSimFitterTree(const TString &saveFileName) : 
-                fFitTree(0x0), fTrueTree(0x0), fRecoSummaryTree(0x0),
+                fSaveFile(0x0),
+                fTrueTree(0x0), fFitTree(0x0), fRecoSummaryTree(0x0),
                 fWCSimTree(0x0), fGeoTree(0x0), fHitComparisonTree(0x0),
                 fRecoFailureTree(0x0), fGeometry(0x0), fWCSimRootEvent(0x0),
-                fEvent(0), fFitTrackNum(-999), f2LnL(-999.9),
+                fFailedEvent(0), fEvent(0), fFitTrackNum(-999), f2LnL(-999.9),
                 fFitVtxX(-999.9), fFitVtxY(-999.9), fFitVtxZ(-999.9),
                 fFitVtxT(-999.9), fFitDirTheta(-999.9), fFitDirPhi(-999.9),
-                fFitEnergy(-999.9), fFitPDG(-999),
+                fFitEnergy(-999.9), fFitConversionDistance(0), 
+                fFitEscapes(false), fFitPDG(-999),
                 fTrueTrackNum(-999),
                 fTrueVtxX(-999.9), fTrueVtxY(-999.9), fTrueVtxZ(-999.9),
                 fTrueVtxT(-999.9), fTrueDirTheta(-999.9), fTrueDirPhi(-999.9),
-                fTrueEnergy(-999.9), fTruePDG(-999), fHitComparison(0x0){
+                fTrueEnergy(-999.9), fTrueEscapes(false), 
+                fTruePDG(-999), fHitComparison(0x0){
 
 	// TODO Auto-generated constructor stub
 	fSaveFileName.Form("%s_tree.root", saveFileName.Data());
@@ -401,9 +404,6 @@ void WCSimFitterTree::MakeSaveFile()
         return;
     }
 	TDirectory * tmpd = gDirectory;
-
-    // Check if the file exists first
-    long int tempId, tempSize, tempFlags, tempModtime;
 
 	fSaveFile = new TFile(fSaveFileName.Data(), "CREATE");
     std::cout << "  Plots to be saved in file: " << fSaveFileName.Data() << std::endl;
