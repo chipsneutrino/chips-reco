@@ -147,10 +147,10 @@ double WCSimLikelihoodTrackBase::GetPropagationSpeedFrac(const TrackType &type)
     case TrackType::PhotonLike:
       // Fall through
     case TrackType::ElectronLike:
-      speed = 0.85684;
+      speed = 0.8127;
       break;
     case TrackType::MuonLike:
-      speed =  0.90;
+      speed =  0.9395;
       break;
     default:
       break;

@@ -31,13 +31,15 @@ WCSimAnalysisConfig::WCSimAnalysisConfig()
     fUseGlassCathodeReflection = true;
     fUseCharge                 = true;
     fUseTime                   = true; 
-    fUseHoughFitterForSeed			   = true;
-    fUseScatteringTable  = true;
+    fUseHoughFitterForSeed	   = true;
+    fUseScatteringTable        = true;
 
-    fUseCustomParticleSpeed = false;
-    fCustomParticleSpeed = 1.0;
-    fUseCustomSpeedOfLight = false;
-    fCustomSpeedOfLight = 1.0;
+    fUseCustomParticleSpeed    = false;
+    fCustomParticleSpeed       = 1.0;
+    fUseCustomSpeedOfLight     = false;
+    fCustomSpeedOfLight        = 1.0;
+    fUseFittedSpeedOfLight     = true;
+    fFittedSpeedOfLight        = 0.71864;
     // Load the file with the default configuration
     // and update the member variables above as necessary
     fConfName = getenv("WCSIMANAHOME");
@@ -156,6 +158,16 @@ Bool_t WCSimAnalysisConfig::GetUseCustomSpeedOfLight() const
 Double_t WCSimAnalysisConfig::GetCustomSpeedOfLight() const
 {
 	return fCustomSpeedOfLight;
+}
+
+Bool_t WCSimAnalysisConfig::GetUseFittedSpeedOfLight() const
+{
+	return fUseFittedSpeedOfLight;
+}
+
+Double_t WCSimAnalysisConfig::GetFittedSpeedOfLight() const
+{
+	return fFittedSpeedOfLight;
 }
 
 void WCSimAnalysisConfig::LoadConfig()
@@ -454,7 +466,7 @@ void WCSimAnalysisConfig::SetFromMap()
             }
         }
        else if((*itr).first.compare("UseScatteringTable") == 0)
-        {
+       {
             if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
             {
                 fUseScatteringTable = true;
@@ -469,8 +481,36 @@ void WCSimAnalysisConfig::SetFromMap()
                            << " should equal true/false or 1/0" << std::endl;
               exit(EXIT_FAILURE);
             }
-        }
-            
+       }
+       else if((*itr).first.compare("UseFittedSpeedOfLight") == 0)
+       {
+            if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+            {
+                fUseFittedSpeedOfLight = true;
+            }
+            else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+            {
+                fUseFittedSpeedOfLight = false;
+            }
+            else
+            {
+              std::cerr << "Error: " << (*itr).first << " = " << (*itr).second 
+                           << " should equal true/false or 1/0" << std::endl;
+              exit(EXIT_FAILURE);
+            }
+       }
+       else if((*itr).first.compare("FittedSpeedOfLight") == 0)
+       {
+            std::stringstream ss(itr->second);
+            float speed = 0.0;
+            if( !(ss >> speed) )
+            {
+              std::cerr << "Error: " << (*itr).second << " = " << (*itr).second 
+                           << " should be a double" << std::endl;
+              exit(EXIT_FAILURE);
+            }
+            fFittedSpeedOfLight = speed;
+       }
     }
     fMap.clear();
 }

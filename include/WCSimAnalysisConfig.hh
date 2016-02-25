@@ -134,16 +134,27 @@ public:
     Bool_t GetUseCustomParticleSpeed() const;
 
     /**
-     * Should we assume that photons propagate at some custom speed, or use the default (c)
+     * Should we assume that photons propagate at some custom speed,
      * for working out the time predictions?
      * @return True if we should use the custom value
      */
     Bool_t GetUseCustomSpeedOfLight() const;
 
     /**
+     * We can work out the speed of light by averaging the refractive index against the
+     * photon wavelength spectrum but this doesn't account for scattering etc. that
+     * effectively slows it down (by increasing path length to the PMT
+     * So I fitted c/n using upward-going muons and electrons - this option uses that value instead
+     * -- Custom speed of light takes precedence over fitted speed if both are set to true -- 
+     * @return True if we should use the fitted value
+     */
+    Bool_t GetUseFittedSpeedOfLight() const;
+
+    /**
      * Normally we assume particles propagate at c when working out the time likelihood
      * But we can use a custom speed defined in the config file: this method returns that
      * speed (as a fraction of c)
+     * -- Custom speed of light takes precedence over fitted speed if both are set to true -- 
      * @return Speed particles are assumed to travel at by the time likelihood as a fraction of c
      */
     Double_t GetCustomParticleSpeed() const;
@@ -155,6 +166,14 @@ public:
      * @return Speed particles are assumed to travel at by the time likelihood as a fraction of c
      */
     Double_t GetCustomSpeedOfLight() const;
+
+    /** 
+     * Return the effective propagation speed of light needed for the time fitter, produced
+     * by fitting it using upward-going muons and electrons.  Refractive index slightly higher
+     * than if we just worked it out from the inputs to WCSim because of scattering etc
+     * @return Speed photons are assumed to travel at, according to the fit
+     */
+    Double_t GetFittedSpeedOfLight() const;
 
 
     void SetUseTimeOnly(Bool_t doIt = true);
@@ -238,8 +257,10 @@ private:
     Bool_t        fUseScatteringTable;         ///< True if we should use the scattering table, false for flat 1% chance
     Bool_t        fUseCustomParticleSpeed;     ///< Normally we assume particles travel at c - this allows us to switch and set it manually
     Bool_t        fUseCustomSpeedOfLight;      ///< Normally we assume light travels at c/(average n) - this allows us to switch and set it manually
+    Bool_t        fUseFittedSpeedOfLight;      ///< Normally we assume light travels at c/(average n) - this uses a fitted speed instead
     Double_t      fCustomParticleSpeed;        ///< The speed of the propagating particle as a fraction of c       
     Double_t      fCustomSpeedOfLight;         ///< The speed of the propagating particle as a fraction of c       
+    Double_t      fFittedSpeedOfLight;         ///< The effective speed of light from our fit as a fraction of c
     std::string   fDigiType;                   ///< Name of digitizer type to use in WCSimDigitizerLikelihood::DigiType_t
 
     std::map<std::string, std::string> fMap;   ///< Map to store key names and their values to set

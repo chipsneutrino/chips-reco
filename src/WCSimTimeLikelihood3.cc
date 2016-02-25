@@ -95,8 +95,9 @@ double IntegrateMeanTimeToMeanFirstTime(double * x, double * par)
 
 double MinimumOfArrivalAndResolution(const double &t, const double &meanArr, const double rmsArr, const double pmtTime, const double &pmtRes, const double &nPhotons)
 {
+  double root2pi = TMath::Sqrt(2 * TMath::Pi());
   double arrivalPDF = ConvertMeanTimeToMeanFirstTime(t, meanArr, rmsArr, nPhotons);
-  double resolutionPDF = 1.0 / (pmtRes * TMath::Sqrt(2 * TMath::Pi())) * TMath::Exp( - (t - pmtTime)*(t - pmtTime) / (2 * pmtRes * pmtRes));
+  double resolutionPDF = 1.0 / (pmtRes * root2pi) * TMath::Exp( - (t - pmtTime)*(t - pmtTime) / (2 * pmtRes * pmtRes));
   if( TMath::IsNaN(arrivalPDF) || TMath::IsNaN(resolutionPDF))
   {
 
@@ -362,7 +363,6 @@ std::pair<double, double> WCSimTimeLikelihood3::GetArrivalTimeMeanSigma(WCSimLik
   TH1F * hS = fEmissionProfileManager->GetEmissionProfile(myTrack)->GetSForTime();
   double minCosTheta = fEmissionProfileManager->GetEmissionProfile(myTrack)->GetTimeCosThetaMin();
   double maxCosTheta = fEmissionProfileManager->GetEmissionProfile(myTrack)->GetTimeCosThetaMax();
-  double n = myDigit->GetAverageRefIndex();
   //std::cout << "Average refractive index is " << n << " so speed = " << 1.0/n << "c" << std::endl;
   // std::cout << "Loading hS and hSCosTheta " << std::endl;
 
@@ -432,9 +432,18 @@ std::pair<double, double> WCSimTimeLikelihood3::GetArrivalTimeMeanSigma(WCSimLik
 	  fSpeedOfParticle = myTrack->GetPropagationSpeedFrac() * speedOfLightInCmPerNs;
   }
 
+  double n = 1.0;
   if(WCSimAnalysisConfig::Instance()->GetUseCustomSpeedOfLight())
   {
     n = 1.0 / WCSimAnalysisConfig::Instance()->GetCustomSpeedOfLight();
+  }
+  else if(WCSimAnalysisConfig::Instance()->GetUseFittedSpeedOfLight())
+  {
+    n = 1.0 / WCSimAnalysisConfig::Instance()->GetFittedSpeedOfLight();
+  }
+  else
+  {
+    n = myDigit->GetAverageRefIndex();
   }
   //std::cout << "n = " << n << " so speed of light = " << speedOfLightInCmPerNs/n << std::endl;
   //std::cout << "Particle speed " << fSpeedOfParticle << "cm/ns = " << fSpeedOfParticle/speedOfLightInCmPerNs << "c" << std::endl;
