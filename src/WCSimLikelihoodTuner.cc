@@ -828,15 +828,7 @@ Double_t WCSimLikelihoodTuner::GetLightFlux(WCSimLikelihoodTrackBase * myTrack)
 Double_t WCSimLikelihoodTuner::GetTrackLengthForPercentile(WCSimLikelihoodTrackBase * myTrack, const double &percentile)
 {
   double length = -999.9;
-  if(fCalculateIntegrals || !(WCSimAnalysisConfig::Instance()->GetTruncateIntegrals())) { 
-    return fEmissionProfileManager->GetTrackLengthForPercentile(myTrack, percentile); 
-  }
-  else {
-    WCSimIntegralLookupReader * myLookupReader = WCSimIntegralLookupReader::Instance();
-    return myLookupReader->GetTrackLengthForPercentile(myTrack->GetType(), myTrack->GetE(), percentile);
-  }
-  assert(length != -999.9);
-  return length;
+  return fEmissionProfileManager->GetTrackLengthForPercentile(myTrack, percentile); 
 }
 
 Double_t WCSimLikelihoodTuner::QuantumEfficiency() {
