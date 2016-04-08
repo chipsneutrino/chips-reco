@@ -9,6 +9,7 @@
 #define INCLUDE_WCSIMTIMELIKELIHOOD3_HH_
 
 #include "TString.h"
+#include "WCSimTrackParameterEnums.hh"
 #include <map>
 class WCSimEmissionProfileManager;
 class WCSimPMTManager;
@@ -21,6 +22,8 @@ class TGraphErrors;
 class TGraphAsymmErrors;
 class TH2D;
 class TH1D; 
+class TH2F;
+class TH1F; 
 
 
 double ConvertMeanTimeToMeanFirstTime(double * x, double * par);
@@ -78,11 +81,18 @@ public:
      * @param myDigit The hit PMT
      * @return A pair contianing the weighted <mean, rms> of the predicted hit times
      */
-    std::pair<double, double> GetArrivalTimeMeanSigma(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit);
+    std::pair<double, double> GetArrivalTimeMeanSigma(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit, double& probToUpdate);
 
     void SavePlot();
 
 private:
+    void GetNearestHists(WCSimLikelihoodTrackBase * myTrack);
+    std::vector<TH2F*> fSCosThetaVec;
+    std::vector<TH1F*> fSVec;
+    std::vector<double> fEnergiesVec;
+    double fLastE;
+    TrackType::Type fLastType;
+
     /**
      * @param LikelihoodDigit for the desired PMT
      * @return Time resolution of a given PMT, taking account of its type and hit charge
@@ -113,9 +123,13 @@ private:
   TH2D * fHitQVsRMS;
   TH1D * fTMinusTPredHist;
   TH1D * fTMinusTPredSharpHist;
-    ClassDef(WCSimTimeLikelihood3,0)
 
   float fSpeedOfParticle;
+    static const double fMinimumLikelihood;
+    static const double fMaximumLnL;
+    ClassDef(WCSimTimeLikelihood3,0)
+
+        TGraph * fProbToCharge;
 };
 double ConvertMeanTimeToMeanFirstTime(double * x, double * par);
 

@@ -9,7 +9,7 @@
 
 CXX						= g++
 CXXDEPEND     = -MM
-CXXFLAGS      = -g -O3 -Wall -fPIC
+CXXFLAGS      = -g -Wall -fPIC -O3
 LD            = g++ 
 LDFLAGS       = -g -O3
 
@@ -97,6 +97,9 @@ evDisp:
 
 fitterProfile:
 	$(CXX) $(CXXFLAGS) `root-config --cflags --glibs --libs --evelibs` -I./include ${WCSIM_INCLUDES} -I/home/ajperch/software/gperftools/include -L${WCSIMANAHOME} -L${WCSIMHOME} -L/home/ajperch/software/gperftools/lib/ -o fitterProfile runFitterProfile.cc ${WCSIMHOME}/src/WCSimRootDict.cc ${WCSIMANAHOME}/src/WCSimAnalysisRootDict.cc -lWCSim -lWCSimAnalysis -lEG -lSpectrum -lMinuit -L/home/ajperch/software/gperftools/lib -lprofiler 
+
+wc_plotLikelihoodOnce:
+	$(CXX) $(CXXFLAGS) `root-config --cflags --glibs --libs --evelibs` -I./include ${WCSIM_INCLUDES} -I/home/ajperch/software/gperftools/include -L${WCSIMANAHOME} -L${WCSIMHOME} -L/home/ajperch/software/gperftools/lib/ -o wc_plotLikelihoodOnce wc_plotLikelihoodOnce.cc ${WCSIMHOME}/src/WCSimRootDict.cc ${WCSIMANAHOME}/src/WCSimAnalysisRootDict.cc -lWCSim -lWCSimAnalysis -lEG -lSpectrum -lMinuit -L/home/ajperch/software/gperftools/lib -lprofiler 
 
 clean :
 	@echo "<**Clean**>"

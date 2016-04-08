@@ -2,6 +2,7 @@
 #define WCSIMFASTMATH_HH
 
 #include <cmath>
+#include <cassert>
 // We end up calculating a LOT of trig functions and awkward
 // powers, exponentials, error functions, etc.
 // This namespace contains some good, fast approximate ways
@@ -202,6 +203,44 @@ namespace WCSimFastMath{
 
         return sign*y;
     };
+
+
+    /**
+     * @brief Use a Catmull-Rom spline to smoothly interpolate y = f(x) between the middle two of four evenly-separated x values
+     *
+     * A Catmull-Rom spline performs a cubic interpolation between the central two points 
+     * of an array of four (x,y) pairs.  This implementation requires the points be in
+     * ascending x order and evenly-separated in x.  
+     * Catmull-Rom splines are cubic and are guaranteed to be continuous in x and d/dx
+     * They are local, requiring only the two points either side of the interpolated value
+     * They satisfy f(x1) = y1 and f(x2 = y2)
+     * Also, f'(x1) = (y2 - y0)/(x2 - x0) and f'(x2) = (y3 - y1)/(x3 - x1)
+     *
+     * @param x Array containing four x-coordinates, in ascending order
+     * @param y Array containing four corresponding y-coordinates
+     * @param xInterp x-coordinate at which to interpolate.  Must lie between x[1] and x[2] inclusive.
+     *
+     * @return Smoothly interpolated value for y(xInterp)
+     */
+    inline float CatmullRomSpline(float * x, float * y, float xInterp)
+    {
+        // Check for ascending x with even spacing
+        float dx1 = x[1] - x[0];
+        float dx2 = x[2] - x[1];
+        float dx3 = x[3] - x[2];
+        assert(dx1 > 0);
+        assert((dx3 == dx2) && (dx2 == dx1));
+
+        // Check the value to interpolate at is between x1 and x2
+        assert(xInterp <= x[2] && xInterp >= x[1]);
+
+        // Tranform coordinates such that x1->0 and x2->1
+        float t = (xInterp - x[1]) / (x[2] - x[1]);
+
+        // Now do the multiplication by the coefficients of the cubic that handles the interpolation
+        // Because we transformed coordinates the matrix inversion and multiplication gives nice integer coefficients
+        return (0.5 * ( 2.*y[1] + t * ((y[2] - y[0]) + t * ((2.*y[0] - 5.*y[1] + 4.*y[2] - y[3]) + t*(3.*y[1] - y[0] - 3.*y[2] + y[3])))));
+    }
 
 };
 
