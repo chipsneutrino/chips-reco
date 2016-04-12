@@ -6,6 +6,7 @@
  */
 #include "WCSimAnalysisConfig.hh"
 #include "WCSimEmissionProfileManager.hh"
+#include "WCSimFastMath.hh"
 #include "WCSimLikelihoodDigit.hh"
 #include "WCSimLikelihoodDigitArray.hh"
 #include "WCSimLikelihoodTrackBase.hh"
@@ -46,6 +47,8 @@ ClassImp(WCSimTimeLikelihood3)
 
 const double WCSimTimeLikelihood3::fMaximumLnL = 25.0/2.0; // So the maximum of -2LnL = 25
 const double WCSimTimeLikelihood3::fMinimumLikelihood = TMath::Exp(-fMaximumLnL); // So the maximum of -2LnL = 25
+const double WCSimTimeLikelihood3::fSqrtPi = TMath::Sqrt(TMath::Pi());
+const double WCSimTimeLikelihood3::fLog2 = TMath::Log(2.0);
 
 double ConvertMeanTimeToMeanFirstTime(const double &t, const double &mean, const double &sigma, const double &nPhotons)
 {
@@ -54,16 +57,16 @@ double ConvertMeanTimeToMeanFirstTime(const double &t, const double &mean, const
     if(nPhotons < 25)
     {
 	    prob =   nPhotons * TMath::Sqrt2() / (pow(2, nPhotons) * sigma * sqrt(M_PI))
-		 	  * pow(1.0 - TMath::Erf((t - mean)/(TMath::Sqrt2()*sigma)), nPhotons-1)
-		   	  * exp(-(t - mean)*(t - mean) / (2 * sigma * sigma));
+		 	  * pow(1.0 - WCSimFastMath::erf((t - mean)/(TMath::Sqrt2()*sigma)), nPhotons-1)
+		   	  * TMath::Exp(-(t - mean)*(t - mean) / (2 * sigma * sigma));
     }
     else // Use logarithms to take care of the two large n powers almost cancelling
     {
-        double log =  TMath::Log(nPhotons * TMath::Sqrt2() / (sigma * TMath::Sqrt(TMath::Pi())))
-                    - nPhotons * TMath::Log(2)
-                    + (nPhotons - 1) * TMath::Log(1.0 - TMath::Erf((t - mean) / (2 * sigma * sigma)))
-                    - (t - mean) * (t - mean) / (2 * sigma * sigma);
-        prob = TMath::Exp(log);
+        double logL =  log(nPhotons * TMath::Sqrt2() / (sigma * WCSimTimeLikelihood3::fSqrtPi ))
+                     - nPhotons * WCSimTimeLikelihood3::fLog2
+                     + (nPhotons - 1) * log(1.0 - WCSimFastMath::erf((t - mean) / (2 * sigma * sigma)))
+                     - (t - mean) * (t - mean) / (2 * sigma * sigma);
+        prob = TMath::Exp(logL);
 
     }
 	return prob;
@@ -83,11 +86,11 @@ double IntegrateMeanTimeToMeanFirstTime( const double &t, const double &mean, co
   double integral(0.0);
   if(nPhotons <= 25)
   {
-    integral = 1.0 - 1.0/(pow(2,nPhotons)) * TMath::Power((1.0 - TMath::Erf((t - mean)/(TMath::Sqrt2() * sigma))), nPhotons);
+    integral = 1.0 - 1.0/(pow(2,nPhotons)) * pow((1.0 - WCSimFastMath::erf((t - mean)/(TMath::Sqrt2() * sigma))), nPhotons);
   }
   else
   {
-    double exponent = nPhotons * (TMath::Log(1 - TMath::Erf((t - mean) / (TMath::Sqrt2() * sigma))) - TMath::Log(2.0));
+    double exponent = nPhotons * (log(1 - WCSimFastMath::erf((t - mean) / (TMath::Sqrt2() * sigma))) - WCSimTimeLikelihood3::fLog2);
     integral = 1.0 - TMath::Exp(exponent);
   }
   return integral;
@@ -227,26 +230,16 @@ void WCSimTimeLikelihood3::ClearTracks() {
 }
 
 double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
-    if(iDigit != 5168) { return 0; }
 	double lnL = 0;  // Default to this so we return 25 as our default penalty
 
 	WCSimLikelihoodDigit * myDigit = fLikelihoodDigitArray->GetDigit(iDigit);
 	WCSimLikelihoodTrackBase * myTrack = fTracks.at(0);
 	if(IsGoodDigit(myDigit))
 	{
-        // std::cout << "Digit " << myDigit->GetTubeId() << " is good!" << std::endl;
-        double prob = 1.0;
-		std::pair<double, double> arrivalMeanSigma = GetArrivalTimeMeanSigma(myTrack, myDigit, prob);
-        // std::cout << "Got arrival meanSigma" << std::endl;
-
-        // std::cout << "Get time res" << std::endl;
-		double reso = GetPMTTimeResolution(myDigit);
-
-
-		double& sigma = arrivalMeanSigma.second;
-        double& mean = arrivalMeanSigma.first;
-		// std::cout << "mean = " << mean << " and sigma = " << sigma << std::endl;
+        double prob     = 1.0;
+		double reso     = GetPMTTimeResolution(myDigit);
 		double nPhotons = myDigit->GetQ();
+		TimePrediction prediction = PredictArrivalTime(myTrack, myDigit);
 
 
         // We have four possibilities:
@@ -256,7 +249,7 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
         // |Hit charge = 0   | (0x00) likelihood = 1        | (0x01) likelihood = exp(-Q)|  
         // |Hit charge > 0   | (0x10)likelihood = (1 - prob)| (0x11) calculate as normal |  
         // -------------------------------------------------------------------------------  
-        int whichCase = 0x10 * (myDigit->GetQ() > 0) + 0x01 * (arrivalMeanSigma.second > 1e-6);
+        int whichCase = 0x10 * (myDigit->GetQ() > 0) + 0x01 * (prediction.GetRMS() > 1e-6);
         // std::cout << "myDigit->GetTubeId() = " << myDigit->GetTubeId() << "whichCase = " << whichCase << std::endl;
 
 		double timeLikelihood = fMinimumLikelihood;
@@ -265,37 +258,31 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
             // std::cout << " -- Doing overlap" << std::endl;
             float pmtLo  = myDigit->GetT() - 5.0 * reso;
             float pmtHi  = myDigit->GetT() + 5.0 * reso;
-            float predLo = mean - 5 * sigma;
-            float predHi = mean + 5 * sigma;
-            float min = pmtLo  < predLo ? pmtLo : predLo;
-            float max = pmtHi  > predHi ? pmtHi : predHi;
-            
+            float predLo = prediction.GetMean() - 5 * prediction.GetRMS();
+            float predHi = prediction.GetMean() + 5 * prediction.GetRMS();
 
-
-            TF1 overlapFunc("overlapFunc", MinimumOfArrivalAndResolution, mean-5*sigma, mean+5*sigma, 5);
-            overlapFunc.SetParameters(nPhotons, mean, sigma, myDigit->GetT(), reso);
+            // Function containing the overlap between the predicted first arrival PDF and the smeared true hit time
+            TF1 overlapFunc("overlapFunc", MinimumOfArrivalAndResolution,
+            				prediction.GetMean()-5*prediction.GetRMS(),
+							prediction.GetMean()+5*prediction.GetRMS(), 5);
+            overlapFunc.SetParameters(nPhotons,
+            						  prediction.GetMean(), prediction.GetRMS(),
+									  myDigit->GetT(), reso);
             overlapFunc.SetNpx(10000);
-            // std::cout << "Integrating" << std::endl;
-            timeLikelihood = overlapFunc.Integral(mean - 5*sigma, mean + 5*sigma);
+            timeLikelihood = overlapFunc.Integral(prediction.GetMean() - 5*prediction.GetRMS(), prediction.GetMean() + 5*prediction.GetRMS());
             if(timeLikelihood == 0){ whichCase = 0x10; }
-            //TCanvas * can = new TCanvas("olf","",800,600);
-            //overlapFunc.Draw();
-            //can->SaveAs(TString::Format("overlapFunc_%d.png", (int)myTrack->GetE()).Data());
-            //can->SaveAs(TString::Format("overlapFunc_%d.C", (int)myTrack->GetE()).Data());
-            //std::cout << "The integral is " << overlapFunc.Integral(mean-5*sigma, mean+5*sigma) << std::endl;
-            //delete can;
         }
         else if(whichCase == 0x10) // Detect a hit but didn't predict one - use exp(-Q)
         {
             // std::cout << " -- Doing expo" << std::endl;
             timeLikelihood = TMath::Exp(-myDigit->GetQ());
-            // timeLikelihood = 1.0;
+            //timeLikelihood = 1.0;
         }
         else if(whichCase == 0x01) // Predict a hit but don't detect one - use predicted probability
         {   
             // std::cout << " -- Using prob" << std::endl;
-            timeLikelihood = (1.0 - prob);
-            // timeLikelihood = 1.0;
+            //timeLikelihood = (1.0 - prediction.GetProb());
+            timeLikelihood = 1.0;
         }
         else if(whichCase == 0x00) // Didn't predict or detect a hit - carry on
         {
@@ -311,6 +298,8 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
         if(timeLikelihood < 0 || timeLikelihood > 1)
 		{
 		  std::cout << "iDigt = " << iDigit << " and timeLikelihood = " << timeLikelihood << std::endl;
+          std::cout << "timeLikelihood is " << timeLikelihood << " and is this > 1? " << (timeLikelihood > 1) << std::endl;
+          std::cout << "timeLikelihood - 1 = " << timeLikelihood - 1 << std::endl;
 		  assert(timeLikelihood > 0 && timeLikelihood <= 1);
 		}
         else if(timeLikelihood >= 0 && timeLikelihood <= fMinimumLikelihood)
@@ -324,14 +313,17 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
 
 		if(TMath::IsNaN(lnL) || !TMath::Finite(lnL))
 		{
-		  std::cout << "Digit is " << iDigit << " and timeLikelihood is " << timeLikelihood << " because arrives at " << myDigit->GetT() << " and predict " << arrivalMeanSigma.first << " with width " << arrivalMeanSigma.second << " and res " << reso << std::endl;
+		  std::cout << "Digit is " << iDigit << " and timeLikelihood is " << timeLikelihood
+				    << " because arrives at " << myDigit->GetT() << " and predict "
+					<< prediction.GetMean() << " with width " << prediction.GetRMS()
+					<< " and res " << reso << std::endl;
 		  assert(!TMath::IsNaN(lnL));
           assert(TMath::Finite(lnL));
 		}
 
-        double start = arrivalMeanSigma.first - 10 * arrivalMeanSigma.second;
+        double start = prediction.GetMean() - 10 * prediction.GetRMS();
         if( start > myDigit->GetT() - reso){ start = myDigit->GetT() - reso; }
-        double end   = arrivalMeanSigma.first + 10 * arrivalMeanSigma.second;
+        double end   = prediction.GetMean() + 10 * prediction.GetRMS();
         if( end < myDigit->GetT() + reso){ end = myDigit->GetT() + reso; }
 
         /*
@@ -449,101 +441,7 @@ double WCSimTimeLikelihood3::GetPMTTimeResolution(WCSimLikelihoodDigit * myDigit
   return 0.33 + sqrt(fPMTTimeConstantMap[pmtName] / myDigit->GetQ()); // This is what WCSim does...
 }
 
-bool WCSimTimeLikelihood3::IsGoodDigit(WCSimLikelihoodDigit * myDigit)
-{
-    return true;
-    return (myDigit->GetQ() > 0);
-}
-
-std::pair<double, double> WCSimTimeLikelihood3::GetArrivalTimeMeanSigma(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit, double& probToUpdate)
-{
-  bool debug = false;
-  if(myDigit->GetTubeId() == 5168 || myDigit->GetTubeId() == 5167)
-  {
-      debug = true;
-  }
-
-  // Vectors with four entries each, containing the 1D and 2D timing emission profiles
-  // for the nearest two energy bins above and below the track energy
-  GetNearestHists(myTrack);
-
-  /* Draw the four hists */
-  if(debug)
-  {
-    TCanvas * can = new TCanvas("can","",1200,1200);
-    can->Divide(2,2);
-    can->cd(1);
-    fSCosThetaVec[0]->Draw("COLZ");
-    can->cd(2);
-    fSCosThetaVec[1]->Draw("COLZ");
-    can->cd(3);
-    fSCosThetaVec[2]->Draw("COLZ");
-    can->cd(4);
-    fSCosThetaVec[3]->Draw("COLZ");
-    can->SaveAs(TString::Format("fourProfiles_%d_%d.png", myDigit->GetTubeId(), (int)myTrack->GetE()).Data());
-    delete can;
-  }
-
-  // std::cout << fSCosThetaVec.size() << std::endl;
-  assert(fSCosThetaVec.size() == 99);
-  assert(fSVec.size() == 99);
-  assert(fEnergiesVec.size() == 99);
-  double minCosTheta = fSCosThetaVec[0]->GetXaxis()->GetXmin();
-  double maxCosTheta = fSCosThetaVec[0]->GetXaxis()->GetXmax();
-
-
-  // Elements are (cosTheta, sBin, dCosTheta, distance to PMT)
-  double init[4] = {-999., -999., -999., -999.};
-  std::vector< std::vector<double> > cosSAndDelta(fSVec[0]->GetNbinsX(), std::vector<double>(init, init+4));
-  
-  TVector3 dir = myTrack->GetDir();
-  TVector3 pmt = myDigit->GetPos();
-
-  double dCos = -999;
-  double magToPMT = 0.0;
-  double cosTheta = 0.0;
-  TVector3 toPMT;
-
-  // Step through the bins in s and work out cosTheta, the s bin, dCosTheta across 
-  // that bin and the distance to the PMT, for each of the bins
-  double s = fSVec[0]->GetXaxis()->GetBinCenter(1);    // Assumes all bins have the same width
-  double sWidth = fSVec[0]->GetXaxis()->GetBinWidth(1); // to save on GetBinLowEdge() calls
-  s = s - sWidth;   // Want bin 1 to start in the right place after adding sWidth
-
-  for( int iSBin = 1; iSBin <= fSVec[0]->GetNbinsX(); ++iSBin )
-  {
-	  double s = s + sWidth; 
-	  if( dCos == -999)
-	  {
-		  toPMT = pmt - myTrack->GetPropagatedPos(s);
-		  magToPMT = toPMT.Mag() - myDigit->GetExposeHeight()/10.0;
-		  cosTheta = dir.Dot(toPMT)/magToPMT;
-	  }
-
-	  // Update it to work out the width in cosTheta that we traverse
-	  // Then remember it because it'll be the starting point for the next loop iteration
-	  toPMT = pmt - myTrack->GetPropagatedPos(s + sWidth);
-	  magToPMT = toPMT.Mag() - myDigit->GetExposeHeight()/10.;
-	  double newCos = dir.Dot(toPMT) / magToPMT;
-	  if(! (cosTheta < minCosTheta || cosTheta >= maxCosTheta) )
-	  {
-		  cosSAndDelta[iSBin-1][0] = cosTheta;
-		  cosSAndDelta[iSBin-1][1] = iSBin;
-		  cosSAndDelta[iSBin-1][2] = fabs(newCos - cosTheta);
-		  cosSAndDelta[iSBin-1][3] = magToPMT;
-	  }
-	  cosTheta = newCos;
-  }
-  std::sort(cosSAndDelta.begin(), cosSAndDelta.end());
-
-  // Now do the loop over cosTheta bins and look up the emission profile histograms to work out
-  // the photon arrival time at the PMT and a probability weightinh
-  int lastBin = 1;
-  TAxis * axis = fSCosThetaVec[0]->GetXaxis();
-
-  double weightedSum = 0.0;
-  double sumOfWeights = 0.0;
-
+void WCSimTimeLikelihood3::SetParticleSpeed(WCSimLikelihoodTrackBase * myTrack) {
   double speedOfLightInCmPerNs = TMath::C() * 1e-7;
   if(WCSimAnalysisConfig::Instance()->GetUseCustomParticleSpeed())
   {
@@ -553,7 +451,9 @@ std::pair<double, double> WCSimTimeLikelihood3::GetArrivalTimeMeanSigma(WCSimLik
   {
 	  fSpeedOfParticle = myTrack->GetPropagationSpeedFrac() * speedOfLightInCmPerNs;
   }
+}
 
+double WCSimTimeLikelihood3::GetRefractiveIndex(WCSimLikelihoodDigit * myDigit) {
   double n = 1.0;
   if(WCSimAnalysisConfig::Instance()->GetUseCustomSpeedOfLight())
   {
@@ -567,174 +467,193 @@ std::pair<double, double> WCSimTimeLikelihood3::GetArrivalTimeMeanSigma(WCSimLik
   {
     n = myDigit->GetAverageRefIndex();
   }
+  return n;
+}
 
-  std::vector<double> times(cosSAndDelta.size());
-  std::vector<double> probs(cosSAndDelta.size());
-  int index = 0;
+bool WCSimTimeLikelihood3::IsGoodDigit(WCSimLikelihoodDigit * myDigit)
+{
+    return (myDigit->GetQ() > 0);
+    return true;
+}
 
-
-  for(std::vector<std::vector<double> >::iterator thItr = cosSAndDelta.begin(); thItr != cosSAndDelta.end(); ++thItr)
+TimePrediction WCSimTimeLikelihood3::PredictArrivalTime(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit)
+{
+  bool debug = false;
+  if(myDigit->GetTubeId() == 5168 || myDigit->GetTubeId() == 5167)
   {
-	  // Had cosTheta outside the allowed range
-	  if( (*thItr)[0] == -999){ continue; }
+      debug = true;
+  }
 
-	  for(int thBin = lastBin; thBin <= fSCosThetaVec[0]->GetNbinsX(); ++thBin)
+
+  // Load the emission profiles for the four emission profiles two either side of E
+  // ==============================================================================
+  GetFourNearestHists(myTrack);
+
+  double minCosTheta = fSCosThetaVec[0]->GetXaxis()->GetXmin();
+  double maxCosTheta = fSCosThetaVec[0]->GetXaxis()->GetXmax();
+  const int nSBins = fSVec[0]->GetNbinsX();
+  const int nThetaBins = fSCosThetaVec[0]->GetNbinsX();
+
+
+
+  // Pre-calculate the values of (s,cosTheta) we need to look up from the emission profiles
+  // for every distance step along the track
+  // ======================================================================================
+  std::vector<StepParameters> stepParameterVec(nSBins);
+  TVector3 dir    = myTrack->GetDir();  // These get used a lot inside the loop
+  TVector3 pmt    = myDigit->GetPos();  // So declare them here to only do it once
+  double dCos     = -999;  // Width of the current cosTheta bin
+  double magToPMT = 0.0;   // Distance from start of step to PMT
+  double cosTheta = 0.0;   // cos of angle from start of step to PMT
+  TVector3 toPMT;
+
+  double s = fSVec[0]->GetXaxis()->GetBinCenter(1);     // Assumes all bins have the same width
+  double sWidth = fSVec[0]->GetXaxis()->GetBinWidth(1); // to save on GetBinLowEdge() calls
+  s = s - sWidth;   // Want bin 1 to start in the right place after adding sWidth
+
+  for( int iSBin = 1; iSBin <= nSBins; ++iSBin )
+  {
+	  double s = s + sWidth;  // Take a step
+	  if(dCos == -999) // i.e. the first step
 	  {
-		  if(axis->GetBinLowEdge(thBin) <= (*thItr)[0] && (*thItr)[0] < axis->GetBinUpEdge(thBin))
-		  {
-			  lastBin = thBin;
-
-			  //std::cout << "Starting time = " << myTrack->GetT() << " and particle travels " << hS->GetBinLowEdge(thItr->at(1)) << "cm in " << hS->GetBinLowEdge(thItr->at(1)) / fSpeedOfParticle << "ns, and photon travels "
-
-			  // Make look up the four probabilities using the emission profiles
-			  Double_t nearbyProbs[99];
-			  for(int iProfile = 0; iProfile < 99; ++iProfile)
-			  {
-                 // Do the (cosTheta, s) profile first seeing as it's more likely to be zero
-                 double prob = fSCosThetaVec[iProfile]->GetBinContent(thBin, (*thItr)[1]);
-                 if(prob == 0){  // We can skip the other lookups if it's zero
-                     nearbyProbs[iProfile] = prob; 
-                     continue; 
-                 }
-				 
-                 // Now the contents of rho(s)
-                 prob *= fSVec[iProfile]->GetBinContent((*thItr)[1]);
-                 if(prob == 0){  // We can skip the other lookups if it's zero
-                     nearbyProbs[iProfile] = prob; 
-                     continue; 
-                 }
-        
-                 // If we survived to here we have to multiply by the bin width
-                 prob *= fSVec[iProfile]->GetBinWidth((*thItr)[1]);
-
-				 nearbyProbs[iProfile] = prob;
-			  }
-			  // Now make a spline through these four values
-			  TSpline3 spline("timeSpline", &(fEnergiesVec[0]), nearbyProbs, 99);
-			  double prob = spline.Eval(myTrack->GetE());
-              if(debug)
-              {
-                  //std::cout << "Tube " << myDigit->GetTubeId() << " has prob " << prob << " at E = " << myTrack->GetE() << std::endl;
-                TH1D * hTemplate = new TH1D("hTemplate","",1, 2450, 2800);
-
-                hTemplate->SetMaximum(1.0);
-                hTemplate->SetMinimum(0.0);
-                TCanvas * can = new TCanvas("can","",800,600);
-                can->SetGrid();
-                TGraph * gr = new TGraph(99, &(fEnergiesVec[0]), nearbyProbs);
-                hTemplate->Draw("");
-                gr->Draw("P SAME");
-                gr->SetMarkerStyle(20);
-                gr->SetMarkerColor(kAzure);
-                spline.Draw("L SAME");
-                spline.SetLineColor(kRed);
-                spline.SetLineWidth(2);
-                if(prob != 0)
-                {
-                    TLine lineX(myTrack->GetE(), hTemplate->GetMinimum(), myTrack->GetE(), prob);
-                    TLine lineY(hTemplate->GetXaxis()->GetXmin(), prob, myTrack->GetE(), prob);
-                    lineX.SetLineWidth(2);
-                    lineY.SetLineWidth(2);
-                    lineX.SetLineColor(kGreen-2);
-                    lineY.SetLineColor(kGreen-2);
-                    TPaveText pt(2500, prob+0.1, 2600, prob+0.2);
-                    pt.AddText(TString::Format("P(%d) = %.02f, P(2600) = %.02f", (int)myTrack->GetE(), prob, spline.Eval(2600)).Data());
-                    pt.Draw("SAME");
-                    pt.SetBorderSize(0);
-                    pt.SetFillStyle(0);
-                    lineX.Draw("SAME");
-                    lineY.Draw("SAME");
-                    can->SaveAs(TString::Format("splines_%d_%d_%2.0f.png", myDigit->GetTubeId(), (int)myTrack->GetE(), (*thItr)[1]).Data());
-                }
-                delete can;
-                delete gr;
-                delete hTemplate;
-                
-
-              }
-			  
-              double t = 0;
-              // We only need to evaluate the arrival time if the probabilty is nonzero
-              if(prob > 0) 
-              {
-                t =   myTrack->GetT()
-			        + fSVec[0]->GetBinCenter((*thItr)[1]) / fSpeedOfParticle
-				    + n * (*thItr)[3] / speedOfLightInCmPerNs;
-              }
-              else{
-                  prob = 0; 
-              }
-
-			  weightedSum += prob * t;
-			  sumOfWeights += prob;
-
-			  times[index] = t;
-			  probs[index] = prob;
-
-			  /*if(debug)
-			  {
-				  std::cout << "s = " << fSVec.at(0)->GetBinLowEdge(thItr->at(1)) << " and cosTheta = " << thItr->at(0)
-					    	<< " and t0 = " << myTrack->GetT()
-							<< " and particle time = " << fSVec.at(0)->GetBinLowEdge(thItr->at(1)) / fSpeedOfParticle
-							<< " and photon time = " << n * thItr->at(3) / speedOfLightInCmPerNs
-							<< " so t = " << t << " = " << myTrack->GetT() + (fSVec.at(0)->GetBinLowEdge(thItr->at(1)) / fSpeedOfParticle) + n * thItr->at(3) / speedOfLightInCmPerNs << std::endl
-							<< "Prob = " << prob << " of which s->" << fSVec.at(0)->GetBinContent(thItr->at(1))
-							<< " cosTheta -> " << fSCosThetaVec.at(0)->GetBinContent(thBin, thItr->at(1))
-							<< " and widths are " << fSVec.at(0)->GetBinWidth(thItr->at(1)) << " x " << thItr->at(2) << std::endl << std::endl;
-              }*/
-			  index++;
-		  }
+		  toPMT    = pmt - myTrack->GetPropagatedPos(s);
+		  magToPMT = toPMT.Mag() - myDigit->GetExposeHeight()/10.0; // Expose height is in mm
+		  cosTheta = dir.Dot(toPMT)/magToPMT;
 	  }
+
+	  // Update it to work out the width in cosTheta that we traverse
+	  // Then remember it because it'll be the starting point for the next loop iteration
+	  toPMT = pmt - myTrack->GetPropagatedPos(s + sWidth);
+	  magToPMT = toPMT.Mag() - myDigit->GetExposeHeight()/10.;
+	  double newCos = dir.Dot(toPMT) / magToPMT;
+	  if(! (cosTheta < minCosTheta || cosTheta >= maxCosTheta) )
+	  {
+		  stepParameterVec[iSBin-1] = StepParameters(cosTheta, iSBin, fabs(newCos - cosTheta), magToPMT);
+	  }
+	  cosTheta = newCos;
   }
 
+  // If we sort it into cosTheta order then it's in order of ascending histogram
+  // bin number and we only have to sweep through the axis once
+  std::sort(stepParameterVec.begin(), stepParameterVec.end());
+
+  // Work out the speeds for the charge particle and light
+  SetParticleSpeed(myTrack);
+  double n = GetRefractiveIndex(myDigit);
+  double speedOfLightInCmPerNs = TMath::C() / 1e7;
 
 
-  // Finally work out the mean and rms of the predicted times
-  double mean = 0;
-  double rms = 0;
-  //std::cout << "Sum of weights = " << sumOfWeights << " and sum of weighted times = " << weightedSum << std::endl;
-  if(sumOfWeights > 0)
+
+
+  // For each of the four energies, calculate a time, RMS and weight:
+  // ================================================================
+  std::vector<double> meanVec(fSVec.size()); // Vectors to hold the values for each energy
+  std::vector<double> rmsVec(fSVec.size());
+  std::vector<double> probVec(fSVec.size());
+
+  for(size_t iEnergy = 0; iEnergy < fSVec.size(); ++iEnergy)
   {
-	  mean = weightedSum / sumOfWeights;
-    for(int i = 0; i < index ; ++i)
-    {
-      if(probs[i] == 0){ continue; }
-	  rms += (mean - times[i])*(mean-times[i])*probs[i] / sumOfWeights;
-    }
-    rms = sqrt(rms);
-    if(sumOfWeights > 0) { std::cout << "Sum of weights = " << sumOfWeights << std::endl; }
+	  // A vector of the predicted hit times from each step, and one of each step's weight
+	  std::vector<double> times(stepParameterVec.size(), 0.);
+	  std::vector<double> probs(stepParameterVec.size(), 0.);
+	  int index = 0;
+
+	  // Now do the loop over cosTheta bins and look up the emission profile histograms to work out
+	  // the photon arrival time at the PMT and a probability weighting
+	  TAxis * axis = fSCosThetaVec[0]->GetXaxis(); // For looking up cosTheta bins
+	  int lastBin = 1;
+	  double weightedSum = 0.0;
+	  double sumOfWeights = 0.0;
+
+	  // Step along the track, calculating the hit time and probability for each step
+	  // ============================================================================
+	  for(std::vector<StepParameters>::iterator stepItr = stepParameterVec.begin(); stepItr != stepParameterVec.end(); ++stepItr)
+	  {
+		  // Had cosTheta outside the allowed range
+          double cosTheta = stepItr->GetCosTheta();
+		  if( cosTheta == -999){ continue; }
+
+		  // Step through the theta bins keeping trackof the last bin so we only do it once
+		  // for(int thBin = lastBin; thBin <= nThetaBins; ++thBin)
+		  // {
+			  // Does the current theta bin contain a cosTheta value we're interested in for this step?
+              int thBin = fSCosThetaVec[iEnergy]->GetXaxis()->FindBin(cosTheta);
+
+			  // if(axis->GetBinLowEdge(thBin) <= cosTheta && cosTheta < axis->GetBinUpEdge(thBin))
+			  // {
+				  // lastBin = thBin;
+
+				  // Do the (cosTheta, s) profile first seeing as it's more likely to be zero
+				  double prob = fSCosThetaVec[iEnergy]->GetBinContent(thBin, stepItr->GetSBin());
+				  if(prob == 0)
+				  {  // We can skip the other lookups if it's zero
+					  continue;
+				  }
+                  //prob = prob * fSVec[iEnergy]->GetBinContent(stepItr->GetSBin()) 
+                   //           * fSVec[iEnergy]->GetBinWidth(stepItr->GetSBin());
+
+				  double t = 0;
+				  // We only need to evaluate the arrival time if the probabilty is nonzero
+				  if(prob > 0)
+				  {
+					  t =   myTrack->GetT()
+								+ fSVec[iEnergy]->GetBinCenter(stepItr->GetSBin()) / fSpeedOfParticle
+								+ n * stepItr->GetMagToPMT() / speedOfLightInCmPerNs;
+				  }
+				  else{
+					  prob = 0;
+				  }
+
+				  // Keep track of everything for the moving average
+				  weightedSum += prob * t;
+				  sumOfWeights += prob;
+                  // std::cout << "Digit " << myDigit->GetTubeId() << " thBin = " << thBin << " sBin = " << stepItr->GetSBin() << " prob = " << prob << " and sumOfWeights = " << sumOfWeights << "  sContent = " << fSVec[iEnergy]->GetBinContent(stepItr->GetSBin()) << " and thetaConstent = " << fSCosThetaVec[iEnergy]->GetBinContent(thBin, stepItr->GetSBin()) << std::endl;
+                  if(sumOfWeights > 1){ TCanvas * can = new TCanvas("can","",800,600); fSCosThetaVec[iEnergy]->Draw(); can->SaveAs("above1.root"); assert(0); }
+
+				  times[index] = t;
+				  probs[index] = prob;
+
+				  index++;
+			  // }
+		  // }
+	  }
+
+
+	  // Finally work out the mean and rms of the predicted times for this energy
+	  // ========================================================================
+	  double mean = 0;
+	  double rms = 0;
+
+	  if(sumOfWeights > 0)
+	  {
+		mean = weightedSum / sumOfWeights;
+		for(int i = 0; i < index ; ++i)
+		{
+		  if(probs[i] == 0){ continue; }
+		  rms += (mean - times[i])*(mean-times[i])*probs[i] / sumOfWeights;
+		}
+		rms = sqrt(rms);
+	  }
+
+	  meanVec[iEnergy] = mean;
+	  rmsVec[iEnergy]  = rms;
+	  // std::cout << myDigit->GetTubeId() << " at " << fEnergiesVec[iEnergy] << " has t=  " << mean << " and rms = " << rms << " and prob = " << sumOfWeights << std::endl;
+	  probVec[iEnergy] = sumOfWeights;
   }
 
-  // printf("So mean = %f, peak = %f and RMS = %f at (%.01f, %.01f, %.01f) for digit %d hit at %f, with %f, %s\n", mean, peakTime, rms, myDigit->GetX(), myDigit->GetY(), myDigit->GetZ(), myDigit->GetTubeId(), myDigit->GetT(), myDigit->GetQ(), flag.c_str());
-  // std::cout << "So mean = " << mean << " and RMS = " << rms << " at " << myDigit->GetX() << "," << myDigit->GetY() << ", " << myDigit->GetZ() << std::endl;
-  fAllPreds[myDigit->GetTubeId()-1] = mean;
 
-  if(debug && false)
-  {
-    TGraph * gr = new TGraph();
-    gr->SetName(TString::Format("ArrivalTimes_%d", myDigit->GetTubeId()).Data());
-    for(int i = 0; i < index; ++i)
-    {
-      gr->SetPoint(gr->GetN(), times[i], probs[i]);
-    }
-    TCanvas * can = new TCanvas();
-    gr->Draw("AP");
-    gr->GetXaxis()->SetTitle("Hit time (ns)");
-    gr->GetYaxis()->SetTitle("Relative Probability");
-    gr->SetMarkerStyle(20);
-    gr->SetMarkerSize(0.8);
-    gr->SetMarkerColor(kBlue);
-    can->SaveAs(TString::Format("fDigitHitProbabilities_%d.png", myDigit->GetTubeId()).Data());
-    can->SaveAs(TString::Format("fDigitHitProbabilities_%d.pdf", myDigit->GetTubeId()).Data());
-    can->SaveAs(TString::Format("fDigitHitProbabilities_%d.C", myDigit->GetTubeId()).Data());
-    delete can;
-    delete gr;
+  // Construct a spline through each of the four values:
+  // ===================================================
+  double finalMean = WCSimFastMath::CatmullRomSpline(&(fEnergiesVec[0]), &(meanVec[0]), myTrack->GetE());
+  double finalRMS  = WCSimFastMath::CatmullRomSpline(&(fEnergiesVec[0]), &(rmsVec[0]), myTrack->GetE());
+  double finalProb = WCSimFastMath::CatmullRomSpline(&(fEnergiesVec[0]), &(probVec[0]), myTrack->GetE());
+  if(finalMean < 0){ finalMean = 0; }
+  if(finalRMS  < 0){ finalRMS  = 0; }
+  if(finalProb < 0){ finalProb = 0; }
+  fAllPreds[myDigit->GetTubeId()-1] = finalMean;
 
-    
-  }
-  //std::cout << "Tube " << myDigit->GetTubeId() << " has mean " << mean << " and rms " << rms << " for energy " << myTrack->GetE() << std::endl;
-  probToUpdate = sumOfWeights;
-  return std::make_pair(mean, rms);
+
+  return TimePrediction(finalMean, finalRMS, finalProb);
 }
 
 std::vector<double> WCSimTimeLikelihood3::GetAllPredictedTimes()
@@ -843,7 +762,7 @@ void WCSimTimeLikelihood3::SavePlot()
 	delete can;
 }
 
-void WCSimTimeLikelihood3::GetNearestHists(WCSimLikelihoodTrackBase * myTrack)
+void WCSimTimeLikelihood3::GetFourNearestHists(WCSimLikelihoodTrackBase * myTrack)
 {
     if(myTrack->GetType() == fLastType)
     {
@@ -855,9 +774,9 @@ void WCSimTimeLikelihood3::GetNearestHists(WCSimLikelihoodTrackBase * myTrack)
         }
     }
 
-    fSCosThetaVec = fEmissionProfileManager->GetNearestSCosThetaForTimeHists(myTrack);
-    fSVec         = fEmissionProfileManager->GetNearestSForTimeHists(myTrack);
-    fEnergiesVec  = fEmissionProfileManager->GetNearestEnergies(myTrack);
+    fSCosThetaVec = fEmissionProfileManager->GetFourNearestSCosThetaForTimeHists(myTrack);
+    fSVec         = fEmissionProfileManager->GetFourNearestSForTimeHists(myTrack);
+    fEnergiesVec  = fEmissionProfileManager->GetFourNearestEnergies(myTrack);
     fLastE = myTrack->GetE();
     fLastType = myTrack->GetType();
 

@@ -175,8 +175,6 @@ namespace WCSimFastMath{
     /*******************************************************************//**
     * \brief Fast error function by John D. Cook
     *
-    * Algorithm comes from 
-    *
     * @param a Number to raise to some power
     * @param b Power to which a should be raised
     * @return a^b 
@@ -222,12 +220,12 @@ namespace WCSimFastMath{
      *
      * @return Smoothly interpolated value for y(xInterp)
      */
-    inline float CatmullRomSpline(float * x, float * y, float xInterp)
+    inline double CatmullRomSpline(double * x, double * y, double xInterp)
     {
         // Check for ascending x with even spacing
-        float dx1 = x[1] - x[0];
-        float dx2 = x[2] - x[1];
-        float dx3 = x[3] - x[2];
+        double dx1 = x[1] - x[0];
+        double dx2 = x[2] - x[1];
+        double dx3 = x[3] - x[2];
         assert(dx1 > 0);
         assert((dx3 == dx2) && (dx2 == dx1));
 
@@ -235,7 +233,7 @@ namespace WCSimFastMath{
         assert(xInterp <= x[2] && xInterp >= x[1]);
 
         // Tranform coordinates such that x1->0 and x2->1
-        float t = (xInterp - x[1]) / (x[2] - x[1]);
+        double t = (xInterp - x[1]) / (x[2] - x[1]);
 
         // Now do the multiplication by the coefficients of the cubic that handles the interpolation
         // Because we transformed coordinates the matrix inversion and multiplication gives nice integer coefficients

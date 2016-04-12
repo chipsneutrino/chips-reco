@@ -35,15 +35,20 @@ class WCSimEmissionProfileManager : public TObject {
 
 
 
-      std::vector<double> GetNearestEnergies(WCSimLikelihoodTrackBase * myTrack);
-      std::vector<TH1F*> GetNearestSForTimeHists(WCSimLikelihoodTrackBase * myTrack);
-      std::vector<TH2F*> GetNearestSCosThetaForTimeHists(WCSimLikelihoodTrackBase * myTrack);
+      std::vector<double> GetFourNearestEnergies(WCSimLikelihoodTrackBase * myTrack);
+      std::vector<TH1F*> GetFourNearestSForTimeHists(WCSimLikelihoodTrackBase * myTrack);
+      std::vector<TH2F*> GetFourNearestSCosThetaForTimeHists(WCSimLikelihoodTrackBase * myTrack);
 
   private:
       void AddNewProfile(const TrackType::Type &type, const double &energy);
       std::vector<double> fEnergies;
+
+      void ResetSForTimeHists();
+      void ResetSCosThetaForTimeHists();
       std::vector<TH1F*> fSForTimeHists;
       std::vector<TH2F*> fSCosThetaForTimeHists;
+      int fLastNearbyEnergyBin;
+      TrackType::Type fLastNearbyType;
 
       unsigned int fNumTracksToCache;
       std::map<TrackType::Type, std::map<double, WCSimEmissionProfiles*> > fProfileMap;

@@ -18,6 +18,8 @@ ClassImp(WCSimEmissionProfileManager)
 WCSimEmissionProfileManager::WCSimEmissionProfileManager()
 {
   fNumTracksToCache = 4;
+  fLastNearbyEnergyBin = -999;
+  fLastNearbyType = TrackType::Unknown;
 }
 
 WCSimEmissionProfileManager::~WCSimEmissionProfileManager()
@@ -211,211 +213,101 @@ double WCSimEmissionProfileManager::GetMostRecentlyUsedEnergy(const TrackType::T
   return fOrderOfUse[type].at(fOrderOfUse[type].size() - 1);
 }
 
-std::vector<double> WCSimEmissionProfileManager::GetNearestEnergies(
+std::vector<double> WCSimEmissionProfileManager::GetFourNearestEnergies(
 		WCSimLikelihoodTrackBase* myTrack) {
 
 	// Construct a vector of energies so that the energy we want lies between
 	// index 1 and 2:
     // std::cout << "Get fEnergies" << std::endl;
-	if(fEnergies.size() == 0)
-    {
-	    TAxis * energyAxis = GetEnergyHist(myTrack->GetType())->GetXaxis();
-	    assert(energyAxis->GetNbins() >= 99);
-        for(int bin = 0; bin < energyAxis->GetNbins(); ++bin)
-        {
-            fEnergies.push_back(energyAxis->GetBinLowEdge(bin+1));
-        }
-    }
-    return fEnergies;
-/*
-	if(bin == 1)
+	std::vector<double> energies;
+	TAxis * energyAxis = GetEnergyHist(myTrack->GetType())->GetXaxis();
+	int bin = energyAxis->FindBin(myTrack->GetE());
+	if(bin != fLastNearbyEnergyBin || fLastNearbyType != myTrack->GetType())
 	{
-		energies.at(0) = energyAxis->GetBinLowEdge(bin) - energyAxis->GetBinWidth(bin);
-	}
-	else
-	{
-		energies.at(0) = energyAxis->GetBinLowEdge(bin-1);
-	}
-	energies.at(1) = energyAxis->GetBinLowEdge(bin);
+		ResetSCosThetaForTimeHists();
+		ResetSForTimeHists();
+		fEnergies.clear();
+		fEnergies.resize(4, 0.0);
 
-	if(bin == energyAxis->GetNbins())
-	{
-		energies.at(2) = energyAxis->GetBinLowEdge(bin) + energyAxis->GetBinWidth(bin);
-		energies.at(3) = 2*energies.at(2) - energies.at(1);
+		if(bin == 1)
+		{
+			fEnergies.at(0) = energyAxis->GetBinLowEdge(bin) - energyAxis->GetBinWidth(bin);
+		}
+		else
+		{
+			fEnergies.at(0) = energyAxis->GetBinLowEdge(bin-1);
+		}
+		fEnergies.at(1) = energyAxis->GetBinLowEdge(bin);
+
+		if(bin == energyAxis->GetNbins())
+		{
+			fEnergies.at(2) = energyAxis->GetBinLowEdge(bin) + energyAxis->GetBinWidth(bin);
+			fEnergies.at(3) = 2*fEnergies.at(2) - fEnergies.at(1);
+		}
+		else if(bin == energyAxis->GetNbins()-1)
+		{
+			fEnergies.at(2) = energyAxis->GetBinLowEdge(bin+1);
+			fEnergies.at(3) = 2*fEnergies.at(2) - fEnergies.at(1);
+		}
+		else
+		{
+			fEnergies.at(2) = energyAxis->GetBinLowEdge(bin+1);
+			fEnergies.at(3) = energyAxis->GetBinLowEdge(bin+2);
+		}
+		fLastNearbyEnergyBin = bin;
+		fLastNearbyType = myTrack->GetType();
 	}
-	else if(bin == energyAxis->GetNbins()-1)
-	{
-		energies.at(2) = energyAxis->GetBinLowEdge(bin+1);
-		energies.at(3) = 2*energies.at(2) - energies.at(1);
-	}
-	else
-	{
-		energies.at(2) = energyAxis->GetBinLowEdge(bin+1);
-		energies.at(3) = energyAxis->GetBinLowEdge(bin+2);
-	}
-	return energies;
-    */
+	return fEnergies;
 }
 
-std::vector<TH1F*> WCSimEmissionProfileManager::GetNearestSForTimeHists(
+std::vector<TH1F*> WCSimEmissionProfileManager::GetFourNearestSForTimeHists(
 		WCSimLikelihoodTrackBase* myTrack) {
     // std::cout << "Get nearest s for time" << std::endl;
 
-    if(fSForTimeHists.size() == 0)
-    {
-	    TAxis * energyAxis = GetEnergyHist(myTrack->GetType())->GetXaxis();
-	    assert(fNumTracksToCache >= 4);
-	    assert(energyAxis->GetNbins() >= 4);
-	    std::vector<TH1F*> hists(energyAxis->GetNbins(), NULL);
-
-	    std::vector<double> energies;
-        energies.reserve(energyAxis->GetNbins());
-        for(int bin = 1; bin <= energyAxis->GetNbins(); ++bin)
-        {
-            // std::cout << "Energy bin " << bin << "/" << energyAxis->GetNbins() << std::endl;
-            energies.push_back(energyAxis->GetBinLowEdge(bin));
-        }
-        for(size_t i = 0; i < energies.size(); ++i)
-        {
-            fSForTimeHists.push_back((TH1F*)GetEmissionProfile(myTrack->GetType(), energies.at(i))->GetSForTime()->Clone());
-        }
-    }
-    assert(fSForTimeHists.size() > 0);
-    return fSForTimeHists;
-
-    /*
-	TAxis * energyAxis = GetEnergyHist(myTrack->GetType())->GetXaxis();
-	assert(fNumTracksToCache >= energyAxis->GetNbins());
-	assert(energyAxis->GetNbins() >= 4);
-	//int bin = energyAxis->FindBin(myTrack->GetE());
-
-	std::vector<TH1F*> hists(energyAxis->GetNbins(), NULL);
-
-	std::vector<double> energies(energyAxis->GetNbins());
-    for(int bin = 1; bin <= energyAxis->GetNbins(); ++bin)
-    {
-        energies.push_back(energyAxis->GetBinLowEdge(bin));
-    }
-    for(size_t i = 0; i < energies.size(); ++i)
-    {
-        hists[i] = GetEmissionProfile(myTrack->GetType(), energies.at(i))->GetSForTime();
-    }
-
-
-	if(bin == 1)
+	std::vector<double> energies = GetFourNearestEnergies(myTrack);
+	if(fSForTimeHists.size() == 0)
 	{
-		energies.push_back(energyAxis->GetBinLowEdge(1));
-		energies.push_back(energyAxis->GetBinLowEdge(1));
-		energies.push_back(energyAxis->GetBinLowEdge(2));
-		energies.push_back(energyAxis->GetBinLowEdge(3));
+		fSForTimeHists.resize(4, NULL);
+		for(size_t i = 0; i < energies.size(); ++i)
+		{
+			fSForTimeHists[i] = (TH1F*)GetEmissionProfile(myTrack->GetType(), energies[i])->GetSForTime()->Clone();
+		}
 	}
-	else if(bin == energyAxis->GetNbins()-1)
-	{
-		energies.push_back(energyAxis->GetBinLowEdge(bin-1));
-		energies.push_back(energyAxis->GetBinLowEdge(bin));
-		energies.push_back(energyAxis->GetBinLowEdge(bin+1));
-		energies.push_back(energyAxis->GetBinLowEdge(bin+1));
-	}
-	else if(bin == energyAxis->GetNbins())
-	{
-		energies.push_back(energyAxis->GetBinLowEdge(bin-1));
-		energies.push_back(energyAxis->GetBinLowEdge(bin));
-		energies.push_back(energyAxis->GetBinLowEdge(bin));
-		energies.push_back(energyAxis->GetBinLowEdge(bin));
-	}
-	else
-	{
-		energies.push_back(energyAxis->GetBinLowEdge(bin-1));
-		energies.push_back(energyAxis->GetBinLowEdge(bin));
-		energies.push_back(energyAxis->GetBinLowEdge(bin+1));
-		energies.push_back(energyAxis->GetBinLowEdge(bin+2));
-	}
-	for(size_t i = 0; i < 4; ++i)
-	{
-		hists[i] = GetEmissionProfile(myTrack->GetType(), energies.at(i))->GetSForTime();
-	}
-	return hists;
-*/
+	return fSForTimeHists;
 }
 
-std::vector<TH2F*> WCSimEmissionProfileManager::GetNearestSCosThetaForTimeHists(
+std::vector<TH2F*> WCSimEmissionProfileManager::GetFourNearestSCosThetaForTimeHists(
 		WCSimLikelihoodTrackBase* myTrack) {
-    // std::cout << "Get nearest sCosTheta for time" << std::endl;
 
+   	std::vector<double> energies = GetFourNearestEnergies(myTrack);
     if(fSCosThetaForTimeHists.size() == 0)
     {
-	    TAxis * energyAxis = GetEnergyHist(myTrack->GetType())->GetXaxis();
-	    assert(fNumTracksToCache >= 4);
-	    assert(energyAxis->GetNbins() >= 4);
-	    std::vector<TH2F*> hists(energyAxis->GetNbins(), NULL);
+    	ResetSCosThetaForTimeHists();
+    	fSCosThetaForTimeHists.resize(energies.size(), NULL);
 
-	    std::vector<double> energies;
-        energies.reserve(energyAxis->GetNbins());
-        for(int bin = 1; bin <= energyAxis->GetNbins(); ++bin)
-        {
-            energies.push_back(energyAxis->GetBinLowEdge(bin));
-        }
         for(size_t i = 0; i < energies.size(); ++i)
         {
-            // std::cout << "Making fSCosThetaForTimeHists, bin " << i << "/" << energies.size() << " total size " << fSCosThetaForTimeHists.size() << std::endl;
-            fSCosThetaForTimeHists.push_back((TH2F*)GetEmissionProfile(myTrack->GetType(), energies.at(i))->GetSCosThetaForTime()->Clone());
+            fSCosThetaForTimeHists[i] = (TH2F*)GetEmissionProfile(myTrack->GetType(), energies[i])->GetSCosThetaForTime()->Clone();
         }
     }
     assert(fSCosThetaForTimeHists.size() > 0);
     return fSCosThetaForTimeHists;
+}
 
-
-
-    /*
-	int bin = energyAxis->FindBin(myTrack->GetE());
-
-	std::vector<TH2F*> hists(4, NULL);
-
-	std::vector<double> energies;
-    energies.reserve(4);
-	if(bin == 1)
+void WCSimEmissionProfileManager::ResetSForTimeHists() {
+	for(size_t i = 0; i < fSForTimeHists.size(); ++i)
 	{
-		energies.push_back(energyAxis->GetBinLowEdge(1));
-		energies.push_back(energyAxis->GetBinLowEdge(1));
-		energies.push_back(energyAxis->GetBinLowEdge(2));
-		energies.push_back(energyAxis->GetBinLowEdge(3));
+		delete fSForTimeHists[i];
 	}
-	else if(bin == energyAxis->GetNbins()-1)
-	{
-		energies.push_back(energyAxis->GetBinLowEdge(bin-1));
-		energies.push_back(energyAxis->GetBinLowEdge(bin));
-		energies.push_back(energyAxis->GetBinLowEdge(bin+1));
-		energies.push_back(energyAxis->GetBinLowEdge(bin+1));
-	}
-	else if(bin == energyAxis->GetNbins())
-	{
-		energies.push_back(energyAxis->GetBinLowEdge(bin-1));
-		energies.push_back(energyAxis->GetBinLowEdge(bin));
-		energies.push_back(energyAxis->GetBinLowEdge(bin));
-		energies.push_back(energyAxis->GetBinLowEdge(bin));
-	}
-	else
-	{
-		energies.push_back(energyAxis->GetBinLowEdge(bin-1));
-		energies.push_back(energyAxis->GetBinLowEdge(bin));
-		energies.push_back(energyAxis->GetBinLowEdge(bin+1));
-		energies.push_back(energyAxis->GetBinLowEdge(bin+2));
-	}
+	fSForTimeHists.clear();
+}
 
-	for(size_t i = 0; i < 4; ++i)
+void WCSimEmissionProfileManager::ResetSCosThetaForTimeHists() {
+	for(size_t i = 0 ; i < fSCosThetaForTimeHists.size(); ++i)
 	{
-		hists[i] = GetEmissionProfile(myTrack->GetType(), energies.at(i))->GetSCosThetaForTime();
-        // TCanvas * can = new TCanvas(TString::Format("bin_%d", (int)i).Data(), "", 1200,600);
-        // can->Divide(2,1);
-        // can->cd(1);
-        // hists[i]->Draw("COLZ");
-        // can->cd(2);
-        // std::cout << "Energy is " << energies.at(i) << std::endl;
-        // GetEmissionProfile(myTrack->GetType(), energies.at(i))->GetRho()->Draw();
-        // can->SaveAs(TString::Format("bin_%d.png", (int)i).Data());
+		delete fSCosThetaForTimeHists[i];
 	}
-	return hists;
-    */
+	fSCosThetaForTimeHists.clear();
 }
 
 unsigned int WCSimEmissionProfileManager::GetNumCached(const TrackType::Type &type)

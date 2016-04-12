@@ -25,6 +25,44 @@ class TH1D;
 class TH2F;
 class TH1F; 
 
+/**
+ * Container holding the parameters used by the time likelihood
+ * to hold the predicted hit time, its width and probability weighting
+ */
+class TimePrediction{
+public:
+	TimePrediction(double mean, double rms, double prob) : fMean(mean), fRMS(rms), fProb(prob){};
+	inline double GetMean() const{ return fMean; }
+	inline double GetRMS()  const{ return fRMS;  }
+	inline double GetProb() const{ return fProb; }
+
+private:
+	double fMean; ///< Predicted mean photon arrival time in ns
+	double fRMS;  ///< RMS of predicted mean arrival times in ns
+	double fProb; ///< Total probability weight to emit towards the PMT
+};
+
+/**
+ * Container holding the parameters used when stepping along the track
+ * to tell us which bins of the time likelihood to look up and where we
+ * are relative to the PMT
+ */
+class StepParameters{
+public:
+	StepParameters(double cosTheta = 0, int sBin = 0, double deltaCosTheta = 0, double magToPMT = 0) :
+		fCosTheta(cosTheta), fSBin(sBin), fDeltaCosTheta(deltaCosTheta), fMagToPMT(magToPMT){};
+	inline double GetCosTheta() 	 const { return fCosTheta; }
+	inline double GetDeltaCosTheta() const { return fDeltaCosTheta; }
+	inline double GetMagToPMT() 	 const { return fMagToPMT; }
+	inline int    GetSBin() 		 const { return fSBin; }
+	bool operator < (const StepParameters& other) const{ return fCosTheta < other.fCosTheta; }
+private:
+	double fCosTheta;      ///< The value of cosTheta needed to hit the PMT at this step
+	int fSBin;        	   ///< Which s bin of the emission profile we are in
+	double fDeltaCosTheta; ///< The width of the cosTheta bin we need to emit in to hit the PMT
+	double fMagToPMT;      ///< The distance to the PMT in cm
+};
+
 
 double ConvertMeanTimeToMeanFirstTime(double * x, double * par);
 double ConvertMeanTimeToMeanFirstTime(const double &t, const double &mean, const double &sigma, const double &nPhotons);
@@ -81,12 +119,29 @@ public:
      * @param myDigit The hit PMT
      * @return A pair contianing the weighted <mean, rms> of the predicted hit times
      */
-    std::pair<double, double> GetArrivalTimeMeanSigma(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit, double& probToUpdate);
+     TimePrediction PredictArrivalTime(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit);
 
     void SavePlot();
 
 private:
-    void GetNearestHists(WCSimLikelihoodTrackBase * myTrack);
+
+    /**
+     * @brief Work out the speed at which the charge particle travels, either by looking it up
+     * or using a speed that was provided at run-time
+     * @param myTrack The particle track whose speed we want
+     */
+    void SetParticleSpeed(WCSimLikelihoodTrackBase * myTrack);
+
+    /**
+     * Work out the average refractive index and hence the speed of light in the water, either by looking it up
+     * or using a speed that was provided at run-time
+     *
+     * @param myDigit The PMT we're interested in - we might need to to quantum efficiency weighting
+     * @return The effective refractive index
+     */
+    double GetRefractiveIndex(WCSimLikelihoodDigit * myDigit);
+
+    void GetFourNearestHists(WCSimLikelihoodTrackBase * myTrack);
     std::vector<TH2F*> fSCosThetaVec;
     std::vector<TH1F*> fSVec;
     std::vector<double> fEnergiesVec;
@@ -127,6 +182,10 @@ private:
   float fSpeedOfParticle;
     static const double fMinimumLikelihood;
     static const double fMaximumLnL;
+public:
+    static const double fLog2;
+    static const double fSqrtPi;
+private:
     ClassDef(WCSimTimeLikelihood3,0)
 
         TGraph * fProbToCharge;
