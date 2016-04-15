@@ -91,9 +91,9 @@ TrackType::Type WCSimFitterInterface::GetTrackType(const unsigned int &numTrack)
   return fFitterConfig->GetTrackType(numTrack);
 }
 
-void WCSimFitterInterface::SetParameter(unsigned int numTrack, const char * name, double min, double max, double start, bool fixIt)
+void WCSimFitterInterface::SetParameter(unsigned int numTrack, const char * name, double min, double max, double start, bool fixIt, double step)
 {
-  fFitterConfig->SetParameter(numTrack, name, min, max, start, fixIt);
+  fFitterConfig->SetParameter(numTrack, name, min, max, start, step, fixIt);
 }
 
 void WCSimFitterInterface::SetParMin(unsigned int numTrack, const char* name,
@@ -109,6 +109,11 @@ void WCSimFitterInterface::SetParMax(unsigned int numTrack, const char* name,
 void WCSimFitterInterface::SetParStart(unsigned int numTrack, const char* name,
 		double start) {
 	fFitterConfig->SetParStart(numTrack, name, start);
+}
+
+void WCSimFitterInterface::SetParStep(unsigned int numTrack, const char* name,
+		double step) {
+	fFitterConfig->SetParStep(numTrack, name, step);
 }
 
 void WCSimFitterInterface::SetParRange(unsigned int numTrack, const char* name,
@@ -127,6 +132,11 @@ Double_t WCSimFitterInterface::GetParMax(unsigned int numTrack, const char* name
 Double_t WCSimFitterInterface::GetParStart(unsigned int numTrack,
 		const char* name) {
 	return fFitterConfig->GetParStart(numTrack, name);
+}
+
+Double_t WCSimFitterInterface::GetParStep(unsigned int numTrack,
+		const char* name) {
+	return fFitterConfig->GetParStep(numTrack, name);
 }
 
 std::pair<Double_t, Double_t> WCSimFitterInterface::GetParRange(unsigned int numTrack,

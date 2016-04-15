@@ -97,6 +97,7 @@ class WCSimLikelihoodFitter
         Double_t WrapFunc(const Double_t * x);
         Double_t WrapFuncAlongTrack(const Double_t * x);
         Double_t WrapFuncPiZero(const Double_t * x);
+        Double_t GetPenalty(const std::vector<WCSimLikelihoodTrackBase*> &tracksToFit);
 
         /**
          * Get the minimum value of -2 log(likelihood) returned by the fit
@@ -145,6 +146,7 @@ class WCSimLikelihoodFitter
 
         void Make1DSurface(std::pair<unsigned int, FitterParameterType::Type> trackPar);
         void Make2DSurface(std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > trackPar);
+        void Make2DSurfaceAlongTrack();
 
         Bool_t GetTrueTrackEscapes(unsigned int iTrack) const;
         Bool_t GetFitTrackEscapes( unsigned int iTrack) const;
@@ -152,6 +154,11 @@ class WCSimLikelihoodFitter
         Bool_t GetUsePiZeroMassConstraint() const;
 
         Double_t GetPiZeroSecondTrackEnergy(const Double_t * x);
+
+        Bool_t IsInsideAllowedRegion(const Int_t& iTrack, const Double_t& x, const Double_t& y, const Double_t& z);
+        Bool_t IsOutsideAllowedRegion(const Int_t& iTrack, const Double_t& x, const Double_t& y, const Double_t& z);
+        void MoveBackInside(const Int_t iTrack, Double_t& seedX, Double_t& seedY, Double_t& seedZ, 
+                            const Double_t& dirX, const Double_t& dirY, const Double_t& dirZ);
 
 
         WCSimTotalLikelihood * fTotalLikelihood; ///< Class used to calculate the total (combined charge and time) likelihood that we minimize

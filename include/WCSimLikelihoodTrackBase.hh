@@ -67,6 +67,7 @@ public:
      Int_t GetPDG() const; // Return the PDG Monte Carlo code corresponding to the track's particle type
      bool operator == (const WCSimLikelihoodTrackBase &b) const;
      bool IsSameTrack(WCSimLikelihoodTrackBase * b) const;
+     bool SameTypeAndEnergy(WCSimLikelihoodTrackBase * other) const;
      
      double GetPropagationSpeedFrac() const; // Effective propagation speed of the track's photon emission, as a fraction of c
      static double GetPropagationSpeedFrac(const TrackType &type);

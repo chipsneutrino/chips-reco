@@ -22,8 +22,12 @@ class WCSimEmissionProfileManager : public TObject {
       void SetNumTracksToCache(const unsigned int numTracks);
       void CacheAtLeast(const unsigned int numTracks);
 
-      // These wrap calls to the emission profile object:
+      // Get the distance a particle travels before it stops emitting photons,
+      // as a smooth function of the track's energy
       double GetStoppingDistance(WCSimLikelihoodTrackBase * myTrack);
+
+      
+      // These wrap calls to the emission profile object:
       TH1F * GetEnergyHist(const TrackType::Type &type);
       bool EnergiesInSameBin(const TrackType::Type& type, const double energy1, const double energy2);
       TH1F * GetRho(const TrackType::Type &type, const double &energy);

@@ -30,6 +30,7 @@ WCSimEmissionProfileManager::~WCSimEmissionProfileManager()
     std::map<double, WCSimEmissionProfiles*>::iterator innerItr = (outerItr->second).begin();
     while(innerItr != outerItr->second.end())
     {
+      std::cout << "Deleting " << innerItr->second << std::endl;
       delete innerItr->second;
       innerItr->second = 0x0;
       ++innerItr;
@@ -40,12 +41,15 @@ WCSimEmissionProfileManager::~WCSimEmissionProfileManager()
   fProfileMap.clear();
   for(size_t i = 0; i < fSCosThetaForTimeHists.size(); ++i)
   {
+      std::cout << "Deleting fSCosThetaForTimeHists[" << i << "] = " << fSCosThetaForTimeHists[i] << std::endl;
+      std::cout << fSCosThetaForTimeHists[i]->GetEntries() << std::endl;
       delete fSCosThetaForTimeHists[i];
       fSCosThetaForTimeHists[i] = 0x0;
   }
   fSCosThetaForTimeHists.clear();
   for(size_t i = 0; i < fSForTimeHists.size(); ++i)
   {
+      std::cout << "Deleting fSForTimeHists[" << i << "] = " << fSForTimeHists[i] << std::endl;
       delete fSForTimeHists[i];
       fSForTimeHists[i] = 0x0;
   }
@@ -55,9 +59,11 @@ WCSimEmissionProfileManager::~WCSimEmissionProfileManager()
 
 WCSimEmissionProfiles * WCSimEmissionProfileManager::GetEmissionProfile(TrackType::Type type, double energy)
 {
+  //  std::cout << "Getting profile for energy " << energy << std::endl;
 
   if( fProfileMap.find(type) == fProfileMap.end() || fProfileMap[type].find(energy) == fProfileMap[type].end())
   {
+
     AddNewProfile(type, energy);
   }
   UpdateRecentlyUsed(type, energy);
@@ -188,7 +194,6 @@ void WCSimEmissionProfileManager::AddNewProfile(const TrackType::Type &type, con
   if(numThisType == fNumTracksToCache)
   {
 
-    // std::cout << "Replacing" << std::endl;
     double replaceEnergy = GetLeastRecentlyUsedEnergy(type);
     WCSimEmissionProfiles * changeMe = fProfileMap[type][replaceEnergy];
 
@@ -271,6 +276,7 @@ std::vector<TH1F*> WCSimEmissionProfileManager::GetFourNearestSForTimeHists(
 		for(size_t i = 0; i < energies.size(); ++i)
 		{
 			fSForTimeHists[i] = (TH1F*)GetEmissionProfile(myTrack->GetType(), energies[i])->GetSForTime()->Clone();
+            fSForTimeHists[i]->SetDirectory(0);
 		}
 	}
 	return fSForTimeHists;
@@ -288,6 +294,7 @@ std::vector<TH2F*> WCSimEmissionProfileManager::GetFourNearestSCosThetaForTimeHi
         for(size_t i = 0; i < energies.size(); ++i)
         {
             fSCosThetaForTimeHists[i] = (TH2F*)GetEmissionProfile(myTrack->GetType(), energies[i])->GetSCosThetaForTime()->Clone();
+            fSCosThetaForTimeHists[i]->SetDirectory(0);
         }
     }
     assert(fSCosThetaForTimeHists.size() > 0);
@@ -322,7 +329,10 @@ unsigned int WCSimEmissionProfileManager::GetNumCached(const TrackType::Type &ty
 
 double WCSimEmissionProfileManager::GetStoppingDistance(WCSimLikelihoodTrackBase * myTrack)
 {
-  return GetEmissionProfile(myTrack)->GetStoppingDistance();
+    double dist = (4.24226 + 0.516017*myTrack->GetE() - 5.08037e-6 * myTrack->GetE() * myTrack->GetE());
+    if(dist < 50) { dist = 50; }
+    return dist;
+  //return GetEmissionProfile(myTrack)->GetStoppingDistance();
 }
 
 TH1F * WCSimEmissionProfileManager::GetEnergyHist(const TrackType::Type &type)
@@ -355,6 +365,9 @@ double WCSimEmissionProfileManager::GetLightFlux(WCSimLikelihoodTrackBase * myTr
 
 double WCSimEmissionProfileManager::GetTrackLengthForPercentile(WCSimLikelihoodTrackBase * myTrack, double percentile)
 {
+  double dist =  (-26.0305 + 0.326113*myTrack->GetE() - 3.86161e-6 * myTrack->GetE() * myTrack->GetE()) * percentile/0.70;
+  if(dist < 50){ dist = 50; }
+  return dist;
   return GetEmissionProfile(myTrack)->GetTrackLengthForPercentile(percentile);
 }
 

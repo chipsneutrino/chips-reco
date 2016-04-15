@@ -36,7 +36,7 @@ WCSimEmissionProfiles::WCSimEmissionProfiles() {
 	fProfileFile = 0x0;
 
 	fBinningHistogram = 0x0;
-  fProfileTree = 0x0;
+    fProfileTree = 0x0;
 
 	fRho = 0x0;
 	fGCoarse = 0x0;
@@ -317,10 +317,16 @@ void WCSimEmissionProfiles::LoadFile(const TrackType::Type &type, const double &
 
 void WCSimEmissionProfiles::SetEnergy(const double &energy)
 {
-  fEnergy = energy;
-  int bin = fBinningHistogram->GetXaxis()->FindBin(energy) - 1;
-  assert(bin <= fProfileTree->GetEntries());
-  fProfileTree->GetEntry(bin);
+    if(energy != fEnergy)
+    {
+        fEnergy = energy;
+        int bin = fBinningHistogram->GetXaxis()->FindBin(energy) - 1;
+        assert(bin <= fProfileTree->GetEntries());
+        fProfileTree->GetEntry(bin);
+        fStoppingDistance      = -999.9;
+        fLastPercentile        = 0;
+        fPercentileTrackLength = 0;
+    }
 
   return;
 }

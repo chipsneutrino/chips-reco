@@ -42,7 +42,7 @@ unsigned int WCSimFitterConfig::GetNumIndependentParameters()
 	return fFitterParameters.GetNumIndependentParameters();
 }
 
-void WCSimFitterConfig::SetParameter( unsigned int numTrack, const char * name, double min, double max, double start, bool fixed)
+void WCSimFitterConfig::SetParameter( unsigned int numTrack, const char * name, double min, double max, double start, double step, bool isFixed)
 {
   FitterParameterType::Type type = FitterParameterType::FromName(name);
   std::cout << "In WCSimFitterConfig::SetParameter: " << type <<  std::endl;
@@ -50,7 +50,8 @@ void WCSimFitterConfig::SetParameter( unsigned int numTrack, const char * name, 
   trackPars->SetParMin(type, min);
   trackPars->SetParMax(type, max);
   trackPars->SetParStart(type, start);
-  trackPars->SetParIsFixed(type, fixed);
+  trackPars->SetParStep(type, step);
+  trackPars->SetParIsFixed(type, isFixed);
   return;
 }
 
@@ -118,6 +119,22 @@ double WCSimFitterConfig::GetParStart(unsigned int numTrack, const char* name) {
 	FitterParameterType::Type type = FitterParameterType::FromName(name);
 	WCSimFitterSingleTrackParameters * trackPars = fFitterParameters.GetTrackParameters(numTrack);
 	return trackPars->GetParStart(type);
+}
+
+void WCSimFitterConfig::SetParStep(int numTrack, const char* name,
+		double step) {
+  //std::cout << "In WCSimFitterConfig::SetParStep" << std::endl;
+
+	FitterParameterType::Type type = FitterParameterType::FromName(name);
+	WCSimFitterSingleTrackParameters * trackPars = fFitterParameters.GetTrackParameters(numTrack);
+	trackPars->SetParStep(type, step);
+}
+
+double WCSimFitterConfig::GetParStep(unsigned int numTrack, const char* name) {
+
+	FitterParameterType::Type type = FitterParameterType::FromName(name);
+	WCSimFitterSingleTrackParameters * trackPars = fFitterParameters.GetTrackParameters(numTrack);
+	return trackPars->GetParStep(type);
 }
 
 void WCSimFitterConfig::SetParRange(int numTrack, const char* name,

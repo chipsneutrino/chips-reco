@@ -259,7 +259,7 @@ void WCSimInterface::BuildTrueLikelihoodTracks() {
 		  									sum.GetVertexX() * mm_to_cm,
 		  									sum.GetVertexY() * mm_to_cm,
 		  									sum.GetVertexZ() * mm_to_cm,
-                        sum.GetVertexT(),
+                                            sum.GetVertexT(),
 		  									sum.GetBeamDir().Theta(),
 		  									sum.GetBeamDir().Phi(),
 		  									sum.GetBeamEnergy() - beamParticle->Mass() * 1000 ); // Mass comes in GeV but we work in MeV
@@ -277,7 +277,7 @@ void WCSimInterface::BuildTrueLikelihoodTracks() {
 			  WCSimLikelihoodTrackBase * track = WCSimLikelihoodTrackFactory::MakeTrack(
 					  	  	  	  	  	  		TrackType::GetTypeFromPDG(sum.GetPrimaryPDG(i)),
 			  	  	  	  	  	  	  	  		sum.GetVertexX() * mm_to_cm, sum.GetVertexY() * mm_to_cm, sum.GetVertexZ() * mm_to_cm,
-			  	  	  	  	  	  	  	  		0,
+			  	  	  	  	  	  	  	  		sum.GetVertexT(),
 												sum.GetPrimaryDir(i).Theta(),
 												sum.GetPrimaryDir(i).Phi(),
 												sum.GetPrimaryEnergy(i) - primaryParticle->Mass()* 1000 // Mass comes in GeV but we want MeV

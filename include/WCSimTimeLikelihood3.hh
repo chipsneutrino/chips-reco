@@ -64,6 +64,12 @@ private:
 };
 
 
+double LogGaussian(const double x, const double mean, const double sigma);
+double LogFirstArrival(const double x, const int n, const double mean, const double rms);
+double DiffLogGaussFirstArrival(const double x, const int n, const double predMean, const double predRMS, const double t, const double reso);
+double DiffLogGaussFirstArrival(double * x, double * par);
+double FindOverlap(const int n, const double predMean, const double predRMS, const double t, const double reso);
+double ApproximateIntegral(const int n, const double predMean, const double predRMS, const double t, const double reso);
 double ConvertMeanTimeToMeanFirstTime(double * x, double * par);
 double ConvertMeanTimeToMeanFirstTime(const double &t, const double &mean, const double &sigma, const double &nPhotons);
 double IntegrateMeanTimeToMeanFirstTime(double * x, double * par);
@@ -71,6 +77,8 @@ double IntegrateMeanTimeToMeanFirstTime( const double &t, const double &mean, co
 
 class WCSimTimeLikelihood3 {
 public:
+    static const double fLog2;
+    static const double fSqrtPi;
 	WCSimTimeLikelihood3();
 	WCSimTimeLikelihood3(WCSimLikelihoodDigitArray * myDigitArray, WCSimEmissionProfileManager * myEmissionProfileManager);
 	virtual ~WCSimTimeLikelihood3();
@@ -174,6 +182,7 @@ private:
 	TGraphAsymmErrors * fTMinusTPredSource;
 	TGraph * fDistVsProb;
 	TGraph * fDistVsSpreadProb;
+
   TGraphErrors * fTMinusTPredVsQ;
   TH2D * fHitQVsRMS;
   TH1D * fTMinusTPredHist;
@@ -182,13 +191,8 @@ private:
   float fSpeedOfParticle;
     static const double fMinimumLikelihood;
     static const double fMaximumLnL;
-public:
-    static const double fLog2;
-    static const double fSqrtPi;
 private:
     ClassDef(WCSimTimeLikelihood3,0)
-
-        TGraph * fProbToCharge;
 };
 double ConvertMeanTimeToMeanFirstTime(double * x, double * par);
 

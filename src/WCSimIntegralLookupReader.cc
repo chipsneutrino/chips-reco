@@ -206,6 +206,7 @@ TString WCSimIntegralLookupReader::GetLookupFilename(const TrackType::Type& type
 		}
 		else
 		{
+			//str += "/config/electronIntegralsSmall.root";
 			str += "/config/muonIntegralsSmall.root";
 		}
 	}

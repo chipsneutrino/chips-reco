@@ -96,13 +96,13 @@ Double_t WCSimTotalLikelihood::Calc2LnL()
   
   for(int iDigit = 0; iDigit < fLikelihoodDigitArray->GetNDigits(); ++iDigit) {
     double digit2LnL = Calc2LnL(iDigit);
-    
     if(TMath::IsNaN(digit2LnL))
     {
       std::cerr << iDigit << " was NaN in Calc2LnL!!" << std::endl;
       return -99999;
     }
-    if(digit2LnL < 0) { return -99999; }
+    if(digit2LnL < 0) { 
+        return -99999; }
     else
     {
 	  minus2LnL += digit2LnL;
@@ -119,7 +119,6 @@ Double_t WCSimTotalLikelihood::Calc2LnL()
   }
   std::cout << "Time component = " << timeLnL << " and charge component = " << chargeLnL << " so total = " << minus2LnL << std::endl;
   fSetVectors = true;
-  // std::cout << "-2 ln(Likelihood) = " << minus2LnL << std::endl;
   return minus2LnL;
 }
 
@@ -191,7 +190,7 @@ Double_t WCSimTotalLikelihood::Calc2LnL(int iDigit)
 
   // if( (digit->GetTubeId() == 1500) && digit->GetQ() > 10)
   // {
-  //   std::cout << "Digit " << digit->GetTubeId() << " has recorded charge = " << digit->GetQ() << " and predicted charge before effiencies = " << totalCharge << " so charge adds " << chargePart << " to -2LnL and time adds " << timePart << " to minus2LnL " << minus2LnL << std::endl;
+     //std::cout << "Digit " << digit->GetTubeId() << " has recorded charge = " << digit->GetQ() << " and predicted charge before effiencies = " << totalCharge << " so charge adds " << chargePart << " to -2LnL and time adds " << timePart << " to minus2LnL " << minus2LnL << std::endl;
   // }
 
   fMeasuredCharges.at(iDigit) = digit->GetQ();

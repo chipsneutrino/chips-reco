@@ -19,6 +19,7 @@
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TMath.h"
+#include "TMarker.h"
 #include "TString.h"
 #include <algorithm>
 #include <cmath>
@@ -40,6 +41,8 @@
 #include "TLine.h"
 #include "TPaveText.h"
 #include "TSpline.h"
+#include "Math/WrappedTF1.h"
+#include "Math/BrentRootFinder.h"
 
 #ifndef REFLEX_DICTIONARY
 ClassImp(WCSimTimeLikelihood3)
@@ -50,13 +53,158 @@ const double WCSimTimeLikelihood3::fMinimumLikelihood = TMath::Exp(-fMaximumLnL)
 const double WCSimTimeLikelihood3::fSqrtPi = TMath::Sqrt(TMath::Pi());
 const double WCSimTimeLikelihood3::fLog2 = TMath::Log(2.0);
 
+/**
+ * Calculate the log of a Gaussian PDF normalised to unit area
+ *
+ * @param x The value at which to calculate the log
+ * @param mean The mean of the Gaussian
+ * @param sigma The width of the Gaussian
+ * @return The natural log of the Gaussian PDF at this x value
+ */
+double LogGaussian(const double x, const double mean, const double sigma)
+{
+    return -log(sigma * WCSimTimeLikelihood3::fSqrtPi) - (x-mean)*(x-mean)/(2*sigma*sigma);
+}
+
+/**
+ * Calculate the log of the PDF for the arrival time of the first photon
+ * given the number of photons and the parameters of a Gaussian PDF describing
+ * their arrival time
+ *
+ * @param x The value at which to calculate the log
+ * @param n The number of photons, i.e. of repeated samples drawn from a Gaussian
+ * @param mean The centre of the Gaussian being repeatedly sampled
+ * @param rms The 1-sigma width of the Gaussian being repeatedly sampled
+ * @return The log of the PDF for the earliest of n samples from the Gaussian
+ */
+double LogFirstArrival(const double x, const int n, const double mean, const double rms)
+{
+	double xmm = x-mean;
+    return (   log(n * TMath::Sqrt2() / (rms * WCSimTimeLikelihood3::fSqrtPi)) 
+             - n * WCSimTimeLikelihood3::fLog2 
+             + (n-1)*log(TMath::Erfc((xmm)/(rms*TMath::Sqrt2())))
+             - (xmm)*(xmm) / (2*rms*rms) );
+}
+
+/**
+ * Calculate the difference between the log of a Gaussian and of the PDF for the first
+ * arrival time, used for working out where the PMT resolution PDF and the photon arrival
+ * PDF cross
+ *
+ * @param x The value at which to calculate the difference in logs
+ * @param n The number of photons, i.e. of repeated samples drawn from a Gaussian
+ * @param predMean The centre of the Gaussian repeatedly sampled to generate the first arrival time
+ * @param predRMS The 1-sigma width of the Gaussian repeatedly sampled to generate the first arrival time
+ * @param t The centre of the Gaussian (i.e the PMT hit time)
+ * @param reso The 1-sigma width of the Gaussian (i.e. the PMT time resolution)
+ * @return The difference between the log of the first arrival time PDF and the PMT resolution PDF
+ */
+double DiffLogGaussFirstArrival(const double x, const int n, const double predMean, const double predRMS, const double t, const double reso)
+{
+    return LogFirstArrival(x, n, predMean, predRMS) - LogGaussian(x, t, reso);
+}
+
+/**
+ * Calculate the difference between the log of a Gaussian and of the PDF for the first
+ * arrival time.  This has double-pointer arguments so we can make it into a TF1
+ * @param x Pointer to the value at which to calculate the difference in logs
+ * @param par An array containing: number of photons, centre of repeatedly-sampled Gaussian, RMS of same Gaussian, PMT hit time, PMT time resolution
+ * @return The difference between the log of the first arrival time PDF and the PMT resolution PDF
+ */
+double DiffLogGaussFirstArrival(double * x, double * par)
+{
+    return DiffLogGaussFirstArrival(x[0], (int)par[0], par[1], par[2], par[3], par[4]);
+}
+
+/**
+ * Calculate the time at which the PMT time resolution PDF and the first arrival time
+ * PDF cross
+ * @param n The number of photons, i.e. of repeated samples drawn from a Gaussian
+ * @param predMean The centre of the Gaussian repeatedly sampled to generate the first arrival time
+ * @param predRMS The 1-sigma width of the Gaussian repeatedly sampled to generate the first arrival time
+ * @param t The centre of the Gaussian (i.e the PMT hit time)
+ * @param reso The 1-sigma width of the Gaussian (i.e. the PMT time resolution)
+ * @return The x-value at which the two PDFs are equal
+ */
+double FindCrossing(const int n, const double predMean, const double predRMS, const double t, const double reso)
+{
+    double min = t < predMean ? t : predMean;
+    double max = t > predMean ? t : predMean;
+    assert(max != min);
+    TF1 f("func", DiffLogGaussFirstArrival, min, max, 5);
+    f.SetParameters(n, predMean, predRMS, t, reso);
+
+    // Create the function and wrap it
+    ROOT::Math::WrappedTF1 wf1(f);
+  
+    // Create the Integrator
+    ROOT::Math::BrentRootFinder brf;
+  
+    // Set parameters of the method
+    brf.SetFunction( wf1, min, max );
+    brf.Solve();
+
+    double crossingX = brf.Root();
+    return crossingX;
+}
+
+
+/**
+ * Calculate an approximation to the aera of overlap between the PMT resolution and first arrival time PDFS
+ * using the trapezium rule
+ * @param n The number of photons, i.e. of repeated samples drawn from a Gaussian
+ * @param predMean The centre of the Gaussian repeatedly sampled to generate the first arrival time
+ * @param predRMS The 1-sigma width of the Gaussian repeatedly sampled to generate the first arrival time
+ * @param t The centre of the Gaussian (i.e the PMT hit time)
+ * @param reso The 1-sigma width of the Gaussian (i.e. the PMT time resolution)
+ * @return Approximate area of overlap between the two PDFs
+ */
+double ApproximateIntegral(const int n, const double predMean, const double predRMS, const double t, const double reso)
+{
+	// Work out where the two PDFs intersect
+    double x = FindCrossing(n, predMean, predRMS, t, reso);
+    double logYCrossing = LogGaussian(x, t, reso);
+    double gausExponent  = 0;
+    double firstExponent =  0;
+
+    // We want to integrate the PMT PDF to a distance reso from the crossing and the
+    // arrival time PDF to 3*predRMS - so work out which side is which and do that
+    bool predGreater = (predMean > t);
+    if(predGreater)
+    {
+        gausExponent = LogGaussian(x-reso, t, reso);
+        firstExponent = LogFirstArrival(x+predRMS, n, predMean, predRMS);
+    }
+    else
+    {
+        gausExponent = LogGaussian(x+reso, t, reso);
+        firstExponent = LogFirstArrival(x-predRMS, n, predMean, predRMS);
+    }
+
+    // Use the trapezium rule to approximate the integral
+    double middle = exp(logYCrossing);
+    double gaus   = exp(gausExponent);
+    double erf    = exp(firstExponent);
+    double area   = 0.5*(middle+gaus)*reso + 0.5*(middle+erf)*predRMS;
+    return area;
+}
+
+
+/**
+ * Given n samples drawn from a Gaussian distribution, return the PDF for the earliest sample
+ * @param t The time of the first photon, whose PDF we want to evaluate
+ * @param mean The mean of the Gaussian describing the individual photon times
+ * @param sigma The width of the Gaussian describing the individual photon times
+ * @param nPhotons The number of photons
+ * @return The PDF for the first arrival time being equal to t
+ */
 double ConvertMeanTimeToMeanFirstTime(const double &t, const double &mean, const double &sigma, const double &nPhotons)
 {
     double prob = 0.0;
     if(nPhotons == 0 || sigma == 0) { return 0; }
     if(nPhotons < 25)
     {
-	    prob =   nPhotons * TMath::Sqrt2() / (pow(2, nPhotons) * sigma * sqrt(M_PI))
+	    prob =   nPhotons * TMath::Sqrt2() / (pow(2, nPhotons) * sigma * WCSimTimeLikelihood3::fSqrtPi)
 		 	  * pow(1.0 - WCSimFastMath::erf((t - mean)/(TMath::Sqrt2()*sigma)), nPhotons-1)
 		   	  * TMath::Exp(-(t - mean)*(t - mean) / (2 * sigma * sigma));
     }
@@ -72,6 +220,15 @@ double ConvertMeanTimeToMeanFirstTime(const double &t, const double &mean, const
 	return prob;
 }
 
+/**
+ * Given n samples drawn from a Gaussian distribution, return the PDF for the earliest sample,
+ * with double pointer arguments for making it into a TF1
+ *
+ * @param x Pointer to the value at which we want to evaluate the PDF
+ * @param par Array containing the underlying Gaussian's mean and RMS, and number of photons
+ * @return The PDF for the first arrival time being equal to x[0]
+ * @param par Array containing the underlying Gaussian's mean and RMS, and number of photons
+ */
 double ConvertMeanTimeToMeanFirstTime(double * x, double * par)
 {
 	double nPhotons = par[0];
@@ -81,6 +238,14 @@ double ConvertMeanTimeToMeanFirstTime(double * x, double * par)
 	return ConvertMeanTimeToMeanFirstTime(t, mean, sigma, nPhotons);
 }
 
+/**
+ * Evaluate the integral of the PDF for the first arrival time
+ * @param t Integral evaluated from -infinity to t
+ * @param mean Mean of the underlying Gaussian
+ * @param sigma Width of the underlying Gaussian
+ * @param nPhotons Number of photons, i.e. number of times that Gaussian is sampled
+ * @return Integral of the PDF for the first arrival time from -infinity to t
+ */
 double IntegrateMeanTimeToMeanFirstTime( const double &t, const double &mean, const double &sigma, const double &nPhotons)
 {
   double integral(0.0);
@@ -96,6 +261,13 @@ double IntegrateMeanTimeToMeanFirstTime( const double &t, const double &mean, co
   return integral;
 }
 
+/**
+ * Evaluate the integral of the PDF for the first arrival time - with double
+ * pointer arguments so it can be made into a TF1
+ * @param x Integral evaluated from -infinity to x[0]
+ * @param par Array containing the underlying Gaussian's mean and RMS, and number of photons
+ * @return Integral of the PDF for the first arrival time from -infinity to x[0]
+ */
 double IntegrateMeanTimeToMeanFirstTime(double * x, double * par)
 {
   double &nPhotons = (par[0]);
@@ -140,11 +312,6 @@ double MinimumOfArrivalAndResolution( double * x, double * par )
 
 WCSimTimeLikelihood3::WCSimTimeLikelihood3() : fSpeedOfParticle(1.0 * TMath::C() * 1e-7){
 	// TODO Auto-generated constructor stub
-    fProbToCharge = new TGraph();
-    fProbToCharge->SetName("fProbToCharge");
-    fProbToCharge->SetMarkerStyle(20);
-    fProbToCharge->SetMarkerSize(0.6);
-    fProbToCharge->SetMarkerColor(kAzure);
 	fDistVsPred = 0x0;
 	fDistVsProb = 0x0;
 	fDistVsSpreadProb = 0x0;
@@ -166,11 +333,6 @@ WCSimTimeLikelihood3::WCSimTimeLikelihood3() : fSpeedOfParticle(1.0 * TMath::C()
 WCSimTimeLikelihood3::WCSimTimeLikelihood3( WCSimLikelihoodDigitArray * myDigitArray, WCSimEmissionProfileManager * myEmissionProfileManager) :
 			fSpeedOfParticle(1.0 * TMath::C() * 1e-7)
 {
-    fProbToCharge = new TGraph();
-    fProbToCharge->SetName("fProbToCharge");
-    fProbToCharge->SetMarkerStyle(20);
-    fProbToCharge->SetMarkerSize(0.6);
-    fProbToCharge->SetMarkerColor(kAzure);
   fLikelihoodDigitArray = myDigitArray;
   fEmissionProfileManager = myEmissionProfileManager;
   fPMTManager = new WCSimPMTManager();
@@ -268,20 +430,52 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
             overlapFunc.SetParameters(nPhotons,
             						  prediction.GetMean(), prediction.GetRMS(),
 									  myDigit->GetT(), reso);
-            overlapFunc.SetNpx(10000);
+
+            // Make sure we evaluate the TF1 at a reasonable number of points
+            int npx = (int)((prediction.GetMean() - myDigit->GetT())*1000);
+            if(npx < 1000){ npx = 1000; }
+            if(npx > 10000000){ npx = 10000000;}
+            overlapFunc.SetNpx(npx);
             timeLikelihood = overlapFunc.Integral(prediction.GetMean() - 5*prediction.GetRMS(), prediction.GetMean() + 5*prediction.GetRMS());
-            if(timeLikelihood == 0){ whichCase = 0x10; }
+
+            // If the integral was too small there's probably some floating point complexity breaking it
+            if(timeLikelihood <= fMinimumLikelihood)
+            {
+                // Try constructing a zoom of the overlap region by numerically solving for where
+                // the two PDFs cross, using their logarithms
+                double crossAt = FindCrossing(nPhotons, prediction.GetMean(), prediction.GetRMS(), myDigit->GetT(), reso);
+                double start   = crossAt - 3*prediction.GetRMS();
+                double end     = crossAt + 3*prediction.GetRMS();
+
+                // Plot the overlap between +/- 3sigma around the overlap points and integrate it
+                TF1 overlapFuncZoom("overlapFuncZoom", MinimumOfArrivalAndResolution, start, end, 5);
+                overlapFuncZoom.SetParameters(nPhotons,
+            						      prediction.GetMean(), prediction.GetRMS(),
+									      myDigit->GetT(), reso);
+                overlapFuncZoom.SetNpx(100000);
+                timeLikelihood = overlapFuncZoom.Integral(start, end);
+
+                
+                // Even this integral was too small!  Normally the problem comes from erf^(n-1) / 2^n so we can 
+                // use logs to get something sensible for lnL and then exponentiate it.  We'll do that, using
+                // the trapezium rule around the crossing point
+                if(timeLikelihood == 0)
+                {
+                    timeLikelihood = ApproximateIntegral(nPhotons, prediction.GetMean(), prediction.GetRMS(), myDigit->GetT(), reso);
+                }
+            }
+
         }
         else if(whichCase == 0x10) // Detect a hit but didn't predict one - use exp(-Q)
         {
             // std::cout << " -- Doing expo" << std::endl;
-            timeLikelihood = TMath::Exp(-myDigit->GetQ());
-            //timeLikelihood = 1.0;
+            // timeLikelihood = TMath::Exp(-myDigit->GetQ());
+            timeLikelihood = 1.0;
         }
         else if(whichCase == 0x01) // Predict a hit but don't detect one - use predicted probability
         {   
             // std::cout << " -- Using prob" << std::endl;
-            //timeLikelihood = (1.0 - prediction.GetProb());
+            // timeLikelihood = (1.0 - prediction.GetProb());
             timeLikelihood = 1.0;
         }
         else if(whichCase == 0x00) // Didn't predict or detect a hit - carry on
@@ -295,22 +489,24 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
             assert(false);
         }
 
+
+        // Check likelihood is sensible
+        // ============================
         if(timeLikelihood < 0 || timeLikelihood > 1)
 		{
-		  std::cout << "iDigt = " << iDigit << " and timeLikelihood = " << timeLikelihood << std::endl;
-          std::cout << "timeLikelihood is " << timeLikelihood << " and is this > 1? " << (timeLikelihood > 1) << std::endl;
+		  std::cout << "iDigit = " << iDigit << " and timeLikelihood = " << timeLikelihood << std::endl;
           std::cout << "timeLikelihood - 1 = " << timeLikelihood - 1 << std::endl;
 		  assert(timeLikelihood > 0 && timeLikelihood <= 1);
 		}
         else if(timeLikelihood >= 0 && timeLikelihood <= fMinimumLikelihood)
         {
             lnL = -fMaximumLnL;
+
         }
         else{
 			lnL = log(timeLikelihood);
         }
 		
-
 		if(TMath::IsNaN(lnL) || !TMath::Finite(lnL))
 		{
 		  std::cout << "Digit is " << iDigit << " and timeLikelihood is " << timeLikelihood
@@ -320,95 +516,9 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
 		  assert(!TMath::IsNaN(lnL));
           assert(TMath::Finite(lnL));
 		}
-
-        double start = prediction.GetMean() - 10 * prediction.GetRMS();
-        if( start > myDigit->GetT() - reso){ start = myDigit->GetT() - reso; }
-        double end   = prediction.GetMean() + 10 * prediction.GetRMS();
-        if( end < myDigit->GetT() + reso){ end = myDigit->GetT() + reso; }
-
-        /*
-        TF1 * fMean = new TF1("fMean", ConvertMeanTimeToMeanFirstTime, start, end, 3);
-        fMean->SetParameters(nPhotons, arrivalMeanSigma.first, arrivalMeanSigma.second);
-        fMean->SetNpx(1000);
-        TF1 * fInt = new TF1("fInt", IntegrateMeanTimeToMeanFirstTime, start, end, 3);
-        fInt->SetParameters(nPhotons, arrivalMeanSigma.first, arrivalMeanSigma.second);
-        fInt->SetNpx(1000);
-        TF1 * fOverlap = new TF1("fOverlap", MinimumOfArrivalAndResolution, start, end, 5);
-        fOverlap->SetParameters(nPhotons, mean, sigma, myDigit->GetT(), reso);
-        fOverlap->SetNpx(1000);
-        TF1 * fPMTTimeRes = new TF1("fPMTTimeRes","1.0 / ([1] * TMath::Sqrt(2 * TMath::Pi())) * TMath::Exp(-(x - [0])*(x-[0])/(2 * [1]*[1]))",start, end);
-        fPMTTimeRes->SetParameters(myDigit->GetT(), reso);
-        TCanvas* can11 = new TCanvas("can11","",800,600);
-        TH1D hTemplate("hTemplate","Calculating the time likelihood;Arrival time (ns);P(t)",100, start, end);
-        hTemplate.SetMaximum(1.2 * fMean->GetMaximum());
-        fAllPreds[myDigit->GetTubeId()-1] = fMean->Mean(start, end, fMean->GetParameters());
-        TLegend leg1(0.55, 0.85, 0.8, 0.6);
-        leg1.AddEntry(fMean,"PDF for arrival time","L");
-        leg1.AddEntry(fPMTTimeRes,TString::Format("PMT time measurement, #sigma = %.02f", reso).Data(),"L");
-        leg1.AddEntry(fOverlap,TString::Format("Overlap = %.02e",timeLikelihood).Data() ,"FL");
-        
-        hTemplate.Draw("AXIS");
-        hTemplate.GetXaxis()->CenterTitle();
-        hTemplate.GetYaxis()->CenterTitle();
-        hTemplate.SetStats(0);
-        fMean->Draw("SAME");
-        leg1.Draw();
-        fPMTTimeRes->Draw("SAME");
-        fOverlap->Draw("SAME");
-        fMean->SetLineColor(kRed);
-        fPMTTimeRes->SetLineColor(kBlue);
-        fOverlap->SetLineColor(kViolet-1);
-        fOverlap->SetFillColor(kViolet-1);
-        fOverlap->SetFillStyle(3002);
-        TString name = TString::Format("overlap_%d_%d", myDigit->GetTubeId(), (int)myTrack->GetE());
-        can11->SetLogy();
-        can11->SaveAs((name + ".png").Data());
-        can11->SaveAs((name + ".pdf").Data());
-        can11->SaveAs((name + ".C").Data());
-        can11->SaveAs((name + ".root").Data());
-        delete can11;
-        //double predMean = fMean->GetX(fMean->Mean(start, end, fMean->GetParameters()));
-        //double errLow = predMean - fInt->GetX(0.32);
-        //double errHi = fInt->GetX(0.68) - predMean;
-        ////std::cout << "nPhotons = " << nPhotons << "  ArrivalMeanSigma = (" << arrivalMeanSigma.first << ", " << arrivalMeanSigma.second << ")   PredMean = " << predMean << " and errors are " << fInt->GetX(0.32) << "  " << fInt->GetX(0.68) << std::endl;
-        //double delta = myDigit->GetT() - predMean;
-        //if( delta > 50 ) { delta = 50.0; }
-        //fTMinusTPredSource->SetPoint(fTMinusTPredSource->GetN(), distance, delta);
-        //fTMinusTPredSource->SetPointError(fTMinusTPredSource->GetN()-1, 0, 0, errLow, errHi);
-
-
-
-		//fDistVsPred->SetPoint(fDistVsPred->GetN(), distance, arrivalMeanSigma.first);
-		//fDistVsPred->SetPointError(fDistVsPred->GetN()-1, 0, arrivalMeanSigma.second);
-
-		//fDistVsProb->SetPoint(fDistVsProb->GetN(), distance, -2.0*lnL);
-		//fDistVsSpreadProb->SetPoint(fDistVsSpreadProb->GetN(), distance, -2.0*lnL);
-        ////fTMinusTPredSource->SetPoint(fTMinusTPredSource->GetN(), distance, (myDigit->GetT()-arrivalMeanSigma.first));
-		////fTMinusTPredSource->SetPointError(fTMinusTPredSource->GetN()-1, 0, arrivalMeanSigma.second);
-		//fTMinusTPredAll->SetPoint(fTMinusTPredAll->GetN(), distance, delta);
-		//fTMinusTPredAll->SetPointError(fTMinusTPredAll->GetN()-1, 0, 0, sqrt(reso * reso + errLow*errLow), sqrt(reso * reso  +errHi * errHi));
-		//fTMinusTPredVsQ->SetPoint(fTMinusTPredVsQ->GetN(), myDigit->GetQ(), myDigit->GetT()-arrivalMeanSigma.first);
-		//fTMinusTPredVsQ->SetPointError(fTMinusTPredVsQ->GetN()-1, 0, sqrt(sigmaSquared));
-		//fHitQVsRMS->Fill(ceil(myDigit->GetQ()), arrivalMeanSigma.second);
-        //fTMinusTPredHist->Fill(delta);
-        //if( errLow < 1.0 ){
-        //  fTMinusTPredSharpHist->Fill(delta);
-        //}
-        //delete fInt;
-        //delete fMean;
-        // delete fOverlap;
-        // delete fPMTTimeRes;
-
-	}
-    if(myDigit->GetTubeId() > 518400){
-  TCanvas * can  = new TCanvas("can","",800,600);
-  fProbToCharge->Draw("AP");
-  can->SaveAs("probToCharge.C");
-  can->SaveAs("probToCharge.png");
-  delete can;
-    */
     }
-    //std::cout << "TubeId " << myDigit->GetTubeId() << " Energy " << myTrack->GetE() << " -2LnL " << -2.0 * lnL << std::endl;
+
+
 	return -2.0 * lnL;
 }
 
@@ -479,10 +589,6 @@ bool WCSimTimeLikelihood3::IsGoodDigit(WCSimLikelihoodDigit * myDigit)
 TimePrediction WCSimTimeLikelihood3::PredictArrivalTime(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit)
 {
   bool debug = false;
-  if(myDigit->GetTubeId() == 5168 || myDigit->GetTubeId() == 5167)
-  {
-      debug = true;
-  }
 
 
   // Load the emission profiles for the four emission profiles two either side of E
@@ -547,12 +653,17 @@ TimePrediction WCSimTimeLikelihood3::PredictArrivalTime(WCSimLikelihoodTrackBase
 
   // For each of the four energies, calculate a time, RMS and weight:
   // ================================================================
+  int numNonZero = 0; // Count how many nonzero probabilities we get - need 4 to make a spline
   std::vector<double> meanVec(fSVec.size()); // Vectors to hold the values for each energy
   std::vector<double> rmsVec(fSVec.size());
   std::vector<double> probVec(fSVec.size());
 
+  std::vector<TMarker> sThetaMarkers[4];
+  std::vector<TMarker> timeMarkers[4];
+
   for(size_t iEnergy = 0; iEnergy < fSVec.size(); ++iEnergy)
   {
+      int lastColor = 30;
 	  // A vector of the predicted hit times from each step, and one of each step's weight
 	  std::vector<double> times(stepParameterVec.size(), 0.);
 	  std::vector<double> probs(stepParameterVec.size(), 0.);
@@ -565,6 +676,7 @@ TimePrediction WCSimTimeLikelihood3::PredictArrivalTime(WCSimLikelihoodTrackBase
 	  double weightedSum = 0.0;
 	  double sumOfWeights = 0.0;
 
+
 	  // Step along the track, calculating the hit time and probability for each step
 	  // ============================================================================
 	  for(std::vector<StepParameters>::iterator stepItr = stepParameterVec.begin(); stepItr != stepParameterVec.end(); ++stepItr)
@@ -573,56 +685,44 @@ TimePrediction WCSimTimeLikelihood3::PredictArrivalTime(WCSimLikelihoodTrackBase
           double cosTheta = stepItr->GetCosTheta();
 		  if( cosTheta == -999){ continue; }
 
-		  // Step through the theta bins keeping trackof the last bin so we only do it once
-		  // for(int thBin = lastBin; thBin <= nThetaBins; ++thBin)
-		  // {
-			  // Does the current theta bin contain a cosTheta value we're interested in for this step?
-              int thBin = fSCosThetaVec[iEnergy]->GetXaxis()->FindBin(cosTheta);
+		  // Does the current theta bin contain a cosTheta value we're interested in for this step?
+          int thBin = fSCosThetaVec[iEnergy]->GetXaxis()->FindBin(cosTheta);
 
-			  // if(axis->GetBinLowEdge(thBin) <= cosTheta && cosTheta < axis->GetBinUpEdge(thBin))
-			  // {
-				  // lastBin = thBin;
+		  // Do the (cosTheta, s) profile first seeing as it's more likely to be zero
+		  double prob = fSCosThetaVec[iEnergy]->GetBinContent(thBin, stepItr->GetSBin());
+		  if(prob == 0)
+		  {  // We can skip the other lookups if it's zero
+		      continue;
+		  }
 
-				  // Do the (cosTheta, s) profile first seeing as it's more likely to be zero
-				  double prob = fSCosThetaVec[iEnergy]->GetBinContent(thBin, stepItr->GetSBin());
-				  if(prob == 0)
-				  {  // We can skip the other lookups if it's zero
-					  continue;
-				  }
-                  //prob = prob * fSVec[iEnergy]->GetBinContent(stepItr->GetSBin()) 
-                   //           * fSVec[iEnergy]->GetBinWidth(stepItr->GetSBin());
+		  double t = 0;
 
-				  double t = 0;
-				  // We only need to evaluate the arrival time if the probabilty is nonzero
-				  if(prob > 0)
-				  {
-					  t =   myTrack->GetT()
-								+ fSVec[iEnergy]->GetBinCenter(stepItr->GetSBin()) / fSpeedOfParticle
-								+ n * stepItr->GetMagToPMT() / speedOfLightInCmPerNs;
-				  }
-				  else{
-					  prob = 0;
-				  }
+		  // We only need to evaluate the arrival time if the probability is nonzero
+		  if(prob > 0)
+		  {
+		      t =   myTrack->GetT()
+		    			+ fSVec[iEnergy]->GetBinCenter(stepItr->GetSBin()) / fSpeedOfParticle
+		    			+ n * stepItr->GetMagToPMT() / speedOfLightInCmPerNs;
+		  }
+		  else{
+		      prob = 0;
+		  }
 
-				  // Keep track of everything for the moving average
-				  weightedSum += prob * t;
-				  sumOfWeights += prob;
-                  // std::cout << "Digit " << myDigit->GetTubeId() << " thBin = " << thBin << " sBin = " << stepItr->GetSBin() << " prob = " << prob << " and sumOfWeights = " << sumOfWeights << "  sContent = " << fSVec[iEnergy]->GetBinContent(stepItr->GetSBin()) << " and thetaConstent = " << fSCosThetaVec[iEnergy]->GetBinContent(thBin, stepItr->GetSBin()) << std::endl;
-                  if(sumOfWeights > 1){ TCanvas * can = new TCanvas("can","",800,600); fSCosThetaVec[iEnergy]->Draw(); can->SaveAs("above1.root"); assert(0); }
+		  // Keep track of everything for the moving average
+		  weightedSum  += prob * t;
+		  sumOfWeights += prob;
+		  times[index] = t;
+		  probs[index] = prob;
 
-				  times[index] = t;
-				  probs[index] = prob;
-
-				  index++;
-			  // }
-		  // }
+		  index++;
 	  }
 
 
 	  // Finally work out the mean and rms of the predicted times for this energy
 	  // ========================================================================
 	  double mean = 0;
-	  double rms = 0;
+	  double rms  = 0.1; // We have to start this off non-zero in case there's only one non-zero-weighted time
+                         // 0.1ns seems high enough to give a smooth likelihood surface as we crank up the energy
 
 	  if(sumOfWeights > 0)
 	  {
@@ -632,27 +732,71 @@ TimePrediction WCSimTimeLikelihood3::PredictArrivalTime(WCSimLikelihoodTrackBase
 		  if(probs[i] == 0){ continue; }
 		  rms += (mean - times[i])*(mean-times[i])*probs[i] / sumOfWeights;
 		}
+
 		rms = sqrt(rms);
 	  }
 
+      // If the mean comes out zero we'll get a really distorted spline because it
+      // has to go through three nearby points and zero. So default the time to the
+      // straight line time taken by a photon from the vertex, but keep the weight zero
+      if(mean != 0)
+      {
+          numNonZero++;
+      }
+
+
 	  meanVec[iEnergy] = mean;
 	  rmsVec[iEnergy]  = rms;
-	  // std::cout << myDigit->GetTubeId() << " at " << fEnergiesVec[iEnergy] << " has t=  " << mean << " and rms = " << rms << " and prob = " << sumOfWeights << std::endl;
 	  probVec[iEnergy] = sumOfWeights;
   }
 
-
   // Construct a spline through each of the four values:
   // ===================================================
-  double finalMean = WCSimFastMath::CatmullRomSpline(&(fEnergiesVec[0]), &(meanVec[0]), myTrack->GetE());
-  double finalRMS  = WCSimFastMath::CatmullRomSpline(&(fEnergiesVec[0]), &(rmsVec[0]), myTrack->GetE());
-  double finalProb = WCSimFastMath::CatmullRomSpline(&(fEnergiesVec[0]), &(probVec[0]), myTrack->GetE());
+  double finalMean = 0;
+  double finalRMS  = 0;
+  double finalProb = 0;
+
+  // We need four nonzero points to do the spline, otherwise the zeros make it unnaturally curvy
+  if(numNonZero == 4)
+  {
+     finalMean = WCSimFastMath::CatmullRomSpline(&(fEnergiesVec[0]), &(meanVec[0]), myTrack->GetE());
+     finalRMS  = WCSimFastMath::CatmullRomSpline(&(fEnergiesVec[0]), &(rmsVec[0]), myTrack->GetE());
+     finalProb = WCSimFastMath::CatmullRomSpline(&(fEnergiesVec[0]), &(probVec[0]), myTrack->GetE());
+  }
+  else
+  {
+     // We can't do the spline, so just get ROOT to interpolate/extrapolate using the nearest points
+     TGraph gMeans;
+     TGraph gRMSs;
+     TGraph gProbs;
+     for(size_t i = 0; i < 4; ++i)
+     {
+        if(meanVec[i] == 0){ continue; }
+        gMeans.SetPoint(gMeans.GetN(), fEnergiesVec[i], meanVec[i]);
+        gRMSs.SetPoint(gRMSs.GetN(), fEnergiesVec[i], rmsVec[i]);
+        gProbs.SetPoint(gProbs.GetN(), fEnergiesVec[i], probVec[i]);
+     }
+     if(numNonZero == 1)
+     {
+         // We don't have enough points to draw a straight line - just take the values we have
+         finalMean = gMeans.GetY()[0];
+         finalRMS = gRMSs.GetY()[0];
+         finalProb = gProbs.GetY()[0];
+     }
+     else
+     {
+        // Eval will interpolate between the two nearest points, or extrapolate, both linearly
+        finalMean = gMeans.Eval(myTrack->GetE());
+        finalRMS  = gRMSs.Eval(myTrack->GetE());
+        finalProb = gProbs.Eval(myTrack->GetE());
+     }
+  }
+
   if(finalMean < 0){ finalMean = 0; }
   if(finalRMS  < 0){ finalRMS  = 0; }
   if(finalProb < 0){ finalProb = 0; }
+
   fAllPreds[myDigit->GetTubeId()-1] = finalMean;
-
-
   return TimePrediction(finalMean, finalRMS, finalProb);
 }
 

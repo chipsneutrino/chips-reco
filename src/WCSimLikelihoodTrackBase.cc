@@ -124,6 +124,11 @@ bool WCSimLikelihoodTrackBase::IsSameTrack(WCSimLikelihoodTrackBase * b) const
               && fConversionDistance == b->fConversionDistance);
 }
 
+bool WCSimLikelihoodTrackBase::SameTypeAndEnergy(WCSimLikelihoodTrackBase * other) const
+{
+    return (fType == other->GetType() && fE0 == other->GetE());
+}
+
 int WCSimLikelihoodTrackBase::GetPDG() const
 {
   return TrackType::GetPDGFromType(fType);

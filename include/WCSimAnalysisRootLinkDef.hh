@@ -109,4 +109,7 @@
 #pragma link C++ class WCSimTimeLikelihood3+;
 #pragma link C++ class WCSimIntegralLookup3D+;
 #pragma link C++ class WCSimIntegralLookupHistArray+;
+#pragma link C++ class ProgressBar+;
+#pragma link C++ class WCSimFitResult+;
+#pragma link C++ class WCSimResultEvent+;
 #endif

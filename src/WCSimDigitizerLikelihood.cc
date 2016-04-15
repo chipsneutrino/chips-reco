@@ -89,20 +89,17 @@ Double_t WCSimDigitizerLikelihood::GetMinus2LnL( const Double_t &undigi, const D
 	 prediction = 1e-6;
   }
 
-  return 2*prediction - 2 * digi * TMath::Log(prediction) + 2 * TMath::LnGamma(digi+1);
-
-
-
+  double m2LnL = 25.0;
   switch( fType )
   {
     case WCSimDigitizerLikelihood::kSimple:
     {
-      return this->GetSimpleMinus2LnL( undigi, digi );
+      m2LnL = this->GetSimpleMinus2LnL( undigi, digi );
       break;
     }
     case WCSimDigitizerLikelihood::kWCSim:
     {
-      return this->GetWCSimMinus2LnL( undigi, digi );
+      m2LnL = this->GetWCSimMinus2LnL( undigi, digi );
       break;
     }
     case WCSimDigitizerLikelihood::kUnknown:
@@ -117,8 +114,8 @@ Double_t WCSimDigitizerLikelihood::GetMinus2LnL( const Double_t &undigi, const D
       break;
     }
   }
-
-  return -1.0;
+  if(m2LnL < 0 || m2LnL > 25.0){ m2LnL = 25.0; }
+  return m2LnL;
 }
 
 
@@ -251,7 +248,7 @@ Double_t WCSimDigitizerLikelihood::GetWCSimLikelihood( Double_t undigi, const Do
  	// this as the final result.  To get the likelihood, we therefore need the probability
  	// that the sampler gives (measured value/0.985) * the probability (measured value/0.985)
  	// passes the threshold.
-  fEfficiency = 1.; // We deal with this in the code to make the digitiser PDFs now 
+    fEfficiency = 1.; // We deal with this in the code to make the digitiser PDFs now 
  	Double_t digiEff = digi/fEfficiency;
   // std::cout << "digi = " << digi << "  digiEff = " << digiEff << "  fEfficiency = " << fEfficiency << std::endl;
 
@@ -425,6 +422,7 @@ Double_t WCSimDigitizerLikelihood::GetSimpleLikelihood(const Double_t &undigi, c
 
 Double_t WCSimDigitizerLikelihood::GetSimpleMinus2LnL( const Double_t &undigi, const Double_t &digi )
 {
+    return -2.0 * ( digi * TMath::Log(undigi) - undigi - TMath::LnGamma(digi+1));
   Double_t prob = this->GetSimpleLikelihood( undigi, digi );
   if(prob > 1e-40){ return -2.0 * TMath::Log(prob);}
   return -(digi * TMath::Log(undigi) - undigi - TMath::LnGamma(digi+1));

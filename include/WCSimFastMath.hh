@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <cassert>
+#include <iostream>
 // We end up calculating a LOT of trig functions and awkward
 // powers, exponentials, error functions, etc.
 // This namespace contains some good, fast approximate ways
@@ -137,42 +138,6 @@ namespace WCSimFastMath{
     };
     
     /*******************************************************************//**
-    * \brief Fast power function by Martin Ankerl
-    *
-    * Algorithm comes from 
-    * http://martin.ankerl.com/2012/01/25/optimized-approximative-pow-in-c-and-cpp/
-    *
-    * @param a Number to raise to some power
-    * @param b Power to which a should be raised
-    * @return a^b 
-    */
-    inline double pow(double a, double b) {
-      // calculate approximation with fraction of the exponent
-      if(b < 0) { return pow(a, -b); }
-
-      int e = (int) b;
-      union {
-        double d;
-        int x[2];
-      } u = { a };
-      u.x[1] = (int)((b - e) * (u.x[1] - 1072632447) + 1072632447);
-      u.x[0] = 0;
-     
-      // exponentiation by squaring with the exponent's integer part
-      // double r = u.d makes everything much slower, not sure why
-      double r = 1.0;
-      while (e) {
-        if (e & 1) {
-          r *= a;
-        }
-        a *= a;
-        e >>= 1;
-      }
-     
-      return r * u.d;
-    };
-
-    /*******************************************************************//**
     * \brief Fast error function by John D. Cook
     *
     * @param a Number to raise to some power
@@ -226,8 +191,15 @@ namespace WCSimFastMath{
         double dx1 = x[1] - x[0];
         double dx2 = x[2] - x[1];
         double dx3 = x[3] - x[2];
-        assert(dx1 > 0);
-        assert((dx3 == dx2) && (dx2 == dx1));
+        if( dx1 < 0)
+        {
+            assert(dx1 > 0);
+        }
+        if( (dx3 != dx2) || (dx2 != dx1))
+        {
+            assert((dx3 == dx2) && (dx2 == dx1));
+            std::cout << "dx1 = " << dx1 << " dx2 = " << dx2 << "dx3 = " << dx3 << std::endl;
+        }
 
         // Check the value to interpolate at is between x1 and x2
         assert(xInterp <= x[2] && xInterp >= x[1]);

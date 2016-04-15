@@ -530,7 +530,7 @@ void WCSimHoughTransformArray::FitMultiPeaksSmooth(std::vector<Double_t> &houghD
     }
   }
   TSpectrum *peakFinder1D = new TSpectrum();
-  peakFinder1D->Search(houghProjection1D, 4, "col");
+  peakFinder1D->Search(houghProjection1D, 2, "");
 
   std::vector<std::pair<double,TVector2> > peakListToSort;
   float *phiArray = peakFinder->GetPositionX();

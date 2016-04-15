@@ -30,7 +30,7 @@ public:
 	void FreeTrackParameter(int numTrack, const char * name, bool doIt = true);
 	bool GetIsFixedParameter(int numTrack, const char * name);
 
-  void SetParameter(unsigned int numTrack, const char * name, double min, double max, double start, bool fixIt);
+    void SetParameter(unsigned int numTrack, const char * name, double min, double max, double start, double step, bool fixIt);
 
 	void SetParMin( int numTrack, const char * name, double min);
 	double GetParMin( unsigned int numTrack, const char * name );
@@ -40,6 +40,9 @@ public:
 
 	void SetParStart( int numTrack, const char * name, double start);
 	double GetParStart( unsigned int numTrack, const char * name );
+
+	void SetParStep( int numTrack, const char * name, double step);
+	double GetParStep( unsigned int numTrack, const char * name );
 
 	void SetParRange( int numTrack, const char * name, double min, double max);
 	std::pair<double, double> GetParRange( unsigned int numTrack, const char * name );

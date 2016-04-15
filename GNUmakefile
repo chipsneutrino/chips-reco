@@ -50,7 +50,7 @@ ROOTDICT := $(SRCDIR)/WCSimAnalysisRootDict.cc
 
 # This is the list of all the ROOT-based classes we need to worry about.
 # Assumes that each class has src/*.cc, include/*.hh and tmp/*.o files.
-ROOTCLASS := WCSimTimeLikelihood3 WCSimFastMath WCSimTransmissionFunctionLookup WCSimPiZeroSeed WCSimPiZeroSeedGenerator WCSimPiZeroSeeder WCSimPiZeroHoughSeeder WCSimPiZeroSingleElectronSeeder WCSimPiZeroElectronAdjuster WCSimPiZeroFitter WCSimDetectorParameters WCSimTimePredictor WCSimTimeLikelihood2 WCSimLikelihoodTrackFactory WCSimLikelihoodTrackBase WCSimLikelihoodPhotonTrack WCSimFitterTrackParMap WCSimIntegralLookupMaker3D WCSimIntegralLookup3D WCSimIntegralLookupReader WCSimIntegralLookup WCSimIntegralLookupMaker WCSimRecoEvDisplay WCSimRecoSummary WCSimEmissionProfileManager WCSimEmissionProfiles WCSimFitterConfig WCSimFitterInterface WCSimFitterParameters WCSimFitterTree WCSimFitterPlots WCSimTimeLikelihood WCSimAnalysisConfig WCSimDigitizerLikelihood WCSimTotalLikelihood WCSimLikelihoodTrack WCSimLikelihoodDigit WCSimLikelihoodDigitArray WCSimLikelihoodTuner WCSimLikelihoodFitter WCSimDisplayViewer WCSimDisplayFactory WCSimDisplay WCSimDisplayAB WCSimEveDisplay WCSimEventWriter WCSimGeometry WCSimInterface WCSimParameters WCSimRecoObjectTable WCSimRecoFactory WCSimReco WCSimRecoAB WCSimRecoDigit WCSimRecoCluster WCSimRecoClusterDigit WCSimRecoRing WCSimRecoVertex WCSimRecoEvent WCSimTrueEvent WCSimTrueTrack WCSimHoughTransform WCSimHoughTransformArray WCSimDataCleaner WCSimVertexFinder WCSimVertexGeometry WCSimVertexViewer WCSimRingFinder WCSimRingViewer WCSimNtupleFactory WCSimNtuple WCSimRecoNtuple WCSimVertexNtuple WCSimVertexSeedNtuple WCSimNtupleWriter WCSimMsg WCSimChargePredictor WCSimRecoSeed WCSimRecoSlicer WCSimScatteringTableManager
+ROOTCLASS := ProgressBar WCSimTrackParameterEnums WCSimResultsPlotter WCSimFitResult WCSimTimeLikelihood3 WCSimFastMath WCSimTransmissionFunctionLookup WCSimPiZeroSeed WCSimPiZeroSeedGenerator WCSimPiZeroSeeder WCSimPiZeroHoughSeeder WCSimPiZeroSingleElectronSeeder WCSimPiZeroElectronAdjuster WCSimPiZeroFitter WCSimDetectorParameters WCSimTimePredictor WCSimTimeLikelihood2 WCSimLikelihoodTrackFactory WCSimLikelihoodTrackBase WCSimLikelihoodPhotonTrack WCSimFitterTrackParMap WCSimIntegralLookupMaker3D WCSimIntegralLookup3D WCSimIntegralLookupReader WCSimIntegralLookup WCSimIntegralLookupMaker WCSimRecoEvDisplay WCSimRecoSummary WCSimEmissionProfileManager WCSimEmissionProfiles WCSimFitterConfig WCSimFitterInterface WCSimFitterParameters WCSimFitterTree WCSimFitterPlots WCSimTimeLikelihood WCSimAnalysisConfig WCSimDigitizerLikelihood WCSimTotalLikelihood WCSimLikelihoodTrack WCSimLikelihoodDigit WCSimLikelihoodDigitArray WCSimLikelihoodTuner WCSimLikelihoodFitter WCSimDisplayViewer WCSimDisplayFactory WCSimDisplay WCSimDisplayAB WCSimEveDisplay WCSimEventWriter WCSimGeometry WCSimInterface WCSimParameters WCSimRecoObjectTable WCSimRecoFactory WCSimReco WCSimRecoAB WCSimRecoDigit WCSimRecoCluster WCSimRecoClusterDigit WCSimRecoRing WCSimRecoVertex WCSimRecoEvent WCSimTrueEvent WCSimTrueTrack WCSimHoughTransform WCSimHoughTransformArray WCSimDataCleaner WCSimVertexFinder WCSimVertexGeometry WCSimVertexViewer WCSimRingFinder WCSimRingViewer WCSimNtupleFactory WCSimNtuple WCSimRecoNtuple WCSimVertexNtuple WCSimVertexSeedNtuple WCSimNtupleWriter WCSimMsg WCSimChargePredictor WCSimRecoSeed WCSimRecoSlicer WCSimScatteringTableManager
 
 # Create the ROOTINC list from the class list, remembering to also add the LinkDef file
 ROOTINC = $(ROOTCLASS:%=$(INCDIR)/%.hh)
@@ -100,6 +100,30 @@ fitterProfile:
 
 wc_plotLikelihoodOnce:
 	$(CXX) $(CXXFLAGS) `root-config --cflags --glibs --libs --evelibs` -I./include ${WCSIM_INCLUDES} -I/home/ajperch/software/gperftools/include -L${WCSIMANAHOME} -L${WCSIMHOME} -L/home/ajperch/software/gperftools/lib/ -o wc_plotLikelihoodOnce wc_plotLikelihoodOnce.cc ${WCSIMHOME}/src/WCSimRootDict.cc ${WCSIMANAHOME}/src/WCSimAnalysisRootDict.cc -lWCSim -lWCSimAnalysis -lEG -lSpectrum -lMinuit -L/home/ajperch/software/gperftools/lib -lprofiler 
+
+wc_plotHitTimesVsZ:
+	$(CXX) `root-config --cflags --glibs --libs --evelibs` -I./include ${WCSIM_INCLUDES} -I/home/ajperch/usefulMacros -L${WCSIMANAHOME} -L${WCSIMHOME} -o wc_plotHitTimesVsZ wc_plotHitTimesVsZ.cc /home/ajperch/usefulMacros/ProgressBar.cc /home/ajperch/usefulMacros/ProgressBar.hh ${WCSIMHOME}/src/WCSimRootDict.cc ${WCSIMANAHOME}/src/WCSimAnalysisRootDict.cc -lWCSim -lWCSimAnalysis -lEG -lSpectrum -lMinuit
+
+wc_estimatePhotonSpeed:
+	$(CXX) `root-config --cflags --glibs --libs --evelibs` -I./include ${WCSIM_INCLUDES} -I/home/ajperch/usefulMacros -L${WCSIMANAHOME} -L${WCSIMHOME} -o wc_estimatePhotonSpeed wc_estimatePhotonSpeed.cc /home/ajperch/usefulMacros/ProgressBar.cc /home/ajperch/usefulMacros/ProgressBar.hh ${WCSIMHOME}/src/WCSimRootDict.cc ${WCSIMANAHOME}/src/WCSimAnalysisRootDict.cc -lWCSim -lWCSimAnalysis -lEG -lSpectrum -lMinuit
+
+wc_compareTwoRuns:
+	$(CXX) `root-config --cflags --glibs --libs --evelibs` -I./include ${WCSIM_INCLUDES} -L${WCSIMANAHOME} -L${WCSIMHOME} -o wc_compareTwoRuns wc_compareTwoRuns.cc ${WCSIMHOME}/src/WCSimRootDict.cc ${WCSIMANAHOME}/src/WCSimAnalysisRootDict.cc -lWCSim -lWCSimAnalysis -lEG -lSpectrum -lMinuit
+
+wc_plotResults:
+	$(CXX) `root-config --cflags --glibs --libs --evelibs` -I./include ${WCSIM_INCLUDES} -L${WCSIMANAHOME} -L${WCSIMHOME} -o wc_plotResults wc_plotResults.cc ${WCSIMHOME}/src/WCSimRootDict.cc ${WCSIMANAHOME}/src/WCSimAnalysisRootDict.cc -lWCSim -lWCSimAnalysis -lEG -lSpectrum -lMinuit
+
+wc_plotResults2:
+	$(CXX) `root-config --cflags --glibs --libs --evelibs` -I./include -I./ ${WCSIM_INCLUDES} -L${WCSIMANAHOME} -L${WCSIMHOME} -o wc_plotResults2 wc_plotResults2.cc WCSimComparisonPlotter.cc ${WCSIMHOME}/src/WCSimRootDict.cc ${WCSIMANAHOME}/src/WCSimAnalysisRootDict.cc -lWCSim -lWCSimAnalysis -lEG -lSpectrum -lMinuit
+
+wc_hitcomparison:
+	$(CXX) `root-config --cflags --glibs --libs --evelibs` -I./include -I./ ${WCSIM_INCLUDES} -L${WCSIMANAHOME} -L${WCSIMHOME} -o wc_hitcomparison wc_hitcomparison.cc ${WCSIMHOME}/src/WCSimRootDict.cc ${WCSIMANAHOME}/src/WCSimAnalysisRootDict.cc -lWCSim -lWCSimAnalysis -lEG -lSpectrum -lMinuit
+
+wc_compareDigiUndigi:
+	$(CXX) `root-config --cflags --glibs --libs --evelibs` -I./include -I./ ${WCSIM_INCLUDES} -L${WCSIMANAHOME} -L${WCSIMHOME} -o wc_compareDigiUndigi wc_compareDigiUndigi.cc ${WCSIMHOME}/src/WCSimRootDict.cc ${WCSIMANAHOME}/src/WCSimAnalysisRootDict.cc -lWCSim -lWCSimAnalysis -lEG -lSpectrum -lMinuit
+
+wc_sweepEnergy:
+	$(CXX) `root-config --cflags --glibs --libs --evelibs` -I./include -I./ ${WCSIM_INCLUDES} -L${WCSIMANAHOME} -L${WCSIMHOME} -o wc_sweepEnergy wc_sweepEnergy.cc ${WCSIMHOME}/src/WCSimRootDict.cc ${WCSIMANAHOME}/src/WCSimAnalysisRootDict.cc -lWCSim -lWCSimAnalysis -lEG -lSpectrum -lMinuit
 
 clean :
 	@echo "<**Clean**>"
