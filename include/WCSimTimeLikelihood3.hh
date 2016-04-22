@@ -8,9 +8,11 @@
 #ifndef INCLUDE_WCSIMTIMELIKELIHOOD3_HH_
 #define INCLUDE_WCSIMTIMELIKELIHOOD3_HH_
 
+#include "TF1.h"
 #include "TString.h"
 #include "WCSimTrackParameterEnums.hh"
 #include <map>
+#include <vector>
 class WCSimEmissionProfileManager;
 class WCSimPMTManager;
 class WCSimLikelihoodDigit;
@@ -24,6 +26,38 @@ class TH2D;
 class TH1D; 
 class TH2F;
 class TH1F; 
+
+
+class LogFinder{
+public: 
+    LogFinder(double n, double predMean, double predRMS, double t, double reso) : 
+        fN(n), fPredMean(predMean), fPredRMS(predRMS), fT(t), fReso(reso){};
+   double operator()(const double x) {
+     return this->Eval(x);
+   } 
+ 
+   double Derivative(const double x) const
+   {
+       return DiffLogGaussFirstArrivalGradient(x);
+   }
+   double Eval(const double x) {
+     return DiffLogGaussFirstArrival(x);
+   }
+
+   bool ApproxEqual(double x, double y, double epsilon){ return fabs(x-y) < epsilon; }
+   double LogGaussian(const double x) const;
+   double LogGaussianGradient(const double x) const;
+   double LogFirstArrival(const double x) const;
+   double LogFirstArrivalGradient(const double x) const;
+   double DiffLogGaussFirstArrival(const double x) const;
+   double DiffLogGaussFirstArrivalGradient(const double x) const;
+private:
+   double fN;
+   double fPredMean;
+   double fPredRMS;
+   double fT;
+   double fReso;
+};
 
 /**
  * Container holding the parameters used by the time likelihood
@@ -64,16 +98,6 @@ private:
 };
 
 
-double LogGaussian(const double x, const double mean, const double sigma);
-double LogFirstArrival(const double x, const int n, const double mean, const double rms);
-double DiffLogGaussFirstArrival(const double x, const int n, const double predMean, const double predRMS, const double t, const double reso);
-double DiffLogGaussFirstArrival(double * x, double * par);
-double FindOverlap(const int n, const double predMean, const double predRMS, const double t, const double reso);
-double ApproximateIntegral(const int n, const double predMean, const double predRMS, const double t, const double reso);
-double ConvertMeanTimeToMeanFirstTime(double * x, double * par);
-double ConvertMeanTimeToMeanFirstTime(const double &t, const double &mean, const double &sigma, const double &nPhotons);
-double IntegrateMeanTimeToMeanFirstTime(double * x, double * par);
-double IntegrateMeanTimeToMeanFirstTime( const double &t, const double &mean, const double &sigma, const double &nPhotons);
 
 class WCSimTimeLikelihood3 {
 public:
@@ -129,8 +153,6 @@ public:
      */
      TimePrediction PredictArrivalTime(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit);
 
-    void SavePlot();
-
 private:
 
     /**
@@ -171,24 +193,31 @@ private:
     bool IsGoodDigit(WCSimLikelihoodDigit * myDigit);
 
 
+    double FindCrossing(const double n, const double predMean, const double predRMS, const double t, const double reso);
+    std::vector<double> FindCrossings(const double n, const double predMean, const double predRMS, const double t, const double reso);
+    double FindOverlap(const double n, const double predMean, const double predRMS, const double t, const double reso);
+    double ApproximateIntegral(const double n, const double predMean, const double predRMS, const double t, const double reso);
+
+
+    double ConvertMeanTimeToMeanFirstTime(const double &t, const double &mean, const double &sigma, const double &nPhotons);
+    double ConvertMeanTimeToMeanFirstTime(double * x, double * par);
+    double IntegrateGaussian(const double mean, const double sigma, const double from, const double to);
+    double IntegrateGaussianFromMinusInfinity(const double mean, const double sigma, const double to);
+    double IntegrateGaussianToInfinity(const double mean, const double sigma, const double from);
+    double IntegrateMeanTimeToMeanFirstTime( const double &t, const double &mean, const double &sigma, const double &nPhotons);
+    double IntegrateMeanTimeToMeanFirstTime(double * x, double * par);
+    double MinimumOfArrivalAndResolution(const double &t, const double &meanArr, const double rmsArr, const double pmtTime, const double &pmtRes, const double &nPhotons);
+    double MinimumOfArrivalAndResolutionTF1(double * x, double * par);
+
+
 	std::vector<WCSimLikelihoodTrackBase*> fTracks; ///< Tracks to consider when calculating the likelihood
     WCSimLikelihoodDigitArray * fLikelihoodDigitArray; ///< Event to build likelihood for
     WCSimPMTManager * fPMTManager; ///< PMT manager so we can look up the PMT type to work out its time resolution
     WCSimEmissionProfileManager * fEmissionProfileManager; ///< To get the coarse emission profiles for a given track to probability weight arrival times
     std::vector<double> fAllPreds; ///< Vector of the mean predicted arrival time for each PMT
     std::map<TString, double> fPMTTimeConstantMap; ///< Map that stores the time constant used to calculate the time resolution for each unique PMT name
-	TGraphErrors * fDistVsPred;
-	TGraphAsymmErrors * fTMinusTPredAll;
-	TGraphAsymmErrors * fTMinusTPredSource;
-	TGraph * fDistVsProb;
-	TGraph * fDistVsSpreadProb;
 
-  TGraphErrors * fTMinusTPredVsQ;
-  TH2D * fHitQVsRMS;
-  TH1D * fTMinusTPredHist;
-  TH1D * fTMinusTPredSharpHist;
-
-  float fSpeedOfParticle;
+	float fSpeedOfParticle;
     static const double fMinimumLikelihood;
     static const double fMaximumLnL;
 private:

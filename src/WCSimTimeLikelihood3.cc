@@ -42,7 +42,12 @@
 #include "TPaveText.h"
 #include "TSpline.h"
 #include "Math/WrappedTF1.h"
-#include "Math/BrentRootFinder.h"
+#include "Math/RootFinderAlgorithms.h"
+#include "Math/RootFinder.h"
+#include "Math/Functor.h"
+#include "Math/WrappedFunction.h"
+#include "Math/IFunction.h"
+#include "Math/Integrator.h"
 
 #ifndef REFLEX_DICTIONARY
 ClassImp(WCSimTimeLikelihood3)
@@ -52,18 +57,26 @@ const double WCSimTimeLikelihood3::fMaximumLnL = 25.0/2.0; // So the maximum of 
 const double WCSimTimeLikelihood3::fMinimumLikelihood = TMath::Exp(-fMaximumLnL); // So the maximum of -2LnL = 25
 const double WCSimTimeLikelihood3::fSqrtPi = TMath::Sqrt(TMath::Pi());
 const double WCSimTimeLikelihood3::fLog2 = TMath::Log(2.0);
-
 /**
  * Calculate the log of a Gaussian PDF normalised to unit area
  *
  * @param x The value at which to calculate the log
- * @param mean The mean of the Gaussian
- * @param sigma The width of the Gaussian
  * @return The natural log of the Gaussian PDF at this x value
  */
-double LogGaussian(const double x, const double mean, const double sigma)
+double LogFinder::LogGaussian(const double x) const
 {
-    return -log(sigma * WCSimTimeLikelihood3::fSqrtPi) - (x-mean)*(x-mean)/(2*sigma*sigma);
+    return -log(fReso * TMath::Sqrt2() * WCSimTimeLikelihood3::fSqrtPi) - (x-fT)*(x-fT)/(2*fReso*fReso);
+}
+
+/**
+ * Calculate the gradient of the log of a Gaussian PDF normalised to unit area
+ *
+ * @param x The value at which to calculate the log
+ * @return The gradient of the natural log of the Gaussian PDF at this x value
+ */
+double LogFinder::LogGaussianGradient(const double x) const
+{
+    return (fT - x)/(fReso*fReso);
 }
 
 /**
@@ -72,18 +85,35 @@ double LogGaussian(const double x, const double mean, const double sigma)
  * their arrival time
  *
  * @param x The value at which to calculate the log
+ * @return The log of the PDF for the earliest of n samples from the Gaussian
+ */
+double LogFinder::LogFirstArrival(const double x) const
+{
+	double xmm = x-fPredMean;
+    return (   log(fN * TMath::Sqrt2() / (fPredRMS * WCSimTimeLikelihood3::fSqrtPi)) 
+             - fN * WCSimTimeLikelihood3::fLog2 
+             + (fN-1)*log(TMath::Erfc((xmm)/(fPredRMS*TMath::Sqrt2())))
+             - (xmm)*(xmm) / (2*fPredRMS*fPredRMS) );
+}
+
+/**
+ * Calculate the gradient of the log of the PDF for the arrival time of the first photon
+ * given the number of photons and the parameters of a Gaussian PDF describing
+ * their arrival time
+ *
+ * @param x The value at which to calculate the gradient of the log
  * @param n The number of photons, i.e. of repeated samples drawn from a Gaussian
  * @param mean The centre of the Gaussian being repeatedly sampled
  * @param rms The 1-sigma width of the Gaussian being repeatedly sampled
- * @return The log of the PDF for the earliest of n samples from the Gaussian
+ * @return The gradient of the log of the PDF for the earliest of n samples from the Gaussian
  */
-double LogFirstArrival(const double x, const int n, const double mean, const double rms)
+double LogFinder::LogFirstArrivalGradient(const double x) const
 {
-	double xmm = x-mean;
-    return (   log(n * TMath::Sqrt2() / (rms * WCSimTimeLikelihood3::fSqrtPi)) 
-             - n * WCSimTimeLikelihood3::fLog2 
-             + (n-1)*log(TMath::Erfc((xmm)/(rms*TMath::Sqrt2())))
-             - (xmm)*(xmm) / (2*rms*rms) );
+	double xmm = x-fPredMean;
+	return    1.0 / (fPredRMS * TMath::Sqrt2() * WCSimTimeLikelihood3::fSqrtPi)
+			* 2*TMath::Exp(-xmm*xmm/(2*fPredRMS*fPredRMS))
+			* ((1-fN)/TMath::Erfc(xmm/(fPredRMS*TMath::Sqrt2())))
+			- (xmm)/(fPredRMS*fPredRMS);
 }
 
 /**
@@ -92,235 +122,30 @@ double LogFirstArrival(const double x, const int n, const double mean, const dou
  * PDF cross
  *
  * @param x The value at which to calculate the difference in logs
- * @param n The number of photons, i.e. of repeated samples drawn from a Gaussian
- * @param predMean The centre of the Gaussian repeatedly sampled to generate the first arrival time
- * @param predRMS The 1-sigma width of the Gaussian repeatedly sampled to generate the first arrival time
- * @param t The centre of the Gaussian (i.e the PMT hit time)
- * @param reso The 1-sigma width of the Gaussian (i.e. the PMT time resolution)
  * @return The difference between the log of the first arrival time PDF and the PMT resolution PDF
  */
-double DiffLogGaussFirstArrival(const double x, const int n, const double predMean, const double predRMS, const double t, const double reso)
+double LogFinder::DiffLogGaussFirstArrival(const double x) const
 {
-    return LogFirstArrival(x, n, predMean, predRMS) - LogGaussian(x, t, reso);
+    return LogGaussian(x) - LogFirstArrival(x);
 }
 
 /**
- * Calculate the difference between the log of a Gaussian and of the PDF for the first
- * arrival time.  This has double-pointer arguments so we can make it into a TF1
- * @param x Pointer to the value at which to calculate the difference in logs
- * @param par An array containing: number of photons, centre of repeatedly-sampled Gaussian, RMS of same Gaussian, PMT hit time, PMT time resolution
- * @return The difference between the log of the first arrival time PDF and the PMT resolution PDF
- */
-double DiffLogGaussFirstArrival(double * x, double * par)
-{
-    return DiffLogGaussFirstArrival(x[0], (int)par[0], par[1], par[2], par[3], par[4]);
-}
-
-/**
- * Calculate the time at which the PMT time resolution PDF and the first arrival time
+ * Calculate the gradient of the difference between the log of a Gaussian and of the PDF for the first
+ * arrival time, used for working out where the PMT resolution PDF and the photon arrival
  * PDF cross
- * @param n The number of photons, i.e. of repeated samples drawn from a Gaussian
- * @param predMean The centre of the Gaussian repeatedly sampled to generate the first arrival time
- * @param predRMS The 1-sigma width of the Gaussian repeatedly sampled to generate the first arrival time
- * @param t The centre of the Gaussian (i.e the PMT hit time)
- * @param reso The 1-sigma width of the Gaussian (i.e. the PMT time resolution)
- * @return The x-value at which the two PDFs are equal
- */
-double FindCrossing(const int n, const double predMean, const double predRMS, const double t, const double reso)
-{
-    double min = t < predMean ? t : predMean;
-    double max = t > predMean ? t : predMean;
-    assert(max != min);
-    TF1 f("func", DiffLogGaussFirstArrival, min, max, 5);
-    f.SetParameters(n, predMean, predRMS, t, reso);
-
-    // Create the function and wrap it
-    ROOT::Math::WrappedTF1 wf1(f);
-  
-    // Create the Integrator
-    ROOT::Math::BrentRootFinder brf;
-  
-    // Set parameters of the method
-    brf.SetFunction( wf1, min, max );
-    brf.Solve();
-
-    double crossingX = brf.Root();
-    return crossingX;
-}
-
-
-/**
- * Calculate an approximation to the aera of overlap between the PMT resolution and first arrival time PDFS
- * using the trapezium rule
- * @param n The number of photons, i.e. of repeated samples drawn from a Gaussian
- * @param predMean The centre of the Gaussian repeatedly sampled to generate the first arrival time
- * @param predRMS The 1-sigma width of the Gaussian repeatedly sampled to generate the first arrival time
- * @param t The centre of the Gaussian (i.e the PMT hit time)
- * @param reso The 1-sigma width of the Gaussian (i.e. the PMT time resolution)
- * @return Approximate area of overlap between the two PDFs
- */
-double ApproximateIntegral(const int n, const double predMean, const double predRMS, const double t, const double reso)
-{
-	// Work out where the two PDFs intersect
-    double x = FindCrossing(n, predMean, predRMS, t, reso);
-    double logYCrossing = LogGaussian(x, t, reso);
-    double gausExponent  = 0;
-    double firstExponent =  0;
-
-    // We want to integrate the PMT PDF to a distance reso from the crossing and the
-    // arrival time PDF to 3*predRMS - so work out which side is which and do that
-    bool predGreater = (predMean > t);
-    if(predGreater)
-    {
-        gausExponent = LogGaussian(x-reso, t, reso);
-        firstExponent = LogFirstArrival(x+predRMS, n, predMean, predRMS);
-    }
-    else
-    {
-        gausExponent = LogGaussian(x+reso, t, reso);
-        firstExponent = LogFirstArrival(x-predRMS, n, predMean, predRMS);
-    }
-
-    // Use the trapezium rule to approximate the integral
-    double middle = exp(logYCrossing);
-    double gaus   = exp(gausExponent);
-    double erf    = exp(firstExponent);
-    double area   = 0.5*(middle+gaus)*reso + 0.5*(middle+erf)*predRMS;
-    return area;
-}
-
-
-/**
- * Given n samples drawn from a Gaussian distribution, return the PDF for the earliest sample
- * @param t The time of the first photon, whose PDF we want to evaluate
- * @param mean The mean of the Gaussian describing the individual photon times
- * @param sigma The width of the Gaussian describing the individual photon times
- * @param nPhotons The number of photons
- * @return The PDF for the first arrival time being equal to t
- */
-double ConvertMeanTimeToMeanFirstTime(const double &t, const double &mean, const double &sigma, const double &nPhotons)
-{
-    double prob = 0.0;
-    if(nPhotons == 0 || sigma == 0) { return 0; }
-    if(nPhotons < 25)
-    {
-	    prob =   nPhotons * TMath::Sqrt2() / (pow(2, nPhotons) * sigma * WCSimTimeLikelihood3::fSqrtPi)
-		 	  * pow(1.0 - WCSimFastMath::erf((t - mean)/(TMath::Sqrt2()*sigma)), nPhotons-1)
-		   	  * TMath::Exp(-(t - mean)*(t - mean) / (2 * sigma * sigma));
-    }
-    else // Use logarithms to take care of the two large n powers almost cancelling
-    {
-        double logL =  log(nPhotons * TMath::Sqrt2() / (sigma * WCSimTimeLikelihood3::fSqrtPi ))
-                     - nPhotons * WCSimTimeLikelihood3::fLog2
-                     + (nPhotons - 1) * log(1.0 - WCSimFastMath::erf((t - mean) / (2 * sigma * sigma)))
-                     - (t - mean) * (t - mean) / (2 * sigma * sigma);
-        prob = TMath::Exp(logL);
-
-    }
-	return prob;
-}
-
-/**
- * Given n samples drawn from a Gaussian distribution, return the PDF for the earliest sample,
- * with double pointer arguments for making it into a TF1
  *
- * @param x Pointer to the value at which we want to evaluate the PDF
- * @param par Array containing the underlying Gaussian's mean and RMS, and number of photons
- * @return The PDF for the first arrival time being equal to x[0]
- * @param par Array containing the underlying Gaussian's mean and RMS, and number of photons
+ * @param x The value at which to calculate the gradient of the difference in logs
+ * @return The gradient of the difference between the log of the first arrival time PDF and the PMT resolution PDF
  */
-double ConvertMeanTimeToMeanFirstTime(double * x, double * par)
+double LogFinder::DiffLogGaussFirstArrivalGradient(const double x) const
 {
-	double nPhotons = par[0];
-	double mean = par[1];
-	double sigma = par[2];
-	double t = x[0];
-	return ConvertMeanTimeToMeanFirstTime(t, mean, sigma, nPhotons);
+    return LogGaussianGradient(x) - LogFirstArrivalGradient(x);
 }
 
-/**
- * Evaluate the integral of the PDF for the first arrival time
- * @param t Integral evaluated from -infinity to t
- * @param mean Mean of the underlying Gaussian
- * @param sigma Width of the underlying Gaussian
- * @param nPhotons Number of photons, i.e. number of times that Gaussian is sampled
- * @return Integral of the PDF for the first arrival time from -infinity to t
- */
-double IntegrateMeanTimeToMeanFirstTime( const double &t, const double &mean, const double &sigma, const double &nPhotons)
-{
-  double integral(0.0);
-  if(nPhotons <= 25)
-  {
-    integral = 1.0 - 1.0/(pow(2,nPhotons)) * pow((1.0 - WCSimFastMath::erf((t - mean)/(TMath::Sqrt2() * sigma))), nPhotons);
-  }
-  else
-  {
-    double exponent = nPhotons * (log(1 - WCSimFastMath::erf((t - mean) / (TMath::Sqrt2() * sigma))) - WCSimTimeLikelihood3::fLog2);
-    integral = 1.0 - TMath::Exp(exponent);
-  }
-  return integral;
-}
 
-/**
- * Evaluate the integral of the PDF for the first arrival time - with double
- * pointer arguments so it can be made into a TF1
- * @param x Integral evaluated from -infinity to x[0]
- * @param par Array containing the underlying Gaussian's mean and RMS, and number of photons
- * @return Integral of the PDF for the first arrival time from -infinity to x[0]
- */
-double IntegrateMeanTimeToMeanFirstTime(double * x, double * par)
-{
-  double &nPhotons = (par[0]);
-  double &mean = (par[1]);
-  double &sigma = (par[2]);
-  double &t = (x[0]);
-
-  return IntegrateMeanTimeToMeanFirstTime(t, mean, sigma, nPhotons);
-}
-
-double MinimumOfArrivalAndResolution(const double &t, const double &meanArr, const double rmsArr, const double pmtTime, const double &pmtRes, const double &nPhotons)
-{
-  double root2pi = TMath::Sqrt(2 * TMath::Pi());
-  double arrivalPDF = ConvertMeanTimeToMeanFirstTime(t, meanArr, rmsArr, nPhotons);
-  double resolutionPDF = 1.0 / (pmtRes * root2pi) * TMath::Exp( - (t - pmtTime)*(t - pmtTime) / (2 * pmtRes * pmtRes));
-  if( TMath::IsNaN(arrivalPDF) || TMath::IsNaN(resolutionPDF))
-  {
-
-    std::cout << "Arrival is " << arrivalPDF << " and resolution PDF = " << resolutionPDF << std::endl;
-    std::cout << "t = " << t << " and array mean = " << meanArr << " and array RMS = " << rmsArr << " and PMT hit at " << pmtTime << " and PMT res = " << pmtRes << " and nPhotons = " << nPhotons << std::endl;
-    assert(0);
-  }
-    
-  if( resolutionPDF < arrivalPDF)
-  {
-    return resolutionPDF;
-  }
-  return arrivalPDF;
-}
-
-double MinimumOfArrivalAndResolution( double * x, double * par )
-{
-  double &nPhotons = (par[0]);
-  double &meanArr = (par[1]);
-  double &rmsArr = (par[2]);
-  double &pmtTime = (par[3]);
-  double &pmtRes = (par[4]);
-  double &t = (x[0]);
-
-  return MinimumOfArrivalAndResolution(t, meanArr, rmsArr, pmtTime, pmtRes, nPhotons);
-}
 
 WCSimTimeLikelihood3::WCSimTimeLikelihood3() : fSpeedOfParticle(1.0 * TMath::C() * 1e-7){
 	// TODO Auto-generated constructor stub
-	fDistVsPred = 0x0;
-	fDistVsProb = 0x0;
-	fDistVsSpreadProb = 0x0;
-	fTMinusTPredAll = 0x0;
-	fTMinusTPredSource = 0x0;
-    fTMinusTPredVsQ = 0x0;
-    fTMinusTPredHist = 0x0;
-    fTMinusTPredSharpHist = 0x0;
-    fHitQVsRMS = 0x0;
     fLastE = -999;
     fLastType = TrackType::Unknown;
 
@@ -336,22 +161,6 @@ WCSimTimeLikelihood3::WCSimTimeLikelihood3( WCSimLikelihoodDigitArray * myDigitA
   fLikelihoodDigitArray = myDigitArray;
   fEmissionProfileManager = myEmissionProfileManager;
   fPMTManager = new WCSimPMTManager();
-  fDistVsPred = new TGraphErrors();
-  fDistVsPred->SetName("fDistVsPred");
-  fDistVsProb = new TGraph();
-  fDistVsProb->SetName("fDistVsProb");
-  fDistVsSpreadProb = new TGraph();
-  fDistVsSpreadProb->SetName("fDistVsSpreadProb");
-  fTMinusTPredAll = new TGraphAsymmErrors();
-  fTMinusTPredSource = new TGraphAsymmErrors();
-	fTMinusTPredAll->SetName("fTMinusTPredAll");
-	fTMinusTPredSource->SetName("fTMinusTPredSource");
-  fTMinusTPredVsQ = new TGraphErrors();
-  fTMinusTPredVsQ->SetName("fTMinusTPredVsQ");
-  TString histName = TString::Format("fTMinusTPredHist_%d", WCSimInterface::GetEventNumber());
-  fTMinusTPredHist = new TH1D(histName.Data(),"All PMTs;t_{hit} - t_{pred} (ns);PMTs",500,-50,50);
-  fTMinusTPredSharpHist = new TH1D("fTMinusTPredSharpHist","All PMTs with #sigma < 2.0ns;t_{hit} - t_{pred} (ns);PMTs",500,-50,50);
-  fHitQVsRMS = new TH2D("fHitQVsRMS", ";ceil(Total number of photons);Predicted RMS arrival time",20,1,21,20,0,10);
   fLastE = -999;
   fLastType = TrackType::Unknown;
   return;
@@ -360,22 +169,13 @@ WCSimTimeLikelihood3::WCSimTimeLikelihood3( WCSimLikelihoodDigitArray * myDigitA
 WCSimTimeLikelihood3::~WCSimTimeLikelihood3() {
 	// TODO Auto-generated destructor stub
 	if(fPMTManager != 0x0) { delete fPMTManager; }
-    if( fTMinusTPredHist != 0x0){ delete fTMinusTPredHist; }
-    if( fTMinusTPredSharpHist != NULL ){ delete fTMinusTPredSharpHist; }
-    if( fHitQVsRMS != NULL ){ delete fHitQVsRMS; }
-    if( fDistVsPred != NULL ){ delete fDistVsPred; }
-    if( fDistVsProb != NULL ){ delete fDistVsProb; }
-    if( fDistVsSpreadProb != NULL ){ delete fDistVsSpreadProb; }
-    if( fTMinusTPredAll != NULL ){ delete fTMinusTPredAll; }
-    if( fTMinusTPredSource != NULL ){ delete fTMinusTPredSource; }
-    if( fTMinusTPredVsQ != NULL ){ delete fTMinusTPredVsQ; }
 	// I don't new the likelihooddigitarray so I don't delete it
 }
 
 void WCSimTimeLikelihood3::SetTracks(
 		std::vector<WCSimLikelihoodTrackBase*>& myTracks) {
   //std::cout << "Setting tracks" << std::endl;
-	fTracks = myTracks;
+  fTracks = myTracks;
   fAllPreds.clear();
   fAllPreds.resize(fLikelihoodDigitArray->GetNDigits()); 
   //std::cout << "Set tracks - there are " << fTracks.size() << " of them" << std::endl;
@@ -398,7 +198,6 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
 	WCSimLikelihoodTrackBase * myTrack = fTracks.at(0);
 	if(IsGoodDigit(myDigit))
 	{
-        double prob     = 1.0;
 		double reso     = GetPMTTimeResolution(myDigit);
 		double nPhotons = myDigit->GetQ();
 		TimePrediction prediction = PredictArrivalTime(myTrack, myDigit);
@@ -417,45 +216,27 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
 		double timeLikelihood = fMinimumLikelihood;
         if(whichCase == 0x11) // Predict and detect a hit - use PDF overlap
         {
-            // std::cout << " -- Doing overlap" << std::endl;
-            float pmtLo  = myDigit->GetT() - 5.0 * reso;
-            float pmtHi  = myDigit->GetT() + 5.0 * reso;
-            float predLo = prediction.GetMean() - 5 * prediction.GetRMS();
-            float predHi = prediction.GetMean() + 5 * prediction.GetRMS();
-
             // Function containing the overlap between the predicted first arrival PDF and the smeared true hit time
-            TF1 overlapFunc("overlapFunc", MinimumOfArrivalAndResolution,
-            				prediction.GetMean()-5*prediction.GetRMS(),
-							prediction.GetMean()+5*prediction.GetRMS(), 5);
-            overlapFunc.SetParameters(nPhotons,
-            						  prediction.GetMean(), prediction.GetRMS(),
-									  myDigit->GetT(), reso);
-
-            // Make sure we evaluate the TF1 at a reasonable number of points
-            int npx = (int)((prediction.GetMean() - myDigit->GetT())*1000);
-            if(npx < 1000){ npx = 1000; }
-            if(npx > 10000000){ npx = 10000000;}
-            overlapFunc.SetNpx(npx);
-            timeLikelihood = overlapFunc.Integral(prediction.GetMean() - 5*prediction.GetRMS(), prediction.GetMean() + 5*prediction.GetRMS());
+            timeLikelihood = FindOverlap(nPhotons, prediction.GetMean(), prediction.GetRMS(), myDigit->GetT(), reso);
 
             // If the integral was too small there's probably some floating point complexity breaking it
-            if(timeLikelihood <= fMinimumLikelihood)
+            if(timeLikelihood <= fMinimumLikelihood || timeLikelihood > 1)
             {
                 // Try constructing a zoom of the overlap region by numerically solving for where
                 // the two PDFs cross, using their logarithms
-                double crossAt = FindCrossing(nPhotons, prediction.GetMean(), prediction.GetRMS(), myDigit->GetT(), reso);
-                double start   = crossAt - 3*prediction.GetRMS();
-                double end     = crossAt + 3*prediction.GetRMS();
+                double start   = myDigit->GetT() - 10 * reso;
+                double end     = myDigit->GetT() + 10 * reso;
 
                 // Plot the overlap between +/- 3sigma around the overlap points and integrate it
-                TF1 overlapFuncZoom("overlapFuncZoom", MinimumOfArrivalAndResolution, start, end, 5);
+                TF1 overlapFuncZoom("overlapFuncZoom", this, &WCSimTimeLikelihood3::MinimumOfArrivalAndResolutionTF1,
+                					start, end, 5, "WCSimTimeLikelihood3", "MinimumOfArrivalAndResolutionTF1");
                 overlapFuncZoom.SetParameters(nPhotons,
             						      prediction.GetMean(), prediction.GetRMS(),
 									      myDigit->GetT(), reso);
-                overlapFuncZoom.SetNpx(100000);
-                timeLikelihood = overlapFuncZoom.Integral(start, end);
+                ROOT::Math::WrappedTF1 f1(overlapFuncZoom);
+                ROOT::Math::Integrator ig(f1, ROOT::Math::IntegrationOneDim::kADAPTIVESINGULAR);
+                timeLikelihood = ig.Integral(prediction.GetMean() - 5*prediction.GetRMS(), prediction.GetMean() + 5*prediction.GetRMS());
 
-                
                 // Even this integral was too small!  Normally the problem comes from erf^(n-1) / 2^n so we can 
                 // use logs to get something sensible for lnL and then exponentiate it.  We'll do that, using
                 // the trapezium rule around the crossing point
@@ -588,8 +369,6 @@ bool WCSimTimeLikelihood3::IsGoodDigit(WCSimLikelihoodDigit * myDigit)
 
 TimePrediction WCSimTimeLikelihood3::PredictArrivalTime(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit)
 {
-  bool debug = false;
-
 
   // Load the emission profiles for the four emission profiles two either side of E
   // ==============================================================================
@@ -658,12 +437,8 @@ TimePrediction WCSimTimeLikelihood3::PredictArrivalTime(WCSimLikelihoodTrackBase
   std::vector<double> rmsVec(fSVec.size());
   std::vector<double> probVec(fSVec.size());
 
-  std::vector<TMarker> sThetaMarkers[4];
-  std::vector<TMarker> timeMarkers[4];
-
   for(size_t iEnergy = 0; iEnergy < fSVec.size(); ++iEnergy)
   {
-      int lastColor = 30;
 	  // A vector of the predicted hit times from each step, and one of each step's weight
 	  std::vector<double> times(stepParameterVec.size(), 0.);
 	  std::vector<double> probs(stepParameterVec.size(), 0.);
@@ -671,8 +446,6 @@ TimePrediction WCSimTimeLikelihood3::PredictArrivalTime(WCSimLikelihoodTrackBase
 
 	  // Now do the loop over cosTheta bins and look up the emission profile histograms to work out
 	  // the photon arrival time at the PMT and a probability weighting
-	  TAxis * axis = fSCosThetaVec[0]->GetXaxis(); // For looking up cosTheta bins
-	  int lastBin = 1;
 	  double weightedSum = 0.0;
 	  double sumOfWeights = 0.0;
 
@@ -686,7 +459,7 @@ TimePrediction WCSimTimeLikelihood3::PredictArrivalTime(WCSimLikelihoodTrackBase
 		  if( cosTheta == -999){ continue; }
 
 		  // Does the current theta bin contain a cosTheta value we're interested in for this step?
-          int thBin = fSCosThetaVec[iEnergy]->GetXaxis()->FindBin(cosTheta);
+          int thBin = 1 + (cosTheta - minCosTheta)/(maxCosTheta - minCosTheta) * nThetaBins;
 
 		  // Do the (cosTheta, s) profile first seeing as it's more likely to be zero
 		  double prob = fSCosThetaVec[iEnergy]->GetBinContent(thBin, stepItr->GetSBin());
@@ -805,107 +578,6 @@ std::vector<double> WCSimTimeLikelihood3::GetAllPredictedTimes()
 	return fAllPreds;
 }
 
-void WCSimTimeLikelihood3::SavePlot()
-{
-    return;
-	TCanvas * can = new TCanvas("can","",800,600);
-	fDistVsPred->Draw("AP");
-	fDistVsPred->GetXaxis()->SetTitle("Distance from vertex");
-	fDistVsPred->GetYaxis()->SetTitle("Predicted arrival time");
-	fDistVsPred->SetMarkerStyle(20);
-	fDistVsPred->SetMarkerSize(0.8);
-	fDistVsPred->SetMarkerColor(kRed);
-	can->SaveAs("fDistVsPred.png");
-	can->SaveAs("fDistVsPred.C");
-	can->SaveAs("fDistVsPred.root");
-	fDistVsProb->Draw("AP");
-	fDistVsProb->GetXaxis()->SetTitle("Distance from vertex");
-	fDistVsProb->GetYaxis()->SetTitle("-2Ln(L)");
-	fDistVsProb->SetMarkerStyle(20);
-	fDistVsProb->SetMarkerSize(0.8);
-	fDistVsProb->SetMarkerColor(kRed);
-	can->SaveAs("fDistVsProb.png");
-	can->SaveAs("fDistVsProb.C");
-	can->SaveAs("fDistVsProb.root");
-	fDistVsSpreadProb->Draw("AP");
-	fDistVsSpreadProb->GetXaxis()->SetTitle("Distance from vertex");
-	fDistVsSpreadProb->GetYaxis()->SetTitle("-2Ln(L)");
-	fDistVsSpreadProb->SetMarkerStyle(20);
-	fDistVsSpreadProb->SetMarkerSize(0.8);
-	fDistVsSpreadProb->SetMarkerColor(kRed);
-	can->SaveAs("fDistVsSpreadProb.png");
-	can->SaveAs("fDistVsSpreadProb.C");
-	can->SaveAs("fDistVsSpreadProb.root");
-    TH1D hTemplate("hTemplate",";Distance from vertex (cm);T_{hit} - T_{first, pred} (ns)", 250, 0, 2500);
-    hTemplate.SetStats(0);
-    hTemplate.Draw();
-    hTemplate.SetMinimum(-50.0);
-    hTemplate.SetMaximum(50.0);
-	fTMinusTPredAll->Draw("P SAME");
-	fTMinusTPredSource->Draw("|| SAME");
-	fTMinusTPredAll->GetXaxis()->SetTitle("Distance from vertex");
-	fTMinusTPredAll->GetYaxis()->SetTitle("T_{hit} - T_{first, pred} (ns)");
-	fTMinusTPredAll->SetMarkerStyle(20);
-	fTMinusTPredAll->SetMarkerSize(0.6);
-	fTMinusTPredAll->SetMarkerColor(kRed);
-	fTMinusTPredAll->SetLineColor(kBlack);
-	fTMinusTPredSource->GetXaxis()->SetTitle("Distance from vertex");
-	fTMinusTPredSource->GetYaxis()->SetTitle("T_{hit} - T_{first, pred} (ns)");
-	fTMinusTPredSource->SetMarkerStyle(20);
-	fTMinusTPredSource->SetMarkerSize(0.6);
-	fTMinusTPredSource->SetMarkerColor(kRed+1);
-	fTMinusTPredSource->SetLineColor(kRed+1);
-	TString name = Form("fTMinusTPred_%.02fc", fSpeedOfParticle / (1e-7 * TMath::C()));
-	can->SaveAs((name+TString(".png")).Data());
-	can->SaveAs((name+TString(".C")).Data());
-	can->SaveAs((name+TString(".root")).Data());
-	fTMinusTPredVsQ->Draw("AP");
-	fTMinusTPredVsQ->GetXaxis()->SetTitle("Hit charge (p.e.)");
-	fTMinusTPredVsQ->GetYaxis()->SetTitle("t_{hit} - t_{pred} (ns)");
-	fTMinusTPredVsQ->SetMarkerStyle(20);
-	fTMinusTPredVsQ->SetMarkerSize(0.8);
-	fTMinusTPredVsQ->SetMarkerColor(kCyan+2);
-    fTMinusTPredVsQ->Draw("AP");
-    can->SaveAs("fTMinusTPRedVsQ.png");
-    can->SaveAs("fTMinusTPRedVsQ.C");
-    can->SaveAs("fTMinusTPRedVsQ.root");
-    int event = WCSimInterface::GetEventNumber();
-    fHitQVsRMS->Draw("BOX");
-    fHitQVsRMS->SetDirectory(0);
-    TDirectory * tmpDir = gDirectory;
-    TFile f(TString::Format("fHitQVsRMSFile_%d.root", event).Data(), "RECREATE");
-    fHitQVsRMS->Write();
-    f.Close();
-    tmpDir->cd();
-    can->SaveAs(TString::Format("fHitQVsRMS_%d.png", event).Data());
-    can->SaveAs(TString::Format("fHitQVsRMS_%d.C", event).Data());
-    can->SaveAs(TString::Format("fHitQVsRMS_%d.root", event).Data());
-
-    fTMinusTPredHist->SetDirectory(0);
-    TFile f2("fTMinusTPredHistFile.root","UPDATE");
-    fTMinusTPredHist->Write();
-    f2.Close();
-    tmpDir->cd();
-    fTMinusTPredHist->Draw();
-  fTMinusTPredHist->SetLineColor(kRed+1);
-  fTMinusTPredHist->SetLineWidth(2);
-  fTMinusTPredHist->SetFillColor(kRed);
-  fTMinusTPredHist->SetFillStyle(3001);
-  can->SaveAs("fTMinusTPredHist.png");
-  can->SaveAs("fTMinusTPredHist.C");
-  can->SaveAs("fTMinusTPredHist.root");
-  fTMinusTPredSharpHist->Draw();
-  fTMinusTPredSharpHist->SetLineColor(kAzure-1);
-  fTMinusTPredSharpHist->SetLineWidth(2);
-  fTMinusTPredSharpHist->SetFillColor(kAzure);
-  fTMinusTPredSharpHist->SetFillStyle(3001);
-
-  can->SaveAs("fTMinusTPredSharpHist.png");
-  can->SaveAs("fTMinusTPredSharpHist.C");
-  can->SaveAs("fTMinusTPredSharpHist.root");
-	delete can;
-}
-
 void WCSimTimeLikelihood3::GetFourNearestHists(WCSimLikelihoodTrackBase * myTrack)
 {
     if(myTrack->GetType() == fLastType)
@@ -925,4 +597,355 @@ void WCSimTimeLikelihood3::GetFourNearestHists(WCSimLikelihoodTrackBase * myTrac
     fLastType = myTrack->GetType();
 
     return;
+}
+
+double WCSimTimeLikelihood3::FindOverlap(const double n, const double predMean, const double predRMS, const double t, const double reso)
+{
+	std::vector<double> crossingsX = FindCrossings(n, predMean, predRMS, t, reso);
+    LogFinder finder(n, predMean, predRMS, t, reso);
+    if(crossingsX.empty()){ return 0; }
+
+	double integral = 0.0;
+
+	size_t numCrossings = crossingsX.size();
+
+	// The first interval is from -infinity to the first root:
+	bool gaussianLower = (finder.DiffLogGaussFirstArrival(crossingsX[0]-0.1) < 0);
+	if(gaussianLower)
+	{
+        double beginning = IntegrateGaussianFromMinusInfinity(t, reso, crossingsX[0]);
+        integral += beginning;
+        // std::cout << "Adding beginning: gaus= " << beginning << " total = " << integral << std::endl;
+	}
+	else
+	{
+        double beginning = IntegrateMeanTimeToMeanFirstTime(crossingsX[0], predMean, predRMS, n);
+        integral += beginning;
+        // std::cout << "Adding beginning: erfc= " << beginning << " total = " << integral << std::endl;
+	}
+
+	// The last interval is from the last root to +infinity
+	// So we need to start from slightly past the root
+	gaussianLower = (finder.DiffLogGaussFirstArrival(crossingsX.back()+0.1) < 0);
+
+	if(gaussianLower)
+	{
+		double ending = IntegrateGaussianToInfinity(t, reso, crossingsX.back());
+        integral += ending;
+        // std::cout << "Adding ending: gaus= " << ending << " total = " << integral << std::endl;
+	}
+	else
+	{
+        double ending = 1 - IntegrateMeanTimeToMeanFirstTime(crossingsX.back(), predMean, predRMS, n);
+        integral += ending;
+        // std::cout << "Adding ending: erf = " << ending << " total = " << integral << std::endl;
+	}
+
+	// Now loop over the intervals in between
+	// Interval i goes from crossingsX[i] to crossingsX[i+1]
+	for(size_t interval = 0; interval < numCrossings - 1; ++interval)
+	{
+		double min = crossingsX[interval];
+		double max = crossingsX[interval+1];
+		double mid = 0.5 * (min+max);
+		gaussianLower = (finder.DiffLogGaussFirstArrival(mid) < 0);
+
+		if(gaussianLower)
+		{
+            double intervalInt = IntegrateGaussian(t, reso, min, max);
+            integral+= intervalInt;
+            // std::cout << "Interval " << interval << " and gauss int = " << intervalInt << " so total = " << integral << std::endl;
+		}
+		else
+		{
+            double intervalInt =   IntegrateMeanTimeToMeanFirstTime(max, predMean, predRMS, n)
+						         - IntegrateMeanTimeToMeanFirstTime(min, predMean, predRMS, n);
+            integral += intervalInt;
+            // std::cout << "Interval " << interval << " and erf   int = " << intervalInt << " so total = " << integral << std::endl;
+		}
+	}
+    if(integral > 1)
+    {
+    	integral = 1;
+    }
+	return integral;
+}
+
+
+/**
+ * Calculate the time at which the PMT time resolution PDF and the first arrival time
+ * PDF cross
+ * @param n The number of photons, i.e. of repeated samples drawn from a Gaussian
+ * @param predMean The centre of the Gaussian repeatedly sampled to generate the first arrival time
+ * @param predRMS The 1-sigma width of the Gaussian repeatedly sampled to generate the first arrival time
+ * @param t The centre of the Gaussian (i.e the PMT hit time)
+ * @param reso The 1-sigma width of the Gaussian (i.e. the PMT time resolution)
+ * @return The x-value at which the two PDFs are equal
+ */
+std::vector<double> WCSimTimeLikelihood3::FindCrossings(const double n, const double predMean, const double predRMS, const double t, const double reso)
+{
+   std::vector<double> minima;
+   double min = t-5*reso < predMean-5*predRMS ? t-5*reso : predMean-5*predRMS;
+   double max = t+5*reso > predMean+5*predRMS ? t+5*reso : predMean + 5*predRMS;
+
+   // RootFinder with derivative functions
+   LogFinder finder(n, predMean, predRMS, t, reso);
+   ROOT::Math::GradFunctor1D  f(finder);
+
+   double width = 5 * (predRMS > reso ? predRMS : reso);
+   int nWindows = TMath::CeilNint(width / 0.2*(predRMS < reso ? predRMS : reso));
+   double dx = 2 * width / nWindows;
+
+   std::vector<std::pair<double, double> > windowEdges;
+   double start = t - width;
+   double x = start;
+
+
+   double atMin = finder.Eval(min);
+   double lastEdge = finder.Eval(x);
+   if(atMin * lastEdge < 0 && min < x){ windowEdges.push_back(std::make_pair(min, x));}
+   for(int i = 1; i < nWindows; ++i)
+   {
+         double y = finder.Eval(x);
+         if(TMath::Finite(y))
+         {
+			 if(y * lastEdge <= 0)
+			 {
+				windowEdges.push_back(std::make_pair(x-dx, x));
+			 }
+			 lastEdge = y;
+         }
+         x += dx;
+   }
+   double atMax = finder.Eval(max);
+   if(atMax * lastEdge < 0 && max > x){ windowEdges.push_back(std::make_pair(x-dx, max)); }
+
+
+   ROOT::Math::RootFinder rfn(ROOT::Math::RootFinder::kGSL_BRENT);
+   size_t nFound = windowEdges.size();
+   for(size_t iWindow = 0; iWindow < nFound; ++iWindow)
+   {
+     double lo = windowEdges[iWindow].first;
+     double hi = windowEdges[iWindow].second;
+
+     rfn.SetFunction(f, lo, hi);
+     rfn.Solve();
+     double root = rfn.Root();
+
+     if ( (lo <= root || finder.ApproxEqual(root, lo, 1e-6) ) && ( root <= hi || finder.ApproxEqual(root, hi, 1e-6)) )
+     {
+         minima.push_back(root);
+     }
+     assert(lo < hi);
+     assert(finder.Eval(lo) * finder.Eval(hi) < 0);
+   }
+
+   if(minima.size() == 1)
+   {
+       return minima;
+   }
+
+   std::vector<double> unique;
+   std::sort(minima.begin(), minima.end());
+   if( minima.size() > 1)
+   {
+	   unique.push_back(minima[0]);
+   }
+   for(size_t i = 1; i < minima.size(); ++i)
+   {
+
+     if(!finder.ApproxEqual(minima[i], minima[i-1], 2.5e-3))
+     {
+        unique.push_back(minima[i]);
+     }
+   }
+   return unique;
+}
+
+
+/**
+ * Calculate an approximation to the aera of overlap between the PMT resolution and first arrival time PDFS
+ * using the trapezium rule
+ * @param n The number of photons, i.e. of repeated samples drawn from a Gaussian
+ * @param predMean The centre of the Gaussian repeatedly sampled to generate the first arrival time
+ * @param predRMS The 1-sigma width of the Gaussian repeatedly sampled to generate the first arrival time
+ * @param t The centre of the Gaussian (i.e the PMT hit time)
+ * @param reso The 1-sigma width of the Gaussian (i.e. the PMT time resolution)
+ * @return Approximate area of overlap between the two PDFs
+ */
+double WCSimTimeLikelihood3::ApproximateIntegral(const double n, const double predMean, const double predRMS, const double t, const double reso)
+{
+	// Work out where the two PDFs intersect
+    LogFinder finder(n, predMean, predRMS, t, reso);
+    double x = FindCrossing(n, predMean, predRMS, t, reso);
+    double logYCrossing = finder.LogGaussian(x);
+    double gausExponent  = 0;
+    double firstExponent =  0;
+
+    // We want to integrate the PMT PDF to a distance reso from the crossing and the
+    // arrival time PDF to 3*predRMS - so work out which side is which and do that
+    bool predGreater = (predMean > t);
+    if(predGreater)
+    {
+        gausExponent = finder.LogGaussian(x-reso);
+        firstExponent = finder.LogFirstArrival(x+predRMS);
+    }
+    else
+    {
+        gausExponent = finder.LogGaussian(x+reso);
+        firstExponent = finder.LogFirstArrival(x-predRMS);
+    }
+
+    // Use the trapezium rule to approximate the integral
+    double middle = exp(logYCrossing);
+    double gaus   = exp(gausExponent);
+    double erf    = exp(firstExponent);
+    double area   = 0.5*(middle+gaus)*reso + 0.5*(middle+erf)*predRMS;
+    return area;
+}
+
+
+/**
+ * Given n samples drawn from a Gaussian distribution, return the PDF for the earliest sample
+ * @param t The time of the first photon, whose PDF we want to evaluate
+ * @param mean The mean of the Gaussian describing the individual photon times
+ * @param sigma The width of the Gaussian describing the individual photon times
+ * @param nPhotons The number of photons
+ * @return The PDF for the first arrival time being equal to t
+ */
+double WCSimTimeLikelihood3::ConvertMeanTimeToMeanFirstTime(const double &t, const double &mean, const double &sigma, const double &nPhotons)
+{
+    double prob = 0.0;
+    if(nPhotons == 0 || sigma == 0) { return 0; }
+    if(nPhotons < 25)
+    {
+	    prob =   nPhotons * TMath::Sqrt2() / (pow(2, nPhotons) * sigma * WCSimTimeLikelihood3::fSqrtPi)
+		 	  * pow(1.0 - WCSimFastMath::erf((t - mean)/(TMath::Sqrt2()*sigma)), nPhotons-1)
+		   	  * TMath::Exp(-(t - mean)*(t - mean) / (2 * sigma * sigma));
+    }
+    else // Use logarithms to take care of the two large n powers almost cancelling
+    {
+        double logL =  log(nPhotons * TMath::Sqrt2() / (sigma * WCSimTimeLikelihood3::fSqrtPi ))
+                     - nPhotons * WCSimTimeLikelihood3::fLog2
+                     + (nPhotons - 1) * log(1.0 - WCSimFastMath::erf((t - mean) / (2 * sigma * sigma)))
+                     - (t - mean) * (t - mean) / (2 * sigma * sigma);
+        prob = TMath::Exp(logL);
+
+    }
+	return prob;
+}
+
+double WCSimTimeLikelihood3::IntegrateGaussian(const double mean, const double sigma,
+		const double from, const double to) {
+	double denom = sigma*TMath::Sqrt2();
+	return 0.5 * (TMath::Erf((to - mean)/denom) - TMath::Erf((from - mean)/denom));
+}
+
+double WCSimTimeLikelihood3::IntegrateGaussianFromMinusInfinity(const double mean, const double sigma,
+		const double to) {
+	if(to < mean)
+	{
+		return 0.5 - IntegrateGaussian(mean, sigma, to, mean);
+	}
+	return 0.5+IntegrateGaussian(mean, sigma, mean, to);
+}
+
+double WCSimTimeLikelihood3::IntegrateGaussianToInfinity(const double mean, const double sigma,
+		const double from) {
+	if(from > mean)
+	{
+		return 0.5 - IntegrateGaussian(mean, sigma, mean, from);
+	}
+	return 0.5 + IntegrateGaussian(mean, sigma, from, mean);
+
+}
+
+/**
+ * Given n samples drawn from a Gaussian distribution, return the PDF for the earliest sample,
+ * with double pointer arguments for making it into a TF1
+ *
+ * @param x Pointer to the value at which we want to evaluate the PDF
+ * @param par Array containing the underlying Gaussian's mean and RMS, and number of photons
+ * @return The PDF for the first arrival time being equal to x[0]
+ * @param par Array containing the underlying Gaussian's mean and RMS, and number of photons
+ */
+double WCSimTimeLikelihood3::ConvertMeanTimeToMeanFirstTime(double * x, double * par)
+{
+	double nPhotons = par[0];
+	double mean = par[1];
+	double sigma = par[2];
+	double t = x[0];
+	return ConvertMeanTimeToMeanFirstTime(t, mean, sigma, nPhotons);
+}
+
+/**
+ * Evaluate the integral of the PDF for the first arrival time
+ * @param t Integral evaluated from -infinity to t
+ * @param mean Mean of the underlying Gaussian
+ * @param sigma Width of the underlying Gaussian
+ * @param nPhotons Number of photons, i.e. number of times that Gaussian is sampled
+ * @return Integral of the PDF for the first arrival time from -infinity to t
+ */
+double WCSimTimeLikelihood3::IntegrateMeanTimeToMeanFirstTime( const double &t, const double &mean, const double &sigma, const double &nPhotons)
+{
+  double integral(0.0);
+  if(nPhotons <= 25)
+  {
+    integral = 1.0 - 1.0/(pow(2,nPhotons)) * pow((1.0 - WCSimFastMath::erf((t - mean)/(TMath::Sqrt2() * sigma))), nPhotons);
+  }
+  else
+  {
+    double exponent = nPhotons * (log(1 - WCSimFastMath::erf((t - mean) / (TMath::Sqrt2() * sigma))) - WCSimTimeLikelihood3::fLog2);
+    integral = 1.0 - TMath::Exp(exponent);
+  }
+  return integral;
+}
+
+/**
+ * Evaluate the integral of the PDF for the first arrival time - with double
+ * pointer arguments so it can be made into a TF1
+ * @param x Integral evaluated from -infinity to x[0]
+ * @param par Array containing the underlying Gaussian's mean and RMS, and number of photons
+ * @return Integral of the PDF for the first arrival time from -infinity to x[0]
+ */
+double WCSimTimeLikelihood3::IntegrateMeanTimeToMeanFirstTime(double * x, double * par)
+{
+  double &nPhotons = (par[0]);
+  double &mean = (par[1]);
+  double &sigma = (par[2]);
+  double &t = (x[0]);
+
+  return IntegrateMeanTimeToMeanFirstTime(t, mean, sigma, nPhotons);
+}
+
+double WCSimTimeLikelihood3::MinimumOfArrivalAndResolution(const double &t, const double &meanArr, const double rmsArr, const double pmtTime, const double &pmtRes, const double &nPhotons)
+{
+  double root2pi = TMath::Sqrt(2 * TMath::Pi());
+  double arrivalPDF = ConvertMeanTimeToMeanFirstTime(t, meanArr, rmsArr, nPhotons);
+  double resolutionPDF = 1.0 / (pmtRes * root2pi) * TMath::Exp( - (t - pmtTime)*(t - pmtTime) / (2 * pmtRes * pmtRes));
+  if( TMath::IsNaN(arrivalPDF) || TMath::IsNaN(resolutionPDF))
+  {
+
+    std::cout << "Arrival is " << arrivalPDF << " and resolution PDF = " << resolutionPDF << std::endl;
+    std::cout << "t = " << t << " and array mean = " << meanArr << " and array RMS = " << rmsArr << " and PMT hit at " << pmtTime << " and PMT res = " << pmtRes << " and nPhotons = " << nPhotons << std::endl;
+    assert(0);
+  }
+
+  if( resolutionPDF < arrivalPDF)
+  {
+    return resolutionPDF;
+  }
+  return arrivalPDF;
+}
+
+double WCSimTimeLikelihood3::MinimumOfArrivalAndResolutionTF1( double * x, double * par )
+{
+  double &nPhotons = (par[0]);
+  double &meanArr = (par[1]);
+  double &rmsArr = (par[2]);
+  double &pmtTime = (par[3]);
+  double &pmtRes = (par[4]);
+  double &t = (x[0]);
+
+  return MinimumOfArrivalAndResolution(t, meanArr, rmsArr, pmtTime, pmtRes, nPhotons);
 }
