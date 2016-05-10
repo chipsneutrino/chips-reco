@@ -149,15 +149,26 @@ Double_t WCSimLikelihoodTuner::TransmissionFunction()
         
     // Assumes scattering length has not been edited down (abwff = 0.625) 
     // These are in inverse cm
-    Double_t nu[3] = {-1.01526e-04, -6.67164e-05, -1.41964e-03  };
+/**    Double_t nu[3] = {-1.01526e-04, -6.67164e-05, -1.41964e-03  };
     Double_t f[3] = {2.10578e-01, 7.40266e-01, 4.92259e-02 };
-
+**/
     // Scale these down temporarily because I've scaled down the transmission length to 30m max
     // Should eventually re-fit this properly
+/*
     for(int i = 0; i < 3; ++i)
     {
       nu[i] = 1.0 / (1.0/nu[i] * 0.0737);
     }
+*/
+    // Re-fitted in April 2016
+    // These have a 30m peak absorption length
+    // Double_t nu[3] = { 1/5.93027e+04, 1/1.73811e+04, 1/7.54772e+02 };
+    //Double_t nu[3]  = { -8.3271e-4, -1.1336e-1, -3.1411e-3 };
+    //Double_t f[3] = { 0.587, 0.156, 0.254 };
+
+    // These have a 50m absorption length at 405nm
+    Double_t f[3] = {0.676, 0.173, 0.150}; 
+    Double_t nu[3] = {-6.1793e-4, -9.3320e-5, -1.5485e-2};
   
     for(int i = 0; i < 3; ++i)
     { 
