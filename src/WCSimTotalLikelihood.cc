@@ -108,7 +108,6 @@ Double_t WCSimTotalLikelihood::Calc2LnL()
 	  minus2LnL += digit2LnL;
 	}
   } //for iDigit
-  fTimeLikelihood->SavePlot();
 
   double chargeLnL = 0.0;
   double timeLnL = 0.0;
