@@ -246,7 +246,7 @@ std::vector<double> WCSimEmissionProfileManager::GetFourNearestEnergies(
 
 		if(bin == energyAxis->GetNbins())
 		{
-			fEnergies.at(2) = energyAxis->GetBinLowEdge(bin) + energyAxis->GetBinWidth(bin);
+			fEnergies.at(2) = energyAxis->GetBinLowEdge(bin) + energyAxis->GetBinWidth(bin-1);
 			fEnergies.at(3) = 2*fEnergies.at(2) - fEnergies.at(1);
 		}
 		else if(bin == energyAxis->GetNbins()-1)
