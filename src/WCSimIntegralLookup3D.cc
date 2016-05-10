@@ -528,6 +528,23 @@ unsigned long int WCSimIntegralLookupHistArray::GetArrayIndex(double R0,
 	return (R0Bin * fCosTheta0Bins) + th0Bin;
 }
 
+void WCSimIntegralLookupHistArray::ClearGraphs()
+{
+    std::vector<TGraph*>::iterator grItr;
+    std::vector<TGraph*> * arrays[3] = {&fRhoGArr, &fRhoGSArr, &fRhoGSSArr};
+    for(int i = 0; i < 3; ++i)
+    {
+        for(grItr = arrays[i]->begin(); grItr != arrays[i]->end(); ++grItr)
+        {
+            delete *grItr;
+            *grItr = NULL;
+        }
+        arrays[i]->clear();
+    }
+    return;
+
+}
+
 void WCSimIntegralLookupHistArray::Verify()
 {
     return;

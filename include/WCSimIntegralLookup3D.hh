@@ -59,6 +59,7 @@ public:
 	double GetRhoIntegral(const double E, const int sPower);
 	double GetRhoGIntegral(const double E, const double R0, const double cosTh0, const int sPower);
     void Verify();
+    void ClearGraphs();
 
 private:
 	void ResetArrays();
