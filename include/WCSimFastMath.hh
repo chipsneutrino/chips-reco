@@ -197,8 +197,9 @@ namespace WCSimFastMath{
         }
         if( (dx3 != dx2) || (dx2 != dx1))
         {
-            assert((dx3 == dx2) && (dx2 == dx1));
+            std::cout << "We want to interpolate at " << xInterp << " and we're using " << x[0] << " " << x[1] << " " << x[2] << " and " << x[3] << std::endl;
             std::cout << "dx1 = " << dx1 << " dx2 = " << dx2 << "dx3 = " << dx3 << std::endl;
+            assert((dx3 == dx2) && (dx2 == dx1));
         }
 
         // Check the value to interpolate at is between x1 and x2
