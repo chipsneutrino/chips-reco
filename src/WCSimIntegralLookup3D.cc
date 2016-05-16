@@ -7,6 +7,7 @@
 
 #include <stdexcept>
 #include "WCSimIntegralLookup3D.hh"
+#include <TDirectory.h>
 #include <TFile.h>
 #include <TH1F.h>
 #include <TH3F.h>
@@ -500,12 +501,18 @@ void WCSimIntegralLookupHistArray::ResetArrays() {
 			TString nameRhoG = Form("gRhoG_%f_%f", R0, cosTheta0);
 			TString nameRhoGS = Form("gRhoGS_%f_%f", R0, cosTheta0);
 			TString nameRhoGSS = Form("gRhoGSS_%f_%f", R0, cosTheta0);
+            TString r0Title = Form("%d", (int)R0);
 			fRhoGArr.at(bin) = new TGraph();
 			fRhoGSArr.at(bin) = new TGraph();
 			fRhoGSSArr.at(bin) = new TGraph();
-			fRhoGArr.at(bin)->SetName(nameRhoG.Data());
+			
+            fRhoGArr.at(bin)->SetName(nameRhoG.Data());
 			fRhoGSArr.at(bin)->SetName(nameRhoGS.Data());
 		    fRhoGSSArr.at(bin)->SetName(nameRhoGSS.Data());
+
+			fRhoGArr.at(bin)->SetTitle(r0Title.Data());
+			fRhoGSArr.at(bin)->SetTitle(r0Title.Data());
+		    fRhoGSSArr.at(bin)->SetTitle(r0Title.Data());
 
             // If you make a TSpline3 with the default (blank) constructor
             // and then don't put a graph into it, it segfaults when you try
@@ -550,17 +557,41 @@ void WCSimIntegralLookupHistArray::Verify()
     return;
 
     TFile * test = new TFile("test.root", "RECREATE");
+    test->mkdir("gRhoG");
+    test->mkdir("gRhoGS");
+    test->mkdir("gRhoGSS");
+    test->mkdir("splines");
+    
     std::vector<TGraph*>::iterator grItr;
     std::vector<TGraph*> * arrays[3] = {&fRhoGArr, &fRhoGSArr, &fRhoGSSArr};
+
     for(int i = 0; i < 3; ++i)
     {
         for(grItr = arrays[i]->begin(); grItr != arrays[i]->end(); ++grItr)
         {
             if((*grItr)->GetN() == 0){ continue; }
+            TString name((*grItr)->GetName());
+            if(name.Contains("gRhoG_"))
+            {
+                test->cd("gRhoG");
+            }
+            else if(name.Contains("gRhoGS_"))
+            {
+                test->cd("gRhoGS");
+            }
+            else if(name.Contains("gRhoGSS_"))
+            {
+                test->cd("gRhoGSS");
+            }
+            TDirectory * dir = (TDirectory*)gDirectory->Get((*grItr)->GetTitle());
+            if (!dir) dir = gDirectory->mkdir((*grItr)->GetTitle());
+            gDirectory->cd((*grItr)->GetTitle());
+
             (*grItr)->SetMarkerSize(1.0);
             (*grItr)->SetMarkerStyle(20);
             (*grItr)->SetMarkerColor(i+1);
             (*grItr)->Write();
+            test->cd();
         }
     }
 
@@ -568,6 +599,7 @@ void WCSimIntegralLookupHistArray::Verify()
     std::vector<TSpline3*> * splineArrays[3] = {&fRhoGSplineArr, &fRhoGSSplineArr, &fRhoGSSSplineArr};
     for(int i = 0; i < 3; ++i)
     {
+        test->cd("splines");
         for(splineItr = splineArrays[i]->begin(); splineItr != splineArrays[i]->end(); ++splineItr)
         {
             if((*splineItr) == NULL){ continue; } 
@@ -575,6 +607,7 @@ void WCSimIntegralLookupHistArray::Verify()
             std::cout << (*splineItr) << std::endl;
             (*splineItr)->Write();
         }
+        test->cd();
     }
     if(fRhoInt != NULL){ fRhoInt->Write(); }
 	if(fRhoSInt != NULL){ fRhoSInt->Write(); }

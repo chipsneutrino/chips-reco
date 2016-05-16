@@ -82,6 +82,9 @@ void WCSimIntegralLookupMaker::SetBins(const int &nEBins, const double &eMin, co
 	if(fRhoGSSInt != 0x0){delete fRhoGSSInt;}
 
 	if(fCutoffS != 0x0){ delete fCutoffS; }
+    
+    CheckBins(nR0Bins, R0Min, R0Max);
+    CheckBins(nCosTh0Bins, cosTh0Min, cosTh0Max);
 
 	fNEBins = nEBins;
 	fEMin = eMin;
@@ -286,3 +289,40 @@ void WCSimIntegralLookupMaker::SaveLookupTables(TString fileName) {
 
 
 }
+
+/**
+ * @brief If the binning scheme doesn't produce bins widths with a non-infinite decimal
+ *        width there can be some that get double-filled due to rounding.  This function
+ *        checks that your bin widths come out to be a nice round number - defined as
+ *        a multiple of 10-6
+ *
+ * @param nBins The number of bins
+ * @param min The minimum value
+ * @param max The maximum value
+ */
+void WCSimIntegralLookupMaker::CheckBins(const int nBins, const double min, const double max)
+{
+    if(nBins <= 0)
+    {
+        std::cerr << "WCSimIntegralLookupMaker::CheckBins: You need to have a positive integer number of bins, but you have " << nBins << std::endl;
+        assert(nBins > 0);
+    }
+
+    if(min >= max)
+    {
+        std::cerr << "WCSimIntegralLookupMaker::CheckBins: Your minimum value of " << min << " is not smaller than your maximum value of " << max << std::endl;
+        assert(min < max);
+    }
+
+    double width = (max - min)/nBins;
+    if(fmod(width, 1e-6) > 1e-15)
+    {
+        std::cerr << "WCSimIntegralLookupMaker::CheckBins: You need to have bin widths that can be expressed by a terminating decimal" << std::endl;
+        std::cerr << "Otherwise rounding can result in double-filling some of them" << std::endl;
+        std::cerr << "Your width works out as (" << max << " - " << min << ")/" << nBins << " = " << width 
+                  << ", which doesn't divide by 1e6, so probably doesn't terminate" << std::endl;
+        assert(fmod(width, 1e-6) == 0);
+    }
+    return;
+}
+

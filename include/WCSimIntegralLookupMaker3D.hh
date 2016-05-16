@@ -29,6 +29,7 @@ protected:
 				 const int &nSBins, const double &sMin, const double &sMax,
 				 const int &nR0Bins, const double &R0Min, const double &R0Max,
 				 const int &nCosTh0Bins, const double &cosTh0Min, const double &cosTh0Max);
+    void CheckBins(const int nBins, const double min, const double max);
 
 	void MakeLookupTables();
 	void MakeRhoTables();
