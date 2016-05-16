@@ -8,6 +8,7 @@
 #ifndef WCSIMTRANSMISSIONFUNCTIONLOOKUP_HH_
 #define WCSIMTRANSMISSIONFUNCTIONLOOKUP_HH_
 #include <vector>
+#include <iostream>
 //
 class WCSimTransmissionFunctionLookupTable
 {
