@@ -379,17 +379,17 @@ Double_t WCSimEmissionProfiles::GetLightFlux(
 	switch(type)
 	{
 	  case TrackType::MuonLike:
-	  	// From a linear fit to nPhotons as a function of energy (it's very linear)
-	    // New fit on 10/March/15
-      nPhotons = 431.467 * energy - 21813.0; // New fit on 29/Jul/2015 (QE decoupled)
-
-	    // Things get sketchy at really low energies
-	    if(nPhotons > 0){ flux = nPhotons; }
+	  // From a linear fit to nPhotons as a function of energy - it's fairly
+      // linear for muons and very linear for electrons
+      
+      // Fitted on 12th May 2016
+      nPhotons = -30849 + 350.289*energy;
+	  if(nPhotons > 0){ flux = nPhotons; }
       break;
     case TrackType::PhotonLike:
       // Fall through to ElectronLike
     case TrackType::ElectronLike:
-      nPhotons = 201.709 + 383.217 * energy;  // New fit on 29/Jul/15
+      nPhotons = 198.152*383.238*energy;
       if(nPhotons > 0){ flux = nPhotons; }
       break;
     default:
