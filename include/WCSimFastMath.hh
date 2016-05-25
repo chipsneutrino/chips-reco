@@ -203,7 +203,11 @@ namespace WCSimFastMath{
         }
 
         // Check the value to interpolate at is between x1 and x2
-        assert(xInterp <= x[2] && xInterp >= x[1]);
+        if(xInterp > x[2] || xInterp < x[1])
+        {
+            std::cout << "Want to interpolate " << xInterp << " but the bounds we have are " << x[1] << " and " << x[2] << std::endl;
+            assert(xInterp <= x[2] && xInterp >= x[1]);
+        }
 
         // Tranform coordinates such that x1->0 and x2->1
         double t = (xInterp - x[1]) / (x[2] - x[1]);
