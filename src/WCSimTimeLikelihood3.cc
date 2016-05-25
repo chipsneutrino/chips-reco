@@ -126,6 +126,19 @@ double LogFinder::LogFirstArrivalGradient(const double x) const
  */
 double LogFinder::DiffLogGaussFirstArrival(const double x) const
 {
+    double gaus = LogGaussian(x);
+    double arr  = LogFirstArrival(x);
+    
+    if(!TMath::Finite(gaus - arr))
+    {
+        return gaus - arr;
+    }
+    else if(TMath::Finite(gaus))
+    {
+        return -arr;
+    }
+    return -gaus;
+
     return LogGaussian(x) - LogFirstArrival(x);
 }
 
@@ -250,14 +263,14 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
         else if(whichCase == 0x10) // Detect a hit but didn't predict one - use exp(-Q)
         {
             // std::cout << " -- Doing expo" << std::endl;
-            // timeLikelihood = TMath::Exp(-myDigit->GetQ());
-            timeLikelihood = 1.0;
+            timeLikelihood = TMath::Exp(-myDigit->GetQ());
+            //timeLikelihood = 1.0;
         }
         else if(whichCase == 0x01) // Predict a hit but don't detect one - use predicted probability
         {   
             // std::cout << " -- Using prob" << std::endl;
-            // timeLikelihood = (1.0 - prediction.GetProb());
-            timeLikelihood = 1.0;
+            timeLikelihood = (1.0 - prediction.GetProb());
+            //timeLikelihood = 1.0;
         }
         else if(whichCase == 0x00) // Didn't predict or detect a hit - carry on
         {
@@ -298,7 +311,6 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
           assert(TMath::Finite(lnL));
 		}
     }
-
 
 	return -2.0 * lnL;
 }
@@ -671,6 +683,33 @@ double WCSimTimeLikelihood3::FindOverlap(const double n, const double predMean, 
 	return integral;
 }
 
+
+/**
+ * Calculate the time at which the PMT time resolution PDF and the first arrival time
+ * PDF cross
+ * @param n The number of photons, i.e. of repeated samples drawn from a Gaussian
+ * @param predMean The centre of the Gaussian repeatedly sampled to generate the first arrival time
+ * @param predRMS The 1-sigma width of the Gaussian repeatedly sampled to generate the first arrival time
+ * @param t The centre of the Gaussian (i.e the PMT hit time)
+ * @param reso The 1-sigma width of the Gaussian (i.e. the PMT time resolution)
+ * @return The x-value at which the two PDFs are equal
+ */
+double WCSimTimeLikelihood3::FindCrossing(const double n, const double predMean, const double predRMS, const double t, const double reso)
+{
+    double min = t < predMean ? t : predMean;
+    double max = t > predMean ? t : predMean;
+    assert(max != min);
+
+    // RootFinder with derivative functions
+    LogFinder finder(n, predMean, predRMS, t, reso);
+    ROOT::Math::GradFunctor1D  f(finder);
+    ROOT::Math::RootFinder rfn(ROOT::Math::RootFinder::kGSL_BRENT);
+    rfn.SetFunction(f, min, max);
+    rfn.Solve();
+    double crossingX = rfn.Root();
+
+    return crossingX;
+}
 
 /**
  * Calculate the time at which the PMT time resolution PDF and the first arrival time
