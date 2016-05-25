@@ -318,6 +318,20 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ( Double_t s, WCSimLikelih
 	// Load in this combination of s, digit and track so we don't keep recalculating distances and angles
 	MakeCache(s, myTrack, myDigit);
 
+  //  std::vector<int> digits(5);
+  //  if( std::find(digits.begin(), digits.end(), myDigit->GetTubeId()) != digits.end())
+  //  {
+  // Work out the direct and indirect contributions to J
+  // J[0] = J_dir, J[1] = J_ind
+  // if( myDigit->GetQ() > 10 && myDigit->GetTubeId() > 4000 && myDigit->GetTubeId() < 4100)
+  // {
+  // 	std::cout << "Eval J at s  = " << s << " is outside? " << IsOutsideDetector(fCache.GetEmissionPos()) << std::endl
+  //            << "Transmission = " << this->TransmissionFunction() << std::endl
+  // 			  << "Efficiency   = " << this->Efficiency() << std::endl
+  // 			  << "SolidAngle   = " << this->SolidAngleFraction() << std::endl
+  // 			  << "QE           = " << this->QuantumEfficiency() << std::endl
+  //            << "Scatter      = " << this->ScatteringTable() << std::endl;
+  //}
 
 	// Check make sure the particle is still inside the detector
 	if( fConstrainExtent )
@@ -328,16 +342,8 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ( Double_t s, WCSimLikelih
 			return J; // It already contains zeros
 		}
 	}
-
-  // Work out the direct and indirect contributions to J
-  // J[0] = J_dir, J[1] = J_ind
-  // if( myDigit->GetQ() > 10 && myDigit->GetTubeId() > 4000 && myDigit->GetTubeId() < 4100)
-  // {
-  // 	std::cout << "Transmission = " << this->TransmissionFunction(s, myTrack, myDigit) << std::endl
-  // 			  		<< "Efficiency = " << this->Efficiency(s, myTrack, myDigit) << std::endl
-  // 			  		<< "SolidAngle = " << this->SolidAngleFraction(s, myTrack, myDigit) << std::endl
-  // 			  		<< "QE           = " << this->QuantumEfficiency(s, myTrack, myDigit) << std::endl;
-  // }
+    
+    
 
   J[0] = (this->TransmissionFunction() 
           * this->Efficiency()
@@ -370,15 +376,13 @@ void WCSimLikelihoodTuner::CalculateCoefficients(WCSimLikelihoodTrackBase * myTr
     s[2] = 2 * s[1];
 
     // Check these s values are inside the detector and adjust them if not:
-    /*
     this->CalculateCutoff(myTrack);
     if( fCutoffIntegral > 0.0 && s[2] > fCutoffIntegral )
     {
         //std::cout << "Outside the detector!" << std::endl;
-        //s[2] = 0.8*fCutoffIntegral;
-        //s[1] = 0.5 * s[2];
+        s[2] = 0.8*fCutoffIntegral;
+        s[1] = 0.5 * s[2];
     }
-    */
 
     // Evaluate J at each point
     Double_t JDir[3] = {0.,0.,0.};
@@ -662,7 +666,7 @@ double WCSimLikelihoodTuner::LookupChIntegrals(WCSimLikelihoodTrackBase * myTrac
     }	
     std::vector<Double_t> integralsVec = this->LookupChIntegrals(myTrack, myDigit);
     
-  if( (UInt_t)sPower > integralsVec.size() ) std::cerr << "There's a problem with integralsVec!" << std::endl;  
+    if( (UInt_t)sPower > integralsVec.size() ) std::cerr << "There's a problem with integralsVec!" << std::endl;  
 	return integralsVec.at(sPower);
 }
 
@@ -703,10 +707,16 @@ std::vector<Double_t> WCSimLikelihoodTuner::LookupChIntegrals(WCSimLikelihoodTra
     integralsVec.push_back(WCSimIntegralLookupReader::Instance()->GetRhoGIntegral(type, E, emissionCutoff, R0, cosTheta0));
     integralsVec.push_back(WCSimIntegralLookupReader::Instance()->GetRhoGSIntegral(type, E, emissionCutoff, R0, cosTheta0));
     integralsVec.push_back(WCSimIntegralLookupReader::Instance()->GetRhoGSSIntegral(type, E, emissionCutoff, R0, cosTheta0));
-    //if(myDigit->GetTubeId() == 4007 ){  std::cout << "tubeID = " << myDigit->GetTubeId() << "    R0 = " << R0 << "    cosTheta0 = " << cosTheta0 << "     E = " << myTrack->GetE() << "    sMax = " << fCutoffIntegral << "  EmissionCutoff = " << emissionCutoff << std::endl;}
+
+    // std::vector<int> digits(5);
+    // if( std::find(digits.begin(), digits.end(), myDigit->GetTubeId()) != digits.end())
+    // {
+    //   std::cout << "tubeID = " << myDigit->GetTubeId() << "    R0 = " << R0 << "    cosTheta0 = " << cosTheta0 << "     E = " << myTrack->GetE() << "    sMax = " << fCutoffIntegral << "  EmissionCutoff = " << emissionCutoff << std::endl;
+    //   std::cout << "tubeID = " << myDigit->GetTubeId() << "    s^0 term = " << integralsVec.at(0) << "   s^1 term = " << integralsVec.at(1) << "   s^2 term = " << integralsVec.at(2) << std::endl;
+    //   WCSimIntegralLookupReader::Instance()->SaveIntegrals(type, E, emissionCutoff, R0, cosTheta0);
+    // }
   }
   //  if(integralsVec.at(1) != 0){
-  //    std::cout << "tubeID = " << myDigit->GetTubeId() << "    s^0 term = " << integralsVec.at(0) << "   s^1 term = " << integralsVec.at(1) << "   s^2 term = " << integralsVec.at(2) << std::endl;
   //  }
  	return integralsVec;
 }
