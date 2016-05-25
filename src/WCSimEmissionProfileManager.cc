@@ -246,8 +246,15 @@ std::vector<double> WCSimEmissionProfileManager::GetFourNearestEnergies(
 
 		if(bin == energyAxis->GetNbins())
 		{
-			fEnergies.at(2) = energyAxis->GetBinLowEdge(bin) + energyAxis->GetBinWidth(bin-1);
-			fEnergies.at(3) = 2*fEnergies.at(2) - fEnergies.at(1);
+            // We're in the final energy bin, which goes from our highest simulated energy to 30GeV
+            // Just want to return four equally-spaced energies inside this bin such that the 
+            // track energy is between the middle two
+            double binWidth = energyAxis->GetBinWidth(1);
+            double topLowEdge = energyAxis->GetBinLowEdge(bin);
+            fEnergies.at(1) = floor((myTrack->GetE()) / binWidth) * binWidth;
+            fEnergies.at(0) = fEnergies.at(1) - binWidth;
+            fEnergies.at(2) = fEnergies.at(1) + binWidth;
+            fEnergies.at(3) = fEnergies.at(2) + binWidth;
 		}
 		else if(bin == energyAxis->GetNbins()-1)
 		{
