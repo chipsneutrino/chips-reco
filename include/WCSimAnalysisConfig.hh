@@ -175,12 +175,14 @@ public:
      */
     Double_t GetFittedSpeedOfLight() const;
 
+    Bool_t GetEqualiseChargeAndTime() const;
 
     void SetUseTimeOnly(Bool_t doIt = true);
     void SetUseChargeOnly(Bool_t doIt = true);
     void SetUseChargeAndTime(Bool_t doIt = true);
     void SetUseCustomParticleSpeed(Bool_t doIt = true);
     void SetUseCustomSpeedOfLight(Bool_t doIt = true);
+    void SetEqualiseChargeAndTime(Bool_t doIt = true);
 
     /**
      * Set the custom speed at which the time likelihood assumes particles travel
@@ -258,6 +260,7 @@ private:
     Bool_t        fUseCustomParticleSpeed;     ///< Normally we assume particles travel at c - this allows us to switch and set it manually
     Bool_t        fUseCustomSpeedOfLight;      ///< Normally we assume light travels at c/(average n) - this allows us to switch and set it manually
     Bool_t        fUseFittedSpeedOfLight;      ///< Normally we assume light travels at c/(average n) - this uses a fitted speed instead
+    Bool_t        fEqualiseChargeAndTime;      ///< After we've seeded the vertex, energy and time, we can scale the time likelihood to weight it the same as the charge
     Double_t      fCustomParticleSpeed;        ///< The speed of the propagating particle as a fraction of c       
     Double_t      fCustomSpeedOfLight;         ///< The speed of the propagating particle as a fraction of c       
     Double_t      fFittedSpeedOfLight;         ///< The effective speed of light from our fit as a fraction of c
