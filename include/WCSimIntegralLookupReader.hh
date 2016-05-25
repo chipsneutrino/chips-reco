@@ -29,6 +29,9 @@ public:
 	double GetRhoGSIntegral( const TrackType::Type &type, const double &E, const double &s, const double &R0, const double &cosTh0);
 	double GetRhoGSSIntegral( const TrackType::Type &type, const double &E, const double &s, const double &R0, const double &cosTh0);
 	virtual ~WCSimIntegralLookupReader();
+
+
+    void SaveIntegrals( const TrackType::Type &type, const double E, const double s, const double R0, const double cosTh0);
 private:
 	WCSimIntegralLookupReader();
 	std::map<TrackType::Type, WCSimIntegralLookup3D*> fLookupMap;

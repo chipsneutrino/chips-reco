@@ -45,6 +45,10 @@ public:
 	TGraph * GetRhoGInt(double R0, double cosTh0) const;
 	TGraph * GetRhoGSInt(double R0, double cosTh0) const;
 	TGraph * GetRhoGSSInt(double R0, double cosTh0) const;
+	
+    TSpline3 * GetRhoGSpline(double R0, double cosTh0) const;
+	TSpline3 * GetRhoGSSpline(double R0, double cosTh0) const;
+	TSpline3 * GetRhoGSSSpline(double R0, double cosTh0) const;
 
 	void SetRhoG(double R0, double cosTh0, TGraph gr);
 	void SetRhoGS(double R0, double cosTh0, TGraph gr);
@@ -102,6 +106,8 @@ public:
 	double GetRhoGIntegral( const double &E, const double &s, const double &R0, const double &cosTh0);
 	double GetRhoGSIntegral( const double &E, const double &s, const double &R0, const double &cosTh0);
 	double GetRhoGSSIntegral( const double &E, const double &s, const double &R0, const double &cosTh0);
+
+    void SaveIntegrals(const double E, const double s, const double R0, const double cosTh0);
 
 private:
 

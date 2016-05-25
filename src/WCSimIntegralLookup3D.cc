@@ -11,6 +11,8 @@
 #include <TFile.h>
 #include <TH1F.h>
 #include <TH3F.h>
+#include <TCanvas.h>
+#include <TString.h>
 
 #ifndef REFLEX_DICTIONARY
 ClassImp(WCSimIntegralLookup3D)
@@ -159,6 +161,7 @@ double WCSimIntegralLookupHistArray::GetRhoIntegral(const double E,
 double WCSimIntegralLookupHistArray::GetRhoGIntegral(const double E,
 		const double R0, const double cosTh0, const int sPower) {
 	int bin = GetArrayIndex(R0, cosTh0);
+    if(bin >= fRhoGSplineArr.size()){std::cout << "R0 = " << R0 << " and cosTh0 = " << cosTh0 << " and sPower = " << sPower << " so bin is " << bin << " and array has " << fRhoGSplineArr.size() << " bins" << std::endl;}
 
 	if(sPower == 0 && fRhoGSplineArr.at(bin) != NULL){ return fRhoGSplineArr.at(bin)->Eval(E); }
 	if(sPower == 1 && fRhoGSSplineArr.at(bin) != NULL){ return fRhoGSSplineArr.at(bin)->Eval(E); }
@@ -425,6 +428,21 @@ TGraph* WCSimIntegralLookupHistArray::GetRhoGSSInt(double R0,
 	return fRhoGSSArr.at(GetArrayIndex(R0, cosTh0));
 }
 
+TSpline3* WCSimIntegralLookupHistArray::GetRhoGSpline(double R0,
+		double cosTh0) const {
+	return fRhoGSplineArr.at(this->GetArrayIndex(R0, cosTh0));
+}
+
+TSpline3* WCSimIntegralLookupHistArray::GetRhoGSSpline(double R0,
+		double cosTh0) const {
+	return fRhoGSSplineArr.at(GetArrayIndex(R0, cosTh0));
+}
+
+TSpline3* WCSimIntegralLookupHistArray::GetRhoGSSSpline(double R0,
+		double cosTh0) const {
+	return fRhoGSSSplineArr.at(GetArrayIndex(R0, cosTh0));
+}
+
 void WCSimIntegralLookupHistArray::ResetArrays() {
     std::cout << " *** WCSimIntegralLookupHistArray::ResetArrays() *** " << std::endl;
 
@@ -616,5 +634,36 @@ void WCSimIntegralLookupHistArray::Verify()
 	if(fRhoSSSpline != NULL){ fRhoSSSpline->Write(); }
 
     test->Close();
+
+}
+
+void WCSimIntegralLookup3D::SaveIntegrals(const double E, const double s, const double R0, const double cosTh0)
+{
+    TCanvas * can = new TCanvas("can","",1500,500);
+    TGraph * rhoG = fIntegrals->GetRhoGInt(R0, cosTh0);
+    TGraph * rhoGS = fIntegrals->GetRhoGSInt(R0, cosTh0);
+    TGraph * rhoGSS = fIntegrals->GetRhoGSSInt(R0, cosTh0);
+    TSpline3 * rhoGSpline = fIntegrals->GetRhoGSpline(R0, cosTh0);
+    TSpline3 * rhoGSSpline = fIntegrals->GetRhoGSSpline(R0, cosTh0);
+    TSpline3 * rhoGSSSpline = fIntegrals->GetRhoGSSSpline(R0, cosTh0);
+    rhoG->SetMarkerSize(0.7);
+    rhoGS->SetMarkerSize(0.7);
+    rhoGSS->SetMarkerSize(0.7);
+    can->Divide(3,1);
+    can->cd(1);
+    rhoG->Draw("AP");
+    rhoGSpline->Draw("SAME");
+    can->cd(2);
+    rhoGS->Draw("AP");
+    rhoGSSpline->Draw("SAME");
+    can->cd(3);
+    rhoGSS->Draw("AP");
+    rhoGSSSpline->Draw("SAME");
+    can->cd(3);
+    can->SaveAs(TString::Format("integrals_%.02f_%.04f.png", R0, cosTh0).Data());
+    can->SaveAs(TString::Format("integrals_%.02f_%.04f.root", R0, cosTh0).Data());
+    delete can;
+
+
 
 }

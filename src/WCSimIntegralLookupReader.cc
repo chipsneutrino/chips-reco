@@ -230,5 +230,9 @@ TString WCSimIntegralLookupReader::GetLookupFilename(const TrackType::Type& type
 	return str;
 }
 
+void WCSimIntegralLookupReader::SaveIntegrals( const TrackType::Type &type, const double E, const double s, const double R0, const double cosTh0)
+{
+	fLookupMap[type]->SaveIntegrals(E, s, R0, cosTh0);
+}
 
  
