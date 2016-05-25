@@ -46,12 +46,21 @@ public:
 	  std::vector<TVector3> GetPrimaryDirs() const;
 	  unsigned int GetNPrimaries() const;
 
+      // Best-fit log likelihoods
+      void SetTimeMinus2LnL(double minus2LnL);
+      void SetChargeMinus2LnL(double minus2LnL);
+      double GetTimeMinus2LnL() const;
+      double GetChargeMinus2LnL() const ;
+      double GetMinus2LnL() const;
 
 	private:
-
+      // Likelihoods
+      double fTimeMinus2LnL;
+      double fChargeMinus2LnL;
+      
 	  // Vertex position
 	  TVector3 fVertex;
-    double fVertexT;
+      double fVertexT;
 
 	  // Also store information about the primary particles (only those escaping the nucleus)
 	  std::vector<int> fPrimaryPDGs;

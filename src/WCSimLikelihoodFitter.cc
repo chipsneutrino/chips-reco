@@ -37,12 +37,13 @@
 #include "Math/Minimizer.h"
 #include "Math/Factory.h"
 
-#include <string>
+#include <algorithm>
 #include <iostream>
+#include <map>
+#include <numeric>
+#include <string>
 #include <utility>
 #include <vector>
-#include <map>
-#include <algorithm>
 #include "TCanvas.h"
 #include "TPolyMarker.h"
 
@@ -97,6 +98,8 @@ void WCSimLikelihoodFitter::Minimize2LnL()
 Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
 {
   UInt_t nTracks = fFitterConfig->GetNumTracks();
+
+  CheckTrackParametersForNaN(x);
 
   // If we've fixed some track parameters together, then our array of fit parameters won't just be of size
   // n tracks * m parameters per track, and we need to work out which entry corresponds to which parameter
@@ -170,6 +173,7 @@ Double_t WCSimLikelihoodFitter::WrapFunc(const Double_t * x)
 double WCSimLikelihoodFitter::WrapFuncAlongTrack(const Double_t * x)
 {
   unsigned int nTracks = fFitterConfig->GetNumTracks();
+  CheckTrackParametersForNaN(x, nTracks+2); // One deltaX, one energy per track, and one deltaT
 
   // If we've fixed some track parameters together, then our array of fit parameters won't just be of size
   // n tracks * m parameters per track, and we need to work out which entry corresponds to which parameter
@@ -217,7 +221,7 @@ double WCSimLikelihoodFitter::WrapFuncAlongTrack(const Double_t * x)
   TVector3 newVertex = vertex + direction * x[0];
   std::cout << "x = " << x[0] << " So vertex goes from (" << vertex.X() << ", " << vertex.Y() << ", " << vertex.Z() << ") to ("
             << newVertex.X() << ", " << newVertex.Y() << ", " << newVertex.Z() << ")" << std::endl;
-  std::cout << "Time is now " << time << " and energy is " << energies.at(0) << std::endl;
+  std::cout << "Time is now " << time << " and energy is " ; std::cout << energies.at(0) << std::endl;
 
   for(unsigned int i  = 0 ; i < nTracks; ++i)
   {
@@ -226,7 +230,7 @@ double WCSimLikelihoodFitter::WrapFuncAlongTrack(const Double_t * x)
 		    	  	  	  	  	  newVertex.X(),
 		    	  	  	  	  	  newVertex.Y(),
 		    	  	  	  	  	  newVertex.Z(),
-                            time,
+                                  time,
 		    	  	  	  	  	  fFitterTrackParMap.GetCurrentValue(i, FitterParameterType::kDirTh),
 		    	  	  	  	  	  fFitterTrackParMap.GetCurrentValue(i, FitterParameterType::kDirPhi),
 		    	  	  	  	  	  energies.at(i)
@@ -242,7 +246,7 @@ double WCSimLikelihoodFitter::WrapFuncAlongTrack(const Double_t * x)
   // std::cout << "deleting tracks" << std::endl;
   for(size_t iTrack = 0; iTrack < tracksToFit.size(); ++iTrack)
   {
-	  // std::cout << iTrack << "/" << tracksToFit.size() << std::endl;
+	  std::cout << iTrack << "/" << tracksToFit.size() << std::endl;
 	  delete (tracksToFit.at(iTrack));
   }
   // std::cout << "Clearing" << std::endl;
@@ -258,6 +262,7 @@ double WCSimLikelihoodFitter::WrapFuncAlongTrack(const Double_t * x)
 double WCSimLikelihoodFitter::WrapFuncPiZero(const Double_t * x)
 {
   UInt_t nTracks = fFitterConfig->GetNumTracks();
+  CheckTrackParametersForNaN(x, 1+nTracks);
   assert(nTracks == 2);
 
   // If we've fixed some track parameters together, then our array of fit parameters won't just be of size
@@ -377,6 +382,7 @@ Double_t WCSimLikelihoodFitter::GetMinimum()
 }
 
 void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
+	fFailed = false;
 	fIsFirstCall = true;
 	SetEvent(iEvent);
 
@@ -420,28 +426,31 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
         FreeEnergy();
       }
       
+      if(WCSimAnalysisConfig::Instance()->GetUseTime())
+      {
+          std::cout << "Fitting time only" << std::endl;
+          FixVertex();
+          FixDirection();
+          FixEnergy();
+          FreeTime();
+          FitTime();
+          FreeVertex();
+          FreeDirection();
+          FreeEnergy();
+      }
 		
       // Now fit the energy
       std::cout << "Fitting energy only" << std::endl;
       FixVertex();
       FixDirection();
       FixTime();
-      
       FitEnergy();
-      
       FreeVertex();
       FreeDirection();
       FreeTime();
 
       if(WCSimAnalysisConfig::Instance()->GetUseTime())
       {
-          bool undo = false;
-          if(WCSimAnalysisConfig::Instance()->GetUseCharge())
-          {
-              WCSimAnalysisConfig::Instance()->SetUseTimeOnly();
-              undo = true;
-          }
-      
           std::cout << "Fitting time only" << std::endl;
           FixVertex();
           FixDirection();
@@ -452,13 +461,68 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
           FreeDirection();
           FreeEnergy();
       
-          if(undo){ WCSimAnalysisConfig::Instance()->SetUseChargeAndTime(); }
+          if(    WCSimAnalysisConfig::Instance()->GetEqualiseChargeAndTime()
+              && WCSimAnalysisConfig::Instance()->GetUseCharge() )    
+          {
+              std::vector<double> time2LnLVec = fTotalLikelihood->GetTime2LnLVector();
+              std::vector<double> charge2LnLVec = fTotalLikelihood->GetCharge2LnLVector();
+              double time2LnL = std::accumulate(time2LnLVec.begin(), time2LnLVec.end(), 0.0);
+              double charge2LnL = std::accumulate(charge2LnLVec.begin(), charge2LnLVec.end(), 0.0);
+
+              double scaleFactor = 1;
+              if( charge2LnL > 0 && time2LnL > 0)
+              {
+                  scaleFactor = charge2LnL / time2LnL;
+              }
+              fTotalLikelihood->SetTimeScaleFactor(scaleFactor);
+          }
+      
+          // Fix the directions and energy and move the vertex
+          // along the (average) momentum vector (helps because the seed
+          // often gets this wrong in the direction of the track by 
+          // changing the cone angle)
+          //
+          // Iterate a few times...
+          for(int time = 0; time < 3; ++time)
+          {
+            if(WCSimAnalysisConfig::Instance()->GetUseCharge())
+            {
+              std::cout << "Fitting along track, time only" << std::endl;
+              WCSimAnalysisConfig::Instance()->SetUseTimeOnly();
+              FixDirection();
+              FreeTime();
+              FixEnergy();
+              FitAlongTrack();
+              FreeEnergy();
+              // MetropolisHastingsAlongTrack(250);
+              FreeDirection();
+              WCSimAnalysisConfig::Instance()->SetUseChargeAndTime();
+            }
+            else
+            {
+              FixDirection();
+              FreeTime();
+              FixEnergy();
+              FitAlongTrack();
+              FreeEnergy();
+              // MetropolisHastingsAlongTrack(250);
+              FreeDirection();
+
+            }
+            std::cout << "Fitting energy only" << std::endl;
+            FixVertex();
+            FixDirection();
+            FixTime();
+            FitEnergy();
+            FreeVertex();
+            FreeDirection();
+            FreeTime();
+        }
       }
       else
       {
           std::cout << "Not using the time likelihood" << std::endl;
       }
-
 
 
       // Fix the directions and energy and move the vertex
@@ -468,16 +532,16 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
       std::cout << "Fitting along track" << std::endl;
       FixDirection();
       FreeTime();
-      FixTime();
+      //FixTime();
       FitAlongTrack();
-      FreeTime();
+      //FreeTime();
       // MetropolisHastingsAlongTrack(250);
       FreeDirection();
   
+
       
       // Now freely fit the vertex and direction    
       FitVertex();
-
       FixVertex();
       FixDirection();
       FixTime();
@@ -485,7 +549,6 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
       FreeVertex();
       FreeDirection();
       FreeTime();
-
     }
 	fTrueLikelihoodTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
   }
@@ -629,14 +692,16 @@ void WCSimLikelihoodFitter::RunFits() {
 	for(UInt_t iEvent = firstEvent; iEvent < firstEvent + numEventsToFit ; ++iEvent)
 	{
 		FitEventNumber(iEvent);
-	    if( fMinimum > 0 )
+	    if( fMinimum > 0 && !fFailed )
 	    {
+            std::cout << "Filling successful event" << std::endl;
 			  FillPlots();
 			  FillTree();
 			  FillHitComparison();
 	    }
 	    else
 	    {
+            std::cout << "Failed for some reason: fMinimum = " << fMinimum << " and fFailed = " << fFailed << std::endl;
 	      fFitterTree->FillRecoFailures(iEvent);
 	    }
 	    fFitterTree->SaveTree();
@@ -697,6 +762,9 @@ void WCSimLikelihoodFitter::ResetEvent() {
     fParMap[1] = 8; // The number of fit parameters for n tracks, plus 1 for nTracks itself (fixed)
     fParMap[2] = 11;
     fMinimum  = 0;
+    fMinimumChargeComponent = 0;
+    fMinimumTimeComponent = 0;
+    fFailed = false;
     fIsFirstCall = true;
 }
 
@@ -722,7 +790,7 @@ void WCSimLikelihoodFitter::FillTree() {
 		{
 			trueTrackEscapes.push_back(this->GetTrueTrackEscapes(j));
 		}
-		fFitterTree->Fill(fEvent, fBestFit, bestFitEscapes, *fTrueLikelihoodTracks, trueTrackEscapes, fMinimum);
+		fFitterTree->Fill(fEvent, fBestFit, bestFitEscapes, *fTrueLikelihoodTracks, trueTrackEscapes, fMinimumChargeComponent, fMinimumTimeComponent);
 	}
 	return;
 }
@@ -827,7 +895,8 @@ void WCSimLikelihoodFitter::SeedEvent()
     else{ seedPhi = (dirX < 0.0)? 0.5*TMath::Pi() : -0.5*TMath::Pi(); }
 
     std::cout << "Track seed " << iTrack << ": " << seedX << ", " << seedY << ", " << seedZ << " :: "
-                                                 << dirX << ", " << dirY << ", " << dirZ << ", " << seedTheta << ", " << seedPhi << std::endl; 
+                                                 << dirX << ", " << dirY << ", " << dirZ << ", " << seedTheta << ", " << seedPhi << std::endl 
+              << "Ring angle = " << ringVec[iTrack]->GetAngle() << std::endl; 
 
     // If the seed happens to be outside the allowed region of the detector, move 
     // the track back along its direction until it re-enters
@@ -972,6 +1041,8 @@ void WCSimLikelihoodFitter::FitEnergyGridSearch()
 
 	// This loop assumes we have at most two tracks
 	double best2LnL = -999.9;
+    double bestCharge2LnL = -999.9;
+    double bestTime2LnL = -999.9;
 	std::vector<double> bestEnergies;
 
 	// Set everything to the default value
@@ -1009,6 +1080,8 @@ void WCSimLikelihoodFitter::FitEnergyGridSearch()
 			if( tempMin < best2LnL || isFirstLoop )
 			{
 				best2LnL = tempMin;
+                bestTime2LnL = fTotalLikelihood->GetLastTime2LnL();
+                bestCharge2LnL = fTotalLikelihood->GetLastCharge2LnL();
 				isFirstLoop = false;
 				bestEnergies.clear();
 				// std::cout << "Pushing back for iBin = " << iBin << std::endl;
@@ -1134,9 +1207,18 @@ double WCSimLikelihoodFitter::FitAndGetLikelihood(const char * minAlgorithm)
 	  // Perform the minimization
 	  if( isAnythingFree )
 	  {
-	    min->Minimize();
-	    fMinimum = min->MinValue();
-	    fStatus = min->Status();
+		  try
+		  {
+			  min->Minimize();
+			  fMinimum = min->MinValue();
+			  fStatus = min->Status();
+		  }
+		  catch(FitterArgIsNaN &e)
+		  {
+			  std::cerr << "Error: Fitter encountered an exception when minimising due to NaN argument" << std::endl;
+			  std::cerr << "	   Will flag this event and skip this minimiser stage" << std::endl;
+			  fFailed = true;
+		  }
 	  }
       else{
           std::cout << "Nothing in this world is free" << std::endl;
@@ -1238,9 +1320,18 @@ void WCSimLikelihoodFitter::FitPiZero(const char * minAlgorithm)
 	  // Perform the minimization
 	  if( isAnythingFree )
 	  {
-	    min->Minimize();
-	    fMinimum = min->MinValue();
-	    fStatus = min->Status();
+		  try
+		  {
+			  min->Minimize();
+			  fMinimum = min->MinValue();
+			  fStatus = min->Status();
+		  }
+		  catch(FitterArgIsNaN &e)
+		  {
+			  std::cerr << "Error: Fitter encountered an exception when minimising due to NaN argument" << std::endl;
+			  std::cerr << "	   Will flag this event and skip this minimiser stage" << std::endl;
+			  fFailed = true;
+		  }
 	  }
 	  // This is what we ought to do:
 	  const Double_t * outPar = min->X();
@@ -1675,6 +1766,7 @@ void WCSimLikelihoodFitter::MetropolisHastingsAlongTrack(const int nTries)
 
 void WCSimLikelihoodFitter::FitAlongTrack()
 {
+    std::cout << "Fitting along track" << std::endl;
   const unsigned int nTracks = fFitterConfig->GetNumTracks();
 
   // Check if all the tracks share the same vertex
@@ -1868,11 +1960,24 @@ void WCSimLikelihoodFitter::FitAlongTrack()
   {
     min->SetFixedVariable(minE.size()+1, "Time shift",0);
   }
-  min->Minimize();
+
+  double finalDistance = 0;
+  double finalDeltaE = 0;
+  try
+  {
+	min->Minimize();
+    finalDistance = min->X()[0];
+    finalDeltaE = min->X()[1];
+  }
+  catch(FitterArgIsNaN &e)
+  {
+	std::cerr << "Error: Fitter encountered an exception when minimising along track, due to NaN argument" << std::endl;
+	std::cerr << "	   Will flag this event and skip this minimiser stage" << std::endl;
+	fFailed = true;
+  }
 
 
   // Get the final fitted parameters from the minimiser
-  double finalDistance = min->X()[0];
   TVector3 newVertex = startVertex + finalDistance * direction;
   std::cout << "Started at " << startVertex.X() << ", " << startVertex.Y() << ", " << startVertex.Z() << std::endl;
   std::cout << "Shift track vertex by " << finalDistance << " to" << std::endl;
@@ -2004,6 +2109,24 @@ void WCSimLikelihoodFitter::SetEvent(Int_t iEvent)
 	{
 		fTotalLikelihood = new WCSimTotalLikelihood(fLikelihoodDigitArray);
 	}
+}
+
+void WCSimLikelihoodFitter::CheckTrackParametersForNaN(const Double_t * x) const
+{
+    CheckTrackParametersForNaN(x, fFitterConfig->GetNumIndependentParameters());
+	return;
+}
+
+void WCSimLikelihoodFitter::CheckTrackParametersForNaN(const Double_t * x, const unsigned int sizeofX) const
+{
+    for(unsigned int param = 0; param < sizeofX; ++param)
+    {
+		if(TMath::IsNaN(x[param]))
+		{
+            std::cout << "Parameter " << param << " was " << x[param] << std::endl;
+			throw FitterArgIsNaN();
+		}
+    }
 }
 
 Bool_t WCSimLikelihoodFitter::CanFitEvent() const
@@ -2253,12 +2376,14 @@ void WCSimLikelihoodFitter::MoveBackInside(const Int_t iTrack, Double_t& x, Doub
     
     // First we'll make some TVectors so it's easier to do this via loops
     TVector3 toMove(0,0,0), current(x, y, z), dir(dirX, dirY, dirZ);
-    TVector3 min( fFitterTrackParMap.GetMinValue(iTrack, FitterParameterType::kVtxX),
-                  fFitterTrackParMap.GetMinValue(iTrack, FitterParameterType::kVtxY),
-                  fFitterTrackParMap.GetMinValue(iTrack, FitterParameterType::kVtxZ));
-    TVector3 max( fFitterTrackParMap.GetMaxValue(iTrack, FitterParameterType::kVtxX),
-                  fFitterTrackParMap.GetMaxValue(iTrack, FitterParameterType::kVtxY),
-                  fFitterTrackParMap.GetMaxValue(iTrack, FitterParameterType::kVtxZ));
+
+    // Use 99% of the minimum and maximum allowed coordinates to make sure we're inside, not on the boundary
+    TVector3 min( 0.99 * fFitterTrackParMap.GetMinValue(iTrack, FitterParameterType::kVtxX),
+                  0.99 * fFitterTrackParMap.GetMinValue(iTrack, FitterParameterType::kVtxY),
+                  0.99 * fFitterTrackParMap.GetMinValue(iTrack, FitterParameterType::kVtxZ));
+    TVector3 max( 0.99 * fFitterTrackParMap.GetMaxValue(iTrack, FitterParameterType::kVtxX),
+                  0.99 * fFitterTrackParMap.GetMaxValue(iTrack, FitterParameterType::kVtxY),
+                  0.99 * fFitterTrackParMap.GetMaxValue(iTrack, FitterParameterType::kVtxZ));
     
     // Track the furthest we've had to move
     double maxDist = 0;
