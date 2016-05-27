@@ -2,6 +2,7 @@
 #define WCSIMGEOMETRY_HH
 
 #include "TObject.h"
+#include "TVector3.h"
 
 #include "WCSimRootGeom.hh"
 
@@ -33,6 +34,7 @@ class WCSimGeometry : public TObject {
    kTop     = 0,
    kSide    = 1,
    kBottom  = 2,
+   kVeto    = 3,
    kFront   = 10,
    kBack    = 12,
    kLeft    = 20,
@@ -85,6 +87,8 @@ class WCSimGeometry : public TObject {
   // Lookup methods for PMTs
   // =======================
   Int_t GetNumPMTs()          { return fPMTs; }
+  Int_t GetNumVetoPMTs()          { return fVetoPMTs; }
+  Int_t GetNumInnerPMTs()          { return fPMTs - fVetoPMTs; }
   Double_t GetPMTRadius()     { return fPMTRadius; }
   Double_t GetPMTCoverage()   { return fPMTCoverage; }
   Double_t GetPMTSeparation() { return fPMTSeparation; }
@@ -115,6 +119,7 @@ class WCSimGeometry : public TObject {
                                    Double_t px, Double_t py, Double_t pz);
   Double_t BackwardProjectionToEdge(Double_t x, Double_t y, Double_t z,
                                     Double_t px, Double_t py, Double_t pz);
+  bool ProjectMinMaxPosition(TVector3 vtx, TVector3 dir, Double_t &sMin, Double_t &sMax);
 
   // Projection to Edge of Detector
   // ==============================
@@ -233,6 +238,7 @@ class WCSimGeometry : public TObject {
   Double_t fScale;
 
   Int_t fPMTs;
+  Int_t fVetoPMTs;
   Double_t* fPmtX;
   Double_t* fPmtY;
   Double_t* fPmtZ;

@@ -324,7 +324,6 @@ void WCSimGeometry::SetGeometry(WCSimRootGeom* myGeometry)
   }
 
   for( Int_t n=0; n<myGeometry->GetWCNumPMT(); n++ ){
-
     // get next PMT
     WCSimRootPMT myPmt = myGeometry->GetPMT(n);
 
@@ -342,6 +341,10 @@ void WCSimGeometry::SetGeometry(WCSimRootGeom* myGeometry)
        && z<=+0.5*fCylLength-delta ) region = WCSimGeometry::kSide;
       if( z<-0.5*fCylLength+delta )  region = WCSimGeometry::kBottom;
       if( z>+0.5*fCylLength-delta )  region = WCSimGeometry::kTop;
+      // Veto hits
+      if(myPmt.GetCylLoc() == 3){
+        region = WCSimGeometry::kVeto;
+      }
     }
 
     if( fMailBox ){
@@ -784,6 +787,34 @@ Double_t WCSimGeometry::BackwardProjectionToEdge(Double_t x, Double_t y, Double_
   }
 
   return -99999.9;
+}
+
+// Function to find the minimum and maximum distances along the track direction from the vertex to remain
+// inside the detector. Used mostly by the fit routine that moves the vertex along the track direction.
+bool WCSimGeometry::ProjectMinMaxPosition(TVector3 vtx, TVector3 dir, Double_t &sMin, Double_t &sMax){
+
+  Double_t xproj1 = 0.0;
+  Double_t yproj1 = 0.0;
+  Double_t zproj1 = 0.0;
+  Int_t regionproj1 = 0;
+  this->ProjectToNearEdge(vtx.X(),vtx.Y(),vtx.Z(),dir.X(),dir.Y(),dir.Z(),xproj1,yproj1,zproj1,regionproj1);
+  Double_t xproj2 = 0.0;
+  Double_t yproj2 = 0.0;
+  Double_t zproj2 = 0.0;
+  Int_t regionproj2 = 0;
+  this->ProjectToNearEdge(vtx.X(),vtx.Y(),vtx.Z(),-dir.X(),-dir.Y(),-dir.Z(),xproj2,yproj2,zproj2,regionproj2);
+
+  TVector3 proj1 = TVector3(xproj1,yproj1,zproj1);
+  TVector3 proj2 = TVector3(xproj2,yproj2,zproj2);
+
+  std::cout << proj1.X() << "," << proj1.Y() << "," << proj1.Z() << std::endl;
+  std::cout << "Projection presumably in direction of track:  " << (proj1 - vtx).Angle(dir) << std::endl;
+  std::cout << proj2.X() << "," << proj2.Y() << "," << proj2.Z() << std::endl;
+  std::cout << "Projection presumably in the other direction: " << (proj2 - vtx).Angle(dir) << std::endl;
+
+  sMax = (TVector3(xproj1,yproj1,zproj1) - vtx).Mag();
+  sMin = -1 * (vtx - TVector3(xproj2,yproj2,zproj2)).Mag();
+
 }
 
 void WCSimGeometry::ProjectToNearEdge(Double_t x0, Double_t y0, Double_t z0, Double_t px, Double_t py, Double_t pz, Double_t& xproj, Double_t& yproj, Double_t&zproj, Int_t& regionproj)
@@ -1526,7 +1557,6 @@ void WCSimGeometry::ProjectToEdge(Bool_t useFarEdge, Double_t x0, Double_t y0, D
 
       z1 = z0 + t1*pz;
       z2 = z0 + t2*pz;
-
       if( ( z1>=-L/2.0 && z2<=+L/2.0 )
        || ( z2>=-L/2.0 && z1<=+L/2.0 ) ){
         foundProjectionZ = 1;
@@ -1582,6 +1612,7 @@ void WCSimGeometry::ProjectToEdge(Bool_t useFarEdge, Double_t x0, Double_t y0, D
 
       // near/far projection
       if( t1>=0 ){
+//      if( fabs(t1)<=fabs(t2)){
         xNear = x1;
         yNear = y1;
         zNear = z1;
@@ -1593,15 +1624,16 @@ void WCSimGeometry::ProjectToEdge(Bool_t useFarEdge, Double_t x0, Double_t y0, D
         regionFar = region2;
       }
       else if( t2>0 ){
+//      else{
         xNear = x2;
         yNear = y2;
         zNear = z2;
         regionNear = region2;
 
-        xFar = x2;
-        yFar = y2;
-        zFar = z2;
-        regionFar = region2;
+        xFar = x1;
+        yFar = y1;
+        zFar = z1;
+        regionFar = region1;
       }
     }
  

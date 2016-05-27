@@ -105,6 +105,7 @@ WCSimInterface::WCSimInterface()
   fRecoEvent = new WCSimRecoEvent();
 
   fDigitList = new std::vector<WCSimRecoDigit*>;
+  fVetoDigitList = new std::vector<WCSimRecoDigit*>;
   fTrackList = new std::vector<WCSimTrueTrack*>;  
   fTrueLikelihoodTracks = new std::vector<WCSimLikelihoodTrackBase*>;
   fLikelihoodDigitArray = NULL;
@@ -285,6 +286,25 @@ void WCSimInterface::BuildTrueLikelihoodTracks() {
 			  fTrueLikelihoodTracks->push_back(track);
 		  }
     }
+    // Leigh: If this is an overlay event, add the overlays too.
+    if(sum.IsOverlayEvent()){
+      for(unsigned int i = 0; i < sum.GetNOverlays(); ++i){
+        // Make the track
+        TParticlePDG * overlayParticle = myDatabase.GetParticle(sum.GetOverlayPDG(i));
+			  WCSimLikelihoodTrackBase * track = WCSimLikelihoodTrackFactory::MakeTrack(
+					  	  	  	  TrackType::GetTypeFromPDG(sum.GetOverlayPDG(i)),
+			  	  	  	  	  sum.GetOverlayVertexX() * mm_to_cm, 
+                        sum.GetOverlayVertexY() * mm_to_cm, 
+                        sum.GetOverlayVertexZ() * mm_to_cm, 
+                        sum.GetOverlayVertexT(),
+												sum.GetOverlayDir(i).Theta(),
+												sum.GetOverlayDir(i).Phi(),
+												sum.GetOverlayEnergy(i) - overlayParticle->Mass()* 1000 // Mass comes in GeV but we want MeV
+												);
+			  fTrueLikelihoodTracks->push_back(track);
+      }
+    }
+
 	}
 	std::cout << "BuiltTrueLikelihoodTracks!" << std::endl;
   return;
@@ -303,10 +323,14 @@ void WCSimInterface::ResetRecoEvent()
   for( UInt_t i=0; i<fDigitList->size(); i++ ){
     delete (WCSimRecoDigit*)(fDigitList->at(i));
   }
+  for( UInt_t i=0; i<fVetoDigitList->size(); i++ ){
+    delete (WCSimRecoDigit*)(fVetoDigitList->at(i));
+  }
 
   // clear list of digits
   // ====================
   fDigitList->clear();
+  fVetoDigitList->clear();
 
   return;
 }
@@ -752,6 +776,7 @@ void WCSimInterface::BuildRecoEvent(WCSimRootTrigger* myTrigger)
   // loop over digits
   // ================
   for( Int_t nDigit=0; nDigit<1+fDigiHitArray->GetLast(); nDigit++ ){
+
     WCSimRootCherenkovDigiHit* myDigit = (WCSimRootCherenkovDigiHit*)(fDigiHitArray->At(nDigit));
     Int_t tube = myDigit->GetTubeId();
     Double_t rawQ = myDigit->GetQ();
@@ -769,13 +794,18 @@ void WCSimInterface::BuildRecoEvent(WCSimRootTrigger* myTrigger)
                                                    x, y, z,
                                                    rawT, rawQ,
                                                    calT, calQ);
-
-    fRecoEvent->AddDigit(recoDigit);
-
-    fDigitList->push_back(recoDigit);
+    if(region != WCSimGeometry::kVeto){
+      fRecoEvent->AddDigit(recoDigit);
+      fDigitList->push_back(recoDigit);
+    }
+    else{
+      fRecoEvent->AddVetoDigit(recoDigit);
+      fVetoDigitList->push_back(recoDigit);
+    }
   }
 
   std::cout << "   Number of Digits = " << fRecoEvent->GetNDigits() << std::endl;
+  std::cout << "   Number of Veto Digits = " << fRecoEvent->GetNVetoDigits() << std::endl;
   std::cout << "   Tracks found = " << fTrackList->size() << std::endl;
 
   return;

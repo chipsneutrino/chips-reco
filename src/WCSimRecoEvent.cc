@@ -16,6 +16,7 @@ WCSimRecoEvent::WCSimRecoEvent()
   fVertex = new WCSimRecoVertex();
 
   fDigitList = new std::vector<WCSimRecoDigit*>;
+  fVetoDigitList = new std::vector<WCSimRecoDigit*>;
   fFilterDigitList =  new std::vector<WCSimRecoDigit*>;
   fRingList = new std::vector<WCSimRecoRing*>;
 
@@ -37,6 +38,7 @@ WCSimRecoEvent::~WCSimRecoEvent()
   delete fVertex;
 
   delete fDigitList;
+  delete fVetoDigitList;
   delete fFilterDigitList;
 
   for(unsigned int r = 0; r < fRingList->size(); ++r){
@@ -53,6 +55,7 @@ void WCSimRecoEvent::Reset()
   fVertex->Reset();
 
   this->ClearDigits();
+  this->ClearVetoDigits();
   this->ClearFilterDigits();
   this->ClearRings();
 
@@ -77,6 +80,11 @@ void WCSimRecoEvent::AddDigit(WCSimRecoDigit* digit)
   fDigitList->push_back(digit);
 }
 
+void WCSimRecoEvent::AddVetoDigit(WCSimRecoDigit* digit)
+{
+  fVetoDigitList->push_back(digit);
+}
+
 void WCSimRecoEvent::AddFilterDigit(WCSimRecoDigit* digit)
 {
   fFilterDigitList->push_back(digit);
@@ -90,6 +98,11 @@ void WCSimRecoEvent::AddRing(WCSimRecoRing* ring)
 void WCSimRecoEvent::ClearDigits()
 {
   fDigitList->clear();
+}
+
+void WCSimRecoEvent::ClearVetoDigits()
+{
+  fVetoDigitList->clear();
 }
 
 void WCSimRecoEvent::ClearFilterDigits()
@@ -110,6 +123,16 @@ WCSimRecoDigit* WCSimRecoEvent::GetDigit(Int_t n)
 Int_t WCSimRecoEvent::GetNDigits()
 {
   return fDigitList->size();
+}
+
+WCSimRecoDigit* WCSimRecoEvent::GetVetoDigit(Int_t n)
+{
+  return (WCSimRecoDigit*)(fVetoDigitList->at(n));
+}
+  
+Int_t WCSimRecoEvent::GetNVetoDigits()
+{
+  return fVetoDigitList->size();
 }
 
 WCSimRecoDigit* WCSimRecoEvent::GetFilterDigit(Int_t n)

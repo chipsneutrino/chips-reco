@@ -96,6 +96,8 @@ class WCSimInterface : public TObject {
   WCSimRecoEvent* fRecoEvent;
 
   std::vector<WCSimRecoDigit*>* fDigitList;
+  std::vector<WCSimRecoDigit*>* fVetoDigitList;
+
   std::vector<WCSimTrueTrack*>* fTrackList;
 
   TChain* fChain;
