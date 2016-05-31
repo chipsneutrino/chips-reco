@@ -53,7 +53,7 @@
 ClassImp(WCSimTimeLikelihood3)
 #endif
 
-const double WCSimTimeLikelihood3::fMaximumLnL = 25.0/2.0; // So the maximum of -2LnL = 25
+const double WCSimTimeLikelihood3::fMaximumLnL = 100.0/2.0; // So the maximum of -2LnL = 25
 const double WCSimTimeLikelihood3::fMinimumLikelihood = TMath::Exp(-fMaximumLnL); // So the maximum of -2LnL = 25
 const double WCSimTimeLikelihood3::fSqrtPi = TMath::Sqrt(TMath::Pi());
 const double WCSimTimeLikelihood3::fLog2 = TMath::Log(2.0);
@@ -223,7 +223,7 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
         // |Hit charge = 0   | (0x00) likelihood = 1        | (0x01) likelihood = exp(-Q)|  
         // |Hit charge > 0   | (0x10)likelihood = (1 - prob)| (0x11) calculate as normal |  
         // -------------------------------------------------------------------------------  
-        int whichCase = 0x10 * (myDigit->GetQ() > 0) + 0x01 * (prediction.GetRMS() > 1e-6);
+        int whichCase = 0x10 * (myDigit->GetQ() > 0) + 0x01 * (prediction.GetProb() > fMinimumLikelihood);
         // std::cout << "myDigit->GetTubeId() = " << myDigit->GetTubeId() << "whichCase = " << whichCase << std::endl;
 
 		double timeLikelihood = fMinimumLikelihood;
@@ -258,18 +258,21 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
                     timeLikelihood = ApproximateIntegral(nPhotons, prediction.GetMean(), prediction.GetRMS(), myDigit->GetT(), reso);
                 }
             }
-
+            
+            // Add on a flat distribution of scattered light times
+            timeLikelihood += GetScatteredTimeLikelihood(myDigit);
         }
         else if(whichCase == 0x10) // Detect a hit but didn't predict one - use exp(-Q)
         {
             // std::cout << " -- Doing expo" << std::endl;
-            timeLikelihood = TMath::Exp(-myDigit->GetQ());
+            timeLikelihood = GetScatteredTimeLikelihood(myDigit);
+            std::cout << "Digit " << iDigit << " expo = " << 2*myDigit->GetQ() << std::endl;
             //timeLikelihood = 1.0;
         }
         else if(whichCase == 0x01) // Predict a hit but don't detect one - use predicted probability
         {   
             // std::cout << " -- Using prob" << std::endl;
-            timeLikelihood = (1.0 - prediction.GetProb());
+            //timeLikelihood = (1.0 - prediction.GetProb());
             //timeLikelihood = 1.0;
         }
         else if(whichCase == 0x00) // Didn't predict or detect a hit - carry on
@@ -381,7 +384,6 @@ bool WCSimTimeLikelihood3::IsGoodDigit(WCSimLikelihoodDigit * myDigit)
 
 TimePrediction WCSimTimeLikelihood3::PredictArrivalTime(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit)
 {
-
   // Load the emission profiles for the four emission profiles two either side of E
   // ==============================================================================
   GetFourNearestHists(myTrack);
@@ -454,6 +456,7 @@ TimePrediction WCSimTimeLikelihood3::PredictArrivalTime(WCSimLikelihoodTrackBase
 	  // A vector of the predicted hit times from each step, and one of each step's weight
 	  std::vector<double> times(stepParameterVec.size(), 0.);
 	  std::vector<double> probs(stepParameterVec.size(), 0.);
+	  std::vector<double> squareUncertainties(stepParameterVec.size(), 0.);
 	  int index = 0;
 
 	  // Now do the loop over cosTheta bins and look up the emission profile histograms to work out
@@ -481,13 +484,21 @@ TimePrediction WCSimTimeLikelihood3::PredictArrivalTime(WCSimLikelihoodTrackBase
 		  }
 
 		  double t = 0;
+          double uncertaintySquared = 0;
 
 		  // We only need to evaluate the arrival time if the probability is nonzero
 		  if(prob > 0)
 		  {
+              double particleDistance = fSVec[iEnergy]->GetBinCenter(stepItr->GetSBin());
+              double photonDistance = stepItr->GetMagToPMT();
 		      t =   myTrack->GetT()
 		    			+ fSVec[iEnergy]->GetBinCenter(stepItr->GetSBin()) / fSpeedOfParticle
 		    			+ n * stepItr->GetMagToPMT() / speedOfLightInCmPerNs;
+
+              // Propagate a 3% uncertainty on the muon and photon speeds
+              // to allow for a bit of scattering/wavelength dependence of n
+              uncertaintySquared =   (0.02 * particleDistance / fSpeedOfParticle) * (0.02 * particleDistance / fSpeedOfParticle)
+                                   + (0.02 * photonDistance * n / speedOfLightInCmPerNs) * (0.02 * photonDistance * n / speedOfLightInCmPerNs);
 		  }
 		  else{
 		      prob = 0;
@@ -498,6 +509,7 @@ TimePrediction WCSimTimeLikelihood3::PredictArrivalTime(WCSimLikelihoodTrackBase
 		  sumOfWeights += prob;
 		  times[index] = t;
 		  probs[index] = prob;
+          squareUncertainties[index] = uncertaintySquared;
 
 		  index++;
 	  }
@@ -518,7 +530,16 @@ TimePrediction WCSimTimeLikelihood3::PredictArrivalTime(WCSimLikelihoodTrackBase
 		  rms += (mean - times[i])*(mean-times[i])*probs[i] / sumOfWeights;
 		}
 
-		rms = sqrt(rms);
+
+        double speedUncertaintySq = 0.0;
+        for(int i = 0; i < index; ++i)
+        {
+            speedUncertaintySq += probs[i] * probs[i] * squareUncertainties[i];
+        }
+        speedUncertaintySq = speedUncertaintySq / (sumOfWeights*sumOfWeights);
+
+
+		rms = sqrt(rms + speedUncertaintySq);
 	  }
 
       // If the mean comes out zero we'll get a really distorted spline because it
@@ -548,7 +569,7 @@ TimePrediction WCSimTimeLikelihood3::PredictArrivalTime(WCSimLikelihoodTrackBase
      finalRMS  = WCSimFastMath::CatmullRomSpline(&(fEnergiesVec[0]), &(rmsVec[0]), myTrack->GetE());
      finalProb = WCSimFastMath::CatmullRomSpline(&(fEnergiesVec[0]), &(probVec[0]), myTrack->GetE());
   }
-  else
+  else if(numNonZero > 0)
   {
      // We can't do the spline, so just get ROOT to interpolate/extrapolate using the nearest points
      TGraph gMeans;
@@ -573,6 +594,7 @@ TimePrediction WCSimTimeLikelihood3::PredictArrivalTime(WCSimLikelihoodTrackBase
         // Eval will interpolate between the two nearest points, or extrapolate, both linearly
         finalMean = gMeans.Eval(myTrack->GetE());
         finalRMS  = gRMSs.Eval(myTrack->GetE());
+        if(finalRMS < 0.1){ finalRMS = 0.1; } 
         finalProb = gProbs.Eval(myTrack->GetE());
      }
   }
@@ -580,7 +602,6 @@ TimePrediction WCSimTimeLikelihood3::PredictArrivalTime(WCSimLikelihoodTrackBase
   if(finalMean < 0){ finalMean = 0; }
   if(finalRMS  < 0){ finalRMS  = 0; }
   if(finalProb < 0){ finalProb = 0; }
-
   fAllPreds[myDigit->GetTubeId()-1] = finalMean;
   return TimePrediction(finalMean, finalRMS, finalProb);
 }
@@ -988,3 +1009,21 @@ double WCSimTimeLikelihood3::MinimumOfArrivalAndResolutionTF1( double * x, doubl
 
   return MinimumOfArrivalAndResolution(t, meanArr, rmsArr, pmtTime, pmtRes, nPhotons);
 }
+
+double WCSimTimeLikelihood3::GetScatteredTimeLikelihood(WCSimLikelihoodDigit * myDigit)
+{
+    double duration = fLikelihoodDigitArray->GetDuration();
+    if(duration < 20){ duration = 20; } // Put a floor of 20ns on the event length
+    double flatProb = 0.01 / duration; // Assume a 1% chance of scattered light distributed uniformly in time throughout the event
+
+    // Want the overlap of y = flatProb with the Gaussian describing the PMT resolutionA
+	double reso = GetPMTTimeResolution(myDigit);
+    double rhs = flatProb * reso * fSqrtPi * TMath::Sqrt2();
+
+    if( rhs >= 1) { return fMinimumLikelihood; }
+    double crossX = myDigit->GetT() - TMath::Sqrt(-2 * reso * TMath::Log(flatProb * reso * fSqrtPi * TMath::Sqrt2()));
+    double prob = 2 * IntegrateGaussianFromMinusInfinity(myDigit->GetT(), reso, crossX);
+    if(prob < fMinimumLikelihood){ prob = fMinimumLikelihood;}
+    return prob;
+}
+

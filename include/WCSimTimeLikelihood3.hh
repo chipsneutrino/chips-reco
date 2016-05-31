@@ -9,6 +9,7 @@
 #define INCLUDE_WCSIMTIMELIKELIHOOD3_HH_
 
 #include "TF1.h"
+#include "TRandom3.h"
 #include "TString.h"
 #include "WCSimTrackParameterEnums.hh"
 #include <map>
@@ -26,6 +27,7 @@ class TH2D;
 class TH1D; 
 class TH2F;
 class TH1F; 
+
 
 /**
  * \class Logfinder
@@ -440,6 +442,8 @@ private:
      * @return The minimum of the PDFs for the first photon's arrival time and the PMT's recorded time
      */
     double MinimumOfArrivalAndResolutionTF1(double * x, double * par);
+
+    double GetScatteredTimeLikelihood(WCSimLikelihoodDigit * myDigit);
 
 
 	std::vector<WCSimLikelihoodTrackBase*> fTracks; 		///< Tracks to consider when calculating the likelihood

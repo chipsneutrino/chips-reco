@@ -74,6 +74,8 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myEvent )
   std::vector<WCSimRecoDigit*>* filteredDigits = myRecoEvent->GetFilterDigitList();
   std::vector<WCSimRecoDigit*>::iterator filterIter = filteredDigits->begin();
   fNumHitPMTs = 0;
+  fFirstTime = -999;
+  fLastTime = -999;
 	while(filterIter != filteredDigits->end())
   {	
 	  Int_t tubeID = (*filterIter)->GetTubeID();
@@ -98,6 +100,9 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myEvent )
 	  new(digitArray[arrayIndex]) WCSimLikelihoodDigit(pos[0], pos[1], pos[2], t, q, tubeID, face[0], face[1], face[2], name, WCSimDetectorParameters::WavelengthAveragedQE(name.Data()), WCSimDetectorParameters::QEAveragedRefIndex(name.Data()), WCSimDetectorParameters::PMTExposeHeight(name.Data()));
     fNumHitPMTs++;
     filterIter++;
+
+      if(t < fFirstTime || fFirstTime == -999){ fFirstTime = t; }
+      if(t > fLastTime || fLastTime == -999){ fLastTime = t; }
 	}
 	
   // Now fill all the unhit PMTs with an empty (q = 0) hit
@@ -183,6 +188,8 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myRootEve
  	TClonesArray * fCherenkovHitTimes = myTrigger->GetCherenkovHitTimes();
  	
   	TIter undigiHitItr(fCherenkovDigiHits);
+    fFirstTime = -999;
+    fLastTime = -999;
 	while( WCSimRootCherenkovHit * myChHit = (WCSimRootCherenkovHit *) undigiHitItr.Next())
   	{	
 	  	Int_t tubeID = myChHit->GetTubeID();
@@ -191,6 +198,8 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myRootEve
     	if(Q <= 0) continue;
  
     	Float_t t = ((WCSimRootCherenkovHitTime *)fCherenkovHitTimes->At(myChHit->GetTotalPe(0)))->GetTruetime();	
+        if(t < fFirstTime || fFirstTime == -999){ fFirstTime = t; }
+        if(t > fLastTime || fLastTime == -999){ fLastTime = t; }
 		
     	WCSimRootGeom * myGeom = (WCSimRootGeom*)(WCSimGeometry::Instance())->GetWCSimGeometry();
     	WCSimRootPMT myPMT = myGeom->GetPMTFromTubeID(tubeID);
@@ -256,5 +265,10 @@ Double_t WCSimLikelihoodDigitArray::GetExtent(Int_t i)
 {
   if( 0 <= i && i < 3) return fExtent[i];
   else return -1.0;
+}
+
+Double_t WCSimLikelihoodDigitArray::GetDuration() const
+{
+    return fLastTime - fFirstTime;
 }
 
