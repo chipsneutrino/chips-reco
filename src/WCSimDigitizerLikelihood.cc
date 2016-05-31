@@ -31,7 +31,7 @@ WCSimDigitizerLikelihood::WCSimDigitizerLikelihood() : fType(kUnknown), fSK1peFi
   // Set the digitizer type
   fType = this->StringToDigiType(WCSimAnalysisConfig::Instance()->GetDigiType());
   fSK1peFile = 0x0;
-  fMinimum = exp(-25.0/2.0); // So that the maximum -2LnL = 25
+  fMinimum = exp(-100.0/2.0); // So that the maximum -2LnL = 25
   if( fType == WCSimDigitizerLikelihood::kSK1pe ) { this->OpenSKPDFs(); }
   else if( fType == WCSimDigitizerLikelihood::kPMTSim) { this->OpenPMTSimPDFs(); }
 

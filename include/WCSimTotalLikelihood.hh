@@ -106,6 +106,8 @@ class WCSimTotalLikelihood : public TObject
       WCSimEmissionProfileManager * fEmissionProfileManager;
 
 
+      double fMaximum2LnL;
+      double fMinimumL;
 	ClassDef(WCSimTotalLikelihood,1)
 		
 };

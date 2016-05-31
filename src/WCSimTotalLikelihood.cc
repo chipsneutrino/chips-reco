@@ -189,6 +189,8 @@ Double_t WCSimTotalLikelihood::Calc2LnL(int iDigit)
 	  fTime2LnL.at(iDigit) = -999.9;
   }
 
+  if(minus2LnL > 100){ minus2LnL = 100; }
+
 
   fMeasuredCharges.at(iDigit) = digit->GetQ();
   fTotal2LnL.at(iDigit) = minus2LnL;
