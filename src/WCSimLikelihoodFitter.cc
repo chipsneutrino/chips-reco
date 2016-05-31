@@ -385,6 +385,8 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
 	fFailed = false;
 	fIsFirstCall = true;
 	SetEvent(iEvent);
+    bool usingCharge = WCSimAnalysisConfig::Instance()->GetUseCharge();
+    bool usingTime = WCSimAnalysisConfig::Instance()->GetUseTime();
 
 
 	if(fFitterConfig->GetMakeFits() && CanFitEvent()) {
@@ -426,7 +428,7 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
         FreeEnergy();
       }
       
-      if(WCSimAnalysisConfig::Instance()->GetUseTime())
+      if(usingTime)
       {
           std::cout << "Fitting time only" << std::endl;
           FixVertex();
@@ -449,7 +451,7 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
       FreeDirection();
       FreeTime();
 
-      if(WCSimAnalysisConfig::Instance()->GetUseTime())
+      if(usingTime)
       {
           std::cout << "Fitting time only" << std::endl;
           FixVertex();
@@ -462,7 +464,7 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
           FreeEnergy();
       
           if(    WCSimAnalysisConfig::Instance()->GetEqualiseChargeAndTime()
-              && WCSimAnalysisConfig::Instance()->GetUseCharge() )    
+              && usingCharge )    
           {
               std::vector<double> time2LnLVec = fTotalLikelihood->GetTime2LnLVector();
               std::vector<double> charge2LnLVec = fTotalLikelihood->GetCharge2LnLVector();
@@ -485,31 +487,15 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
           // Iterate a few times...
           for(int time = 0; time < 3; ++time)
           {
-            if(WCSimAnalysisConfig::Instance()->GetUseCharge())
-            {
-              std::cout << "Fitting along track, time only" << std::endl;
-              WCSimAnalysisConfig::Instance()->SetUseTimeOnly();
-              FixDirection();
-              FreeTime();
-              FixEnergy();
-              FitAlongTrack();
-              FreeEnergy();
-              // MetropolisHastingsAlongTrack(250);
-              FreeDirection();
-              WCSimAnalysisConfig::Instance()->SetUseChargeAndTime();
-            }
-            else
-            {
-              FixDirection();
-              FreeTime();
-              FixEnergy();
-              FitAlongTrack();
-              FreeEnergy();
-              // MetropolisHastingsAlongTrack(250);
-              FreeDirection();
-
-            }
-            std::cout << "Fitting energy only" << std::endl;
+            std::cout << "Fitting along track, iteration " << time << std::endl;
+            FixDirection();
+            FreeTime();
+            FixEnergy();
+            FitAlongTrack();
+            FreeEnergy();
+            // MetropolisHastingsAlongTrack(250);
+            FreeDirection();
+            
             FixVertex();
             FixDirection();
             FixTime();
@@ -522,33 +508,56 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
       else
       {
           std::cout << "Not using the time likelihood" << std::endl;
+          // Fix the directions and energy and move the vertex
+          // along the (average) momentum vector (helps because the seed
+          // often gets this wrong in the direction of the track by 
+          // changing the cone angle)
+          std::cout << "Fitting along track" << std::endl;
+          FixDirection();
+          FixTime();
+          FreeEnergy();
+          FitAlongTrack();
+          FreeDirection();
+          FreeTime();
       }
 
 
-      // Fix the directions and energy and move the vertex
-      // along the (average) momentum vector (helps because the seed
-      // often gets this wrong in the direction of the track by 
-      // changing the cone angle)
-      std::cout << "Fitting along track" << std::endl;
-      FixDirection();
-      FreeTime();
-      //FixTime();
-      FitAlongTrack();
-      //FreeTime();
-      // MetropolisHastingsAlongTrack(250);
-      FreeDirection();
   
-
-      
       // Now freely fit the vertex and direction    
       FitVertex();
-      FixVertex();
-      FixDirection();
-      FixTime();
-      FitEnergy();
-      FreeVertex();
-      FreeDirection();
-      FreeTime();
+
+      // Finesse the final fit result along the track.  The time likelihood
+      // tends to help perpendicular to the track direction, so we'll lock
+      // this in and then use charge for a fit along the track
+      if( usingCharge && usingTime )
+      {
+          // Fit energy and vertex position along track using charge
+          WCSimAnalysisConfig::Instance()->SetUseChargeOnly();
+          FixDirection();
+          FixTime();
+          FitAlongTrack();
+          FreeDirection();
+          FreeTime();
+            
+          // Then fit energy
+          WCSimAnalysisConfig::Instance()->SetUseChargeAndTime();
+          FixVertex();
+          FixDirection();
+          FixTime();
+          FitEnergy();
+          FreeVertex();
+          FreeDirection();
+          FreeEnergy();
+
+          // Finally fit the time
+          FixVertex();
+          FixEnergy();
+          FixDirection();
+          FitTime();
+          FreeVertex();
+          FreeEnergy();
+          FreeTime();
+      }
     }
 	fTrueLikelihoodTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
   }
@@ -1573,6 +1582,14 @@ void WCSimLikelihoodFitter::MetropolisHastingsAlongTrack(const int nTries)
 			if(escapeDists[i] < 0 && escapeDists[i] > minVal){ minVal = escapeDists[i]; }
 			if(escapeDists[i] > 0 && escapeDists[i] < maxVal){ maxVal = escapeDists[i]; }
 		}
+        if(maxVal > 500)
+        {
+            maxVal = 500;
+        }
+        if(minVal < -500)
+        {
+            minVal = -500;
+        }
 		std::cout << "MinVal = " << minVal << " and maxVal = " << maxVal << std::endl;
 
 
@@ -1582,7 +1599,7 @@ void WCSimLikelihoodFitter::MetropolisHastingsAlongTrack(const int nTries)
 				fFitterTrackParMap.GetStep(0, FitterParameterType::kVtxZ)
 		);
 		double stepSize = sqrt(pow((stepSizes.X() * direction.X()), 2) + pow((stepSizes.Y() * direction.Y()), 2) + pow((stepSizes.Z() * direction.Z()), 2));
-    stepSize = 50;
+        stepSize = 50;
 		std::cout << "Step size = " << stepSize << std::endl;
 		//////////////////////////////////////////////////////
 
@@ -1893,7 +1910,7 @@ void WCSimLikelihoodFitter::FitAlongTrack()
   // The step size is the length of the vector defined by taking a single 
   // step in each of the x, y, and z directions
   double stepSize = sqrt(pow((stepSizes.X() * direction.X()), 2) + pow((stepSizes.Y() * direction.Y()), 2) + pow((stepSizes.Z() * direction.Z()), 2));
-  stepSize = 250;
+  stepSize = 50;
   std::cout << "Step size = " << stepSize << std::endl;
  
 
