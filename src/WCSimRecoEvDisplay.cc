@@ -122,6 +122,10 @@ WCSimRecoEvDisplay::WCSimRecoEvDisplay(const TGWindow* p, UInt_t w, UInt_t h)
 	fBottomPad->Draw();
 	fChargePad->Draw();
 	fTimePad->Draw();
+  fBarrelPad->SetTicks(1,1);
+  fTopPad->SetTicks(1,1);
+  fBottomPad->SetTicks(1,1);
+
 	// Create the truth information pad, but don't draw it
 	fTruthPad = new TPad("fTruthPad", "", 0.0, 0.0, 1.0, 1.0);
 	fTruthOverlayPad = new TPad("fTruthOverlayPad", "", 0.0, 0.0, 1.0, 0.2);
@@ -1164,6 +1168,7 @@ void WCSimRecoEvDisplay::DrawFitOverlays() {
 	// Take the plots one by one and draw them.
 	fBarrelPad->cd();
 	fBarrelHist->Draw("colz");
+  fBarrelTitle->Draw();
   this->DrawHitGraphs(fBarrelGraphs);
 	// Draw the fit rings
   std::cout << "There are " << fFitMarkersBarrel.size() << " barrel markers" << std::endl;
@@ -1176,6 +1181,7 @@ void WCSimRecoEvDisplay::DrawFitOverlays() {
 	fTopPad->cd();
 //	fTopHist->Draw("colz");
 	fTopHist->Draw();
+  fTopTitle->Draw();
   this->DrawHitGraphs(fTopGraphs);
 	// Draw the fit rings
   std::cout << "There are " << fFitMarkersTop.size() << " top markers" << std::endl;
@@ -1187,6 +1193,7 @@ void WCSimRecoEvDisplay::DrawFitOverlays() {
 
 	fBottomPad->cd();
 	fBottomHist->Draw("colz");
+  fBottomTitle->Draw();
   this->DrawHitGraphs(fBottomGraphs);
 	// Draw the truth rings
 	for (unsigned int r = 0; r < fFitMarkersBottom.size(); ++r) {
@@ -1708,6 +1715,7 @@ void WCSimRecoEvDisplay::UpdateRecoPads(){
   // Take the plots one by one and draw them.
   fBarrelPad->cd();
   fBarrelHist->Draw("colz");
+  fBarrelTitle->Draw();
   this->DrawHitGraphs(fBarrelGraphs);
   fBarrelPad->Modified();
   fBarrelPad->Update();
@@ -1715,12 +1723,14 @@ void WCSimRecoEvDisplay::UpdateRecoPads(){
   fTopPad->cd();
 //  fTopHist->Draw("colz");
   fTopHist->Draw();
+  fTopTitle->Draw();
   this->DrawHitGraphs(fTopGraphs);
   fTopPad->Modified();
   fTopPad->Update();
 
   fBottomPad->cd();
   fBottomHist->Draw("colz");
+  fBottomTitle->Draw();
   this->DrawHitGraphs(fBottomGraphs);
   fBottomPad->Modified();
   fBottomPad->Update();
