@@ -129,7 +129,7 @@ double LogFinder::DiffLogGaussFirstArrival(const double x) const
     double gaus = LogGaussian(x);
     double arr  = LogFirstArrival(x);
     
-    if(!TMath::Finite(gaus - arr))
+    if(TMath::Finite(gaus - arr))
     {
         return gaus - arr;
     }
@@ -137,8 +137,11 @@ double LogFinder::DiffLogGaussFirstArrival(const double x) const
     {
         return -arr;
     }
-    return -gaus;
-
+    else if(TMath::Finite(arr))
+    {
+        return gaus;
+    }
+    return -arr; // The arrival time probably falls off faster than the Gaussian, but all bets are off by this point
     return LogGaussian(x) - LogFirstArrival(x);
 }
 
@@ -253,10 +256,14 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
                 // Even this integral was too small!  Normally the problem comes from erf^(n-1) / 2^n so we can 
                 // use logs to get something sensible for lnL and then exponentiate it.  We'll do that, using
                 // the trapezium rule around the crossing point
+                /* Causes GSL errors because it often has infinites at the either end of the t range - let's write
+                 * these events off for now
                 if(timeLikelihood == 0)
                 {
+    
                     timeLikelihood = ApproximateIntegral(nPhotons, prediction.GetMean(), prediction.GetRMS(), myDigit->GetT(), reso);
                 }
+                */
             }
             
             // Add on a flat distribution of scattered light times
@@ -264,9 +271,7 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
         }
         else if(whichCase == 0x10) // Detect a hit but didn't predict one - use exp(-Q)
         {
-            // std::cout << " -- Doing expo" << std::endl;
             timeLikelihood = GetScatteredTimeLikelihood(myDigit);
-            std::cout << "Digit " << iDigit << " expo = " << 2*myDigit->GetQ() << std::endl;
             //timeLikelihood = 1.0;
         }
         else if(whichCase == 0x01) // Predict a hit but don't detect one - use predicted probability
@@ -726,7 +731,7 @@ double WCSimTimeLikelihood3::FindCrossing(const double n, const double predMean,
     ROOT::Math::GradFunctor1D  f(finder);
     ROOT::Math::RootFinder rfn(ROOT::Math::RootFinder::kGSL_BRENT);
     rfn.SetFunction(f, min, max);
-    rfn.Solve();
+    int result = rfn.Solve();
     double crossingX = rfn.Root();
 
     return crossingX;
@@ -745,6 +750,8 @@ double WCSimTimeLikelihood3::FindCrossing(const double n, const double predMean,
 std::vector<double> WCSimTimeLikelihood3::FindCrossings(const double n, const double predMean, const double predRMS, const double t, const double reso)
 {
    std::vector<double> minima;
+   // Go within 5 sigma of the measured or predicted hit time, 
+   // using whichever of the predicted or measured values gives the wider range
    double min = t-5*reso < predMean-5*predRMS ? t-5*reso : predMean-5*predRMS;
    double max = t+5*reso > predMean+5*predRMS ? t+5*reso : predMean + 5*predRMS;
 
@@ -752,33 +759,69 @@ std::vector<double> WCSimTimeLikelihood3::FindCrossings(const double n, const do
    LogFinder finder(n, predMean, predRMS, t, reso);
    ROOT::Math::GradFunctor1D  f(finder);
 
+   // Break the full range into windows of width 0.2 * rms
    double width = 5 * (predRMS > reso ? predRMS : reso);
    int nWindows = TMath::CeilNint(width / 0.2*(predRMS < reso ? predRMS : reso));
    double dx = 2 * width / nWindows;
 
-   std::vector<std::pair<double, double> > windowEdges;
+   // Lower and upper edges of windows where the function changes sign
+   std::vector<std::pair<double, double> > windowEdges; 
+
    double start = t - width;
    double x = start;
 
-
    double atMin = finder.Eval(min);
    double lastEdge = finder.Eval(x);
-   if(atMin * lastEdge < 0 && min < x){ windowEdges.push_back(std::make_pair(min, x));}
+
+   // Look for a sign change in this first step
+   if(TMath::Finite(lastEdge) && TMath::Finite(lastEdge) && atMin * lastEdge < 0 && min < x)
+   { 
+       windowEdges.push_back(std::make_pair(min, x));
+   }
    for(int i = 1; i < nWindows; ++i)
    {
-         double y = finder.Eval(x);
-         if(TMath::Finite(y))
-         {
-			 if(y * lastEdge <= 0)
-			 {
-				windowEdges.push_back(std::make_pair(x-dx, x));
-			 }
-			 lastEdge = y;
-         }
          x += dx;
+         double y = finder.Eval(x);
+
+         bool cross = (y*lastEdge <= 0);
+         if(cross)
+         {
+            if(TMath::Finite(y) && TMath::Finite(lastEdge))
+            {
+				windowEdges.push_back(std::make_pair(x-dx, x));
+            }
+            else if(TMath::Finite(y))
+            {
+                for(int step = 0; step < 100; ++step)
+                {
+                    double newLowEdge = x - step*dx/100.0;
+                    double newLast = finder.Eval(newLowEdge);
+                    if(TMath::Finite(newLast) && newLast * y < 0)
+                    {
+				        windowEdges.push_back(std::make_pair(newLast, x));
+                        break;
+                    }
+                }
+
+            }
+            else if(TMath::Finite(lastEdge))
+            {
+                for(int step = 0; step < 100; ++step)
+                {
+                    double newUpEdge = x - dx + step*dx/100.0;
+                    double newY = finder.Eval(newUpEdge);
+                    if(TMath::Finite(newY) && lastEdge * newY < 0)
+                    {
+				        windowEdges.push_back(std::make_pair(x-dx, newUpEdge));
+                        break;
+                    }
+                }
+            }
+			lastEdge = y;
+         }
    }
    double atMax = finder.Eval(max);
-   if(atMax * lastEdge < 0 && max > x){ windowEdges.push_back(std::make_pair(x-dx, max)); }
+   if(TMath::Finite(atMax) && atMax * lastEdge < 0 && max > x){ windowEdges.push_back(std::make_pair(x, max)); }
 
 
    ROOT::Math::RootFinder rfn(ROOT::Math::RootFinder::kGSL_BRENT);
@@ -788,8 +831,13 @@ std::vector<double> WCSimTimeLikelihood3::FindCrossings(const double n, const do
      double lo = windowEdges[iWindow].first;
      double hi = windowEdges[iWindow].second;
 
+
+     if(!TMath::Finite(finder.Eval(lo)) || !TMath::Finite(finder.Eval(hi)))
+     {
+         continue;
+     }
      rfn.SetFunction(f, lo, hi);
-     rfn.Solve();
+     int result = rfn.Solve();
      double root = rfn.Root();
 
      if ( (lo <= root || finder.ApproxEqual(root, lo, 1e-6) ) && ( root <= hi || finder.ApproxEqual(root, hi, 1e-6)) )
@@ -797,7 +845,6 @@ std::vector<double> WCSimTimeLikelihood3::FindCrossings(const double n, const do
          minima.push_back(root);
      }
      assert(lo < hi);
-     assert(finder.Eval(lo) * finder.Eval(hi) < 0);
    }
 
    if(minima.size() == 1)
