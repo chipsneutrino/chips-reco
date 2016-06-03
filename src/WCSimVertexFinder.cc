@@ -446,13 +446,14 @@ void WCSimVertexFinder::Clear()
 WCSimRecoVertex* WCSimVertexFinder::Run(WCSimRecoEvent* myEvent)
 {
   this->Clear();
-
+  this->GetTimeSeed(myEvent);
   if( fPointFitOnly ){
     return (WCSimRecoVertex*)(this->RunPointFit(myEvent));
   }
   else{
     return (WCSimRecoVertex*)(this->RunExtendedFit(myEvent));
   }
+
 }
 
 WCSimRecoVertex* WCSimVertexFinder::RunPointFit(WCSimRecoEvent* myEvent)
@@ -709,7 +710,8 @@ WCSimRecoVertex* WCSimVertexFinder::FindSeedPosition()
   Double_t vtxX = 0.0;
   Double_t vtxY = 0.0;
   Double_t vtxZ = 0.0;
-  Double_t vtxTime = 950.0;
+//  Double_t vtxTime = 950.0;
+  Double_t vtxTime = fTimeSeed;
   Double_t vtxFOM = 0.0;
 
   Int_t bestSeed = -1;
@@ -785,7 +787,8 @@ WCSimRecoVertex* WCSimVertexFinder::FixSimplePosition(Double_t vtxX, Double_t vt
 {  
   // initialization
   // ==============
-  Double_t vtxTime = 950.0;
+//  Double_t vtxTime = 950.0;
+  Double_t vtxTime = fTimeSeed;
   Double_t vtxFOM = fBaseFOM;
 
   // create new vertex
@@ -813,7 +816,8 @@ WCSimRecoVertex* WCSimVertexFinder::FixPointPosition(Double_t vtxX, Double_t vtx
 {  
   // initialization
   // ==============
-  Double_t vtxTime = 950.0;
+//  Double_t vtxTime = 950.0;
+  Double_t vtxTime = fTimeSeed;
   Double_t vtxFOM = 0.0;
 
   // create new vertex
@@ -850,7 +854,8 @@ WCSimRecoVertex* WCSimVertexFinder::FixSimpleDirection(Double_t vtxX, Double_t v
 {
   // initialization
   // ==============
-  Double_t vtxTime = 950.0;
+//  Double_t vtxTime = 950.0;
+  Double_t vtxTime = fTimeSeed;
   Double_t dirFOM = fBaseFOM;
 
   // create new vertex
@@ -884,7 +889,8 @@ WCSimRecoVertex* WCSimVertexFinder::FixPointDirection(Double_t vtxX, Double_t vt
 {
   // initialization
   // ==============
-  Double_t vtxTime = 950.0;
+//  Double_t vtxTime = 950.0;
+  Double_t vtxTime = fTimeSeed;
   Double_t vtxAngle = 42.0;
   Double_t vtxFOM = 0.0;
   Double_t dirFOM = 0.0;
@@ -930,7 +936,8 @@ WCSimRecoVertex* WCSimVertexFinder::FixPointVertex(Double_t vtxX, Double_t vtxY,
 {
   // initialization
   // ==============
-  Double_t vtxTime = 950.0;
+//  Double_t vtxTime = 950.0;
+  Double_t vtxTime = fTimeSeed;
   Double_t vtxAngle = 42.0;
   Double_t vtxFOM = 0.0;
 
@@ -972,7 +979,8 @@ WCSimRecoVertex* WCSimVertexFinder::FixExtendedVertex(Double_t vtxX, Double_t vt
 {
   // initialization
   // ==============
-  Double_t vtxTime = 950.0;
+//  Double_t vtxTime = 950.0;
+  Double_t vtxTime = fTimeSeed;
   Double_t vtxAngle = 42.0;
   Double_t vtxFOM = 0.0;
 
@@ -1037,10 +1045,33 @@ WCSimRecoVertex* WCSimVertexFinder::CorrectExtendedVertex(WCSimRecoVertex* myVer
   // fix vertex bias
   // ===============
   if( fFixVertexBias ){
-    vtxX -= fVertexBias*dirX;
-    vtxY -= fVertexBias*dirY;
-    vtxZ -= fVertexBias*dirZ;
-    vtxTime -= fVertexBias/WCSimParameters::SpeedOfLight();
+    // Only correct the vertex bias if it doesn't move us outside of the detector.
+    Double_t tempX = vtxX - fVertexBias*dirX;
+    Double_t tempY = vtxY - fVertexBias*dirY;
+    Double_t tempZ = vtxZ - fVertexBias*dirZ;
+
+//    std::cout << " Vertex    = " << vtxX << ", " << vtxY << ", " << vtxZ << std::endl;
+//    std::cout << " Corrected = " << tempX << ", " << tempY << ", " << tempZ << std::endl;
+
+    if(WCSimGeometry::Instance()->InsideDetector(tempX,tempY,tempZ)){
+      vtxX -= fVertexBias*dirX;
+      vtxY -= fVertexBias*dirY;
+      vtxZ -= fVertexBias*dirZ;
+      vtxTime -= fVertexBias/WCSimParameters::SpeedOfLight();
+    }
+  }
+
+  // If the vertex position inside in the detector in R, move it back radially until it is inside.
+  if(!WCSimGeometry::Instance()->InsideDetector(vtxX,vtxY,vtxZ)){
+    Double_t originalR = sqrt(vtxX*vtxX + vtxY*vtxY);
+    Double_t currR = originalR;
+    while (currR > WCSimGeometry::Instance()->GetCylRadius()){
+//      std::cout << "LEIGH: Vertex position outside of the detector..." << currR 
+//                << ", " << WCSimGeometry::Instance()->GetCylRadius() << std::endl;
+      vtxX -= vtxX / originalR;
+      vtxY -= vtxY / originalR;
+      currR = sqrt(vtxX*vtxX + vtxY*vtxY);
+    }    
   }
 
   // create new vertex
@@ -1049,6 +1080,7 @@ WCSimRecoVertex* WCSimVertexFinder::CorrectExtendedVertex(WCSimRecoVertex* myVer
                                                    dirX,dirY,dirZ,
                                                    angle,length,
                                                    fom,nsteps,pass,status);
+
   fExtendedVertex = newVertex;
 
   // print vertex
@@ -1072,7 +1104,8 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointPositionWithMinuit(WCSimRecoVertex* 
   Double_t vtxX = 0.0;
   Double_t vtxY = 0.0;
   Double_t vtxZ = 0.0;
-  Double_t vtxTime = 950.0;
+//  Double_t vtxTime = 950.0;
+  Double_t vtxTime = fTimeSeed;
 
   Double_t dirX = 0.0;
   Double_t dirY = 0.0;
@@ -1165,7 +1198,8 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointPositionWithMinuit(WCSimRecoVertex* 
   vtxX = fitXpos; 
   vtxY = fitYpos;
   vtxZ = fitZpos;
-  vtxTime = 950.0;
+//  vtxTime = 950.0;
+  vtxTime = fTimeSeed;
 
   vtxFOM = 0.0;
   
@@ -1350,7 +1384,8 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointVertexWithMinuit(WCSimRecoVertex* my
   Double_t vtxX = 0.0;
   Double_t vtxY = 0.0;
   Double_t vtxZ = 0.0;
-  Double_t vtxTime = 950.0;
+//  Double_t vtxTime = 950.0;
+  Double_t vtxTime = fTimeSeed;
 
   Double_t dirX = 0.0;
   Double_t dirY = 0.0;
@@ -1470,7 +1505,8 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointVertexWithMinuit(WCSimRecoVertex* my
   vtxX = fitXpos; 
   vtxY = fitYpos;
   vtxZ = fitZpos;
-  vtxTime = 950.0;
+//  vtxTime = 950.0;
+  vtxTime = fTimeSeed;
 
   dirX = WCSimNvidiaMath::sin(fitTheta)*WCSimNvidiaMath::cos(fitPhi);
   dirY = WCSimNvidiaMath::sin(fitTheta)*WCSimNvidiaMath::sin(fitPhi);
@@ -1522,7 +1558,8 @@ WCSimRecoVertex* WCSimVertexFinder::FitExtendedVertexWithMinuit(WCSimRecoVertex*
   Double_t vtxX = 0.0;
   Double_t vtxY = 0.0;
   Double_t vtxZ = 0.0;
-  Double_t vtxTime = 950.0;
+//  Double_t vtxTime = 950.0;
+  Double_t vtxTime = fTimeSeed;
 
   Double_t dirX = 0.0;
   Double_t dirY = 0.0;
@@ -1642,7 +1679,8 @@ WCSimRecoVertex* WCSimVertexFinder::FitExtendedVertexWithMinuit(WCSimRecoVertex*
   vtxX = fitXpos; 
   vtxY = fitYpos;
   vtxZ = fitZpos;
-  vtxTime = 950.0;
+//  vtxTime = 950.0;
+  vtxTime = fTimeSeed;
 
   dirX = WCSimNvidiaMath::sin(fitTheta)*WCSimNvidiaMath::cos(fitPhi);
   dirY = WCSimNvidiaMath::sin(fitTheta)*WCSimNvidiaMath::sin(fitPhi);
@@ -1920,7 +1958,8 @@ void WCSimVertexFinder::FitTimePropertiesFoM(Double_t& vtxTime, Double_t& vtxFOM
 { 
   // calculate mean and rms
   // ====================== 
-  Double_t meanTime = 950.0;
+//  Double_t meanTime = 950.0;
+  Double_t meanTime = fTimeSeed;
 
   this->FindSimpleTimeProperties(meanTime); 
 
@@ -1948,7 +1987,8 @@ void WCSimVertexFinder::FitTimePropertiesFoM(Double_t& vtxTime, Double_t& vtxFOM
   fMinuitTimeFit->mncler();
   fMinuitTimeFit->SetFCN(vertex_time_fom);
   fMinuitTimeFit->mnexcm("SET STR",arglist,1,err);
-  fMinuitTimeFit->mnparm(0,"vtxTime",seedTime,50.0,0.0,2000.0,err);
+  // Leigh: Make sure the vertex time can vary within the full range 0 - 10000ns.
+  fMinuitTimeFit->mnparm(0,"vtxTime",seedTime,50.0,0.0,10000.0,err);
   
   flag = fMinuitTimeFit->Migrad();
   fMinuitTimeFit->GetParameter(0,fitTime,fitTimeErr);
@@ -1975,7 +2015,8 @@ void WCSimVertexFinder::FitPointTimePropertiesLnL(Double_t& vtxTime, Double_t& v
 { 
   // calculate mean and rms
   // ====================== 
-  Double_t meanTime = 950.0;
+//  Double_t meanTime = 950.0;
+  Double_t meanTime = fTimeSeed;
 
   this->FindSimpleTimeProperties(meanTime); 
 
@@ -2005,7 +2046,8 @@ void WCSimVertexFinder::FitPointTimePropertiesLnL(Double_t& vtxTime, Double_t& v
   fMinuitTimeFit->mncler();
   fMinuitTimeFit->SetFCN(vertex_time_lnl);
   fMinuitTimeFit->mnexcm("SET STR",arglist,1,err);
-  fMinuitTimeFit->mnparm(0,"vtxTime",seedTime,50.0,0.0,2000.0,err);
+  // Leigh: Make sure the vertex time can vary within the full range 0 - 10000ns.
+  fMinuitTimeFit->mnparm(0,"vtxTime",seedTime,50.0,0.0,10000.0,err);
   
   flag = fMinuitTimeFit->Migrad();
   fMinuitTimeFit->GetParameter(0,fitTime,fitTimeErr);
@@ -2044,7 +2086,8 @@ void WCSimVertexFinder::FitExtendedTimePropertiesLnL(Double_t& vtxTime, Double_t
 
   // calculate mean and rms
   // ====================== 
-  Double_t meanTime = 950.0;
+//  Double_t meanTime = 950.0;
+  Double_t meanTime = fTimeSeed;
 
   this->FindSimpleTimeProperties(meanTime); 
 
@@ -2076,7 +2119,8 @@ void WCSimVertexFinder::FitExtendedTimePropertiesLnL(Double_t& vtxTime, Double_t
   fMinuitTimeFit->mncler();
   fMinuitTimeFit->SetFCN(vertex_time_lnl);
   fMinuitTimeFit->mnexcm("SET STR",arglist,1,err);
-  fMinuitTimeFit->mnparm(0,"vtxTime",seedTime,50.0,0.0,2000.0,err);
+  // Leigh: Make sure the vertex time can vary within the full range 0 - 10000ns.
+  fMinuitTimeFit->mnparm(0,"vtxTime",seedTime,50.0,0.0,10000.0,err);
   fMinuitTimeFit->mnparm(1,"vtxParam",seedParam,0.05,0.0,1.0,err);
   
   flag = fMinuitTimeFit->Migrad();
@@ -2212,7 +2256,8 @@ void WCSimVertexFinder::FindSimpleTimeProperties(Double_t& vtxTime)
 {
   // reset mean and rms
   // ================== 
-  Double_t meanTime = 950.0;
+//  Double_t meanTime = 950.0;
+  Double_t meanTime = fTimeSeed;
 
   // calculate mean and rms of hits inside cone
   // ==========================================
@@ -2734,5 +2779,16 @@ void WCSimVertexFinder::FixDirectionChi2(Double_t px, Double_t py, Double_t pz, 
   chi2 = deltaChi2;
 
   return;
+}
+
+void WCSimVertexFinder::GetTimeSeed(WCSimRecoEvent *evt){
+
+  double firstTime = 1e6;
+  for(int d = 0; d < evt->GetNFilterDigits(); ++d){
+    double t = evt->GetFilterDigit(d)->GetRawTime();
+    if(t < firstTime) firstTime = t;
+  }
+  fTimeSeed = firstTime;
+
 }
 

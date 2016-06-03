@@ -24,16 +24,17 @@ public:
 	  void ResetValues();
 
 	  // Get and set the vertex information
-	  TVector3 GetVertex() const;
-	  void SetVertex(TVector3 vtx);
-	  void SetVertex(double x, double y, double z);
-	  void SetVertex(double x, double y, double z, double t);
-    void SetVertexT(double t);
+    void AddVertex(TVector3 vtx, double time);
+    void AddVertex(double x, double y, double z, double time);
 
-	  double GetVertexX() const;
-	  double GetVertexY() const;
-	  double GetVertexZ() const;
-    double GetVertexT() const;
+    TVector3 GetVertex(unsigned int p) const;
+    std::vector<TVector3> GetVertices() const;
+	  double GetVertexX(unsigned int p) const;
+	  double GetVertexY(unsigned int p) const;
+	  double GetVertexZ(unsigned int p) const;
+    double GetVertexT(unsigned int p) const;
+    std::vector<double> GetVerticesT() const;
+    
 
 	  // Primary particle functions
 	  void AddPrimary(int pdg, double en, TVector3 dir);
@@ -46,12 +47,13 @@ public:
 	  std::vector<TVector3> GetPrimaryDirs() const;
 	  unsigned int GetNPrimaries() const;
 
+    bool HasCommonVertex() const;
 
 	private:
 
 	  // Vertex position
-	  TVector3 fVertex;
-    double fVertexT;
+	  std::vector<TVector3> fVertices;
+    std::vector<double> fVerticesT;
 
 	  // Also store information about the primary particles (only those escaping the nucleus)
 	  std::vector<int> fPrimaryPDGs;

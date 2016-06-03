@@ -26,6 +26,7 @@ class WCSimRecoEvent : public TObject {
   Int_t GetTrigger() { return fTriggerNum; }
 
   void AddDigit(WCSimRecoDigit* digit);
+  void AddVetoDigit(WCSimRecoDigit* digit);
   void AddFilterDigit(WCSimRecoDigit* digit);
   void AddRing(WCSimRecoRing* track);
 
@@ -37,6 +38,9 @@ class WCSimRecoEvent : public TObject {
 
   WCSimRecoRing* GetRing(Int_t n);
   Int_t GetNRings();
+
+  WCSimRecoDigit* GetVetoDigit(Int_t n);
+  Int_t GetNVetoDigits();
 
   WCSimRecoRing* GetPrimaryRing();
 
@@ -80,6 +84,7 @@ class WCSimRecoEvent : public TObject {
   Bool_t IsRingFinderDone() { return fIsRingFinderDone; }
 
   std::vector<WCSimRecoDigit*>* GetDigitList()       { return fDigitList; }
+  std::vector<WCSimRecoDigit*>* GetVetoDigitList()       { return fVetoDigitList; }
   std::vector<WCSimRecoDigit*>* GetFilterDigitList() { return fFilterDigitList; }
   std::vector<WCSimRecoRing*>*  GetRingList()        { return fRingList; }
 
@@ -91,6 +96,7 @@ class WCSimRecoEvent : public TObject {
  private:
 
   void ClearDigits();
+  void ClearVetoDigits();
   void ClearFilterDigits();
   void ClearRings();
 
@@ -99,6 +105,7 @@ class WCSimRecoEvent : public TObject {
   Int_t fTriggerNum;
 
   std::vector<WCSimRecoDigit*>* fDigitList;
+  std::vector<WCSimRecoDigit*>* fVetoDigitList;
   std::vector<WCSimRecoDigit*>* fFilterDigitList;
   std::vector<WCSimRecoRing*>*  fRingList;
 

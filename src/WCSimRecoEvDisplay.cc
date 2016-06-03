@@ -31,8 +31,10 @@
 #include <TColor.h>
 
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <sstream>
+#include <utility>
 
 ClassImp(WCSimRecoEvDisplay)
 
@@ -62,11 +64,15 @@ WCSimRecoEvDisplay::WCSimRecoEvDisplay(const TGWindow* p, UInt_t w, UInt_t h)
 	fWhichPads = 0; // Default is reco
 	fTruthTextMain = new TPaveText(0.05, 0.45, 0.95, 0.90, "NDC");
 	fTruthTextPrimaries = new TPaveText(0.05, 0.1, 0.95, 0.40, "NDC");
+  // The above TPaveText objects will be resized should we need to show this.
+  fTruthTextOverlay = new TPaveText(0.05,0.05,0.95,0.15,"NDC");
 	fDatabasePDG = 0x0;
 
 	// Initialise the TGNumberEntry
 	fPEInput = 0x0;
 	fChargeCut = 0;
+
+  fLogZCharge = false;
   
   // Create the TGraph vectors with default TGraphs
   this->MakeGraphColours();
@@ -98,15 +104,28 @@ WCSimRecoEvDisplay::WCSimRecoEvDisplay(const TGWindow* p, UInt_t w, UInt_t h)
 	TCanvas *can = fHitMapCanvas->GetCanvas();
 	can->cd();
 	fBarrelPad = new TPad("fBarrelPad", "", 0.0, 0.6, 1.0, 1.0);
-	fTopPad = new TPad("fTopPad", "", 0.0, 0.2, 0.5, 0.6);
-	fBottomPad = new TPad("fBottomPad", "", 0.5, 0.2, 1.0, 0.6);
+	fTopPad = new TPad("fTopPad", "", 0.0, 0.2, 0.487, 0.6);
+	fBottomPad = new TPad("fBottomPad", "", 0.487, 0.2, 1.0, 0.6);
 	fChargePad = new TPad("fChargePad", "", 0.0, 0.0, 0.5, 0.2);
 	fTimePad = new TPad("fTimePad", "", 0.5, 0.0, 1.0, 0.2);
+  // Do a bit of beauty work
+  fBarrelPad->SetLeftMargin(0.05);
+  fBarrelPad->SetRightMargin(0.075);
+  fBarrelPad->SetBottomMargin(0.12);
+  fTopPad->SetRightMargin(0.0);
+  fTopPad->SetBottomMargin(0.12);
+  fBottomPad->SetLeftMargin(0.0);
+  fBottomPad->SetRightMargin(0.147);
+  fBottomPad->SetBottomMargin(0.12);
 	fBarrelPad->Draw();
 	fTopPad->Draw();
 	fBottomPad->Draw();
 	fChargePad->Draw();
 	fTimePad->Draw();
+  fBarrelPad->SetTicks(1,1);
+  fTopPad->SetTicks(1,1);
+  fBottomPad->SetTicks(1,1);
+
 	// Create the truth information pad, but don't draw it
 	fTruthPad = new TPad("fTruthPad", "", 0.0, 0.0, 1.0, 1.0);
 	fTruthOverlayPad = new TPad("fTruthOverlayPad", "", 0.0, 0.0, 1.0, 0.2);
@@ -150,7 +169,11 @@ WCSimRecoEvDisplay::WCSimRecoEvDisplay(const TGWindow* p, UInt_t w, UInt_t h)
 	fFitTextMain = new TPaveText(0.05, 0.45, 0.95, 0.90, "NDC");
 	fFitTextPrimaries = new TPaveText(0.05, 0.1, 0.95, 0.40, "NDC");
 
+  // This display pad takes up the space where the 1D plots usually live.
+  fDisplayPad = new TPad("fDisplayPad","",0.0,0.0,1.0,0.2);
+
 	fFitLegend = 0x0;
+	fDisplayLegend = 0x0;
 
 	fRecoSummary = 0x0;
 
@@ -164,6 +187,7 @@ WCSimRecoEvDisplay::~WCSimRecoEvDisplay() {
 }
 
 void WCSimRecoEvDisplay::UpdateFitPad() {
+
 
 	  fFitPad->cd();
 	  fFitTextMain->Draw();
@@ -209,6 +233,9 @@ void WCSimRecoEvDisplay::CreateMainButtonBar() {
 	hframe->AddFrame(eventLabel, new TGLayoutHints(kLHintsCenterX&&kLHintsCenterY,5,5,3,4));
 	hframe->AddFrame(fEventInput, new TGLayoutHints(kLHintsCenterX,5,5,3,4)); 
 
+  TGTextButton *disp = new TGTextButton(hframe, "&Print View");
+  disp->Connect("Clicked()","WCSimRecoEvDisplay",this,"ShowDisplayView()");
+  hframe->AddFrame(disp,new TGLayoutHints(kLHintsCenterX,5,5,3,4));
 	TGTextButton *save = new TGTextButton(hframe, "&Save");
 	save->Connect("Clicked()", "WCSimRecoEvDisplay", this, "SaveEvent()");
 	hframe->AddFrame(save, new TGLayoutHints(kLHintsCenterX, 5, 5, 3, 4));
@@ -224,6 +251,11 @@ void WCSimRecoEvDisplay::CreateSubButtonBar() {
 
 	// Create a horizontal frame to store buttons specific to WCSim files
 	hWCSimButtons = new TGHorizontalFrame(this, 200, 40);
+
+  // Switch between veto and inner detector PMTs
+  TGTextButton *togVeto = new TGTextButton(hWCSimButtons,"&Veto");
+  togVeto->Connect("Clicked()","WCSimEvDisplay",this,"ShowVeto()");
+  hWCSimButtons->AddFrame(togVeto, new TGLayoutHints(kLHintsCenterX,5,5,3,4));
 
 	// Show Charge on z axis
 	TGTextButton *togCharge = new TGTextButton(hWCSimButtons, "&Charge");
@@ -277,6 +309,11 @@ void WCSimRecoEvDisplay::CreateSubButtonBar() {
 	hWCSimButtons->AddFrame(peLabel, new TGLayoutHints(kLHintsCenterX && kLHintsCenterY, 5, 5, 3, 4));
 	hWCSimButtons->AddFrame(fPEInput, new TGLayoutHints(kLHintsCenterX, 5, 5, 3, 4));
 
+  // Toggle button for logging the charge z axis
+  TGTextButton *logZToggle = new TGTextButton(hWCSimButtons,"&Log Charge");
+  logZToggle->Connect("Clicked()","WCSimRecoEvDisplay",this,"ToggleLogZ()");
+  hWCSimButtons->AddFrame(logZToggle, new TGLayoutHints(kLHintsCenterX,5,5,3,4));
+
 	// Add the TGHorizontalFrame to the main layout
 	this->AddFrame(hWCSimButtons, new TGLayoutHints(kLHintsCenterX, 2, 2, 2, 2));
 
@@ -323,8 +360,8 @@ void WCSimRecoEvDisplay::DrawFitRing(unsigned int particleNo, int colour) {
 	  if(fRecoSummary==0x0) return;
 
 	  // Get the track vertex and direction
-	  TVector3 trkVtx = fRecoSummary->GetVertex();
-	  trkVtx = trkVtx * 0.1; // Convert to cm
+	  TVector3 trkVtx = fRecoSummary->GetVertex(particleNo);
+	  trkVtx = trkVtx * 0.001; // Convert to m
 	  TVector3 trkDir;
 	  trkDir = fRecoSummary->GetPrimaryDir(particleNo);
 
@@ -335,7 +372,7 @@ void WCSimRecoEvDisplay::DrawFitRing(unsigned int particleNo, int colour) {
 
 	  // Now that we have the projected point on the wall, iterate around the Cherenkov cone and
 	  // find where all the points of the cone intercept the wall
-	  unsigned int nMarkers = 360; // Number of points that will appear on the final plots
+	  unsigned int nMarkers = 1440; // Number of points that will appear on the final plots
 	  double dPhi = 360 / (double)nMarkers; // Angle step around the direction vector
 
 	  // Get the particle mass
@@ -390,9 +427,13 @@ void WCSimRecoEvDisplay::DrawFitRing(unsigned int particleNo, int colour) {
 	  // Now we have the vectors of coordinates that we need for each region. Now to make the TPolyMarkers
 	  // and add an entry to the legend
 	  std::stringstream legendText;
-	  legendText << "PDG code = " << pdgCode << " and total energy = " << en << " MeV";
+    std::string particleName = this->GetParticleName(pdgCode);
+	  legendText << particleName << " :: vertex = (" << trkVtx.X() << ", " << trkVtx.Y() << ", " << trkVtx.Z() 
+               << ") m, direction = (" << trkDir.X() << ", " << trkDir.Y() << ", " << trkDir.Z() 
+               << ") and energy = " << en << " MeV";
 	  TLine* line = new TLine();
 	  line->SetLineColor(colour);
+    line->SetLineWidth(2);
 	  fFitLines.push_back(line);
 	  fFitLegend->AddEntry(fFitLines[fFitLines.size()-1],legendText.str().c_str(),"l");
 	  if(topPos1.size() != 0){
@@ -424,6 +465,168 @@ int WCSimRecoEvDisplay::GetFitRingColour(int ring) const {
 	if(ring == 3) { return kOrange+1; }
 	if(ring == 4) { return kGreen+1; }
 	return kBlack;
+}
+
+// Match the reconstruction to the truth for the display view.
+// For now, match by pdg and then best vertex delta. Without a pdg match,
+// just don't bother.
+void WCSimRecoEvDisplay::MatchRecoToTrue(){
+
+  fDisplayTrackPairs.clear();
+  // Loop over the reconstructed objects.
+  for(unsigned int r = 0; r < fRecoSummary->GetNPrimaries(); ++r){
+    unsigned int bestMatch = 999;
+    double vertexDelta = 1.e8;
+    TVector3 recoVtx = fRecoSummary->GetVertex(r);
+    int recoPDG = fRecoSummary->GetPrimaryPDG(r);
+    // Is this a neutrino event?
+    if(fTruthSummary->IsNeutrinoEvent()){
+      // Loop over the true tracks 
+      for(unsigned int t = 0; t < fTruthSummary->GetNPrimaries(); ++t){
+        TVector3 trueVtx = fTruthSummary->GetVertex();
+        if(recoPDG == fTruthSummary->GetPrimaryPDG(t)){
+          if((recoVtx-trueVtx).Mag() < vertexDelta){
+            bestMatch = t;
+            vertexDelta = (recoVtx-trueVtx).Mag();
+          }
+        }
+      }
+      // Also check the true overlaid objects
+      if(fTruthSummary->IsOverlayEvent()){
+        for(unsigned int o = 0; o < fTruthSummary->GetNOverlays(); ++o){
+          TVector3 trueVtx = fTruthSummary->GetOverlayVertex(); // Only one vertex for all overlaid tracks
+          if(recoPDG == fTruthSummary->GetOverlayPDG(o)){
+            if((recoVtx-trueVtx).Mag() < vertexDelta){
+              bestMatch = o + fTruthSummary->GetNPrimaries();
+              vertexDelta = (recoVtx-trueVtx).Mag();
+            }
+          }
+        }
+      }
+    }
+    else{
+      // Use the particle gun information
+      TVector3 trueVtx = fTruthSummary->GetVertex();
+      if(recoPDG == fTruthSummary->GetBeamPDG()){
+        if((recoVtx-trueVtx).Mag() < vertexDelta){
+          bestMatch = 0; // Only one particle gun.
+          vertexDelta = (recoVtx-trueVtx).Mag();
+        }
+      }
+    }
+
+   
+    // Fill the match vector (999 means no match found).
+    fDisplayTrackPairs.push_back(std::make_pair<unsigned int,unsigned int>(r,bestMatch));
+  }
+
+}
+
+void WCSimRecoEvDisplay::UpdateDisplayInfo(){
+
+  if(fDisplayLegend != 0x0){
+	    if(fDisplayPad->GetListOfPrimitives()->FindObject(fDisplayLegend)){
+	      fDisplayPad->GetListOfPrimitives()->Remove(fDisplayLegend);
+	    }
+    delete fDisplayLegend;
+  }
+  fDisplayPad->cd();
+  fDisplayLegend = new TLegend(0.05,0.1,0.4,0.9);
+//  fDisplayLegend = new TLegend(0.05,0.1,0.95,0.9);
+  fDisplayLegend->SetBorderSize(0);
+  fDisplayLegend->SetTextSize(0.1);
+//  fDisplayLegend->SetTextSize(0.2);
+//  fDisplayLegend->SetNColumns(2); 
+  // Loop over the display object vector. No lines for the truth.
+  for(unsigned int i = 0; i < fDisplayTrackPairs.size(); ++i){
+    unsigned int recoTrack = fDisplayTrackPairs[i].first;
+    fDisplayLegend->AddEntry(fFitLines[recoTrack],(this->GetTrackInfo(true,recoTrack)).c_str(),"l");
+
+    unsigned int trueTrack = fDisplayTrackPairs[i].second;
+//    if(fTruthSummary->IsNeutrinoEvent()){
+          fDisplayLegend->AddEntry((TObject*)0x0,(this->GetTrackInfo(false,trueTrack)).c_str(),"");
+//    }
+    
+  }
+
+  fDisplayLegend->Draw();
+  // Go back to the main pad.
+	fHitMapCanvas->GetCanvas()->cd();
+
+}
+
+std::string WCSimRecoEvDisplay::GetTrackInfo(bool isReco, unsigned int trackNo){
+
+  bool returnEmpty = true;
+
+  std::stringstream info;
+  
+  std::cout << "Looking for track info: " << isReco << ", " << trackNo << std::endl;
+
+  int pdg;
+  TVector3 vtx;
+  TVector3 dir;
+  double energy;
+
+  if(isReco){
+    pdg = fRecoSummary->GetPrimaryPDG(trackNo);
+    vtx = fRecoSummary->GetVertex(trackNo);
+    dir = fRecoSummary->GetPrimaryDir(trackNo);
+    energy = fRecoSummary->GetPrimaryEnergy(trackNo);
+    returnEmpty = false;
+  }
+  else{
+    if(fTruthSummary->IsNeutrinoEvent()){
+      if(trackNo != 999){
+        returnEmpty = false;
+        // Is this a primary particle?
+        if(trackNo < fTruthSummary->GetNPrimaries()){
+          pdg = fTruthSummary->GetPrimaryPDG(trackNo);
+          vtx = fTruthSummary->GetVertex();
+          dir = fTruthSummary->GetPrimaryDir(trackNo);
+          energy = fTruthSummary->GetPrimaryEnergy(trackNo);
+        }
+        else{
+          int overlayNo = trackNo - fTruthSummary->GetNPrimaries();
+          pdg = fTruthSummary->GetOverlayPDG(overlayNo);
+          vtx = fTruthSummary->GetOverlayVertex();
+          dir = fTruthSummary->GetOverlayDir(overlayNo);
+          energy = fTruthSummary->GetOverlayEnergy(overlayNo);
+        }
+      }
+    }
+    else{
+      // If this is a particle gun then we just use the beam particle... there aren't others.
+      if(trackNo == 0){
+        returnEmpty = false;
+        pdg = fTruthSummary->GetBeamPDG();
+        vtx = fTruthSummary->GetVertex();
+        dir = fTruthSummary->GetBeamDir();
+        energy = fTruthSummary->GetBeamEnergy();  
+      }
+    }
+  }
+
+  if(returnEmpty){
+    info << "No truth match";
+  }
+  else{
+    if(isReco){
+      info << "Reconstructed: ";
+    }
+    else{
+      info << "Truth: ";
+    }
+    // Remember to convert the vertex into metres
+    info << this->GetParticleName(pdg) << std::fixed << std::setprecision(3) << " at (" << vtx.X()*0.001 << ", " << vtx.Y()*0.001 << ", " << vtx.Z()*0.001
+         << ")m with direction = (" << dir.X() << ", " << dir.Y() << ", " << dir.Z()
+         << ") and energy = " << energy*0.001 << " GeV";
+  }
+
+
+
+  return info.str();
+
 }
 
 void WCSimRecoEvDisplay::OpenFile(std::string name) {
@@ -466,7 +669,7 @@ void WCSimRecoEvDisplay::ShowFit() {
 			std::cout << "== Event Fit Information ==" << std::endl;
 
 			std::string intType = this->ConvertTrueEventType();
-			TVector3 vtx = fRecoSummary->GetVertex();
+			TVector3 vtx = fRecoSummary->GetVertex(0);
 			// The interaction
 			std::cout << "= Interaction = " << std::endl;
 			std::cout << " - Vertex   : (" << vtx.X() << ","
@@ -508,15 +711,18 @@ void WCSimRecoEvDisplay::UpdateFitPave() {
 
 	  // Stream to parse things into strings
 	  std::stringstream tmpS;
-	  TVector3 vtx = fRecoSummary->GetVertex();
 
-	  std::cout << "Vertex = " << vtx.X() << ", " << vtx.Y() << ", " << vtx.Z() << std::endl;
-	  std::cout << "Radius = " << fWCRadius << ", " << "Height = " << fWCLength << std::endl;
-	  tmpS << vtx.X() << "," << vtx.Y() << "," << vtx.Z();
-	  fFitTextMain->AddText(("Vertex at ("+tmpS.str()+") mm").c_str());
-    tmpS.str("");
-    tmpS << "Vertex time = " << fRecoSummary->GetVertexT() << " ns";
-    fFitTextMain->AddText(tmpS.str().c_str());
+    if(fRecoSummary->HasCommonVertex()){
+  	  TVector3 vtx = fRecoSummary->GetVertex(0);
+  
+  	  std::cout << "Vertex = " << vtx.X() << ", " << vtx.Y() << ", " << vtx.Z() << std::endl;
+  	  std::cout << "Radius = " << fWCRadius << ", " << "Height = " << fWCLength << std::endl;
+  	  tmpS << vtx.X() << "," << vtx.Y() << "," << vtx.Z();
+  	  fFitTextMain->AddText(("Vertex at ("+tmpS.str()+") mm").c_str());
+      tmpS.str("");
+      tmpS << "Vertex time = " << fRecoSummary->GetVertexT(0) << " ns";
+      fFitTextMain->AddText(tmpS.str().c_str());
+    }
 	  int nFitRings = 0;
 	  // Create the TLegend for the truth overlays
 	  if(fFitLegend != 0x0){
@@ -527,24 +733,32 @@ void WCSimRecoEvDisplay::UpdateFitPave() {
 	    delete fFitLegend;
 	    fFitLegend = 0x0;
 	  }
-	  fFitLegend = new TLegend(0.2,0.2,0.8,0.8, "Fit results");
+	  fFitLegend = new TLegend(0.0,0.1,0.5,0.9, "Reconstructed Particles");
 	  fFitLegend->SetFillColor(kWhite);
 	  fFitLegend->SetBorderSize(0);
+    fFitLegend->SetTextSize(0.1);
 
 	  // The primary particles list
 	  fFitTextPrimaries->AddText("List of fitted particles");
 	  TVector3 dir;
 	  for(unsigned int n = 0; n < fRecoSummary->GetNPrimaries(); ++n){
 		  int pdg = fRecoSummary->GetPrimaryPDG(n);
-	      double energy = fRecoSummary->GetPrimaryEnergy(n);
-	      std::string mod = "";
-	      // Add a true ring to the display
-	      ++nFitRings;
-	      int ringColour = this->GetFitRingColour(nFitRings);
-	      this->DrawFitRing(n,ringColour);
+	    double energy = fRecoSummary->GetPrimaryEnergy(n);
+	    std::string mod = "";
+	    // Add a true ring to the display
+	    ++nFitRings;
+	    int ringColour = this->GetFitRingColour(nFitRings);
+	    this->DrawFitRing(n,ringColour);
 
-	      dir = fRecoSummary->GetPrimaryDir(n);
+	    dir = fRecoSummary->GetPrimaryDir(n);
 		  tmpS.str("");
+      if(fRecoSummary->HasCommonVertex() == false){
+  	    TVector3 vtx = fRecoSummary->GetVertex(n);
+    	  tmpS << "Vertex = (" << vtx.X() << "," << vtx.Y() << "," << vtx.Z() << ") mm";
+        tmpS << " at " << fRecoSummary->GetVertexT(n) << " ns";
+		    fFitTextPrimaries->AddText(tmpS.str().c_str());
+        tmpS.str("");
+      }
 		  tmpS << mod << " ";
 		  tmpS << "Particle: " << pdg;
 		  tmpS << " with energy " << energy;
@@ -681,6 +895,15 @@ void WCSimRecoEvDisplay::FillPlotsFromRecoFile() {
   for(int i = 0; i < nDigiHits; ++i){
 		TObject *element = (wcSimTrigger->GetCherenkovDigiHits())->At(i);
 		WCSimRootCherenkovDigiHit *hit = dynamic_cast<WCSimRootCherenkovDigiHit*>(element);
+		WCSimRootPMT pmt = geo->GetPMTFromTubeID(hit->GetTubeId());
+    // Skip veto PMTs
+    if(fViewVeto){
+      if(pmt.GetCylLoc() != 3) continue;
+    }
+    else{
+      if(pmt.GetCylLoc() == 3) continue;
+    }
+
     double q = hit->GetQ();
     double t = hit->GetT();
     if(q < fQMin) fQMin = q;
@@ -701,40 +924,36 @@ void WCSimRecoEvDisplay::FillPlotsFromRecoFile() {
 		TObject *element = (wcSimTrigger->GetCherenkovDigiHits())->At(i);
 
 		WCSimRootCherenkovDigiHit *wcSimDigiHit = dynamic_cast<WCSimRootCherenkovDigiHit*>(element);
-
 		WCSimRootPMT pmt = geo->GetPMTFromTubeID(wcSimDigiHit->GetTubeId());
-		double pmtX = pmt.GetPosition(0);
-		double pmtY = pmt.GetPosition(1);
-		double pmtZ = pmt.GetPosition(2);
+
+    // Skip veto PMTs
+    if(fViewVeto){
+      if(pmt.GetCylLoc() != 3) continue;
+    }
+    else{
+      if(pmt.GetCylLoc() == 3) continue;
+    }
+
+		double pmtX = pmt.GetPosition(0) * 0.01; // convert to m
+		double pmtY = pmt.GetPosition(1) * 0.01; // convert to m
+		double pmtZ = pmt.GetPosition(2) * 0.01; // convert to m
 		double pmtPhi = TMath::ATan2(pmtY,pmtX);
 		double pmtQ = wcSimDigiHit->GetQ();
 		double pmtT = wcSimDigiHit->GetT();
 		// Set the z-axis to be charge or time.
 		double colourAxis = pmtQ;
     fBarrelHist->GetZaxis()->SetTitle("Charge (p.e.)");
-    fBarrelHist->GetZaxis()->SetTitleSize(0.05);
-    fBarrelHist->GetZaxis()->SetTitleOffset(0.5);
-    fBarrelHist->GetZaxis()->CenterTitle(0);
 		if(fViewType == 1){
       colourAxis = pmtT;
       fBarrelHist->GetZaxis()->SetTitle("Time (ns)");
-      fBarrelHist->GetZaxis()->SetTitleOffset(0.7);
     }
     fTopHist->GetZaxis()->SetTitle("Charge (p.e.)");
-    fTopHist->GetZaxis()->SetTitleSize(0.05);
-    fTopHist->GetZaxis()->SetTitleOffset(0.8);
-    fTopHist->GetZaxis()->CenterTitle(0);
 		if(fViewType == 1){
       fTopHist->GetZaxis()->SetTitle("Time (ns)");
-      fTopHist->GetZaxis()->SetTitleOffset(1);
     }
     fBottomHist->GetZaxis()->SetTitle("Charge (p.e.)");
-    fBottomHist->GetZaxis()->SetTitleSize(0.05);
-    fBottomHist->GetZaxis()->SetTitleOffset(0.8);
-    fBottomHist->GetZaxis()->CenterTitle(0);
 		if(fViewType == 1){
       fBottomHist->GetZaxis()->SetTitle("Time (ns)");
-      fBottomHist->GetZaxis()->SetTitleOffset(1.0);
     }
 
     // Make sure we pass the charge cut
@@ -760,11 +979,23 @@ void WCSimRecoEvDisplay::FillPlotsFromRecoFile() {
       
   		}
   		// Barrel
-  		else{
+  		else if(pmt.GetCylLoc() == 1){
 //  			fBarrelHist->Fill(pmtPhi,pmtZ,colourAxis);
           fBarrelGraphs[bin]->SetPoint(fBarrelGraphs[bin]->GetN(),pmtPhi,pmtZ);
   		}
-
+      // Veto
+      else{
+//        std::cout << "Veto PMT hit: " <<  pmtX << ", " << pmtY << ", " << pmtZ << " :: " << pmtPhi << ", " << pmtQ << ", " << pmtT << std::endl;
+        if(pmt.GetOrientation(2) > 0.99){
+          fTopGraphs[bin]->SetPoint(fTopGraphs[bin]->GetN(),pmtY,pmtX);
+        }
+        else if(pmt.GetOrientation(2) < -0.99){
+          fBottomGraphs[bin]->SetPoint(fBottomGraphs[bin]->GetN(),pmtY,pmtX);
+        }
+        else{
+          fBarrelGraphs[bin]->SetPoint(fBarrelGraphs[bin]->GetN(),pmtPhi,pmtZ);
+        }
+      }
 		  // Now fill the 1D histograms
 		  fChargeHist->Fill(pmtQ);	 
 		  fTimeHist->Fill(pmtT);	 
@@ -782,6 +1013,10 @@ void WCSimRecoEvDisplay::FillPlotsFromRecoFile() {
   this->UpdateTruthOverlayPad();
 	this->UpdateFitPad();
   this->UpdateFitOverlayPad();
+  // Attempt to match the reco and true objects
+  this->MatchRecoToTrue();    
+  // Update the display
+  this->UpdateDisplayInfo();
   // Now draw whichever pad we need
 	this->UpdateCanvases();
 }
@@ -817,6 +1052,9 @@ void WCSimRecoEvDisplay::ResizePads() {
 	if (list->FindObject(fTimePad)) {
 		list->Remove(fTimePad);
 	}
+  if (list->FindObject(fDisplayPad)){
+    list->Remove(fDisplayPad);
+  }
 
 	// If we want to show truth
 	if (fWhichPads == 1) {
@@ -827,38 +1065,44 @@ void WCSimRecoEvDisplay::ResizePads() {
 		// Resize the reco pads
 		if (fShow1DHists) {
 			fBarrelPad->SetPad(0.0, 0.6, 1.0, 1.0);
-			fTopPad->SetPad(0.0, 0.2, 0.5, 0.6);
-			fBottomPad->SetPad(0.5, 0.2, 1.0, 0.6);
+			fTopPad->SetPad(0.0, 0.2, 0.487, 0.6);
+			fBottomPad->SetPad(0.487, 0.2, 1.0, 0.6);
 			fChargePad->SetPad(0.0, 0.0, 0.5, 0.2);
 			fTimePad->SetPad(0.5, 0.0, 1.0, 0.2);
 		} else {
 			// Resize the reco pads
 			fBarrelPad->SetPad(0.0, 0.5, 1.0, 1.0);
-			fTopPad->SetPad(0.0, 0.0, 0.5, 0.5);
-			fBottomPad->SetPad(0.5, 0.0, 1.0, 0.5);
+			fTopPad->SetPad(0.0, 0.0, 0.487, 0.5);
+			fBottomPad->SetPad(0.487, 0.0, 1.0, 0.5);
 		}
 	}
 	// Else show the truth overlays
 	else if (fWhichPads == 2) {
 		// Make sure to leave space for the truth overlay pad at the bottom
 		fBarrelPad->SetPad(0.0, 0.6, 1.0, 1.0);
-		fTopPad->SetPad(0.0, 0.2, 0.5, 0.6);
-		fBottomPad->SetPad(0.5, 0.2, 1.0, 0.6);
+		fTopPad->SetPad(0.0, 0.2, 0.487, 0.6);
+		fBottomPad->SetPad(0.487, 0.2, 1.0, 0.6);
 		fTruthOverlayPad->SetPad(0.0, 0.0, 1.0, 0.2);
 	}
 	// Else show the fit overlays
 	else if(fWhichPads == 3) {
 		// Make sure to leave space for the fit overlay pad at the bottom
 		fBarrelPad->SetPad(0.0, 0.6, 1.0, 1.0);
-		fTopPad->SetPad(0.0, 0.2, 0.5, 0.6);
-		fBottomPad->SetPad(0.5, 0.2, 1.0, 0.6);
+		fTopPad->SetPad(0.0, 0.2, 0.487, 0.6);
+		fBottomPad->SetPad(0.487, 0.2, 1.0, 0.6);
 		fFitOverlayPad->SetPad(0.0, 0.0, 1.0, 0.2);
 	}
-	// Otherwise show the fit text
-	else
-	{
+	// Else show the fit text
+	else if(fWhichPads == 4){
 		fFitPad->SetPad(0.0, 0.0, 1.0, 1.0);
 	}
+  // Otherwise show the display view
+  else{
+		fBarrelPad->SetPad(0.0, 0.6, 1.0, 1.0);
+		fTopPad->SetPad(0.0, 0.2, 0.487, 0.6);
+		fBottomPad->SetPad(0.487, 0.2, 1.0, 0.6);
+		fDisplayPad->SetPad(0.0, 0.0, 1.0, 0.2);
+  }
 	std::cout << "Done!  Update canvases..." << std::endl;
 	this->UpdateCanvases();
 }
@@ -871,6 +1115,10 @@ void WCSimRecoEvDisplay::UpdateCanvases() {
 	// Remove the truth overlays
 	this->HideTruthOverlays();
   this->HideFitOverlays();
+
+  fBarrelPad->SetLogz(fLogZCharge);
+  fTopPad->SetLogz(fLogZCharge);
+  fBottomPad->SetLogz(fLogZCharge);
 
 	if (fWhichPads == 0) {
 		// Now draw the pads
@@ -898,9 +1146,19 @@ void WCSimRecoEvDisplay::UpdateCanvases() {
 		fBottomPad->Draw();
 		fFitOverlayPad->Draw();
 	}
-  else{
+  else if (fWhichPads == 4){
     fFitPad->Draw();
   }
+  // Else show the display view
+  else{
+    this->DrawFitOverlays();
+		canvas->cd(); // Need to cd back here since the above changes directory
+		fBarrelPad->Draw();
+		fTopPad->Draw();
+		fBottomPad->Draw();
+		fDisplayPad->Draw();
+  }
+
 	canvas->Modified();
 	canvas->Update();
 }
@@ -910,6 +1168,7 @@ void WCSimRecoEvDisplay::DrawFitOverlays() {
 	// Take the plots one by one and draw them.
 	fBarrelPad->cd();
 	fBarrelHist->Draw("colz");
+  fBarrelTitle->Draw();
   this->DrawHitGraphs(fBarrelGraphs);
 	// Draw the fit rings
   std::cout << "There are " << fFitMarkersBarrel.size() << " barrel markers" << std::endl;
@@ -920,7 +1179,9 @@ void WCSimRecoEvDisplay::DrawFitOverlays() {
 	fBarrelPad->Update();
 
 	fTopPad->cd();
-	fTopHist->Draw("colz");
+//	fTopHist->Draw("colz");
+	fTopHist->Draw();
+  fTopTitle->Draw();
   this->DrawHitGraphs(fTopGraphs);
 	// Draw the fit rings
   std::cout << "There are " << fFitMarkersTop.size() << " top markers" << std::endl;
@@ -932,6 +1193,7 @@ void WCSimRecoEvDisplay::DrawFitOverlays() {
 
 	fBottomPad->cd();
 	fBottomHist->Draw("colz");
+  fBottomTitle->Draw();
   this->DrawHitGraphs(fBottomGraphs);
 	// Draw the truth rings
 	for (unsigned int r = 0; r < fFitMarkersBottom.size(); ++r) {
@@ -939,6 +1201,8 @@ void WCSimRecoEvDisplay::DrawFitOverlays() {
 	}
 	fBottomPad->Modified();
 	fBottomPad->Update();
+
+  this->AdjustBarrelZAxis();
 }
 
 void WCSimRecoEvDisplay::HideFitOverlays() {
@@ -991,10 +1255,22 @@ void WCSimRecoEvDisplay::ShowTruthOverlay(){
   }
 }
 
+void WCSimRecoEvDisplay::ShowDisplayView(){
+
+  if(fWhichPads != 5){
+    fWhichPads = 5;
+
+    // Now we have all the information, redraw things.
+    this->ResizePads();
+  } 
+
+}
+
 void WCSimRecoEvDisplay::SetPlotZAxes(){
 
   double min = fQMin;
   double max = fQMax;
+  if(max > 100.) max = 100.;
 
   if(fViewType == 1){
     min = fTMin;
@@ -1397,8 +1673,32 @@ unsigned int WCSimRecoEvDisplay::GetTRMTBin(double rmt) const{
   return bin;
 }
 
+// Change the size of the reco text displays
+void WCSimRecoEvDisplay::ResizeFitTexts(bool commonVertex){
+ if(commonVertex){
+    fFitTextMain->SetY1NDC(0.45);
+    fFitTextPrimaries->SetY1NDC(0.10);
+    fFitTextPrimaries->SetY2NDC(0.40);
+  }
+  else{
+    fFitTextMain->SetY1NDC(0.89);
+    fFitTextPrimaries->SetY1NDC(0.10);
+    fFitTextPrimaries->SetY2NDC(0.90);
+  }
+  fFitPad->cd();
+  fFitTextMain->Draw();
+  fFitTextPrimaries->Draw();
+  fFitPad->Modified();
+  fFitPad->Update();
+  fHitMapCanvas->GetCanvas()->cd();
+  fHitMapCanvas->GetCanvas()->Modified();
+  fHitMapCanvas->GetCanvas()->Update();
+}
+
 // Draw the reco plots to the reco pads
 void WCSimRecoEvDisplay::UpdateRecoPads(){
+
+  this->ResizeFitTexts(fRecoSummary->HasCommonVertex());
 
   this->MakeGraphColours();
 
@@ -1415,21 +1715,27 @@ void WCSimRecoEvDisplay::UpdateRecoPads(){
   // Take the plots one by one and draw them.
   fBarrelPad->cd();
   fBarrelHist->Draw("colz");
+  fBarrelTitle->Draw();
   this->DrawHitGraphs(fBarrelGraphs);
   fBarrelPad->Modified();
   fBarrelPad->Update();
 
   fTopPad->cd();
-  fTopHist->Draw("colz");
+//  fTopHist->Draw("colz");
+  fTopHist->Draw();
+  fTopTitle->Draw();
   this->DrawHitGraphs(fTopGraphs);
   fTopPad->Modified();
   fTopPad->Update();
 
   fBottomPad->cd();
   fBottomHist->Draw("colz");
+  fBottomTitle->Draw();
   this->DrawHitGraphs(fBottomGraphs);
   fBottomPad->Modified();
   fBottomPad->Update();
+
+  this->AdjustBarrelZAxis();
 
   fChargePad->cd();
   if(fViewType < 5){ 
@@ -1461,11 +1767,12 @@ void WCSimRecoEvDisplay::MakeGraphColours(){
   if(fViewType < 5 && fColoursNormal.size() < nContours){
     fColoursNormal.clear();
     // Make a palette
-    const Int_t nRGBs = 5;
-    Double_t stops[nRGBs] = { 0.00, 0.25, 0.50, 0.75, 1.00 };
-    Double_t red[nRGBs]   = { 0.00, 0.50, 1.00, 1.00, 1.00 };
-    Double_t green[nRGBs] = { 0.00, 0.00, 0.44, 0.80, 0.96 };
-    Double_t blue[nRGBs]  = { 0.00, 0.00, 0.00, 0.00, 0.80 };
+    const Int_t nRGBs = 9;
+    // This is the kCool scheme taken from ROOT 6.
+    Double_t stops[nRGBs] = {0.0000, 0.1250, 0.2500, 0.3750, 0.5000, 0.6250, 0.7500, 0.8750, 1.0000};
+    Double_t red[nRGBs] = { 33./255., 31./255., 42./255., 68./255., 86./255., 111./255., 141./255., 172./255., 227./255.};
+    Double_t green[nRGBs] = { 255./255., 175./255., 145./255., 106./255., 88./255., 55./255., 15./255., 0./255., 0./255.};
+    Double_t blue[nRGBs] = { 255./255., 205./255., 202./255., 203./255., 208./255., 205./255., 203./255., 206./255., 231./255.};
     startColour = TColor::CreateGradientColorTable(nRGBs, stops, red, green, blue, nContours);
     gStyle->SetNumberContours(nContours);
     for(int i = 0; i < nContours; ++i)

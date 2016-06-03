@@ -71,7 +71,7 @@ class WCSimVertexFinder : public TObject {
   WCSimRecoVertex* Run(WCSimRecoEvent* event);
   WCSimRecoVertex* RunPointFit(WCSimRecoEvent* event);
   WCSimRecoVertex* RunExtendedFit(WCSimRecoEvent* event);
-
+ 
   // Run Vertex Fitter (using True Vertex)
   WCSimRecoVertex* RunPointFitFromTruth(WCSimRecoEvent* event);
   WCSimRecoVertex* RunExtendedFitFromTruth(WCSimRecoEvent* event);
@@ -142,6 +142,9 @@ class WCSimVertexFinder : public TObject {
                       Double_t px, Double_t py, Double_t pz);
   void ExtendedResiduals(Double_t vx, Double_t vy, Double_t vz,
 			  Double_t px, Double_t py, Double_t pz);
+
+  // Simple method to just seed the time as the average hit time.
+  void GetTimeSeed(WCSimRecoEvent *evt);
 
  public:
 
@@ -284,6 +287,8 @@ class WCSimVertexFinder : public TObject {
   Double_t fSmu;
   Double_t fSel;
   Bool_t fIntegralsDone;
+
+  Double_t fTimeSeed;
 
  public:  
 

@@ -47,6 +47,9 @@ public:
   void SetViewChargeRMT();
   void SetViewTimeRMT();
 
+  // Special display view for saving plots
+  void ShowDisplayView();
+
 protected:
 	
   void MakeGraphColours();
@@ -64,6 +67,13 @@ protected:
 	void UpdateFitPad();
 	// Draw the fit overlay rings to their pads
 	void UpdateFitOverlayPad();
+  // The display pad will show both reco and true
+  void UpdateDisplayPad();
+
+  // Match the reco and true events
+  void MatchRecoToTrue();
+  void UpdateDisplayInfo();
+  std::string GetTrackInfo(bool isReco, unsigned int trackNo);
 
 	// Encapsulate some of the GUI generation
 	void CreateDebugButtonBar();
@@ -81,6 +91,8 @@ protected:
 	void ResizePads();
 	TPad * fFitOverlayPad;
 	TPad * fFitPad;
+  TPad *fDisplayPad;
+  void ResizeFitTexts(bool commonVertex);
 
   // Need to overload the SetPlotZAxes function
   void SetPlotZAxes();
@@ -102,6 +114,13 @@ protected:
 	// The truth display is all contained within TPaveText objects
 	TPaveText *fFitTextMain;
 	TPaveText *fFitTextPrimaries;
+
+  // Display view text
+	TPaveText *fDisplayTextTrue;
+	TPaveText *fDisplayTextReco;
+  // Pairs of reconstructed and true tracks for the display view
+  std::vector<std::pair<unsigned int, unsigned int> > fDisplayTrackPairs;
+  TLegend *fDisplayLegend;
 
   // Needed for the likelihood plotting
   double fLnLMin;
