@@ -48,12 +48,21 @@ public:
 	  unsigned int GetNPrimaries() const;
 
     bool HasCommonVertex() const;
+      // Best-fit log likelihoods
+      void SetTimeMinus2LnL(double minus2LnL);
+      void SetChargeMinus2LnL(double minus2LnL);
+      double GetTimeMinus2LnL() const;
+      double GetChargeMinus2LnL() const ;
+      double GetMinus2LnL() const;
 
 	private:
-
+      // Likelihoods
+      double fTimeMinus2LnL;
+      double fChargeMinus2LnL;
+      
 	  // Vertex position
 	  std::vector<TVector3> fVertices;
-    std::vector<double> fVerticesT;
+          std::vector<double> fVerticesT;
 
 	  // Also store information about the primary particles (only those escaping the nucleus)
 	  std::vector<int> fPrimaryPDGs;

@@ -36,7 +36,7 @@ WCSimEmissionProfiles::WCSimEmissionProfiles() {
 	fProfileFile = 0x0;
 
 	fBinningHistogram = 0x0;
-  fProfileTree = 0x0;
+    fProfileTree = 0x0;
 
 	fRho = 0x0;
 	fGCoarse = 0x0;
@@ -47,6 +47,12 @@ WCSimEmissionProfiles::WCSimEmissionProfiles() {
 
 	fType = TrackType::Unknown;
 	fEnergy = -999.9;
+
+	fTimeCosThetaMax = 1.0;
+	fTimeCosThetaMin = -1.0;
+	fSForTime = 0x0;
+	fSCosThetaForTime = 0x0;
+
 }
 
 WCSimEmissionProfiles::~WCSimEmissionProfiles() {
@@ -56,10 +62,12 @@ WCSimEmissionProfiles::~WCSimEmissionProfiles() {
 		fProfileFile->Close();
 		delete fProfileFile;
 		fProfileFile = 0x0;
-    fProfileTree = 0x0;
+		fProfileTree = 0x0;
 		fRho = 0x0;
 		fGFine = 0x0;
 		fGCoarse = 0x0;
+		fSCosThetaForTime = 0x0;
+		fSForTime = 0x0;
 	}
 }
 
@@ -70,13 +78,16 @@ WCSimEmissionProfiles::WCSimEmissionProfiles(const TrackType::Type &type, const 
 	fProfileFile = 0x0;
 
 	fBinningHistogram = 0x0;
-  fProfileTree = 0x0;
+	fProfileTree = 0x0;
 
 	fRho = 0x0;
 	fGCoarse = 0x0;
 	fGFine= 0x0;
 
-	fRho = 0x0;
+	fSCosThetaForTime = 0x0;
+	fSForTime = 0x0;
+	fTimeCosThetaMin = -1.0;
+	fTimeCosThetaMax = 1.0;
 
 	LoadFile(type, energy);
 
@@ -259,8 +270,8 @@ void WCSimEmissionProfiles::LoadFile(const TrackType::Type &type, const double &
 	fProfileFileName = TString(getenv("WCSIMANAHOME"));
 	switch( type )
 	{
-    case TrackType::PhotonLike:
-      // Fall through to the electron track
+    	case TrackType::PhotonLike:
+    		// Fall through to the electron track
 		case TrackType::ElectronLike:
 			fProfileFileName.Append("/config/emissionProfilesElectrons.root");
 			break;
@@ -274,31 +285,48 @@ void WCSimEmissionProfiles::LoadFile(const TrackType::Type &type, const double &
 
   // Open the files and ge the profile tree
   std::cout << "Profile file name = " << fProfileFileName << std::endl;
-	fProfileFile      = new TFile(fProfileFileName.Data(),"READ");
+  fProfileFile = new TFile(fProfileFileName.Data(),"READ");
   fProfileFile->GetObject("fProfileTree",fProfileTree);
   fProfileFile->GetObject("hWhichHisto",fBinningHistogram);
 
   // Set the tree branches
+  std::cout << "Set branch for rho" << std::endl;
   fProfileTree->SetBranchAddress("hRho",&fRho);
+  std::cout << "Set branch for GFine" << std::endl;
   fProfileTree->SetBranchAddress("hGFine",&fGFine);
+  std::cout << "Set branch for GCoarse" << std::endl;
   fProfileTree->SetBranchAddress("hGCoarse",&fGCoarse);
+  std::cout << "Set branch for SCosThetaForTime" << std::endl;
+  fProfileTree->SetBranchAddress("hSCosThetaForTime",&fSCosThetaForTime);
+  std::cout << "Set branch for SForTime" << std::endl;
+  fProfileTree->SetBranchAddress("hSForTime",&fSForTime);
+  std::cout << "Set branch for timeCosThetaMin" << std::endl;
+  fProfileTree->SetBranchAddress("timeCosThetaMin",&fTimeCosThetaMin);
+  std::cout << "Set branch for timeCosThetaMax" << std::endl;
+  fProfileTree->SetBranchAddress("timeCosThetaMax",&fTimeCosThetaMax);
 
   fType = type;
-	SetEnergy(energy);
+  SetEnergy(energy); // This calls GetEntry
 
-	if(fDebug) { SaveProfiles(type, energy); }
+  if(fDebug) { SaveProfiles(type, energy); }
 
-	fStoppingDistance = -999.9;
-	return;
+  fStoppingDistance = -999.9;
+  return;
 
 }
 
 void WCSimEmissionProfiles::SetEnergy(const double &energy)
 {
-  fEnergy = energy;
-  int bin = fBinningHistogram->GetXaxis()->FindBin(energy) - 1;
-  assert(bin <= fProfileTree->GetEntries());
-  fProfileTree->GetEntry(bin);
+    if(energy != fEnergy)
+    {
+        fEnergy = energy;
+        int bin = fBinningHistogram->GetXaxis()->FindBin(energy) - 1;
+        assert(bin <= fProfileTree->GetEntries());
+        fProfileTree->GetEntry(bin);
+        fStoppingDistance      = -999.9;
+        fLastPercentile        = 0;
+        fPercentileTrackLength = 0;
+    }
 
   return;
 }
@@ -351,17 +379,17 @@ Double_t WCSimEmissionProfiles::GetLightFlux(
 	switch(type)
 	{
 	  case TrackType::MuonLike:
-	  	// From a linear fit to nPhotons as a function of energy (it's very linear)
-	    // New fit on 10/March/15
-      nPhotons = 431.467 * energy - 21813.0; // New fit on 29/Jul/2015 (QE decoupled)
-
-	    // Things get sketchy at really low energies
-	    if(nPhotons > 0){ flux = nPhotons; }
+	  // From a linear fit to nPhotons as a function of energy - it's fairly
+      // linear for muons and very linear for electrons
+      
+      // Fitted on 12th May 2016
+      nPhotons = -30849 + 350.289*energy;
+	  if(nPhotons > 0){ flux = nPhotons; }
       break;
     case TrackType::PhotonLike:
       // Fall through to ElectronLike
     case TrackType::ElectronLike:
-      nPhotons = 201.709 + 383.217 * energy;  // New fit on 29/Jul/15
+      nPhotons = 198.152*383.238*energy;
       if(nPhotons > 0){ flux = nPhotons; }
       break;
     default:
@@ -474,3 +502,25 @@ TH1F * WCSimEmissionProfiles::GetEnergyHist()
 {
 	return fBinningHistogram;
 }
+
+TH2F * WCSimEmissionProfiles::GetSCosThetaForTime()
+{
+	return fSCosThetaForTime;
+}
+
+TH1F * WCSimEmissionProfiles::GetSForTime()
+{
+	return fSForTime;
+}
+
+double WCSimEmissionProfiles::GetTimeCosThetaMin()
+{
+	return fTimeCosThetaMin;
+}
+
+double  WCSimEmissionProfiles::GetTimeCosThetaMax()
+{
+	return fTimeCosThetaMax;
+}
+
+

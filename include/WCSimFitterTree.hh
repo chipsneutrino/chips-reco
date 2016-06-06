@@ -84,7 +84,8 @@ public:
 			  std::vector<Bool_t> bestFitEscapes,
 			  std::vector<WCSimLikelihoodTrackBase*> trueTracks,
 			  std::vector<Bool_t> trueTrackEscapes,
-			  Double_t minimum);
+			  Double_t charge2LnL,
+              Double_t time2LnL);
 	void FillFitTrack(WCSimLikelihoodTrackBase * track, Bool_t escapes, Double_t twoLnL);
 	void FillTrueTrack(WCSimLikelihoodTrackBase * track, Bool_t escapes);
 	void FillHitComparison(
@@ -102,10 +103,10 @@ public:
                const std::vector<double> &t2LnLs,
                const std::vector<double> &correctT2LnLs);
   void FillRecoFailures(const int &event);
+  void MakeSaveFile();
 
 private:
-  	  void MakeSaveFileName();
-	void MakeRecoSummary(std::vector<WCSimLikelihoodTrackBase *> bestFitTracks);
+	void MakeRecoSummary(std::vector<WCSimLikelihoodTrackBase *> bestFitTracks, double charge2LnL, double time2LnL);
 
 	TFile * fSaveFile;
 	TString fSaveFileName;
@@ -115,16 +116,22 @@ private:
 	TTree * fWCSimTree;
 	TTree * fGeoTree;
 	TTree * fComparisonTree;
-  TTree * fHitComparisonTree;
-  TTree * fRecoFailureTree;
+    TTree * fHitComparisonTree;
+    TTree * fRecoFailureTree;
+	
+    WCSimRootGeom * fGeometry;
+	WCSimRecoSummary * fRecoSummary;
+	WCSimRootEvent * fWCSimRootEvent;
 
-  // Failed reco events
-  int fFailedEvent;
+    // Failed reco events
+    int fFailedEvent;
 
 	// The best-fit variables
 	Int_t fEvent;
 	Int_t fFitTrackNum;
 	Double_t f2LnL;
+    Double_t fTime2LnL;
+    Double_t fCharge2LnL;
 	Double_t fFitVtxX;
 	Double_t fFitVtxY;
 	Double_t fFitVtxZ;
@@ -132,7 +139,7 @@ private:
 	Double_t fFitDirTheta;
 	Double_t fFitDirPhi;
 	Double_t fFitEnergy;
-  Double_t fFitConversionDistance;
+    Double_t fFitConversionDistance;
 	Bool_t fFitEscapes;
 	Int_t fFitPDG;
 
@@ -148,14 +155,10 @@ private:
 	Bool_t fTrueEscapes;
 	Int_t fTruePDG;
 
-	WCSimRootGeom * fGeometry;
-	WCSimRecoSummary * fRecoSummary;
-	WCSimRootEvent * fWCSimRootEvent;
-
 
 	std::vector<WCSimLikelihoodTrackBase *> fFitTracks;
 	std::vector<WCSimLikelihoodTrackBase *> fTruthTracks;
-  HitComparison * fHitComparison;
+    HitComparison * fHitComparison;
 
 };
 

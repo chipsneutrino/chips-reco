@@ -21,7 +21,9 @@ class WCSimFitterInterface {
 public:
 	virtual ~WCSimFitterInterface();
 	WCSimFitterInterface();
-	void Init();
+
+    void InitOutputFiles(); 
+	void InitFitter();
 
 	// void SetFile(const char * fileName);
 	void SetNumTracks( unsigned int numTracks );
@@ -38,12 +40,14 @@ public:
 	void SetParMin(   unsigned int numTrack, const char * name, double min);
 	void SetParMax(   unsigned int numTrack, const char * name, double max);
 	void SetParStart( unsigned int numTrack, const char * name, double start);
+	void SetParStep( unsigned int numTrack, const char * name, double step);
 	void SetParRange( unsigned int numTrack, const char * name, double min, double max);
-	void SetParameter( unsigned int numTrack, const char * name, double min, double max, double start, bool fixed);
+	void SetParameter( unsigned int numTrack, const char * name, double min, double max, double start, bool fixed, double step = 0);
 
 	Double_t GetParMin(   unsigned int numTrack, const char * name );
 	Double_t GetParMax(   unsigned int numTrack, const char * name );
 	Double_t GetParStart( unsigned int numTrack, const char * name );
+	Double_t GetParStep( unsigned int numTrack, const char * name );
 	std::pair<Double_t, Double_t> GetParRange( unsigned int numTrack, const char * name );
 
 	void SetMakeFits( bool doIt = true);

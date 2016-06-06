@@ -29,6 +29,8 @@ WCSimRecoSummary::WCSimRecoSummary(const WCSimRecoSummary &ts) : TObject(ts) {
   fPrimaryPDGs = ts.GetPrimaryPDGs();
   fPrimaryEnergies = ts.GetPrimaryEnergies();
   fPrimaryDirs = ts.GetPrimaryDirs();
+  fTimeMinus2LnL = ts.GetTimeMinus2LnL();
+  fChargeMinus2LnL = ts.GetChargeMinus2LnL();
 }
 
 // Destructor
@@ -43,6 +45,8 @@ void WCSimRecoSummary::ResetValues(){
   fPrimaryPDGs.clear();
   fPrimaryEnergies.clear();
   fPrimaryDirs.clear();
+  fTimeMinus2LnL = 0.;
+  fChargeMinus2LnL = 0.;
 }
 
 // Get and set the vertex information
@@ -191,3 +195,27 @@ bool WCSimRecoSummary::HasCommonVertex() const{
 }
 
 
+void WCSimRecoSummary::SetTimeMinus2LnL(double minus2LnL)
+{
+    fTimeMinus2LnL = minus2LnL;
+}
+
+void WCSimRecoSummary::SetChargeMinus2LnL(double minus2LnL)
+{
+    fChargeMinus2LnL = minus2LnL;
+}
+
+double WCSimRecoSummary::GetTimeMinus2LnL() const
+{
+    return fTimeMinus2LnL;
+}
+
+double WCSimRecoSummary::GetChargeMinus2LnL() const
+{
+    return fChargeMinus2LnL;
+}
+
+double WCSimRecoSummary::GetMinus2LnL() const
+{
+    return fTimeMinus2LnL + fChargeMinus2LnL;
+}

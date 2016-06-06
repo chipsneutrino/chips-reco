@@ -170,6 +170,7 @@ double WCSimChargePredictor::GetPredictedCharge(WCSimLikelihoodDigit *myDigit)
 		// Work out the predicted mean charge at this PMT
 		predictedCharge = this->ChargeExpectation(iTrack);
   }
+  if(predictedCharge < 2.5e-2){ predictedCharge = 2.5e-2; }
 
   return predictedCharge;
 }
@@ -213,7 +214,7 @@ double WCSimChargePredictor::ChargeExpectation(Int_t trackIndex)
     }
     if( muIndir < 0 )
     {
-      std::cerr << "Warning: predicted indirect charge was less than zero (" << muIndir <<") - returning zero" << std::endl;
+      //std::cerr << "Warning: predicted indirect charge was less than zero (" << muIndir <<") - returning zero" << std::endl;
       muIndir = 0;
     }
 
@@ -262,7 +263,7 @@ double WCSimChargePredictor::GetMuDirect(Int_t trackIndex)
     // fTuner->CalculateCoefficients(fTracks[trackIndex], fDigit);
 
     muDirect = lightFlux * ( integrals[0] * fCoeffsCh[0] + integrals[1] * fCoeffsCh[1] + integrals[2] * fCoeffsCh[2] );
-    /*if(fDigit->GetQ() > 10.0)
+    /*if(fDigit->GetTubeId() == 4007)// { std::cout << "Digit is " << fDigit->GetTubeId() << " and ind integral = " << integrals[0] << "  " << integrals[1] << "  " << integrals[2] << std::endl; }
     {
      std::cout << "Digit = " << fDigit->GetTubeId() << "   charge = " << fDigit->GetQ() << "   integrals[0] = " << integrals[0] << "  integrals[1] = " << integrals[1] << "   integrals[2] = " << integrals[2] << std::endl;
      std::cout << "Digit = " << fDigit->GetTubeId() << "   fCoeffsCh = " << fCoeffsCh[0] << "," << fCoeffsCh[1] << "," << fCoeffsCh[2] << "    muDir = " << muDirect << std::endl;
@@ -290,7 +291,6 @@ double WCSimChargePredictor::GetMuDirect(Int_t trackIndex)
 */
 double WCSimChargePredictor::GetMuIndirect(Int_t trackIndex)
 {
-//  return 0.01;
   //std::cout << "*** WCSimChargeLikelihood::GetMuIndirect() *** Calculating the indirect light contribution to the expected charge" << std::endl;
   double muIndirect = 0.0;
   if(fGotTrackParameters != trackIndex) { this->GetTrackParameters(trackIndex); }
@@ -298,6 +298,7 @@ double WCSimChargePredictor::GetMuIndirect(Int_t trackIndex)
   {
     double lightFlux = this->GetLightFlux(trackIndex);
   	std::vector<Double_t> integrals = fTuner->GetIndIntegrals(fTracks[trackIndex]);
+    //if(fDigit->GetTubeId() == 1) { std::cout << "Digit is " << fDigit->GetTubeId() << " and ind integral = " << integrals[0] << "  " << integrals[1] << "  " << integrals[2] << std::endl; }
     
     muIndirect = lightFlux * ( integrals[0] * fCoeffsInd[0] + integrals[1] * fCoeffsInd[1] + integrals[2] * fCoeffsInd[2] );
 //    if(muIndirect < 0.01)

@@ -31,7 +31,14 @@ float WCSimTransmissionFunctionLookupTable::GetExp(double x)
 	float width = (fXMax - fXMin) / 2048.;
 	int index = (int)((x - fXMin) / width);
 
-	assert( 0 <= index && index < 2048);
+	if( !(0 <= index && index < 2048))
+	{
+		std::cerr << "Warning: you're looking up the transmission function for a distance "
+				  << x << std::endl
+				  << "         But the table only goes from " << fXMin << " to " << fXMax << std::endl
+				  << "         I'll calculate the slow way" << std::endl;
+		return exp(-x);
+	}
 	if(index == 0) { return fLUT[0];}
 	if(index == 2047) { return fLUT[2047]; }
 

@@ -23,9 +23,11 @@ WCSimFitterParameter::WCSimFitterParameter() : fType(FitterParameterType::kUnkno
 }
 
 WCSimFitterParameter::WCSimFitterParameter(FitterParameterType::Type type,
-		bool isFixed, double start, double min, double max) :
+		bool isFixed, double start, double min, double max, double step) :
 				fType(type), fIsFixed(isFixed), fStart(start),
 				fMin(min), fMax(max){
+    if(step == 0){ fStep = (fMax - fMin)/250.0;}
+    else{ fStep = step; }
 	return;
 }
 
@@ -38,6 +40,7 @@ void WCSimFitterParameter::Print() {
   std::cout << "fMin = " << fMin << std::endl;
   std::cout << "fMax = " << fMax << std::endl;
   std::cout << "fStart = " << fStart << std::endl;
+  std::cout << "fStep = " << fStep << std::endl;
   std::cout << "fIsFixed = " << fIsFixed << std::endl << std::endl;
 }
 ////////////////////////////////////////////////////////////////////
@@ -113,10 +116,18 @@ double WCSimFitterSingleTrackParameters::GetParStart(FitterParameterType type)
   return (*itr).second.GetStart();
 }
 
+double WCSimFitterSingleTrackParameters::GetParStep(FitterParameterType type)
+{
+  std::map<FitterParameterType::Type, WCSimFitterParameter>::iterator itr;
+  itr = fParameters.find(type);
+  assert(itr != fParameters.end());
+  return (*itr).second.GetStep();
+}
+
 void WCSimFitterSingleTrackParameters::SetParameter(
 		FitterParameterType::Type type, bool isFixed, double start,
-		double min, double max) {
-	WCSimFitterParameter par(type, isFixed, start, min, max);
+		double min, double max, double step) {
+	WCSimFitterParameter par(type, isFixed, start, min, max, step);
 	fParameters[type] = par;
 }
 
@@ -142,6 +153,14 @@ void WCSimFitterSingleTrackParameters::SetParStart(FitterParameterType::Type typ
   itr = fParameters.find(type);
   assert(itr != fParameters.end());
   (*itr).second.SetStart(start);
+}
+
+void WCSimFitterSingleTrackParameters::SetParStep(FitterParameterType::Type type, double step)
+{
+  std::map<FitterParameterType::Type, WCSimFitterParameter>::iterator itr;
+  itr = fParameters.find(type);
+  assert(itr != fParameters.end());
+  (*itr).second.SetStep(step);
 }
 
 void WCSimFitterSingleTrackParameters::SetParRange(FitterParameterType::Type type, double min, double max)
@@ -181,7 +200,7 @@ WCSimFitterParameters::~WCSimFitterParameters() {
 
 void WCSimFitterParameters::SetNumTracks(unsigned int nTracks)
 {
-  int tracksNeeded = fNumTracks;
+  unsigned int tracksNeeded = fNumTracks;
   if(tracksNeeded < nTracks)
   {
     for(unsigned int toAdd = 0; toAdd < (nTracks - tracksNeeded) ; ++toAdd)

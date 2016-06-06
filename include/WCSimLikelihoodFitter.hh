@@ -19,6 +19,7 @@
 #include "WCSimFitterTrackParMap.hh"
 #include "WCSimTrackParameterEnums.hh"
 
+#include <exception>
 #include <vector>
 #include <map>
 
@@ -26,6 +27,14 @@
 class WCSimFitterTree;
 class WCSimFitterConfig;
 
+struct FitterArgIsNaN : public std::exception
+{
+	const char * what() const throw()
+	{
+		return "Caught NaN argument to fitter";
+	}
+
+};
 
 class WCSimLikelihoodFitter
 {
@@ -97,6 +106,7 @@ class WCSimLikelihoodFitter
         Double_t WrapFunc(const Double_t * x);
         Double_t WrapFuncAlongTrack(const Double_t * x);
         Double_t WrapFuncPiZero(const Double_t * x);
+        Double_t GetPenalty(const std::vector<WCSimLikelihoodTrackBase*> &tracksToFit);
 
         /**
          * Get the minimum value of -2 log(likelihood) returned by the fit
@@ -124,12 +134,6 @@ class WCSimLikelihoodFitter
         std::vector<WCSimLikelihoodTrackBase*> GetBestFit();
 
         /**
-         * Create a track object using the seed parameters
-         * @return Track object at the seed value
-         */
-        WCSimLikelihoodTrackBase* GetSeedParams();
-
-        /**
          * As a temporary measure to get results out of the fit, we'll perform
          * a grid search to determine the energy, instead of turning Minuit loose on it
          * (until we have a working method that interpolates for a smooth surface)
@@ -138,6 +142,15 @@ class WCSimLikelihoodFitter
          */
         void PerformEnergyGridSearch(Double_t &best2LnL, std::vector<Double_t> &bestEnergies);
 
+        /**
+         * If Minuit encounters a problem (e.g. LnL doesn't change with the track parameters) then
+         * the next iteration's track parameters can be NaN - we want to catch this so it doesn't
+         * break everything
+         * @param x The track parameters being used
+         */
+        void CheckTrackParametersForNaN(const Double_t * x) const;
+        void CheckTrackParametersForNaN(const Double_t * x, const unsigned int sizeofX) const;
+
 
         void FillPlots();
         void FillTree();
@@ -145,6 +158,7 @@ class WCSimLikelihoodFitter
 
         void Make1DSurface(std::pair<unsigned int, FitterParameterType::Type> trackPar);
         void Make2DSurface(std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > trackPar);
+        void Make2DSurfaceAlongTrack();
 
         Bool_t GetTrueTrackEscapes(unsigned int iTrack) const;
         Bool_t GetFitTrackEscapes( unsigned int iTrack) const;
@@ -152,6 +166,11 @@ class WCSimLikelihoodFitter
         Bool_t GetUsePiZeroMassConstraint() const;
 
         Double_t GetPiZeroSecondTrackEnergy(const Double_t * x);
+
+        Bool_t IsInsideAllowedRegion(const Int_t& iTrack, const Double_t& x, const Double_t& y, const Double_t& z);
+        Bool_t IsOutsideAllowedRegion(const Int_t& iTrack, const Double_t& x, const Double_t& y, const Double_t& z);
+        void MoveBackInside(const Int_t iTrack, Double_t& seedX, Double_t& seedY, Double_t& seedZ, 
+                            const Double_t& dirX, const Double_t& dirY, const Double_t& dirZ);
 
 
         WCSimTotalLikelihood * fTotalLikelihood; ///< Class used to calculate the total (combined charge and time) likelihood that we minimize
@@ -188,6 +207,10 @@ class WCSimLikelihoodFitter
 
         Int_t fEvent; ///< Number of the event currently being fitted
         Double_t fMinimum; ///< Value of -2 log(likelihood) at the best-fit point
+        Double_t fMinimumTimeComponent; ///< Value of -2 log(time likelihood) at best-fit point
+        Double_t fMinimumChargeComponent; ///< Value of -2 log(charge likelihood) at best-fit point
+
+        Bool_t fFailed;    ///< Set to true if the fitter fails to flag the bad event
 
         Bool_t fIsFirstCall; ///< Flags whether this is the first time the minimizer had calculated a likelihood (to print the seed)
         Int_t fStatus; ///< Minimizer convergence status

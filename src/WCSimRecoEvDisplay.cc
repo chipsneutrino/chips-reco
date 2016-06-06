@@ -1763,7 +1763,7 @@ void WCSimRecoEvDisplay::UpdateRecoPads(){
 void WCSimRecoEvDisplay::MakeGraphColours(){
 
   Int_t startColour = 0;
-  const Int_t nContours = 100;
+  const UInt_t nContours = 100;
   if(fViewType < 5 && fColoursNormal.size() < nContours){
     fColoursNormal.clear();
     // Make a palette
@@ -1775,7 +1775,7 @@ void WCSimRecoEvDisplay::MakeGraphColours(){
     Double_t blue[nRGBs] = { 255./255., 205./255., 202./255., 203./255., 208./255., 205./255., 203./255., 206./255., 231./255.};
     startColour = TColor::CreateGradientColorTable(nRGBs, stops, red, green, blue, nContours);
     gStyle->SetNumberContours(nContours);
-    for(int i = 0; i < nContours; ++i)
+    for(size_t i = 0; i < nContours; ++i)
     {
       fColoursNormal.push_back(startColour+i);
     }
@@ -1790,7 +1790,7 @@ void WCSimRecoEvDisplay::MakeGraphColours(){
     Double_t blue[nRGBs] =   { 1.000, 1.000, 1.000, 1.000, 1.000, 0.750, 0.500, 0.250, 0.000 };
     startColour = TColor::CreateGradientColorTable(nRGBs, stops, red, green, blue, nContours);
     gStyle->SetNumberContours(nContours);
-    for(int i = 0; i < nContours; ++i)
+    for(size_t i = 0; i < nContours; ++i)
     {
       fColoursDiff.push_back(startColour+i);
     }

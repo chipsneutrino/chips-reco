@@ -77,6 +77,11 @@
     TH2F * GetGFine();
     TH1F * GetEnergyHist();
 
+    TH2F * GetSCosThetaForTime();
+    TH1F * GetSForTime();
+    double GetTimeCosThetaMin();
+    double  GetTimeCosThetaMax();
+
   private:
     UInt_t GetTreeEntry(Double_t energy) const;
 	UInt_t GetHistBin(Double_t energy) const;
@@ -98,6 +103,11 @@
 	TH1F * fRho;
 	TH2F * fGCoarse;
 	TH2F * fGFine;
+
+	TH1F * fSForTime;
+	TH2F * fSCosThetaForTime;
+	double fTimeCosThetaMin;
+	double fTimeCosThetaMax;
 
   Bool_t fDebug;
 

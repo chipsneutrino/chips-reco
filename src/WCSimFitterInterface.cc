@@ -13,16 +13,15 @@
 #include "WCSimFitterTree.hh"
 #include "WCSimPiZeroFitter.hh"
 #include <TString.h>
+#include <TSystem.h>
 #include <TTimeStamp.h>
 #include <cassert>
 
 ClassImp(WCSimFitterInterface)
 
 WCSimFitterInterface::WCSimFitterInterface() :
-		fFitterConfig(NULL), fFileName(""), fNumTracks(0), fFitter(0),
-		fFitterPlots(0), fMakeFits(true), fMakeSurfaces(true){
-
-
+		fFitterConfig(NULL), fFileName(""), fNumTracks(0), fFitter(0x0), fPiZeroFitter(0x0),
+		fFitterPlots(0x0), fFitterTree(0x0), fMakeFits(true), fMakeSurfaces(true){
 	TTimeStamp ts;
 	unsigned int year, month, day, hour, minute, second;
 	ts.GetDate(true, 0, &year, &month, &day);
@@ -32,9 +31,6 @@ WCSimFitterInterface::WCSimFitterInterface() :
 	fFitterConfig = new WCSimFitterConfig();
 	fFitterPlots = new WCSimFitterPlots(saveName);
 	fFitterTree = new WCSimFitterTree(saveName);
-	fFitter = NULL;
-	fPiZeroFitter = NULL;
-	Init();
 	// TODO Auto-generated constructor stub
 }
 
@@ -46,23 +42,19 @@ WCSimFitterInterface::~WCSimFitterInterface() {
   if( fFitterConfig != NULL) { delete fFitterConfig; }
 }
 
-void WCSimFitterInterface::Init()
+void WCSimFitterInterface::InitFitter()
 {
-  if( fFitter == NULL && !GetIsPiZeroFit()) { 
+  if( fFitter == 0x0 && !GetIsPiZeroFit()) { 
     fFitter = new WCSimLikelihoodFitter(fFitterConfig) ; 
-    fFitter->SetFitterPlots( fFitterPlots );
-    fFitter->SetFitterTree( fFitterTree );
+    fFitter->SetFitterPlots(fFitterPlots);
+    fFitter->SetFitterTree(fFitterTree);
   }
-  else if( fPiZeroFitter == NULL && GetIsPiZeroFit() ) { 
+  else if( fPiZeroFitter == 0x0 && GetIsPiZeroFit() ) { 
     fPiZeroFitter = new WCSimPiZeroFitter(fFitterConfig) ; 
-    fPiZeroFitter->SetFitterPlots( fFitterPlots );
-    fPiZeroFitter->SetFitterTree( fFitterTree );
+    fPiZeroFitter->SetFitterPlots(fFitterPlots);
+    fPiZeroFitter->SetFitterTree(fFitterTree);
   }
 }
-
-//  void WCSimFitterInterface::SetFile(const char * fileName) {
-//  	fFileName = TString(fileName);
-//  }
 
 void WCSimFitterInterface::FixParameter(unsigned int numTrack, const char* name, bool doIt) { 
   fFitterConfig->FixTrackParameter(numTrack, name, true);
@@ -99,9 +91,9 @@ TrackType::Type WCSimFitterInterface::GetTrackType(const unsigned int &numTrack)
   return fFitterConfig->GetTrackType(numTrack);
 }
 
-void WCSimFitterInterface::SetParameter(unsigned int numTrack, const char * name, double min, double max, double start, bool fixIt)
+void WCSimFitterInterface::SetParameter(unsigned int numTrack, const char * name, double min, double max, double start, bool fixIt, double step)
 {
-  fFitterConfig->SetParameter(numTrack, name, min, max, start, fixIt);
+  fFitterConfig->SetParameter(numTrack, name, min, max, start, step, fixIt);
 }
 
 void WCSimFitterInterface::SetParMin(unsigned int numTrack, const char* name,
@@ -117,6 +109,11 @@ void WCSimFitterInterface::SetParMax(unsigned int numTrack, const char* name,
 void WCSimFitterInterface::SetParStart(unsigned int numTrack, const char* name,
 		double start) {
 	fFitterConfig->SetParStart(numTrack, name, start);
+}
+
+void WCSimFitterInterface::SetParStep(unsigned int numTrack, const char* name,
+		double step) {
+	fFitterConfig->SetParStep(numTrack, name, step);
 }
 
 void WCSimFitterInterface::SetParRange(unsigned int numTrack, const char* name,
@@ -135,6 +132,11 @@ Double_t WCSimFitterInterface::GetParMax(unsigned int numTrack, const char* name
 Double_t WCSimFitterInterface::GetParStart(unsigned int numTrack,
 		const char* name) {
 	return fFitterConfig->GetParStart(numTrack, name);
+}
+
+Double_t WCSimFitterInterface::GetParStep(unsigned int numTrack,
+		const char* name) {
+	return fFitterConfig->GetParStep(numTrack, name);
 }
 
 std::pair<Double_t, Double_t> WCSimFitterInterface::GetParRange(unsigned int numTrack,
@@ -238,7 +240,7 @@ void WCSimFitterInterface::PrintSurfaceConfiguration() {
 
 void WCSimFitterInterface::SetInputFileName(const char * inputfile)
 {
-	fFitterPlots->SetInputFileName(inputfile);
+	fFileName = inputfile;
 }
 
 void WCSimFitterInterface::SaveResults()
@@ -258,10 +260,14 @@ void WCSimFitterInterface::SaveProfiles()
 
 void WCSimFitterInterface::Run() {
   std::cout << " *** WCSimFitterInterface::Run() *** " << std::endl;
-  Init();
-  std::cout << "  Making histograms" << std::endl;
+  std::cout << " *** InitOutputFiles *** " << std::endl;
+  InitOutputFiles();
+  std::cout << " *** InitFitter *** " << std::endl;
+  InitFitter();
+
+  std::cout << " *** Making histograms *** " << std::endl;
   fFitterPlots->MakeHistograms(fFitterConfig);
-  std::cout << "  Making tree" << std::endl;
+  std::cout << " *** Making tree *** " << std::endl;
   fFitterTree->MakeTree();
 
   std::cout << "  Running fits " << std::endl;
@@ -306,4 +312,32 @@ void WCSimFitterInterface::SetForcePiZeroMass(const bool& doIt)
 bool WCSimFitterInterface::GetForcePiZeroMass() const
 {
 	return fFitterConfig->GetForcePiZeroMass();
+}
+
+void WCSimFitterInterface::InitOutputFiles()
+{
+	TTimeStamp ts;
+    unsigned int year, month, day, hour, minute, second;
+	ts.GetDate(true, 0, &year, &month, &day);
+	ts.GetTime(true, 0, &hour, &minute, &second);
+    TString time = Form("%02d%02d%02d", hour, minute, second);
+
+    TString basename = gSystem->BaseName(fFileName.Data());
+    basename.ReplaceAll(".root","");
+
+	TString saveNamePlots = Form("fit_%s_%04d_to_%04d_%s_plots.root", 
+                                 basename.Data(), 
+                                 fFitterConfig->GetFirstEventToFit(),
+                                 fFitterConfig->GetNumEventsToFit() + fFitterConfig->GetFirstEventToFit(),
+                                 time.Data());
+	TString saveNameTree = Form("fit_%s_%04d_to_%04d_%s_tree.root", 
+                                 basename.Data(), 
+                                 fFitterConfig->GetFirstEventToFit(),
+                                 fFitterConfig->GetNumEventsToFit() + fFitterConfig->GetFirstEventToFit(),
+                                 time.Data());
+	fFitterPlots->SetSaveFileName(saveNamePlots);
+	fFitterTree->SetSaveFileName(saveNameTree);
+    fFitterPlots->MakeSaveFile();
+    fFitterTree->MakeSaveFile();
+    return; 
 }

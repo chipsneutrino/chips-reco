@@ -22,7 +22,7 @@ public:
   WCSimFitterParameter();
 
 	WCSimFitterParameter(FitterParameterType::Type type, bool isFixed, double start,
-						 double min, double max);
+						 double min, double max, double step = 0.0);
 
 	virtual ~WCSimFitterParameter();
 
@@ -66,6 +66,14 @@ public:
 		fType = type;
 	}
 
+    void SetStep( double step){
+        fStep = step;
+    }
+
+    double GetStep() const {
+        return fStep;
+    }
+
   void Print();
 
 private:
@@ -74,6 +82,7 @@ private:
 	double fStart;
 	double fMin;
 	double fMax;
+    double fStep;
 };
 
 
@@ -85,18 +94,20 @@ public:
 	void SetDefaultParameters();
 	WCSimFitterParameter GetParameter(FitterParameterType::Type type);
 	void SetParameter(FitterParameterType::Type type, bool isFixed, double start,
-						 double min, double max);
+						 double min, double max, double step = 0);
 
-  void SetParMin(FitterParameterType::Type type, double min);
-  void SetParMax(FitterParameterType::Type type, double max);
-  void SetParStart(FitterParameterType::Type type, double start);
-  void SetParRange(FitterParameterType::Type type, double min, double max);
-  void SetParIsFixed(FitterParameterType::Type type, bool fixIt);
+    void SetParMin(FitterParameterType::Type type, double min);
+    void SetParMax(FitterParameterType::Type type, double max);
+    void SetParStart(FitterParameterType::Type type, double start);
+    void SetParRange(FitterParameterType::Type type, double min, double max);
+    void SetParIsFixed(FitterParameterType::Type type, bool fixIt);
+    void SetParStep(FitterParameterType::Type type, double step);
 
 	bool GetParIsFixed(FitterParameterType type);
 	double GetParMax(FitterParameterType type);
 	double GetParMin(FitterParameterType type);
 	double GetParStart(FitterParameterType type);
+	double GetParStep(FitterParameterType type);
 
 	unsigned int GetNumParameters();
 

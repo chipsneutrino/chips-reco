@@ -1,10 +1,12 @@
 #include "WCSimChargePredictor.hh"
 #include "WCSimLikelihoodDigitArray.hh"
 #include "WCSimLikelihoodTrack.hh"
-#include "WCSimTimeLikelihood.hh"
+#include "WCSimTimeLikelihood3.hh"
 #include "WCSimTotalLikelihood.hh"
 #include "WCSimAnalysisConfig.hh"
+#include "TMath.h"
 
+#include <algorithm>
 #include <iostream>
 #include <numeric>
 #include <vector>
@@ -23,7 +25,8 @@ WCSimTotalLikelihood::WCSimTotalLikelihood( WCSimLikelihoodDigitArray * myLikeli
   fEmissionProfileManager = new WCSimEmissionProfileManager();
 //  fChargeLikelihoodVector.push_back(
 //      WCSimChargePredictor(fLikelihoodDigitArray, fEmissionProfileManager) );
-  fTimeLikelihood = new WCSimTimeLikelihood2(fLikelihoodDigitArray, fEmissionProfileManager);
+  fTimeLikelihood = new WCSimTimeLikelihood3(fLikelihoodDigitArray, fEmissionProfileManager);
+  fTimeScaleFactor = 1.0;
 
   ClearVectors();
 
@@ -46,6 +49,7 @@ void WCSimTotalLikelihood::SetTracks( std::vector<WCSimLikelihoodTrackBase*> &my
 {
   this->ResetTracks();
   fTracks = myTracks;
+  fChargeLikelihoodVector.reserve(fTracks.size());
 
   std::vector<WCSimLikelihoodTrackBase*> myTrackPtrs;
   std::vector<WCSimLikelihoodTrackBase*>::iterator trackIter;
@@ -56,8 +60,7 @@ void WCSimTotalLikelihood::SetTracks( std::vector<WCSimLikelihoodTrackBase*> &my
   {
     // std::cout << "TrackIter -> " << std::endl;
 //    if (i > 0) {
-    fChargeLikelihoodVector.push_back(
-          WCSimChargePredictor(fLikelihoodDigitArray, fEmissionProfileManager) );
+    fChargeLikelihoodVector.push_back(WCSimChargePredictor(fLikelihoodDigitArray, fEmissionProfileManager));
 //    }
     fChargeLikelihoodVector[i].AddTrack(*trackIter);
     i++;
@@ -92,14 +95,20 @@ Double_t WCSimTotalLikelihood::Calc2LnL()
   // may have to account for correlations somewhere
   ClearVectors();
   Double_t minus2LnL = 0; 
-
+  
   for(int iDigit = 0; iDigit < fLikelihoodDigitArray->GetNDigits(); ++iDigit) {
     double digit2LnL = Calc2LnL(iDigit);
-    if(digit2LnL < 0) { return -99999; }
+    if(TMath::IsNaN(digit2LnL))
+    {
+      std::cerr << iDigit << " was NaN in Calc2LnL!!" << std::endl;
+      return -99999;
+    }
+    if(digit2LnL < 0) { 
+        return -99999; }
     else
     {
-		  minus2LnL += digit2LnL;
-	  }
+	  minus2LnL += digit2LnL;
+	}
   } //for iDigit
 
   double chargeLnL = 0.0;
@@ -109,9 +118,8 @@ Double_t WCSimTotalLikelihood::Calc2LnL()
     if(fCharge2LnL.at(iDigit) > 0) { chargeLnL += fCharge2LnL.at(iDigit); }
     if(fTime2LnL.at(iDigit) > 0) { timeLnL += fTime2LnL.at(iDigit); }
   }
-  std::cout << "Time component = " << timeLnL << " and charge component = " << chargeLnL << std::endl;
+  std::cout << "Time component = " << timeLnL << " and charge component = " << chargeLnL << " so total = " << minus2LnL << std::endl;
   fSetVectors = true;
-  // std::cout << "-2 ln(Likelihood) = " << minus2LnL << std::endl;
   return minus2LnL;
 }
 
@@ -142,21 +150,23 @@ Double_t WCSimTotalLikelihood::Calc2LnL(int iDigit)
 
   WCSimLikelihoodDigit *digit = fLikelihoodDigitArray->GetDigit(iDigit);
   double minus2LnL = 0.0;
+  double totalCharge = -999.9;
     // if(digit->GetQ() == 0) { return 0; }
   // std::cout << "Size of predicted charge vector = " << predictedCharges.size() << std::endl;
   //  for(unsigned int i = 0; i<predictedCharges.size(); ++i)
   //  {
   //    std::cout << "predictedCharges[" << i << "] = " << predictedCharges.at(i) << std::endl;
   //  }
+  double timePart = 0, chargePart = 0;
 
   if( WCSimAnalysisConfig::Instance()->GetUseCharge())
   {
-	  double totalCharge = CalcPredictedCharge(iDigit);
+	  totalCharge = CalcPredictedCharge(iDigit);
 	  if( TMath::IsNaN( totalCharge ) )
 	  {
 		return -99999;
 	  }
-	  double chargePart = fDigitizerLikelihood.GetMinus2LnL(totalCharge, digit->GetQ());
+	  chargePart = fDigitizerLikelihood.GetMinus2LnL(totalCharge, digit->GetQ());
 	  minus2LnL += chargePart;
 	  fPredictedCharges.at(iDigit) = totalCharge;
 	  fCharge2LnL.at(iDigit) = chargePart;
@@ -169,9 +179,9 @@ Double_t WCSimTotalLikelihood::Calc2LnL(int iDigit)
 
   if( WCSimAnalysisConfig::Instance()->GetUseTime())
   {
-	  double timePart = 0.0;
-		timePart = fTimeLikelihood->Calc2LnL(iDigit);
-	  minus2LnL += timePart;
+	  timePart = 0.0;
+	  timePart = fTimeLikelihood->Calc2LnL(iDigit) * fTimeScaleFactor;
+	  minus2LnL += (timePart);
 	  fTime2LnL.at(iDigit) = timePart;
   }
   else
@@ -179,10 +189,8 @@ Double_t WCSimTotalLikelihood::Calc2LnL(int iDigit)
 	  fTime2LnL.at(iDigit) = -999.9;
   }
 
-  // if(digit->GetQ() > 10)
-  // {
-  //   std::cout << "Recorded charge = " << digit->GetQ() << " and predicted charge before effiencies = " << totalCharge << " so charge adds " << chargePart << " to -2LnL and time adds " << timePart << std::endl;
-  // }
+  if(minus2LnL > 100){ minus2LnL = 100; }
+
 
   fMeasuredCharges.at(iDigit) = digit->GetQ();
   fTotal2LnL.at(iDigit) = minus2LnL;
@@ -191,15 +199,17 @@ Double_t WCSimTotalLikelihood::Calc2LnL(int iDigit)
 
 void WCSimTotalLikelihood::SetLikelihoodDigitArray(
 		WCSimLikelihoodDigitArray* likelihoodDigitArray) {
-	fLikelihoodDigitArray = likelihoodDigitArray;
+    fLikelihoodDigitArray = likelihoodDigitArray;
 
   fChargeLikelihoodVector.clear();
+  fChargeLikelihoodVector.resize(0);
   std::vector<WCSimLikelihoodTrackBase*> tmpTracks = fTracks;
   fChargeLikelihoodVector.push_back(WCSimChargePredictor(fLikelihoodDigitArray, fEmissionProfileManager));
-	if(fTimeLikelihood != NULL)
+  if(fTimeLikelihood != NULL)
   {
     delete fTimeLikelihood;
-    fTimeLikelihood = new WCSimTimeLikelihood2(fLikelihoodDigitArray, fEmissionProfileManager);
+    fTimeLikelihood = new WCSimTimeLikelihood3(fLikelihoodDigitArray, fEmissionProfileManager);
+    fTimeScaleFactor = 1.;
   }
   SetTracks(tmpTracks);
   ClearVectors();
@@ -215,9 +225,9 @@ void WCSimTotalLikelihood::ClearVectors() {
 	  fTime2LnL.clear();
 	  fMeasuredCharges.resize(fLikelihoodDigitArray->GetNDigits());
 	  fPredictedCharges.resize(fLikelihoodDigitArray->GetNDigits());
-	  fTotal2LnL.resize(fLikelihoodDigitArray->GetNDigits());
-	  fCharge2LnL.resize(fLikelihoodDigitArray->GetNDigits());
-	  fTime2LnL.resize(fLikelihoodDigitArray->GetNDigits());
+	  fTotal2LnL.resize(fLikelihoodDigitArray->GetNDigits(), 0.0);
+	  fCharge2LnL.resize(fLikelihoodDigitArray->GetNDigits(), 0.0);
+	  fTime2LnL.resize(fLikelihoodDigitArray->GetNDigits(), 0.0);
 }
 
 std::vector<double> WCSimTotalLikelihood::GetMeasuredChargeVector() const {
@@ -295,4 +305,25 @@ std::vector<double> WCSimTotalLikelihood::GetTime2LnLVector() const {
 WCSimEmissionProfileManager * WCSimTotalLikelihood::GetEmissionProfileManager()
 {
   return fEmissionProfileManager;
+}
+
+void WCSimTotalLikelihood::SetTimeScaleFactor(double scaleFactor)
+{
+    fTimeScaleFactor = scaleFactor;
+    return;
+}
+
+double WCSimTotalLikelihood::GetLastCharge2LnL() const
+{
+    return std::accumulate(fCharge2LnL.begin(), fCharge2LnL.end(), 0.0);
+}
+
+double WCSimTotalLikelihood::GetLastTime2LnL() const
+{
+    return std::accumulate(fTime2LnL.begin(), fTime2LnL.end(), 0.0);
+}
+
+double WCSimTotalLikelihood::GetLastTotal2LnL() const
+{
+    return std::accumulate(fTotal2LnL.begin(), fTotal2LnL.end(), 0.0);
 }

@@ -2,7 +2,7 @@
  * \class WCSimDigitizerLikelihood
  * This class is used to model the effect of digitization at
  * the PMT.  The WCSimChargelikelihood class gives the predicted
- * numer of photons incident on the PMT, and this class models
+ * numer of photoelectrons incident on the PMT, and this class models
  * how likely that number is to be converted into the final
  * digitized P.E. recorded by the PMT
  */
@@ -15,6 +15,7 @@
 
 class TFile;
 class TH2D;
+class TH2F;
 
 
 class WCSimDigitizerLikelihood
@@ -25,7 +26,8 @@ class WCSimDigitizerLikelihood
       enum DigiType_t
       {
         kSimple, /// A simple Poisson likelihood
-        kWCSim,  /// A method derived from the default WCSim digitiser
+        kSK1pe,  /// A method derived from the default WCSim digitiser that samples the SK 1pe distribution
+        kPMTSim, /// A method using the full dynode chain simulation
         kUnknown /// Error state
       };
 
@@ -46,33 +48,39 @@ class WCSimDigitizerLikelihood
       void SetDigiType( WCSimDigitizerLikelihood::DigiType_t type );
 
       /**
-       * The WCSim probability density functions are save in histograms.
+       * The probability density functions based on the SK 1pe distribution are saved in histograms.
        * This opens those files and extracts the histograms.
        */
-      void OpenPDFs();
+      void OpenSKPDFs();
+
+      /**
+       * The PDFs based on the dynode chain simulation from WCSim are stored in a 2D histogram
+       * This opens the file containing the histogram and extracts it
+       */
+      void OpenPMTSimPDFs();
 
       /**
        * Calculate the -2log(likelihood) of the digitizer returning the measured
-       * charge, given the predicted mean number of photons
-       * @param undigi Predicted mean number of photons at the PMT
+       * charge, given the predicted mean number of photoelectrons
+       * @param undigi Predicted mean number of photoelectrons at the PMT
        * @param digi Digitized P.E. recorded by the PMT
-       * @return -2 log(likelihood) to measure the digitized charge given the predicted mean number of photons
+       * @return -2 log(likelihood) to measure the digitized charge given the predicted mean number of photoelectrons
        */
       Double_t GetMinus2LnL( const Double_t &undigi, const Double_t &digi );
 
       /**
        * Calculate the likelihood of the digitizer returning the measured
-       * charge given the predicted mean number of photons
-       * @param undigi Predicted mean number of photons as the PMT
+       * charge given the predicted mean number of photoelectrons
+       * @param undigi Predicted mean number of photoelectrons as the PMT
        * @param digi Digitized P.E. recorded by the PMT
-       * @return Likelihood to measure the digitized P.E. given the predicted mean number of photons
+       * @return Likelihood to measure the digitized P.E. given the predicted mean number of photoelectrons
        */
       Double_t GetLikelihood( const Double_t &undigi, const Double_t &digi );
 
       /**
        * Get the most likely number of digitized P.E. measured by the PMT
-       * given the predicted mean number of photons hitting it
-       * @param undigi Predicted mean number of photons hitting the PMT
+       * given the predicted mean number of photoelectrons hitting it
+       * @param undigi Predicted mean number of photoelectrons hitting the PMT
        * @return Most likely number of digitized P.E. measured by the PMT
        */
       Double_t GetExpectation( const Double_t & undigi );
@@ -84,7 +92,7 @@ class WCSimDigitizerLikelihood
       /**
        * Calculate -2log(likelihood) for measured charge, assuming a
        * Poisson distribution for the digitizer
-       * @param undigi Predicted mean number of photons at PMT
+       * @param undigi Predicted mean number of photoelectrons at PMT
        * @param digi Digitized P.E. recorded by the PMT
        * @return -2log(likelihood) of getting the recorded P.E.
        */
@@ -93,7 +101,7 @@ class WCSimDigitizerLikelihood
       /**
        * Calculate the likelihood for measured charge, assuming a
        * Poisson distribution for the digitizer
-       * @param undigi Predicted mean number of photons at PMT
+       * @param undigi Predicted mean number of photoelectrons at PMT
        * @param digi Digitized P.E. recorded by the PMT
        * @return likelihood of getting the recorded P.E.
        */
@@ -101,17 +109,36 @@ class WCSimDigitizerLikelihood
 
       /**
        * Mean digitized P.E. returned by the PMT for a given predicted mean
-       * number of photons, assuming a Poisson distribution (i.e. same as the
-       * number of photons in this case)
-       * @param undigi Predicted mean number of photons at PMT
+       * number of photoelectrons, assuming a Poisson distribution (i.e. same as the
+       * number of photoelectrons in this case)
+       * @param undigi Predicted mean number of photoelectrons at PMT
        * @return Most-likely resulting digitized P.E.
        */
       Double_t GetSimpleExpectation( const Double_t & undigi );
       
+
+      /**
+       * Calculate -2log(likelihood) for measured charge, assuming the full
+       * PMT dynode chain simulation from WCSim
+       * @param undigi Predicted mean number of photoelectrons as the PMT
+       * @param digi Digitised  P.E. recorded by the PMT
+       * @return -2log(likelihood) of getting the recorded P.E.
+       */
+      Double_t GetPMTSimMinus2LnL( const Double_t &undigi, const Double_t &digi );
+
+      /**
+       * Calculate the likelihood for measured charge, assuming the full
+       * PMT dynode chain simulation from WCSim
+       * @param undigi Predicted mean number of photoelectrons as the PMT
+       * @param digi Digitised  P.E. recorded by the PMT
+       * @return likelihood of getting the recorded P.E.
+       */
+      Double_t GetPMTSimLikelihood( const Double_t &undigi, const Double_t &digi );
+
       /**
        * Calculate -2log(likelihood) for measured charge, assuming
        * the WCSim digitizer
-       * @param undigi Predicted mean number of photons at PMT
+       * @param undigi Predicted mean number of photoelectrons at PMT
        * @param digi Digitized P.E. recorded by the PMT
        * @return -2log(likelihood) of getting the recorded P.E.
        */
@@ -120,7 +147,7 @@ class WCSimDigitizerLikelihood
       /**
        * Calculate the likelihood for measured charge, assuming
        * the WCSim digitizer
-       * @param undigi Predicted mean number of photons at PMT
+       * @param undigi Predicted mean number of photoelectrons at PMT
        * @param digi Digitized P.E. recorded by the PMT
        * @return likelihood of getting the recorded P.E.
        */
@@ -128,8 +155,8 @@ class WCSimDigitizerLikelihood
 
       /**
        * Mean digitized P.E. returned by the PMT for a given predicted mean
-       * number of photons, assuming the WCSim digitizer
-       * @param undigi Predicted mean number of photons at PMT
+       * number of photoelectrons, assuming the WCSim digitizer
+       * @param undigi Predicted mean number of photoelectrons at PMT
        * @return Most-likely resulting digitized P.E.
        */
       Double_t GetWCSimExpectation( const Double_t & undigi );
@@ -137,7 +164,7 @@ class WCSimDigitizerLikelihood
       /**
        * Calculate the likelihood for the measured charge using the WCSim
        * digitzer, by sampling probability histograms (used for low charges)
-       * @param undigi Predicted mean number of photons at PMT
+       * @param undigi Predicted mean number of photoelectrons at PMT
        * @param digi Digitized P.E. recorded aby the PMT
        * @return
        */
@@ -146,7 +173,7 @@ class WCSimDigitizerLikelihood
       /**
        * Calculate the likelihood for the measured charge using the WCSim
        * digitzer, by using a Gaussian (x) Exponential (medium P.E.)
-       * @param undigi Predicted mean number of photons at PMT
+       * @param undigi Predicted mean number of photoelectrons at PMT
        * @param digi Digitized P.E. recorded aby the PMT
        * @return
        */
@@ -155,7 +182,7 @@ class WCSimDigitizerLikelihood
       /**
        * Calculate the likelihood for the measured charge using the WCSim
        * digitzer, by using a simple Gaussian (high P.E.)
-       * @param undigi Predicted mean number of photons at PMT
+       * @param undigi Predicted mean number of photoelectrons at PMT
        * @param digi Digitized P.E. recorded aby the PMT
        * @return
        */
@@ -170,9 +197,15 @@ class WCSimDigitizerLikelihood
       // WCSim repeatedly samples a 1pe distribution.  For hits < 10pe I've
       // already done this to build a PDF histogram which these variables 
       // point to
-      TFile * fPDFs;    ///< File holding probability density histograms for the sub-10pe WCSim digitizer
-      TH2D * fDigiPDF;  ///< Probabilitiy density hitogram for the the sub-10pe WCSim digitizer
-          
+      TFile * fSK1peFile;  ///< File holding probability density histograms for the sub-10pe WCSim digitizer
+      TH2D  * fSK1peHist;  ///< Probabilitiy density hitogram for the the sub-10pe WCSim digitizer
+
+      // WCSim also has a PMT simulation that amplifies the electrons along the full dynode chain and
+      // introduces nonlinearity when the current is high.  I parametrised this and filled some histograms
+      // so the probability can be looked-up
+      TFile * fPMTSimFile; ///< File holding the probability histogram for the dynode chain simulation method
+      TH2F  * fPMTSimHist; ///< Histogram describing the probability histogram for the dynode chain simulation method
+
       // The WCSim digitizer samples the 1pe distribution repeatedly,
       // then applies a threshold function,
       // then multiplies by an efficiency term

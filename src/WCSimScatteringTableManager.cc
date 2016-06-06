@@ -1,11 +1,13 @@
 #include <iostream>
 #include <vector>
 #include <cassert>
+#include <cstdlib>
 
 #include "WCSimScatteringTableManager.hh"
 
 #include "TFile.h"
 #include "THnSparse.h"
+#include "TString.h"
 #include "TAxis.h"
 
 WCSimScatteringTableManager* WCSimScatteringTableManager::fManager = 0x0;
@@ -83,7 +85,9 @@ void WCSimScatteringTableManager::LoadScatteringTables(){
     delete fScatteringFile;
     fScatteringFile = 0x0;
   }
-  fScatteringFile = new TFile("config/scatteringTable.root");
+  TString profileFileName = TString(getenv("WCSIMANAHOME"));
+  profileFileName.Append("/config/scatteringTable.root");
+  fScatteringFile = new TFile(profileFileName.Data());
   if(!fScatteringFile){
     std::cerr << "Can't find the scattering table file." << std::endl;
     assert(0);

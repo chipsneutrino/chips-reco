@@ -85,11 +85,11 @@ void WCSimFitterTrackParMap::SetArrays()
 			}
 			// Only set it if it's a unique parameter
 			else{
-				fCurrentValues[iParam] = fFitterConfig->GetParStart(jTrack,name);
-				fMinValues[iParam]   = fFitterConfig->GetParMin(jTrack,name);
-				fMaxValues[iParam]   = fFitterConfig->GetParMax(jTrack,name);
-				fSteps[iParam] = (fFitterConfig->GetParMax(jTrack,name) - fFitterConfig->GetParMin(jTrack, name)) / 250.0;
-				fAlwaysFixed[iParam] = fFitterConfig->GetIsFixedParameter(jTrack,name);
+				fCurrentValues[iParam]  = fFitterConfig->GetParStart(jTrack,name);
+				fMinValues[iParam]      = fFitterConfig->GetParMin(jTrack,name);
+				fMaxValues[iParam]      = fFitterConfig->GetParMax(jTrack,name);
+				fSteps[iParam]          = fFitterConfig->GetParStep(jTrack, name);
+				fAlwaysFixed[iParam]    = fFitterConfig->GetIsFixedParameter(jTrack,name);
 				fCurrentlyFixed[iParam] = fAlwaysFixed[iParam];
 				TString parName = Form("%s_track%d", name, jTrack);
 				fNames[iParam]  = std::string(parName.Data());

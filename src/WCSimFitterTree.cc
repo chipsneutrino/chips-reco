@@ -24,50 +24,27 @@
 
 #include <vector>
 
-WCSimFitterTree::WCSimFitterTree(const TString &saveFileName) {
+WCSimFitterTree::WCSimFitterTree(const TString &saveFileName) : 
+                fSaveFile(0x0),
+                fTrueTree(0x0), fFitTree(0x0), fRecoSummaryTree(0x0),
+                fWCSimTree(0x0), fGeoTree(0x0), fHitComparisonTree(0x0),
+                fRecoFailureTree(0x0), fGeometry(0x0), fWCSimRootEvent(0x0),
+                fFailedEvent(0), fEvent(0), fFitTrackNum(-999), 
+                f2LnL(-999.9), fCharge2LnL(-999.9), fTime2LnL(-999.9),
+                fFitVtxX(-999.9), fFitVtxY(-999.9), fFitVtxZ(-999.9),
+                fFitVtxT(-999.9), fFitDirTheta(-999.9), fFitDirPhi(-999.9),
+                fFitEnergy(-999.9), fFitConversionDistance(0), 
+                fFitEscapes(false), fFitPDG(-999),
+                fTrueTrackNum(-999),
+                fTrueVtxX(-999.9), fTrueVtxY(-999.9), fTrueVtxZ(-999.9),
+                fTrueVtxT(-999.9), fTrueDirTheta(-999.9), fTrueDirPhi(-999.9),
+                fTrueEnergy(-999.9), fTrueEscapes(false), 
+                fTruePDG(-999), fHitComparison(0x0){
+
 	// TODO Auto-generated constructor stub
-	fFitTree = 0x0;
-	fTrueTree = 0x0;
-	fRecoSummaryTree = 0x0;
-	fWCSimTree = 0x0;
-	fGeoTree = 0x0;
-  fHitComparisonTree = 0x0;
-  fRecoFailureTree = 0x0;
-//	fWCSimLikelihoodRecoEvent = 0x0;
-
-
 	fSaveFileName.Form("%s_tree.root", saveFileName.Data());
-	MakeSaveFileName();
-
-	fGeometry = 0x0;
-	fWCSimRootEvent = 0x0;
 	fRecoSummary = new WCSimRecoSummary();
-
-	fEvent = 0;
-
-	fFitTrackNum = -999;
-	f2LnL = -9999.99;
-	fFitVtxX = -9999.99;
-	fFitVtxY = -9999.99;
-	fFitVtxZ = -9999.99;
-	fFitVtxT = -9999.99;
-	fFitDirTheta = -9999.99;
-	fFitDirPhi = -9999.99;
-	fFitEnergy = -9999.99;
-	fFitPDG = -999;
-
-	// The truth variables:
-	fTrueTrackNum = -999;
-	fTrueVtxX = -9999.99;
-	fTrueVtxY = -9999.99;
-	fTrueVtxZ = -9999.99;
-	fTrueVtxT = -9999.99;
-	fTrueDirTheta = -9999.99;
-	fTrueDirPhi = -9999.99;
-	fTrueEnergy = -9999.99;
-	fTruePDG = -999;
-
-  fHitComparison = 0x0;
+    fSaveFile = 0x0;
 }
 
 WCSimFitterTree::~WCSimFitterTree() {
@@ -76,6 +53,7 @@ WCSimFitterTree::~WCSimFitterTree() {
 }
 
 void WCSimFitterTree::MakeTree() {
+    std::cout << "fSaveFileName = " << fSaveFileName << " and file is " << fSaveFile << std::endl;
 	fSaveFile->cd();
 	if(fTrueTree != 0x0)
 	{
@@ -139,6 +117,8 @@ void WCSimFitterTree::MakeTree() {
 	fFitTree->Branch("event", &fEvent);
 	fFitTree->Branch("track", &fFitTrackNum);
 	fFitTree->Branch("2LnL", &f2LnL);
+	fFitTree->Branch("charge2LnL", &fCharge2LnL);
+	fFitTree->Branch("time2LnL", &fTime2LnL);
 	fFitTree->Branch("vtxX", &fFitVtxX);
 	fFitTree->Branch("vtxY", &fFitVtxY);
 	fFitTree->Branch("vtxZ", &fFitVtxZ);
@@ -206,7 +186,8 @@ void WCSimFitterTree::Fill(Int_t iEvent,
 						   std::vector<Bool_t> bestFitEscapes,
 						   std::vector<WCSimLikelihoodTrackBase*> trueTracks,
 						   std::vector<Bool_t> trueTrackEscapes,
-						   Double_t minimum) {
+						   Double_t charge2LnL,
+                           Double_t time2LnL) {
 
 	fEvent = iEvent;
 
@@ -218,12 +199,14 @@ void WCSimFitterTree::Fill(Int_t iEvent,
 
 	// Now fill the truth and best-fit trees themselves
 	std::vector<WCSimLikelihoodTrackBase*>::iterator bfIter;
-	f2LnL = minimum;
+    fCharge2LnL = charge2LnL;
+    fTime2LnL = time2LnL;
+	f2LnL = fCharge2LnL + fTime2LnL;
 	for(bfIter = bestFitTracks.begin(); bfIter != bestFitTracks.end(); ++bfIter)
 	{
 		fFitTrackNum = std::distance(bestFitTracks.begin(), bfIter);
 		Bool_t escapes = bestFitEscapes.at(fFitTrackNum);
-		FillFitTrack((*bfIter), escapes, minimum);
+		FillFitTrack((*bfIter), escapes, f2LnL);
   }
 
 	std::vector<WCSimLikelihoodTrackBase*>::iterator truIter;
@@ -232,27 +215,23 @@ void WCSimFitterTree::Fill(Int_t iEvent,
 		fTrueTrackNum = std::distance(trueTracks.begin(), truIter);
 		Bool_t escapes = trueTrackEscapes.at(fTrueTrackNum);
 		WCSimLikelihoodTrackBase* track = (*truIter);
-    std::cout << "Fill true track...";
 		FillTrueTrack(track, escapes);
-    std::cout << " ... done" << std::endl;
 	}
 
 	// Fill the geometry tree
 	if(fGeoTree->GetEntries() == 0)
 	{
-      std::cout << "Fill geo tree ..." ;
       *fGeometry = *(WCSimGeometry::Instance()->GetWCSimGeometry());
       WCSimGeometry::Instance()->PrintGeometry();
       
-		fGeoTree->Fill();
-    std::cout << "... done" << std::endl;
+	  fGeoTree->Fill();
 	}
 
 	// Make the reco summary object for the event display, and fill its tree
 	if(fRecoSummaryTree != 0x0)
 	{
     std::cout << "Make reco summary ...";
-		MakeRecoSummary( bestFitTracks );
+		MakeRecoSummary( bestFitTracks, charge2LnL, time2LnL );
     std::cout << "... made it - fill tree ..." ;
 		fRecoSummaryTree->Fill();
     std::cout << "... done" << std::endl;
@@ -280,7 +259,7 @@ void WCSimFitterTree::FillFitTrack(WCSimLikelihoodTrackBase * track, Bool_t esca
 	fFitDirPhi   = track->GetPhi();
 	fFitEnergy   = track->GetE();
 	fFitPDG      = track->GetPDG();
-  fFitConversionDistance = track->GetConversionDistance();
+    fFitConversionDistance = track->GetConversionDistance();
 	fFitEscapes = escapes;
 
 	if(fFitTree == 0x0)
@@ -350,7 +329,9 @@ TString WCSimFitterTree::GetSaveFileName() const
 }
 
 void WCSimFitterTree::MakeRecoSummary(
-		std::vector<WCSimLikelihoodTrackBase*> bestFitTracks) {
+		std::vector<WCSimLikelihoodTrackBase*> bestFitTracks,
+        double charge2LnL,
+        double time2LnL) {
 	fRecoSummary->ResetValues();
 
   std::cout << "There are " << bestFitTracks.size() << " best-fit tracks" << std::endl;
@@ -371,6 +352,8 @@ void WCSimFitterTree::MakeRecoSummary(
     std::cout << "Making reco summary" << std::endl;
 		fRecoSummary->AddPrimary(track->GetPDG(), track->GetE(), track->GetDir());
 	}
+    fRecoSummary->SetChargeMinus2LnL(charge2LnL);
+    fRecoSummary->SetTimeMinus2LnL(time2LnL);
 	return;
 }
 
@@ -418,22 +401,18 @@ void WCSimFitterTree::FillRecoFailures(const int &event)
 
 }
 
-void WCSimFitterTree::MakeSaveFileName()
+void WCSimFitterTree::MakeSaveFile()
 {
+    std::cout << " *** WCSimFitterTree::MakeSaveFile *** " << std::endl;
+    if(fSaveFile != NULL)
+    {
+        std::cerr << "Save file already exists, so you can't make it again" << std::endl;
+        std::cout << "Name is " << fSaveFileName.Data() << std::endl;
+        return;
+    }
 	TDirectory * tmpd = gDirectory;
 
-    // Check if the file exists first
-    long int tempId, tempSize, tempFlags, tempModtime;
-    Int_t toAdd = 0;
-    TString fileNameCompare = fSaveFileName;
-	fSaveFileName.ReplaceAll(".root","");
-    while( toAdd == 0 || gSystem->GetPathInfo(fileNameCompare.Data(), &tempId, &tempSize, &tempFlags, &tempModtime) == 0)
-    {
-    	fileNameCompare.Form("%s_%03d.root", fSaveFileName.Data(), toAdd++);
-    }
-
-    fSaveFileName = fileNameCompare;
-	  fSaveFile = new TFile(fSaveFileName.Data(), "CREATE");
+	fSaveFile = new TFile(fSaveFileName.Data(), "CREATE");
     std::cout << "  Plots to be saved in file: " << fSaveFileName.Data() << std::endl;
 
     tmpd->cd();

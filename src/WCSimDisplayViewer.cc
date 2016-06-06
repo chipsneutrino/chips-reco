@@ -6,6 +6,7 @@
 #include "WCSimRecoFactory.hh"
 #include "WCSimReco.hh"
 #include "WCSimRecoEvent.hh"
+#include "WCSimRootEvent.hh"
 
 #include "WCSimGeometry.hh"
 #include "WCSimInterface.hh"
@@ -379,7 +380,7 @@ void WCSimDisplayViewer::UpdateDisplay(Int_t entry)
       }
 
       if( fDisplayTrueEvent ){
-        myDisplay->DrawTrueEvent(fTrueEvent);
+        myDisplay->DrawTrueEvent(WCSimInterface::WCSimEvent());
       }     
 
       if( fDisplayRecoEvent ){

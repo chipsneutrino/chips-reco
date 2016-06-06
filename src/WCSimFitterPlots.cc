@@ -27,7 +27,6 @@ WCSimFitterPlots::WCSimFitterPlots(const TString &saveFileName) : fSaveFile(NULL
 
 	// TODO Auto-generated constructor stub
 	fSaveFileName.Form("%s_plots.root", saveFileName.Data());
-	MakeSaveFileName();
 
 }
 
@@ -231,7 +230,6 @@ void WCSimFitterPlots::MakeRecoMinusTrue(WCSimFitterConfig* fitterConfig) {
 
 void WCSimFitterPlots::Make1DSurfaces(WCSimFitterConfig* fitterConfig) {
 	std::map<std::pair<unsigned int, FitterParameterType::Type>, TH1D *>::iterator plotItr = fSurfaces1D.begin();
-	int i = 0;
 	for( ; plotItr != fSurfaces1D.end(); ++plotItr)
 	{
 		//  std::cout << "Making 1D surface number " << i << std::endl;
@@ -682,21 +680,17 @@ void WCSimFitterPlots::SetInputFileName(const char* inputfile) {
 	fInputFileName = TString(inputfile);
 }
 
-void WCSimFitterPlots::MakeSaveFileName() {
+void WCSimFitterPlots::MakeSaveFile() {
+    if(fSaveFile != NULL)
+    {
+        std::cerr << "Save file already exists, so you can't make it again" << std::endl;
+        return;
+    }
 	TDirectory * tmpd = gDirectory;
     std::cout << " *** WCSimFitter::SavePlots() *** " << std::endl;
 
-    // Check if the file exists first
-    long int tempId, tempSize, tempFlags, tempModtime;
-    Int_t toAdd = 0;
     TString fileNameCompare = fSaveFileName;
-	fSaveFileName.ReplaceAll(".root","");
-    while( toAdd == 0 || gSystem->GetPathInfo(fileNameCompare.Data(), &tempId, &tempSize, &tempFlags, &tempModtime) == 0)
-    {
-    	fileNameCompare.Form("%s_%03d.root", fSaveFileName.Data(), toAdd++);
-    }
-
-    fSaveFileName = fileNameCompare;
+	fSaveFile = new TFile(fSaveFileName.Data(), "CREATE");
 
     std::cout << "  Plots to be saved in file: " << fSaveFileName.Data() << std::endl;
 

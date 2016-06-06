@@ -87,6 +87,8 @@ class WCSimLikelihoodDigitArray : public TObject
          */
         Double_t GetExtent(Int_t i);
  
+        Double_t GetDuration() const;
+
     protected:
     private:
         TClonesArray * fLikelihoodDigitArray; ///< Array with every PMT and its hit information
@@ -95,6 +97,8 @@ class WCSimLikelihoodDigitArray : public TObject
         GeomType_t fGeomType;  ///< Detector geometry type
         Double_t fExtent[3];  ///< Maximum (x, y, z) or (r,r,z)  in the detector
 
+        Double_t fFirstTime; ///< Time of earliest filtered PMT hit
+        Double_t fLastTime; ///< Time of latest filtered PMT hit
 		ClassDef(WCSimLikelihoodDigitArray,1)
 };
 

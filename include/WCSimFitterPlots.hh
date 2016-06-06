@@ -75,9 +75,9 @@ public:
 
 	void SetInputFileName(const char * inputfile);
 
+	void MakeSaveFile();
 
 private:
-	void MakeSaveFileName();
 	TString fInputFileName;
 	TString fSaveFileName;
 	TFile * fSaveFile;

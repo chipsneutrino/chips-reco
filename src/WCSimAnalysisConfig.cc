@@ -31,8 +31,16 @@ WCSimAnalysisConfig::WCSimAnalysisConfig()
     fUseGlassCathodeReflection = true;
     fUseCharge                 = true;
     fUseTime                   = true; 
-    fUseHoughFitterForSeed			   = true;
-    fUseScatteringTable  = true;
+    fUseHoughFitterForSeed	   = true;
+    fUseScatteringTable        = true;
+
+    fUseCustomParticleSpeed    = false;
+    fCustomParticleSpeed       = 1.0;
+    fUseCustomSpeedOfLight     = false;
+    fCustomSpeedOfLight        = 1.0;
+    fUseFittedSpeedOfLight     = true;
+    fFittedSpeedOfLight        = 0.71864;
+    fEqualiseChargeAndTime     = false;
     // Load the file with the default configuration
     // and update the member variables above as necessary
     fConfName = getenv("WCSIMANAHOME");
@@ -62,7 +70,8 @@ void WCSimAnalysisConfig::Print()
               << "fUseTime = " << fUseTime << std::endl
               << "fUseCharge = " << fUseCharge << std::endl
               << "fUseScatteringTable = " << fUseScatteringTable << std::endl
-    		  << "fSeedWithHough = " << fUseHoughFitterForSeed << std::endl;
+    		  << "fSeedWithHough = " << fUseHoughFitterForSeed << std::endl
+              << "fEqualiseChargeAndTime = " << fEqualiseChargeAndTime << std::endl;
     return; 
 }
 
@@ -131,6 +140,41 @@ Bool_t WCSimAnalysisConfig::GetUseTime() const
 Bool_t WCSimAnalysisConfig::GetUseScatteringTable() const
 {
   return fUseScatteringTable;
+}
+
+Bool_t WCSimAnalysisConfig::GetUseCustomParticleSpeed() const
+{
+	return fUseCustomParticleSpeed;
+}
+
+Double_t WCSimAnalysisConfig::GetCustomParticleSpeed() const
+{
+	return fCustomParticleSpeed;
+}
+
+Bool_t WCSimAnalysisConfig::GetUseCustomSpeedOfLight() const
+{
+	return fUseCustomSpeedOfLight;
+}
+
+Double_t WCSimAnalysisConfig::GetCustomSpeedOfLight() const
+{
+	return fCustomSpeedOfLight;
+}
+
+Bool_t WCSimAnalysisConfig::GetUseFittedSpeedOfLight() const
+{
+	return fUseFittedSpeedOfLight;
+}
+
+Double_t WCSimAnalysisConfig::GetFittedSpeedOfLight() const
+{
+	return fFittedSpeedOfLight;
+}
+
+Bool_t WCSimAnalysisConfig::GetEqualiseChargeAndTime() const
+{
+    return fEqualiseChargeAndTime;
 }
 
 void WCSimAnalysisConfig::LoadConfig()
@@ -429,7 +473,7 @@ void WCSimAnalysisConfig::SetFromMap()
             }
         }
        else if((*itr).first.compare("UseScatteringTable") == 0)
-        {
+       {
             if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
             {
                 fUseScatteringTable = true;
@@ -444,8 +488,82 @@ void WCSimAnalysisConfig::SetFromMap()
                            << " should equal true/false or 1/0" << std::endl;
               exit(EXIT_FAILURE);
             }
-        }
-            
+       }
+       else if((*itr).first.compare("UseCustomParticleSpeed") == 0)
+       {
+            if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+            {
+                fUseCustomParticleSpeed = true;
+            }
+            else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+            {
+                fUseCustomParticleSpeed = false;
+            }
+            else
+            {
+              std::cerr << "Error: " << (*itr).first << " = " << (*itr).second 
+                           << " should equal true/false or 1/0" << std::endl;
+              exit(EXIT_FAILURE);
+            }
+       }
+       else if((*itr).first.compare("CustomParticleSpeed") == 0)
+       {
+            std::stringstream ss(itr->second);
+            float speed = 0.0;
+            if( !(ss >> speed) )
+            {
+              std::cerr << "Error: " << (*itr).second << " = " << (*itr).second 
+                           << " should be a double" << std::endl;
+              exit(EXIT_FAILURE);
+            }
+            fCustomParticleSpeed = speed;
+       }
+       else if((*itr).first.compare("UseFittedSpeedOfLight") == 0)
+       {
+            if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+            {
+                fUseFittedSpeedOfLight = true;
+            }
+            else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+            {
+                fUseFittedSpeedOfLight = false;
+            }
+            else
+            {
+              std::cerr << "Error: " << (*itr).first << " = " << (*itr).second 
+                           << " should equal true/false or 1/0" << std::endl;
+              exit(EXIT_FAILURE);
+            }
+       }
+       else if((*itr).first.compare("FittedSpeedOfLight") == 0)
+       {
+            std::stringstream ss(itr->second);
+            float speed = 0.0;
+            if( !(ss >> speed) )
+            {
+              std::cerr << "Error: " << (*itr).second << " = " << (*itr).second 
+                           << " should be a double" << std::endl;
+              exit(EXIT_FAILURE);
+            }
+            fFittedSpeedOfLight = speed;
+       }
+       else if((*itr).first.compare("EqualiseChargeAndTime") == 0)
+       {
+            if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+            {
+                fEqualiseChargeAndTime = true;
+            }
+            else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+            {
+                fEqualiseChargeAndTime = false;
+            }
+            else
+            {
+              std::cerr << "Error: " << (*itr).first << " = " << (*itr).second 
+                           << " should equal true/false or 1/0" << std::endl;
+              exit(EXIT_FAILURE);
+            }
+       }
     }
     fMap.clear();
 }
@@ -499,3 +617,41 @@ void WCSimAnalysisConfig::SetUseChargeAndTime(Bool_t doIt)
   return;
 }
 
+void WCSimAnalysisConfig::SetUseCustomParticleSpeed(Bool_t doIt)
+{
+  if(doIt)
+  {
+    std::cout << " *** WCSimAnalysisConfig::SetUseCustomParticleSpeed *** " << std::endl;
+    fUseCustomParticleSpeed = doIt;
+  }
+  return;
+}
+
+void WCSimAnalysisConfig::SetUseCustomSpeedOfLight(Bool_t doIt)
+{
+  if(doIt)
+  {
+    std::cout << " *** WCSimAnalysisConfig::SetUseCustomSpeedOfLight *** " << std::endl;
+    fUseCustomSpeedOfLight = doIt;
+  }
+  return;
+}
+
+void WCSimAnalysisConfig::SetCustomParticleSpeed(const Double_t& speed)
+{
+  std::cout << " *** WCSimAnalysisConfig::SetCustomParticleSpeed to " << speed << "c ***" << std::endl;
+  fCustomParticleSpeed = speed;
+  return;
+}
+
+void WCSimAnalysisConfig::SetCustomSpeedOfLight(const Double_t& speed)
+{
+  std::cout << " *** WCSimAnalysisConfig::SetCustomSpeedOfLight to " << speed << "c ***" << std::endl;
+  fCustomSpeedOfLight = speed;
+  return;
+}
+
+void WCSimAnalysisConfig::SetEqualiseChargeAndTime(Bool_t doIt)
+{
+    fEqualiseChargeAndTime = doIt;
+}

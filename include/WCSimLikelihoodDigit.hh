@@ -84,7 +84,7 @@ private:
 
     TGraph * fAverageQE; ///< Average QE of the PMT, from weighting QE(wavelength) by the average Cherenkov spectrum - as a function of photon travel distance
     double fAverageRefIndex; ///< Weight WCSim's refractive index by (wavelength * PMT QE(wavelength))
-    double fExposeHeight; ///< Heigh of PMT dome expose through the detector liner
+    double fExposeHeight; ///< Height of PMT dome expose through the detector liner
 
 
 ClassDef(WCSimLikelihoodDigit,1)

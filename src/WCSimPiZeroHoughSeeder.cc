@@ -206,18 +206,18 @@ void WCSimPiZeroHoughSeeder::FitUsingHoughResults()
 		}
 
 
-		config.SetParameter(0, "kVtxX", fFitterConfig->GetParMin(0, "kVtxX"), fFitterConfig->GetParMax(0, "kVtxX"), vertex.X(), false);
-		config.SetParameter(0, "kVtxY", fFitterConfig->GetParMin(0, "kVtxY"), fFitterConfig->GetParMax(0, "kVtxY"), vertex.Y(), false);
-		config.SetParameter(0, "kVtxZ", fFitterConfig->GetParMin(0, "kVtxZ"), fFitterConfig->GetParMax(0, "kVtxZ"), vertex.Z(), false);
-		config.SetParameter(0, "kVtxT", fFitterConfig->GetParMin(0, "kVtxT"), fFitterConfig->GetParMax(0, "kVtxT"), houghResultItr->first->GetT(), false);
-		config.SetParameter(0, "kDirTh", fFitterConfig->GetParMin(0, "kDirTh"), fFitterConfig->GetParMax(0, "kDirTh"), houghResultItr->first->GetTheta(), false);
-		config.SetParameter(0, "kDirPhi", fFitterConfig->GetParMin(0, "kDirPhi"), fFitterConfig->GetParMax(0, "kDirPhi"), houghResultItr->first->GetPhi(), false);
-		config.SetParameter(0, "kEnergy", fFitterConfig->GetParMin(0, "kEnergy"), fFitterConfig->GetParMax(0, "kEnergy"), houghResultItr->first->GetE() , false);
-		config.SetParameter(0, "kConversionDistance", fFitterConfig->GetParMin(0, "kConversionDistance"), fFitterConfig->GetParMax(0, "kConversionDistance"), houghResultItr->first->GetConversionDistance(), false);
-		config.SetParameter(1, "kDirTh", fFitterConfig->GetParMin(1, "kDirTh"), fFitterConfig->GetParMax(1, "kDirTh"), houghResultItr->second->GetTheta(), false);
-		config.SetParameter(1, "kDirPhi", fFitterConfig->GetParMin(1, "kDirPhi"), fFitterConfig->GetParMax(1, "kDirPhi"), houghResultItr->second->GetPhi(), false);
-		config.SetParameter(1, "kEnergy", fFitterConfig->GetParMin(1, "kEnergy"), fFitterConfig->GetParMax(1, "kEnergy"), houghResultItr->second->GetE() , false);
-		config.SetParameter(1, "kConversionDistance", fFitterConfig->GetParMin(1, "kConversionDistance"), fFitterConfig->GetParMax(1, "kConversionDistance"), houghResultItr->second->GetConversionDistance(), false);
+		config.SetParameter(0, "kVtxX", fFitterConfig->GetParMin(0, "kVtxX"), fFitterConfig->GetParMax(0, "kVtxX"), vertex.X(), fFitterConfig->GetParStep(0, "kVtxX"), false);
+		config.SetParameter(0, "kVtxY", fFitterConfig->GetParMin(0, "kVtxY"), fFitterConfig->GetParMax(0, "kVtxY"), vertex.Y(), fFitterConfig->GetParStep(0,"kVtxY"), false);
+		config.SetParameter(0, "kVtxZ", fFitterConfig->GetParMin(0, "kVtxZ"), fFitterConfig->GetParMax(0, "kVtxZ"), vertex.Z(), fFitterConfig->GetParStep(0,"kVtxZ"), false);
+		config.SetParameter(0, "kVtxT", fFitterConfig->GetParMin(0, "kVtxT"), fFitterConfig->GetParMax(0, "kVtxT"), houghResultItr->first->GetT(), fFitterConfig->GetParStep(0,"kVtxT"), false);
+		config.SetParameter(0, "kDirTh", fFitterConfig->GetParMin(0, "kDirTh"), fFitterConfig->GetParMax(0, "kDirTh"), houghResultItr->first->GetTheta(), fFitterConfig->GetParStep(0,"kDirTh"), false);
+		config.SetParameter(0, "kDirPhi", fFitterConfig->GetParMin(0, "kDirPhi"), fFitterConfig->GetParMax(0, "kDirPhi"), houghResultItr->first->GetPhi(), fFitterConfig->GetParStep(0,"kDirPhi"), false);
+		config.SetParameter(0, "kEnergy", fFitterConfig->GetParMin(0, "kEnergy"), fFitterConfig->GetParMax(0, "kEnergy"), houghResultItr->first->GetE() , fFitterConfig->GetParStep(0,"kEnergy"), false);
+		config.SetParameter(0, "kConversionDistance", fFitterConfig->GetParMin(0, "kConversionDistance"), fFitterConfig->GetParMax(0, "kConversionDistance"), houghResultItr->first->GetConversionDistance(), fFitterConfig->GetParStep(0, "kConversionDistance"), false);
+		config.SetParameter(1, "kDirTh", fFitterConfig->GetParMin(1, "kDirTh"), fFitterConfig->GetParMax(1, "kDirTh"), houghResultItr->second->GetTheta(), fFitterConfig->GetParStep(1, "kDirTh"), false);
+		config.SetParameter(1, "kDirPhi", fFitterConfig->GetParMin(1, "kDirPhi"), fFitterConfig->GetParMax(1, "kDirPhi"), houghResultItr->second->GetPhi(), fFitterConfig->GetParStep(1, "kDirPhi"), false);
+		config.SetParameter(1, "kEnergy", fFitterConfig->GetParMin(1, "kEnergy"), fFitterConfig->GetParMax(1, "kEnergy"), houghResultItr->second->GetE() , fFitterConfig->GetParStep(1, "kEnergy"), false);
+		config.SetParameter(1, "kConversionDistance", fFitterConfig->GetParMin(1, "kConversionDistance"), fFitterConfig->GetParMax(1, "kConversionDistance"), houghResultItr->second->GetConversionDistance(), fFitterConfig->GetParStep(1, "kConversionDistance"), false);
 
 		fFitterConfig = &config;
 		fFitterTrackParMap = WCSimFitterTrackParMap(&config);

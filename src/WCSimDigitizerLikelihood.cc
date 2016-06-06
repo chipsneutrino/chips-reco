@@ -5,6 +5,8 @@
 #include "TFile.h"
 #include "TMath.h"
 #include "TH2.h"
+#include "TH2D.h"
+#include "TH2F.h"
 
 #include <iostream>
 #include <cassert>
@@ -17,19 +19,21 @@ ClassImp(WCSimDigitizerLikelihood)
 
 /////////////////////////////////////////////////////////////////////
 /// Constructor - need to initialize the DigiType_t to string map here
-WCSimDigitizerLikelihood::WCSimDigitizerLikelihood() : fType(kUnknown), fPDFs(NULL)
+WCSimDigitizerLikelihood::WCSimDigitizerLikelihood() : fType(kUnknown), fSK1peFile(NULL), fSK1peHist(NULL),
+													   fPMTSimFile(NULL), fPMTSimHist(NULL), fEfficiency(1.0)
 {
 
-
   fDigiTypeNames["kSimple"]  = kSimple;
-  fDigiTypeNames["kWCSim"]   = kWCSim;
+  fDigiTypeNames["kSK1pe"]   = kSK1pe;
+  fDigiTypeNames["kPMTSim"]  = kPMTSim;
   fDigiTypeNames["kUnknown"] = kUnknown;
 
   // Set the digitizer type
   fType = this->StringToDigiType(WCSimAnalysisConfig::Instance()->GetDigiType());
-  fPDFs = 0x0;
-  if( fType == WCSimDigitizerLikelihood::kWCSim ) { this->OpenPDFs(); }
-  std::cout << "Using the digitizer type " << fType << std::endl;/////////////////////////////////////////////////////////////////////
+  fSK1peFile = 0x0;
+  fMinimum = exp(-100.0/2.0); // So that the maximum -2LnL = 25
+  if( fType == WCSimDigitizerLikelihood::kSK1pe ) { this->OpenSKPDFs(); }
+  else if( fType == WCSimDigitizerLikelihood::kPMTSim) { this->OpenPMTSimPDFs(); }
 
 
 }
@@ -38,7 +42,7 @@ WCSimDigitizerLikelihood::WCSimDigitizerLikelihood() : fType(kUnknown), fPDFs(NU
 
 WCSimDigitizerLikelihood::~WCSimDigitizerLikelihood()
 {
-  if(fPDFs != NULL){ delete fPDFs; }
+  if(fSK1peFile != NULL){ delete fSK1peFile; }
 }
 
 
@@ -58,25 +62,34 @@ void WCSimDigitizerLikelihood::SetDigiType( WCSimDigitizerLikelihood::DigiType_t
   if( fType != type )
   {
     fType = type;
-    if(type == WCSimDigitizerLikelihood::kWCSim) this->OpenPDFs();
+    if(type == WCSimDigitizerLikelihood::kSK1pe){ this->OpenSKPDFs(); }
+    if(type == WCSimDigitizerLikelihood::kPMTSim){ this->OpenPMTSimPDFs(); }
   }
   return;
 }
 
 
 
-void WCSimDigitizerLikelihood::OpenPDFs()
+void WCSimDigitizerLikelihood::OpenSKPDFs()
 {
-  if( fPDFs != NULL ) delete fPDFs;
+  if( fSK1peFile != NULL ) { delete fSK1peFile; }
   std::string pdfFile = getenv("WCSIMANAHOME");
   pdfFile.append("/config/pePDFs.root");
-  fPDFs = new TFile(pdfFile.c_str() ,"READ");
-  fDigiPDF = (TH2D*)(fPDFs->Get("digiPDF"));
-  fMinimum = fDigiPDF->GetMinimum(0) / 10.0;
+  fSK1peFile = new TFile(pdfFile.c_str() ,"READ");
+  fSK1peHist = (TH2D*)(fSK1peFile->Get("digiPDF"));
   return;
 }
 
-
+void WCSimDigitizerLikelihood::OpenPMTSimPDFs()
+{
+	if( fPMTSimFile != NULL) { delete fPMTSimFile; fPMTSimHist = NULL;}
+	std::string pmtSimFile = getenv("WCSIMANAHOME");
+	pmtSimFile.append("/config/pmtSimPDFs.root");
+	fPMTSimFile = new TFile(pmtSimFile.c_str(), "READ");
+	fPMTSimHist = (TH2F*)(fPMTSimFile->Get("hDigitiserMCNormed"));
+    assert(fPMTSimHist != NULL);
+	return;
+}
 
 Double_t WCSimDigitizerLikelihood::GetMinus2LnL( const Double_t &undigi, const Double_t &digi )
 {
@@ -89,22 +102,24 @@ Double_t WCSimDigitizerLikelihood::GetMinus2LnL( const Double_t &undigi, const D
 	 prediction = 1e-6;
   }
 
-  return 2*prediction - 2 * digi * TMath::Log(prediction) + 2 * TMath::LnGamma(digi+1);
-
-
-
+  double m2LnL = 25.0;
   switch( fType )
   {
     case WCSimDigitizerLikelihood::kSimple:
     {
-      return this->GetSimpleMinus2LnL( undigi, digi );
+      m2LnL = this->GetSimpleMinus2LnL( undigi, digi );
       break;
     }
-    case WCSimDigitizerLikelihood::kWCSim:
+    case WCSimDigitizerLikelihood::kSK1pe:
     {
-      return this->GetWCSimMinus2LnL( undigi, digi );
+      m2LnL = this->GetWCSimMinus2LnL( undigi, digi );
       break;
     }
+    case WCSimDigitizerLikelihood::kPMTSim:
+	{
+	  m2LnL = this->GetPMTSimMinus2LnL( undigi, digi );
+	  break;
+	}
     case WCSimDigitizerLikelihood::kUnknown:
     {
       assert(fType != WCSimDigitizerLikelihood::kUnknown);
@@ -113,12 +128,14 @@ Double_t WCSimDigitizerLikelihood::GetMinus2LnL( const Double_t &undigi, const D
     default:
     {
       std::cout << "Digitizer type is " << fType << std::endl;
-      assert(fType == WCSimDigitizerLikelihood::kWCSim || fType == WCSimDigitizerLikelihood::kSimple);
+      assert(    fType == WCSimDigitizerLikelihood::kSK1pe
+    		  || fType == WCSimDigitizerLikelihood::kSimple
+			  || fType == WCSimDigitizerLikelihood::kPMTSim);
       break;
     }
   }
-
-  return -1.0;
+  if(m2LnL < 0 || m2LnL > 25.0){ m2LnL = 25.0; }
+  return m2LnL;
 }
 
 
@@ -132,14 +149,14 @@ Double_t WCSimDigitizerLikelihood::GetLikelihood( const Double_t &undigi, const 
       return this->GetSimpleLikelihood( undigi, digi );
       break;
     }
-    case WCSimDigitizerLikelihood::kWCSim:
+    case WCSimDigitizerLikelihood::kSK1pe:
     {
       return this->GetWCSimLikelihood( undigi, digi );
       break;
     }
     default:
     {
-      assert(fType == WCSimDigitizerLikelihood::kWCSim || fType == WCSimDigitizerLikelihood::kSimple);
+      assert(fType == WCSimDigitizerLikelihood::kSK1pe || fType == WCSimDigitizerLikelihood::kSimple);
     }
   }
 
@@ -156,14 +173,14 @@ Double_t WCSimDigitizerLikelihood::GetExpectation( const Double_t &undigi )
       return this->GetSimpleExpectation( undigi );
       break;
     }
-    case WCSimDigitizerLikelihood::kWCSim:
+    case WCSimDigitizerLikelihood::kSK1pe:
     {
       return this->GetWCSimExpectation( undigi );
       break;
     }
     default:
     {
-      assert(fType == WCSimDigitizerLikelihood::kWCSim || fType == WCSimDigitizerLikelihood::kSimple);
+      assert(fType == WCSimDigitizerLikelihood::kSK1pe || fType == WCSimDigitizerLikelihood::kSimple);
     }
   }
 
@@ -251,7 +268,7 @@ Double_t WCSimDigitizerLikelihood::GetWCSimLikelihood( Double_t undigi, const Do
  	// this as the final result.  To get the likelihood, we therefore need the probability
  	// that the sampler gives (measured value/0.985) * the probability (measured value/0.985)
  	// passes the threshold.
-  fEfficiency = 1.; // We deal with this in the code to make the digitiser PDFs now 
+    fEfficiency = 1.; // We deal with this in the code to make the digitiser PDFs now 
  	Double_t digiEff = digi/fEfficiency;
   // std::cout << "digi = " << digi << "  digiEff = " << digiEff << "  fEfficiency = " << fEfficiency << std::endl;
 
@@ -275,7 +292,7 @@ Double_t WCSimDigitizerLikelihood::GetWCSimLikelihood( Double_t undigi, const Do
 
 
  	// Get the likelihood of an undigitized hit resulting in a given digitized one
- 	if( undigi <= 0) { undigi = fDigiPDF->GetXaxis()->GetBinCenter(1); }
+ 	if( undigi <= 0) { undigi = fSK1peHist->GetXaxis()->GetBinCenter(1); }
     
     
   if( undigi < 10.0 ) { digitizerLikelihood = this->GetWCSimPickerLikelihood(undigi, digiEff); }
@@ -312,9 +329,9 @@ Double_t WCSimDigitizerLikelihood::GetWCSimPickerLikelihood( const Double_t &und
   if( undigi >= maxQ){ return this->GetWCSimGausExpoLikelihood(undigi, digi); }
 
   // std::cout << "Likelihood = " << digiPDF->GetBinContent(digiPDF->FindBin(digi)) << std::endl;
-  Int_t whichXBin     = ((TAxis*)fDigiPDF->GetXaxis())->FindBin(undigi);
-  Int_t whichYBin     = ((TAxis*)fDigiPDF->GetYaxis())->FindBin(digi);
-  Double_t likelihood = fDigiPDF->GetBinContent(whichXBin, whichYBin);
+  Int_t whichXBin     = ((TAxis*)fSK1peHist->GetXaxis())->FindBin(undigi);
+  Int_t whichYBin     = ((TAxis*)fSK1peHist->GetYaxis())->FindBin(digi);
+  Double_t likelihood = fSK1peHist->GetBinContent(whichXBin, whichYBin);
   // std::cout << "X bin = " << whichXBin << "    Y bin = " << whichYBin << "      likelihood = " << likelihood << std::endl;
   if(likelihood == 0)
   {
@@ -344,6 +361,43 @@ Double_t WCSimDigitizerLikelihood::GetWCSimGausExpoLikelihood( const Double_t &u
 
  	return fGausExpo.Eval(digi);
  }
+
+Double_t WCSimDigitizerLikelihood::GetPMTSimMinus2LnL(const Double_t& undigi,
+		const Double_t& digi) {
+
+    // Poisson Likelihood of 0pe, saves an unneeded exp call
+    if( undigi > 0 && digi == 0)
+    {
+        return 2*undigi;
+    }
+	double likelihood = GetPMTSimLikelihood(undigi, digi);
+    double m2LnL = -2.0 * TMath::Log(likelihood);
+    return m2LnL;
+}
+
+Double_t WCSimDigitizerLikelihood::GetPMTSimLikelihood(const Double_t& undigi,
+		const Double_t& digi) {
+    // Poisson likelihood of zero p.e.
+    if(digi == 0 && undigi > 0)
+    {
+        return exp(-undigi);
+    }
+
+    double likelihood = 0;
+    if(undigi < fPMTSimHist->GetXaxis()->GetXmin())
+    {
+	    likelihood = fPMTSimHist->Interpolate(fPMTSimHist->GetXaxis()->GetXmin(), digi);
+    }
+    else
+    {
+	    likelihood = fPMTSimHist->Interpolate(undigi, digi);
+    }
+	if(likelihood < fMinimum)
+	{
+		likelihood = fMinimum;
+	}
+	return likelihood;
+}
 
 Double_t WCSimDigitizerLikelihood::GetWCSimGausLikelihood( const Double_t &undigi, const Double_t &digi )
 {
@@ -383,10 +437,10 @@ Double_t WCSimDigitizerLikelihood::GetWCSimExpectation( const Double_t &undigi )
     //TH1D * digiPDF = (TH1D*)((TObjArray*)f.Get("peArray"))->At((Int_t)round(undigi)-1);
 
     //--New code--
-    this->OpenPDFs();
-    Int_t whichBin = ((TAxis*)fDigiPDF->GetYaxis())->FindBin(undigi);
+    this->OpenSKPDFs();
+    Int_t whichBin = ((TAxis*)fSK1peHist->GetYaxis())->FindBin(undigi);
     //FIXME: this is quite probably wrong
-    TH1D *digiPDF = fDigiPDF->ProjectionX("", whichBin, whichBin);
+    TH1D *digiPDF = fSK1peHist->ProjectionX("", whichBin, whichBin);
     predictedCharge = digiPDF->GetMean();
     // std::cout << "    predicted charge = " << predictedCharge << std::endl;
   }
@@ -425,6 +479,7 @@ Double_t WCSimDigitizerLikelihood::GetSimpleLikelihood(const Double_t &undigi, c
 
 Double_t WCSimDigitizerLikelihood::GetSimpleMinus2LnL( const Double_t &undigi, const Double_t &digi )
 {
+    return -2.0 * ( digi * TMath::Log(undigi) - undigi - TMath::LnGamma(digi+1));
   Double_t prob = this->GetSimpleLikelihood( undigi, digi );
   if(prob > 1e-40){ return -2.0 * TMath::Log(prob);}
   return -(digi * TMath::Log(undigi) - undigi - TMath::LnGamma(digi+1));

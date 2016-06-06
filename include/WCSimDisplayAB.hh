@@ -20,6 +20,7 @@ class TMarker;
 class TPolyMarker;
 class TPolyLine;
 class TLegend;
+class WCSimRootEvent;
 
 class WCSimDisplayAB : public WCSimDisplay {
 
@@ -31,7 +32,7 @@ class WCSimDisplayAB : public WCSimDisplay {
   void DrawCleanDisplay(WCSimRecoEvent* recoevent);
 
   void DrawRecoEvent(WCSimRecoEvent* recoevent);
-  void DrawTrueEvent(WCSimTrueEvent* trueevent);
+  void DrawTrueEvent(WCSimRootEvent* rootevent);
 
   void ResetDisplay();
   void PrintDisplay();

@@ -1,3 +1,4 @@
+
 /**
  * \class WCSimTotalLikelihood
  * This class wraps around WCSimChargeLikelihood and
@@ -9,7 +10,7 @@
 #define WCSIMTOTALLIKELIHOOD_H
 
 #include "WCSimChargePredictor.hh"
-#include "WCSimTimeLikelihood2.hh"
+#include "WCSimTimeLikelihood3.hh"
 #include "WCSimLikelihoodDigitArray.hh"
 #include "WCSimLikelihoodTrackBase.hh"
 #include "WCSimEmissionProfileManager.hh"
@@ -68,14 +69,22 @@ class WCSimTotalLikelihood : public TObject
 
       void SetLikelihoodDigitArray(WCSimLikelihoodDigitArray * likelihoodDigitArray);
 
+      void SetTimeScaleFactor(double scaleFactor = 1.0);
+      inline double GetTimeScaleFactor(){ return fTimeScaleFactor; }
+
       std::vector<double> GetMeasuredChargeVector() const;
       std::vector<double> GetPredictedChargeVector() const;
       std::vector<double> GetTotal2LnLVector() const;
       std::vector<double> GetCharge2LnLVector() const; // Leigh: Get the charge component only
       std::vector<double> GetTime2LnLVector() const; // Leigh: Get the time component only
       std::vector<double> GetPredictedTimeVector() const;
+      double GetLastTime2LnL() const;
+      double GetLastCharge2LnL() const;
+      double GetLastTotal2LnL() const;
 
       WCSimEmissionProfileManager * GetEmissionProfileManager();
+
+
  
   protected:
   private:
@@ -83,9 +92,10 @@ class WCSimTotalLikelihood : public TObject
 
       WCSimLikelihoodDigitArray * fLikelihoodDigitArray; ///< Event to build likelihood for
       std::vector<WCSimChargePredictor> fChargeLikelihoodVector; ///< Charge component of likelihood calculation
-      WCSimTimeLikelihood2 * fTimeLikelihood; ///< Time component of likelihood calculation
+      WCSimTimeLikelihood3 * fTimeLikelihood; ///< Time component of likelihood calculation
       WCSimDigitizerLikelihood fDigitizerLikelihood;
       std::vector<WCSimLikelihoodTrackBase*> fTracks; ///< Tracks to consider when calculating the likelihood
+      double fTimeScaleFactor; ///< Optional factor to scale the time likelihood by to alter its weight compared to charge
 
       bool fSetVectors;
       std::vector<double> fMeasuredCharges;
@@ -96,6 +106,8 @@ class WCSimTotalLikelihood : public TObject
       WCSimEmissionProfileManager * fEmissionProfileManager;
 
 
+      double fMaximum2LnL;
+      double fMinimumL;
 	ClassDef(WCSimTotalLikelihood,1)
 		
 };

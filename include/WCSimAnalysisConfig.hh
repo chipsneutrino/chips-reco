@@ -118,13 +118,83 @@ public:
      */
     Bool_t GetUseHoughFitterForSeed() const;
 
+    /**
+     * Should we account for scattering by reading a scattered light percentage from a file
+     * that tabulates it as a function of some geometric parameters, or just use a default
+     * flat percentage
+     * @return True if we should load it from the table
+     */
     Bool_t GetUseScatteringTable() const;
+
+    /**
+     * Should we assume the particle propagates at some custom speed, or use the default (c)
+     * for working out the time predictions?
+     * @return True if we should use the custom value
+     */
+    Bool_t GetUseCustomParticleSpeed() const;
+
+    /**
+     * Should we assume that photons propagate at some custom speed,
+     * for working out the time predictions?
+     * @return True if we should use the custom value
+     */
+    Bool_t GetUseCustomSpeedOfLight() const;
+
+    /**
+     * We can work out the speed of light by averaging the refractive index against the
+     * photon wavelength spectrum but this doesn't account for scattering etc. that
+     * effectively slows it down (by increasing path length to the PMT
+     * So I fitted c/n using upward-going muons and electrons - this option uses that value instead
+     * -- Custom speed of light takes precedence over fitted speed if both are set to true -- 
+     * @return True if we should use the fitted value
+     */
+    Bool_t GetUseFittedSpeedOfLight() const;
+
+    /**
+     * Normally we assume particles propagate at c when working out the time likelihood
+     * But we can use a custom speed defined in the config file: this method returns that
+     * speed (as a fraction of c)
+     * -- Custom speed of light takes precedence over fitted speed if both are set to true -- 
+     * @return Speed particles are assumed to travel at by the time likelihood as a fraction of c
+     */
+    Double_t GetCustomParticleSpeed() const;
+
+    /**
+     * Normally we assume light travels at c/(average n) which we calculate beforehand
+     * But we can use a custom speed defined in the config file: this method returns that
+     * speed (as a fraction of c)
+     * @return Speed particles are assumed to travel at by the time likelihood as a fraction of c
+     */
+    Double_t GetCustomSpeedOfLight() const;
+
+    /** 
+     * Return the effective propagation speed of light needed for the time fitter, produced
+     * by fitting it using upward-going muons and electrons.  Refractive index slightly higher
+     * than if we just worked it out from the inputs to WCSim because of scattering etc
+     * @return Speed photons are assumed to travel at, according to the fit
+     */
+    Double_t GetFittedSpeedOfLight() const;
+
+    Bool_t GetEqualiseChargeAndTime() const;
 
     void SetUseTimeOnly(Bool_t doIt = true);
     void SetUseChargeOnly(Bool_t doIt = true);
     void SetUseChargeAndTime(Bool_t doIt = true);
+    void SetUseCustomParticleSpeed(Bool_t doIt = true);
+    void SetUseCustomSpeedOfLight(Bool_t doIt = true);
+    void SetEqualiseChargeAndTime(Bool_t doIt = true);
 
+    /**
+     * Set the custom speed at which the time likelihood assumes particles travel
+     * @input speed Speed at which particle travels, as a fraction of c
+     */
+    void SetCustomParticleSpeed(const Double_t &speed);
 
+    /**
+     * Set the custom speed at which the time likelihood assumes optical photons travel
+     * @input speed Speed at which light travels, as a fraction of c
+     */
+    void SetCustomSpeedOfLight(const Double_t &speed);
 
 private:
     /// Read the configuration text file specified in WCSimAnalysisConfig::fConfName
@@ -176,21 +246,27 @@ private:
     /// Iterate through the map and use it to set all the variables it specifies
     void SetFromMap();
     
-
     std::string   fConfName;                   ///< Path of a text file containing all the configuration parameters
     Bool_t        fCalculateIntegrals;         ///< True if charge likelihood should calculate integrals, false to look them up
-    Bool_t        fTruncateIntegrals;         ///< True if charge likelihood should use full lookup tabels for integrals, false to use one that doesn't cut off
+    Bool_t        fTruncateIntegrals;          ///< True if charge likelihood should use full lookup tabels for integrals, false to use one that doesn't cut off
     Bool_t        fConstrainExtent;            ///< True if integrals should cut off when the particle leaves the detector
     Bool_t        fUseTransmission;            ///< True if we should account for absorption of photons in the water
     Bool_t        fUseAngularEfficiency;       ///< True if we should account for the PMT efficiency as a function of angle
     Bool_t        fUseGlassCathodeReflection;  ///< True if we should account for photons being reflected off the PMT glass
     Bool_t        fUseTime;                    ///< True if we should include timing information in the likelihood
     Bool_t        fUseCharge;                  ///< True if we should include charge information in the likelihood
-    Bool_t 	      fUseHoughFitterForSeed;	   ///< True if we should use the old Hough transform fitter to seed the start values
-    Bool_t        fUseScatteringTable;  ///< True if we should use the scattering table, false for flat 1% chance
-    std::string   fDigiType;            ///< Name of digitizer type to use in WCSimDigitizerLikelihood::DigiType_t
+    Bool_t 	      fUseHoughFitterForSeed;	     ///< True if we should use the old Hough transform fitter to seed the start values
+    Bool_t        fUseScatteringTable;         ///< True if we should use the scattering table, false for flat 1% chance
+    Bool_t        fUseCustomParticleSpeed;     ///< Normally we assume particles travel at c - this allows us to switch and set it manually
+    Bool_t        fUseCustomSpeedOfLight;      ///< Normally we assume light travels at c/(average n) - this allows us to switch and set it manually
+    Bool_t        fUseFittedSpeedOfLight;      ///< Normally we assume light travels at c/(average n) - this uses a fitted speed instead
+    Bool_t        fEqualiseChargeAndTime;      ///< After we've seeded the vertex, energy and time, we can scale the time likelihood to weight it the same as the charge
+    Double_t      fCustomParticleSpeed;        ///< The speed of the propagating particle as a fraction of c       
+    Double_t      fCustomSpeedOfLight;         ///< The speed of the propagating particle as a fraction of c       
+    Double_t      fFittedSpeedOfLight;         ///< The effective speed of light from our fit as a fraction of c
+    std::string   fDigiType;                   ///< Name of digitizer type to use in WCSimDigitizerLikelihood::DigiType_t
 
-    std::map<std::string, std::string> fMap; ///< Map to store key names and their values to set
+    std::map<std::string, std::string> fMap;   ///< Map to store key names and their values to set
     
     ClassDef(WCSimAnalysisConfig,0)
 };

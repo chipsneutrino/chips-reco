@@ -35,22 +35,23 @@ public:
      virtual void SetType(const TrackType::Type &type) = 0;
 
      // Getters
-     double GetX() const;
-     double GetY() const;
-     double GetZ() const;
-     TVector3 GetVtx() const;
-     virtual TVector3 GetFirstEmissionVtx() const = 0;
-     double GetT() const;
-     double GetTheta() const;
-     double GetPhi() const;
-     double GetDirX() const;
-     double GetDirY() const;
-     double GetDirZ() const;
-     double GetConversionDistance() const;
-     TVector3 GetDir() const;
-     double GetE() const;
-     TrackType GetType() const;
-     virtual double GetTrackParameter(const FitterParameterType::Type &type) const = 0;
+     double GetX() const; // Vertex x-coordinate (cm)
+     double GetY() const; // Vertex y-coordinate (cm)
+     double GetZ() const; // Vertex z-coordinate (cm)
+     TVector3 GetVtx() const; // TVector3 containing the above (all cm)
+     virtual TVector3 GetFirstEmissionVtx() const = 0; // The first point at which photon emission happens:
+                                                       // vertex + conversion distance * direction
+     double GetT() const; // Time of the vertex (ns)
+     double GetTheta() const; // Angle to z-axis
+     double GetPhi() const;   // Rotation angle around z-axis 
+     double GetDirX() const;  // x-component of direction unit vector
+     double GetDirY() const;  // y-component of direction unit vector
+     double GetDirZ() const;  // z-component of direction unit vector
+     TVector3 GetDir() const; // Unit TVector3 in direction of the track
+     double GetConversionDistance() const; // Distance between vertex and first emission (i.e. how far before gamma -> e+e- conversion)
+     double GetE() const;     // Energy of the track in MeV
+     TrackType GetType() const; // Type of the track, i.e. what particle
+     virtual double GetTrackParameter(const FitterParameterType::Type &type) const = 0; // Call the getter that matches the fitter parameter type
 
      static bool EnergyGreaterThanOrEqual(const WCSimLikelihoodTrackBase &a, const WCSimLikelihoodTrackBase &b);
      static bool EnergyGreaterThanOrEqualPtrs(WCSimLikelihoodTrackBase *a, WCSimLikelihoodTrackBase *b);
@@ -62,9 +63,14 @@ public:
       *         the vertex
       */
      virtual TVector3 GetPropagatedPos(const Double_t &s) const = 0;
-     Int_t GetPDG() const;
+
+     Int_t GetPDG() const; // Return the PDG Monte Carlo code corresponding to the track's particle type
      bool operator == (const WCSimLikelihoodTrackBase &b) const;
      bool IsSameTrack(WCSimLikelihoodTrackBase * b) const;
+     bool SameTypeAndEnergy(WCSimLikelihoodTrackBase * other) const;
+     
+     double GetPropagationSpeedFrac() const; // Effective propagation speed of the track's photon emission, as a fraction of c
+     static double GetPropagationSpeedFrac(const TrackType &type);
 
  protected:
    void LoadEmissionProfile(WCSimLikelihoodTrackBase * myTrack);

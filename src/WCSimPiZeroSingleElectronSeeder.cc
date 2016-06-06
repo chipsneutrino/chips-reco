@@ -39,14 +39,14 @@ void WCSimPiZeroSingleElectronSeeder::MakeSeeds()
 	config.SetNumTracks(1);
 
 	config.SetTrackType(0, "ElectronLike");
-	config.SetParameter(0, "kVtxX", fFitterConfig->GetParMin(0, "kVtxX"), fFitterConfig->GetParMax(0, "kVtxX"), fFitterConfig->GetParStart(0, "kVtxX"), false);
-	config.SetParameter(0, "kVtxY", fFitterConfig->GetParMin(0, "kVtxY"), fFitterConfig->GetParMax(0, "kVtxY"), fFitterConfig->GetParStart(0, "kVtxY"), false);
-	config.SetParameter(0, "kVtxZ", fFitterConfig->GetParMin(0, "kVtxZ"), fFitterConfig->GetParMax(0, "kVtxZ"), fFitterConfig->GetParStart(0, "kVtxZ"), false);
-	config.SetParameter(0, "kVtxT", fFitterConfig->GetParMin(0, "kVtxT"), fFitterConfig->GetParMax(0, "kVtxT"), fFitterConfig->GetParStart(0, "kVtxT"), false);
-	config.SetParameter(0, "kDirTh", fFitterConfig->GetParMin(0, "kDirTh"), fFitterConfig->GetParMax(0, "kDirTh"), fFitterConfig->GetParStart(0, "kDirTh"), false);
-	config.SetParameter(0, "kDirPhi", fFitterConfig->GetParMin(0, "kDirPhi"), fFitterConfig->GetParMax(0, "kDirPhi"), fFitterConfig->GetParStart(0, "kDirPhi"), false);
-	config.SetParameter(0, "kEnergy", fFitterConfig->GetParMin(0, "kEnergy"), fFitterConfig->GetParMax(0, "kEnergy"), 0.5 * (fFitterConfig->GetParMin(0, "kEnergy") + fFitterConfig->GetParMax(0, "kEnergy")) , false);
-	config.SetParameter(0, "kConversionDistance", fFitterConfig->GetParMin(0, "kConversionDistance"), fFitterConfig->GetParMax(0, "kConversionDistance"), 0, true);
+	config.SetParameter(0, "kVtxX", fFitterConfig->GetParMin(0, "kVtxX"), fFitterConfig->GetParMax(0, "kVtxX"), fFitterConfig->GetParStart(0, "kVtxX"), fFitterConfig->GetParStep(0, "kVtxX"), false);
+	config.SetParameter(0, "kVtxY", fFitterConfig->GetParMin(0, "kVtxY"), fFitterConfig->GetParMax(0, "kVtxY"), fFitterConfig->GetParStart(0, "kVtxY"), fFitterConfig->GetParStep(0, "kVtxY"), false);
+	config.SetParameter(0, "kVtxZ", fFitterConfig->GetParMin(0, "kVtxZ"), fFitterConfig->GetParMax(0, "kVtxZ"), fFitterConfig->GetParStart(0, "kVtxZ"), fFitterConfig->GetParStep(0, "kVtxZ"), false);
+	config.SetParameter(0, "kVtxT", fFitterConfig->GetParMin(0, "kVtxT"), fFitterConfig->GetParMax(0, "kVtxT"), fFitterConfig->GetParStart(0, "kVtxT"), fFitterConfig->GetParStep(0, "kVtxT"), false);
+	config.SetParameter(0, "kDirTh", fFitterConfig->GetParMin(0, "kDirTh"), fFitterConfig->GetParMax(0, "kDirTh"), fFitterConfig->GetParStart(0, "kDirTh"), fFitterConfig->GetParStep(0, "kDirTh"), false);
+	config.SetParameter(0, "kDirPhi", fFitterConfig->GetParMin(0, "kDirPhi"), fFitterConfig->GetParMax(0, "kDirPhi"), fFitterConfig->GetParStart(0, "kDirPhi"), fFitterConfig->GetParStep(0, "kDirPhi"), false);
+	config.SetParameter(0, "kEnergy", fFitterConfig->GetParMin(0, "kEnergy"), fFitterConfig->GetParMax(0, "kEnergy"), 0.5 * (fFitterConfig->GetParMin(0, "kEnergy") + fFitterConfig->GetParMax(0, "kEnergy")) , fFitterConfig->GetParStep(0, "kEnergy"), false);
+	config.SetParameter(0, "kConversionDistance", fFitterConfig->GetParMin(0, "kConversionDistance"), fFitterConfig->GetParMax(0, "kConversionDistance"), 0, fFitterConfig->GetParStep(0, "kConversionDistance"), true);
 
 	fFitterConfig = &config;
 	fFitterTrackParMap = WCSimFitterTrackParMap(&config);

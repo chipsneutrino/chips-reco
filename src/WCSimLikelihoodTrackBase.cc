@@ -124,6 +124,11 @@ bool WCSimLikelihoodTrackBase::IsSameTrack(WCSimLikelihoodTrackBase * b) const
               && fConversionDistance == b->fConversionDistance);
 }
 
+bool WCSimLikelihoodTrackBase::SameTypeAndEnergy(WCSimLikelihoodTrackBase * other) const
+{
+    return (fType == other->GetType() && fE0 == other->GetE());
+}
+
 int WCSimLikelihoodTrackBase::GetPDG() const
 {
   return TrackType::GetPDGFromType(fType);
@@ -134,4 +139,26 @@ void WCSimLikelihoodTrackBase::Print()
 	  printf("Vertex = (%.02fcm,%.02fcm,%.02fcm,%.02fns)   Dir = (%.04f,%.04f)   E = %.03f  Type = %s  Conv = %.02fcm\n",
            fVtx[0], fVtx[1], fVtx[2], fT0, fTheta0, fPhi0, fE0, TrackType::AsString(fType).c_str(), fConversionDistance);
 
+}
+
+double WCSimLikelihoodTrackBase::GetPropagationSpeedFrac() const{
+    return GetPropagationSpeedFrac(fType);
+}
+
+double WCSimLikelihoodTrackBase::GetPropagationSpeedFrac(const TrackType &type)
+{
+  double speed = 1.0;
+  switch(type){
+    case TrackType::PhotonLike:
+      // Fall through
+    case TrackType::ElectronLike:
+      speed = 0.8127;
+      break;
+    case TrackType::MuonLike:
+      speed =  0.9395;
+      break;
+    default:
+      break;
+  }
+  return speed;
 }

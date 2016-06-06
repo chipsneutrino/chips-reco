@@ -58,9 +58,6 @@ WCSimIntegralLookup3D* WCSimIntegralLookupReader::GetIntegralLookup3D(TrackType:
 
 WCSimIntegralLookupReader::WCSimIntegralLookupReader() {
 	// TODO Auto-generated constructor stub
-  fLastPercentileLength = -999.9;
-  fLastPercentileType = TrackType::Unknown;
-  fLastPercentileEnergy = -999.9;
 }
 
 WCSimIntegralLookupReader::~WCSimIntegralLookupReader() {
@@ -200,27 +197,28 @@ double WCSimIntegralLookupReader::GetRhoGSSIntegral(const TrackType::Type& type,
 }
 
 TString WCSimIntegralLookupReader::GetLookupFilename(const TrackType::Type& type) {
-	TString str;
+	TString str(getenv("WCSIMANAHOME"));
 	if( type == TrackType::MuonLike)
 	{
 		if(WCSimAnalysisConfig::Instance()->GetTruncateIntegrals())
 		{
-			str = "config/muonIntegrals.root";
+			str += "/config/muonIntegrals.root";
 		}
 		else
 		{
-			str = "config/muonIntegralsSmall.root";
+			//str += "/config/electronIntegralsSmall.root";
+			str += "/config/muonIntegralsSmall.root";
 		}
 	}
 	else if( type == TrackType::ElectronLike || type == TrackType::PhotonLike)
 	{
 		if(WCSimAnalysisConfig::Instance()->GetTruncateIntegrals())
 		{
-			str = "config/electronIntegrals.root";
+			str += "/config/electronIntegrals.root";
 		}
 		else
 		{
-			str = "config/electronIntegralsSmall.root";
+			str += "/config/electronIntegralsSmall.root";
 		}
 	}
 	else
@@ -232,38 +230,9 @@ TString WCSimIntegralLookupReader::GetLookupFilename(const TrackType::Type& type
 	return str;
 }
 
-double WCSimIntegralLookupReader::GetTrackLengthForPercentile(const TrackType::Type &type, const double &E, const double &percentile)
+void WCSimIntegralLookupReader::SaveIntegrals( const TrackType::Type &type, const double E, const double s, const double R0, const double cosTh0)
 {
-  double dist = fLastPercentileLength;
-  if(type != fLastPercentileType || E != fLastPercentileEnergy)
-  {
-
-	  if(fLookupMap.find(type) == fLookupMap.end())
-	  {
-	  	LoadIntegrals(type);
-	  }
-
-	  if(fLookupMap.find(type) == fLookupMap.end())
-	  {
-	  	std::cerr << "Could not find a table of integrals for type " << TrackType::AsString(type) << std::endl;
-	  	assert(fLookupMap.find(type) != fLookupMap.end());
-	  }
-
-  
-    THnSparseF * sparseHist = dynamic_cast<THnSparseF*>(fLookupMap[type]->GetRhoIntegralHist());
-    assert(sparseHist != 0x0);
-
-    TH2D * tempRhoInt = sparseHist->Projection(0,1);
-    int bin = tempRhoInt->GetYaxis()->FindBin(E);
-    TH1D * tempRhoInt1D = tempRhoInt->ProjectionX("tempRhoInt1D",bin, bin);
-    dist = tempRhoInt1D->GetBinCenter(tempRhoInt1D->FindFirstBinAbove(percentile));
-    delete tempRhoInt1D;
-    delete tempRhoInt;
-    // std::cout << "Length (last) = " << dist << " (" << fLastPercentileLength << ")" << std::endl;
-    fLastPercentileType = type;
-    fLastPercentileLength = dist;
-    fLastPercentileEnergy = E;
-  }
-  return dist;
+	fLookupMap[type]->SaveIntegrals(E, s, R0, cosTh0);
 }
+
  

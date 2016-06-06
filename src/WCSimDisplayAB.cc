@@ -8,6 +8,7 @@
 #include "WCSimTrueTrack.hh"
 
 #include "WCSimGeometry.hh"
+#include "WCSimInterface.hh"
 
 #include "TCanvas.h"
 #include "TPad.h"
@@ -755,10 +756,11 @@ void WCSimDisplayAB::DrawCleanDisplay(WCSimRecoEvent* myRecoEvent)
   return;
 }
 
-void WCSimDisplayAB::DrawTrueEvent(WCSimTrueEvent* myTrueEvent)
+void WCSimDisplayAB::DrawTrueEvent(WCSimRootEvent* myEvent)
 { 
   // Check for Event  
   // ===============
+  WCSimTrueEvent * myTrueEvent = WCSimInterface::TrueEvent();
   if( myTrueEvent==0 
    || myTrueEvent->GetNTracks()==0 ) return;
     

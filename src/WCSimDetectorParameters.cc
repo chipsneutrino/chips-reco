@@ -9,6 +9,7 @@
 #include "WCSimPMTConfig.hh"
 #include "WCSimPMTManager.hh"
 #include "WCSimTrackParameterEnums.hh"
+#include "TCanvas.h"
 #include "TDirectory.h"
 #include "TFile.h"
 #include "TGraph.h"
@@ -192,7 +193,7 @@ double WCSimDetectorParameters::AverageHistWithGraph(TH1D* hist,
 	// If the histogram goes off the front or back of the graph, set it to zero for this bin
 
 
-  double integral = hist->Integral();
+    double integral = hist->Integral(hist->GetXaxis()->FindBin(min), hist->GetXaxis()->FindBin(max));
 	double weightedAverage = 0.0;
 	for(int iBin = 1; iBin <= hist->GetNbinsX(); ++iBin)
 	{
