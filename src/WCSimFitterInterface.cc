@@ -335,6 +335,7 @@ void WCSimFitterInterface::InitOutputFiles()
                                  fFitterConfig->GetFirstEventToFit(),
                                  fFitterConfig->GetNumEventsToFit() + fFitterConfig->GetFirstEventToFit(),
                                  time.Data());
+    fFitterTree->SetWCSimTreeLocation(fFileName);
 	fFitterPlots->SetSaveFileName(saveNamePlots);
 	fFitterTree->SetSaveFileName(saveNameTree);
     fFitterPlots->MakeSaveFile();

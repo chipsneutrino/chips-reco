@@ -69,7 +69,7 @@ public:
 	  std::vector<double> fPrimaryEnergies;
 	  std::vector<TVector3> fPrimaryDirs;
 
-	  ClassDef(WCSimRecoSummary,1);
+	  ClassDef(WCSimRecoSummary,2);
 };
 
 #endif /* WCSIMRECOSUMMARY_HH_ */

@@ -5,12 +5,13 @@
  *      Author: ajperch
  */
 
-#include "WCSimLikelihoodTrack.hh"
+#include "WCSimAnalysisConfig.hh"
 #include "WCSimFitterTree.hh"
 #include "WCSimGeometry.hh"
 #include "WCSimInterface.hh"
 #include "WCSimLikelihoodDigit.hh"
 #include "WCSimLikelihoodDigitArray.hh"
+#include "WCSimLikelihoodTrack.hh"
 #include "WCSimRecoSummary.hh"
 #include "WCSimTrueEvent.hh"
 
@@ -27,7 +28,7 @@
 WCSimFitterTree::WCSimFitterTree(const TString &saveFileName) : 
                 fSaveFile(0x0),
                 fTrueTree(0x0), fFitTree(0x0), fRecoSummaryTree(0x0),
-                fWCSimTree(0x0), fGeoTree(0x0), fHitComparisonTree(0x0),
+                fWCSimTreeLocation(0x0), fWCSimTree(0x0), fGeoTree(0x0), fHitComparisonTree(0x0),
                 fRecoFailureTree(0x0), fGeometry(0x0), fWCSimRootEvent(0x0),
                 fFailedEvent(0), fEvent(0), fFitTrackNum(-999), 
                 f2LnL(-999.9), fCharge2LnL(-999.9), fTime2LnL(-999.9),
@@ -241,7 +242,10 @@ void WCSimFitterTree::Fill(Int_t iEvent,
   std::cout << "Make root event ... " ;
 	fWCSimRootEvent = WCSimInterface::Instance()->GetWCSimEvent(iEvent);
   std::cout << " ... made - filling tree ... " ;
-	fWCSimTree->Fill();
+    if(WCSimAnalysisConfig::Instance()->GetSaveWCSimRootEvent() || fWCSimTreeLocation == 0x0)
+    {
+	    fWCSimTree->Fill();
+    }
   std::cout << " ... done" << std::endl;
   SaveTree();
   std::cout << "Saved tree" << std::endl;
@@ -286,7 +290,14 @@ void WCSimFitterTree::SaveTree() {
 	fFitTree->Write("",TObject::kOverwrite);
 
 	fGeoTree->Write("",TObject::kOverwrite);
-	fWCSimTree->Write("",TObject::kOverwrite);
+    if(WCSimAnalysisConfig::Instance()->GetSaveWCSimRootEvent() || fWCSimTreeLocation == 0x0)
+    {
+	    fWCSimTree->Write("",TObject::kOverwrite);
+    }
+    else
+    {
+        fWCSimTreeLocation->Write("", TObject::kOverwrite);
+    }
 	fRecoSummaryTree->Write("",TObject::kOverwrite);
 
 	fHitComparisonTree->Write("",TObject::kOverwrite);
@@ -416,4 +427,14 @@ void WCSimFitterTree::MakeSaveFile()
     std::cout << "  Plots to be saved in file: " << fSaveFileName.Data() << std::endl;
 
     tmpd->cd();
+}
+
+void WCSimFitterTree::SetWCSimTreeLocation(const TString &saveFileName)
+{
+    if(fWCSimTreeLocation != NULL)
+    {
+        delete fWCSimTreeLocation;
+    }
+
+    fWCSimTreeLocation = new TNamed("fWCSimTreeLocation", saveFileName.Data());
 }

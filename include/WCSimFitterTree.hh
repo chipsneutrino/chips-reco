@@ -105,6 +105,9 @@ public:
   void FillRecoFailures(const int &event);
   void MakeSaveFile();
 
+  void SetWCSimTreeLocation(const TString &location);
+
+
 private:
 	void MakeRecoSummary(std::vector<WCSimLikelihoodTrackBase *> bestFitTracks, double charge2LnL, double time2LnL);
 
@@ -113,6 +116,8 @@ private:
 	TTree * fTrueTree;
 	TTree * fFitTree;
 	TTree * fRecoSummaryTree;
+
+    TNamed * fWCSimTreeLocation;
 	TTree * fWCSimTree;
 	TTree * fGeoTree;
 	TTree * fComparisonTree;
@@ -130,8 +135,8 @@ private:
 	Int_t fEvent;
 	Int_t fFitTrackNum;
 	Double_t f2LnL;
-    Double_t fTime2LnL;
     Double_t fCharge2LnL;
+    Double_t fTime2LnL;
 	Double_t fFitVtxX;
 	Double_t fFitVtxY;
 	Double_t fFitVtxZ;

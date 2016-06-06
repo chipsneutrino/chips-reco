@@ -647,7 +647,7 @@ void WCSimRecoEvDisplay::OpenFile(std::string name) {
 	if(name != ""){
 		// Quick test to see if the file contains what we need
 		TFile tempFile(name.c_str(),"READ");
-    if(tempFile.Get("wcsimT")){
+    if(tempFile.Get("wcsimT") || tempFile.Get("fWCSimTreeLocation")){
     	std::cout << "Opening reco file " << name << std::endl;
 			this->OpenWCSimRecoFile(name);
 
@@ -783,9 +783,33 @@ void WCSimRecoEvDisplay::OpenWCSimRecoFile(std::string name) {
 	  delete fChain;
 	}
 
-	fChain = new TChain("wcsimT");
+	
+    // Chain with the WCSimRootEvent from the simulation
+    fChain = new TChain("wcsimT");
 	fChain->Reset();
-	fChain->Add(name.c_str());
+
+    // To avoid saving repeat copies of WCSimRootEvent objects, we'll save a TNamed in the reco file that links
+    // to the original WCSim file and add that to the wcsimT chain instead
+    TDirectory * myDir = gDirectory;
+    TFile tempFile(name.c_str(), "READ");
+    if(tempFile.IsZombie()){
+        std::cerr << "Couldn't open file " << name << std::endl;
+    }
+    TNamed * eventLink = (TNamed*)tempFile.Get("fWCSimTreeLocation");
+    if(eventLink == NULL){
+        std::cerr << "Couldn't get link to WCSim event file from the reco file, will look for WCSimRootEvents in the reco file itself" << std::endl;
+    }
+    else{
+	    fChain->Add(eventLink->GetTitle());
+    }
+
+    if(fChain->GetEntries() == 0){
+        std::cout << "Couldn't find a tree called wcsimT with any entries by following the link from the reco file, will try looking in the reco file itself" << std::endl;
+        fChain->Add(name.c_str());
+    }
+    tempFile.Close();
+    myDir->cd();
+
 
 	if(fRecoSummaryChain != 0x0)
 	{

@@ -141,6 +141,12 @@ public:
     Bool_t GetUseCustomSpeedOfLight() const;
 
     /**
+     * @brief Get whether the fitter should save full copy of the WCSimRootEvent fitted, or a link to the original file
+     *
+     * @return True if the fitter saves a full copy, false if it just links to the file
+     */
+    Bool_t GetSaveWCSimRootEvent() const;
+    /**
      * We can work out the speed of light by averaging the refractive index against the
      * photon wavelength spectrum but this doesn't account for scattering etc. that
      * effectively slows it down (by increasing path length to the PMT
@@ -195,6 +201,18 @@ public:
      * @input speed Speed at which light travels, as a fraction of c
      */
     void SetCustomSpeedOfLight(const Double_t &speed);
+
+    
+    /**
+     * @brief Can either save a full copy of the WCSimRootEvent or a TNamed whose name
+     * tells you where to find the original ROOT file
+     *
+     * @param doIt True saves the WCSimRootEvent, false saves the TNamed that links to the original
+     */
+    void SetSaveWCSimRootEvent(Bool_t doIt = true);
+
+
+
 
 private:
     /// Read the configuration text file specified in WCSimAnalysisConfig::fConfName
@@ -261,6 +279,7 @@ private:
     Bool_t        fUseCustomSpeedOfLight;      ///< Normally we assume light travels at c/(average n) - this allows us to switch and set it manually
     Bool_t        fUseFittedSpeedOfLight;      ///< Normally we assume light travels at c/(average n) - this uses a fitted speed instead
     Bool_t        fEqualiseChargeAndTime;      ///< After we've seeded the vertex, energy and time, we can scale the time likelihood to weight it the same as the charge
+    Bool_t        fSaveWCSimRootEvent;   ///< Whether to save a full copy of the WCSimRootEvent fitted, or just a link to the original file
     Double_t      fCustomParticleSpeed;        ///< The speed of the propagating particle as a fraction of c       
     Double_t      fCustomSpeedOfLight;         ///< The speed of the propagating particle as a fraction of c       
     Double_t      fFittedSpeedOfLight;         ///< The effective speed of light from our fit as a fraction of c

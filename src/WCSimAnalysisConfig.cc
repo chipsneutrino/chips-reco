@@ -33,6 +33,7 @@ WCSimAnalysisConfig::WCSimAnalysisConfig()
     fUseTime                   = true; 
     fUseHoughFitterForSeed	   = true;
     fUseScatteringTable        = true;
+    fSaveWCSimRootEvent  = false;
 
     fUseCustomParticleSpeed    = false;
     fCustomParticleSpeed       = 1.0;
@@ -175,6 +176,11 @@ Double_t WCSimAnalysisConfig::GetFittedSpeedOfLight() const
 Bool_t WCSimAnalysisConfig::GetEqualiseChargeAndTime() const
 {
     return fEqualiseChargeAndTime;
+}
+
+Bool_t WCSimAnalysisConfig::GetSaveWCSimRootEvent() const
+{
+    return fSaveWCSimRootEvent;
 }
 
 void WCSimAnalysisConfig::LoadConfig()
@@ -564,6 +570,23 @@ void WCSimAnalysisConfig::SetFromMap()
               exit(EXIT_FAILURE);
             }
        }
+       else if((*itr).first.compare("SaveWCSimRootEvent") == 0)
+       {
+            if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+            {
+                fSaveWCSimRootEvent = true;
+            }
+            else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+            {
+                fSaveWCSimRootEvent = false;
+            }
+            else
+            {
+              std::cerr << "Error: " << (*itr).first << " = " << (*itr).second 
+                           << " should equal true/false or 1/0" << std::endl;
+              exit(EXIT_FAILURE);
+            }
+       }
     }
     fMap.clear();
 }
@@ -653,5 +676,12 @@ void WCSimAnalysisConfig::SetCustomSpeedOfLight(const Double_t& speed)
 
 void WCSimAnalysisConfig::SetEqualiseChargeAndTime(Bool_t doIt)
 {
+    std::cout << " *** WCSimAnalysisConfig::SetEqualiseChargeAndTime to " << doIt << std::endl;
     fEqualiseChargeAndTime = doIt;
+}
+
+void WCSimAnalysisConfig::SetSaveWCSimRootEvent(Bool_t doIt)
+{
+    std::cout << " *** WCSimAnalysisConfig::SetSaveWCSimRootEvent to " << doIt << std::endl;
+    fSaveWCSimRootEvent = doIt;
 }
