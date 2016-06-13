@@ -917,6 +917,14 @@ void WCSimRecoEvDisplay::FillPlotsFromRecoFile() {
   this->CalculateChargeAndTimeBins();
   this->ResetGraphs();
 
+  std::string zTitle = "Charge (p.e.)";
+  if(fViewType == 1){
+    zTitle = "Time (ns)";
+  }
+  fBarrelHist->GetZaxis()->SetTitle(zTitle.c_str());
+  fTopHist->GetZaxis()->SetTitle(zTitle.c_str());
+  fBottomHist->GetZaxis()->SetTitle(zTitle.c_str());
+
   // Now loop through again and fill things
 	for (int i=0;i<nDigiHits;i++)
 	{
@@ -942,19 +950,7 @@ void WCSimRecoEvDisplay::FillPlotsFromRecoFile() {
 		double pmtT = wcSimDigiHit->GetT();
 		// Set the z-axis to be charge or time.
 		double colourAxis = pmtQ;
-    fBarrelHist->GetZaxis()->SetTitle("Charge (p.e.)");
-		if(fViewType == 1){
-      colourAxis = pmtT;
-      fBarrelHist->GetZaxis()->SetTitle("Time (ns)");
-    }
-    fTopHist->GetZaxis()->SetTitle("Charge (p.e.)");
-		if(fViewType == 1){
-      fTopHist->GetZaxis()->SetTitle("Time (ns)");
-    }
-    fBottomHist->GetZaxis()->SetTitle("Charge (p.e.)");
-		if(fViewType == 1){
-      fBottomHist->GetZaxis()->SetTitle("Time (ns)");
-    }
+
 
     // Make sure we pass the charge cut
     if(pmtQ > fChargeCut){
@@ -1422,10 +1418,25 @@ void WCSimRecoEvDisplay::FillPlotsFromLikelihood(){
     if(lnlVal < fLnLMin) fLnLMin = lnlVal; 
     if(lnlVal > fLnLMax) fLnLMax = lnlVal; 
   }
-  // Let's keep the min at zero for now.
-  fLnLMin = 0;
+  // If the min and max values are the same then shout as we have this component switched off.
+  bool setToZero = false;
+  if(fLnLMin == fLnLMax){
+    std::cerr << "Warning: likelihood components not set, displaying 0 for all PMTs." << std::endl;
+    setToZero = true;
+    fLnLMin = 0;
+    fLnLMax = 1;
+  }
+  else{
+    // Let's keep the min at zero for now.
+    fLnLMin = 0;
+  }
   this->CalculateLnLBins();
   this->ResetGraphs();
+
+  std::string zTitle = "LogLikelihood";
+  fBarrelHist->GetZaxis()->SetTitle(zTitle.c_str());
+  fTopHist->GetZaxis()->SetTitle(zTitle.c_str());
+  fBottomHist->GetZaxis()->SetTitle(zTitle.c_str());
 
   // Loop over the chain to fill the plots
   for(int i = 0; i < fHitComparisonChain->GetEntries(); ++i){
@@ -1437,15 +1448,19 @@ void WCSimRecoEvDisplay::FillPlotsFromLikelihood(){
 
     // Check which bin this value of LnL should go in
     unsigned int bin = this->GetLnLBin(lnlVal);
+    if(setToZero){
+      bin = 1;
+      
+    }
 
     pmtID++; // Looks like we have the off-by-one problem again
 
     // Get the PMT from the geometry. The coordinates are stored in the tree
     // but it is convenient to use the pmt to find out the region.
 		WCSimRootPMT pmt = geo->GetPMTFromTubeID(pmtID);
-		double pmtX = pmt.GetPosition(0);
-		double pmtY = pmt.GetPosition(1);
-		double pmtZ = pmt.GetPosition(2);
+		double pmtX = pmt.GetPosition(0) * 0.01;
+		double pmtY = pmt.GetPosition(1) * 0.01;
+		double pmtZ = pmt.GetPosition(2) * 0.01;
 		double pmtPhi = TMath::ATan2(pmtY,pmtX);
     // Top cap
 		if(pmt.GetCylLoc() == 0){
@@ -1539,6 +1554,14 @@ void WCSimRecoEvDisplay::FillPlotsFromRMT(){
   this->CalculateRMTBins();
   this->ResetGraphs();
 
+  std::string zTitle = "(Reco - True) Charge (p.e.)";
+  if(fViewType == 1){
+    zTitle = "(Reco - True) Time (ns)";
+  }
+  fBarrelHist->GetZaxis()->SetTitle(zTitle.c_str());
+  fTopHist->GetZaxis()->SetTitle(zTitle.c_str());
+  fBottomHist->GetZaxis()->SetTitle(zTitle.c_str());
+
   // Make the two 1D histograms
   if(fChargeRMTHist != 0x0){
     delete fChargeRMTHist;
@@ -1577,9 +1600,9 @@ void WCSimRecoEvDisplay::FillPlotsFromRMT(){
     // Get the PMT from the geometry. The coordinates are stored in the tree
     // but it is convenient to use the pmt to find out the region.
 		WCSimRootPMT pmt = geo->GetPMTFromTubeID(pmtID);
-		double pmtX = pmt.GetPosition(0);
-		double pmtY = pmt.GetPosition(1);
-		double pmtZ = pmt.GetPosition(2);
+		double pmtX = pmt.GetPosition(0) * 0.01;
+		double pmtY = pmt.GetPosition(1) * 0.01;
+		double pmtZ = pmt.GetPosition(2) * 0.01;
 		double pmtPhi = TMath::ATan2(pmtY,pmtX);
 
     // Top cap
