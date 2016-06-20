@@ -175,20 +175,16 @@ void WCSimFitterTrackParMap::FixOrFreeVertex(bool fixIt, int track) {
 		TrackAndType myVtxX(iTrack, FitterParameterType::kVtxX);
 		TrackAndType myVtxY(iTrack, FitterParameterType::kVtxY);
 		TrackAndType myVtxZ(iTrack, FitterParameterType::kVtxZ);
-		TrackAndType myVtxT(iTrack, FitterParameterType::kVtxT);
 
-    if(!fAlwaysFixed.at(fTrackAndTypeIndexMap[myVtxX])){
-		  fCurrentlyFixed.at(fTrackAndTypeIndexMap[myVtxX]) = fixIt;
-    }
-    if(!fAlwaysFixed.at(fTrackAndTypeIndexMap[myVtxY])){
-		  fCurrentlyFixed.at(fTrackAndTypeIndexMap[myVtxY]) = fixIt;
-    }
-    if(!fAlwaysFixed.at(fTrackAndTypeIndexMap[myVtxZ])){
-		  fCurrentlyFixed.at(fTrackAndTypeIndexMap[myVtxZ]) = fixIt;
-    }
-    if(!fAlwaysFixed.at(fTrackAndTypeIndexMap[myVtxT])){
-		  fCurrentlyFixed.at(fTrackAndTypeIndexMap[myVtxT]) = fixIt;
-    }
+        if(!fAlwaysFixed.at(fTrackAndTypeIndexMap[myVtxX])){
+	    	  fCurrentlyFixed.at(fTrackAndTypeIndexMap[myVtxX]) = fixIt;
+        }
+        if(!fAlwaysFixed.at(fTrackAndTypeIndexMap[myVtxY])){
+	    	  fCurrentlyFixed.at(fTrackAndTypeIndexMap[myVtxY]) = fixIt;
+        }
+        if(!fAlwaysFixed.at(fTrackAndTypeIndexMap[myVtxZ])){
+	    	  fCurrentlyFixed.at(fTrackAndTypeIndexMap[myVtxZ]) = fixIt;
+        }
 	}
 }
 
