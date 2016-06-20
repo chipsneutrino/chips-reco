@@ -151,6 +151,8 @@ void WCSimFitterTree::MakeTree() {
   fHitComparisonTree->Branch("correctPredQ",&(fHitComparison->correctPredQ));
   fHitComparisonTree->Branch("minus2LnL",&(fHitComparison->minus2LnL));
   fHitComparisonTree->Branch("correctMinus2LnL",&(fHitComparison->correctMinus2LnL));
+  fHitComparisonTree->Branch("hit2LnL",&(fHitComparison->hit2LnL));
+  fHitComparisonTree->Branch("correctHit2LnL",&(fHitComparison->correctHit2LnL));
   fHitComparisonTree->Branch("charge2LnL",&(fHitComparison->charge2LnL));
   fHitComparisonTree->Branch("correctCharge2LnL",&(fHitComparison->correctCharge2LnL));
 
@@ -378,6 +380,8 @@ void WCSimFitterTree::FillHitComparison(
     const std::vector<double>& correctPredictedTimes,
 		const std::vector<double>& total2LnLs,
 		const std::vector<double>& correct2LnLs,
+		const std::vector<double>& h2LnLs,
+		const std::vector<double>& correctH2LnLs,
 		const std::vector<double>& q2LnLs,
 		const std::vector<double>& correctQ2LnLs,
 		const std::vector<double>& t2LnLs,
@@ -397,6 +401,8 @@ void WCSimFitterTree::FillHitComparison(
                         correctPredictedCharges.at(iPMT),
                         total2LnLs.at(iPMT),
                         correct2LnLs.at(iPMT),
+                        h2LnLs.at(iPMT),
+                        correctH2LnLs.at(iPMT),
                         q2LnLs.at(iPMT),
                         correctQ2LnLs.at(iPMT),
                         t2LnLs.at(iPMT),

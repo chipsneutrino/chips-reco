@@ -67,6 +67,25 @@ class WCSimTotalLikelihood : public TObject
        */
       std::vector<Double_t> CalcPredictedCharges(unsigned int iDigit);
 
+
+      /**
+       * @brief Given some predicted charge, calculate the probability that a PMT was actually hit
+       *
+       * @param predictedCharge The predicted mean number of p.e.
+       *
+       * @return Probability that the number of p.e. measured was non-zero
+       */
+      Double_t GetHit2LnL(double predictedCharge);
+
+      /**
+       * @brief Given some predicted charge, calcualte the probability that a PMT was not hit
+       *
+       * @param predictedCharge The predicted mean number of p.e.
+       *
+       * @return Probability that the number of p.e. measured was zero
+       */
+      Double_t GetUnhit2LnL(double predictedCharge);
+
       void SetLikelihoodDigitArray(WCSimLikelihoodDigitArray * likelihoodDigitArray);
 
       void SetTimeScaleFactor(double scaleFactor = 1.0);
@@ -75,9 +94,11 @@ class WCSimTotalLikelihood : public TObject
       std::vector<double> GetMeasuredChargeVector() const;
       std::vector<double> GetPredictedChargeVector() const;
       std::vector<double> GetTotal2LnLVector() const;
+      std::vector<double> GetHit2LnLVector() const; // Component detailing whether or not a PMT was hit
       std::vector<double> GetCharge2LnLVector() const; // Leigh: Get the charge component only
       std::vector<double> GetTime2LnLVector() const; // Leigh: Get the time component only
       std::vector<double> GetPredictedTimeVector() const;
+      double GetLastHit2LnL() const;
       double GetLastTime2LnL() const;
       double GetLastCharge2LnL() const;
       double GetLastTotal2LnL() const;
@@ -103,6 +124,7 @@ class WCSimTotalLikelihood : public TObject
       std::vector<double> fTotal2LnL;
       std::vector<double> fCharge2LnL; // Leigh: Store the charge part only
       std::vector<double> fTime2LnL; // Leigh: Store the time part only
+      std::vector<double> fHit2LnL; // Likelihood that a hit PMT was hit or an unhit PMT was unhit
       WCSimEmissionProfileManager * fEmissionProfileManager;
 
 

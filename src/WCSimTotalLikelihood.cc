@@ -151,17 +151,36 @@ Double_t WCSimTotalLikelihood::Calc2LnL(int iDigit)
   WCSimLikelihoodDigit *digit = fLikelihoodDigitArray->GetDigit(iDigit);
   double minus2LnL = 0.0;
   double totalCharge = -999.9;
-    // if(digit->GetQ() == 0) { return 0; }
-  // std::cout << "Size of predicted charge vector = " << predictedCharges.size() << std::endl;
-  //  for(unsigned int i = 0; i<predictedCharges.size(); ++i)
-  //  {
-  //    std::cout << "predictedCharges[" << i << "] = " << predictedCharges.at(i) << std::endl;
-  //  }
   double timePart = 0, chargePart = 0;
+  bool wasHit = (digit->GetQ() > 0);
 
+
+  // Total log-likelihood is:
+  // ========================
+  // if hit:    P_hit * P(charge = Q | hit) * P(time = t | hit)
+  // if unihit: P_unhit
+
+
+  // Probability for being hit or unhit
+  // ==================================
+  totalCharge = CalcPredictedCharge(iDigit);
+  double hitUnhit2LnL = 0.0;
+  // if(wasHit)
+  // { 
+  //    hitUnhit2LnL = GetHit2LnL(totalCharge);
+  // }
+  // else
+  // {
+  //   hitUnhit2LnL = GetUnhit2LnL(totalCharge);
+  // }
+  fHit2LnL.at(iDigit) = hitUnhit2LnL;
+  // minus2LnL += hitUnhit2LnL;
+
+
+  // Charge component of the likelihoods
+  // ===================================
   if( WCSimAnalysisConfig::Instance()->GetUseCharge())
   {
-	  totalCharge = CalcPredictedCharge(iDigit);
 	  if( TMath::IsNaN( totalCharge ) )
 	  {
 		return -99999;
@@ -177,6 +196,8 @@ Double_t WCSimTotalLikelihood::Calc2LnL(int iDigit)
 	  fCharge2LnL.at(iDigit) = -999.9;
   }
 
+  // Time component of the likelihoods
+  // =================================
   if( WCSimAnalysisConfig::Instance()->GetUseTime())
   {
 	  timePart = 0.0;
@@ -223,11 +244,13 @@ void WCSimTotalLikelihood::ClearVectors() {
 	  fTotal2LnL.clear();
 	  fCharge2LnL.clear();
 	  fTime2LnL.clear();
+      fHit2LnL.clear();
 	  fMeasuredCharges.resize(fLikelihoodDigitArray->GetNDigits());
 	  fPredictedCharges.resize(fLikelihoodDigitArray->GetNDigits());
 	  fTotal2LnL.resize(fLikelihoodDigitArray->GetNDigits(), 0.0);
 	  fCharge2LnL.resize(fLikelihoodDigitArray->GetNDigits(), 0.0);
 	  fTime2LnL.resize(fLikelihoodDigitArray->GetNDigits(), 0.0);
+	  fHit2LnL.resize(fLikelihoodDigitArray->GetNDigits(), 0.0);
 }
 
 std::vector<double> WCSimTotalLikelihood::GetMeasuredChargeVector() const {
@@ -301,6 +324,15 @@ std::vector<double> WCSimTotalLikelihood::GetTime2LnLVector() const {
 	return fTime2LnL;
 }
 
+std::vector<double> WCSimTotalLikelihood::GetHit2LnLVector() const {
+    if( !fSetVectors )
+    {
+		std::cerr << "Error: You're asking for the hit 2LnL vector, but this hasn't been set" << std::endl;
+		std::cerr << "       Have you reset the tracks or likelihood digit array since calculating the likelihood?" << std::endl;
+		assert(fSetVectors);
+	}
+    return fHit2LnL;
+}
 
 WCSimEmissionProfileManager * WCSimTotalLikelihood::GetEmissionProfileManager()
 {
@@ -323,7 +355,24 @@ double WCSimTotalLikelihood::GetLastTime2LnL() const
     return std::accumulate(fTime2LnL.begin(), fTime2LnL.end(), 0.0);
 }
 
+double WCSimTotalLikelihood::GetLastHit2LnL() const
+{
+    return std::accumulate(fHit2LnL.begin(), fHit2LnL.end(), 0.0);
+}
+
 double WCSimTotalLikelihood::GetLastTotal2LnL() const
 {
     return std::accumulate(fTotal2LnL.begin(), fTotal2LnL.end(), 0.0);
 }
+
+double WCSimTotalLikelihood::GetHit2LnL(double predictedCharge)
+{
+    return 0;
+    return -2.0*TMath::Log(1-TMath::Exp(-predictedCharge));
+}
+
+double WCSimTotalLikelihood::GetUnhit2LnL(double predictedCharge)
+{
+    return 2*predictedCharge;
+}
+
