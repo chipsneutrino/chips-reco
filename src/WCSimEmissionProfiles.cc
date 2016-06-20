@@ -389,7 +389,7 @@ Double_t WCSimEmissionProfiles::GetLightFlux(
     case TrackType::PhotonLike:
       // Fall through to ElectronLike
     case TrackType::ElectronLike:
-      nPhotons = 198.152*383.238*energy;
+      nPhotons = 198.152 + 383.238*energy;
       if(nPhotons > 0){ flux = nPhotons; }
       break;
     default:
