@@ -25,7 +25,7 @@ class WCSimDigitizerLikelihood
       /// Enumerate the different models for digitising PMT hits
       enum DigiType_t
       {
-        kSimple, /// A simple Poisson likelihood
+        kPoisson, /// A simple Poisson likelihood
         kSK1pe,  /// A method derived from the default WCSim digitiser that samples the SK 1pe distribution
         kPMTSim, /// A method using the full dynode chain simulation
         kUnknown /// Error state
@@ -96,7 +96,7 @@ class WCSimDigitizerLikelihood
        * @param digi Digitized P.E. recorded by the PMT
        * @return -2log(likelihood) of getting the recorded P.E.
        */
-      Double_t GetSimpleMinus2LnL( const Double_t &undigi, const Double_t &digi );
+      Double_t GetPoissonMinus2LnL( const Double_t &undigi, const Double_t &digi );
 
       /**
        * Calculate the likelihood for measured charge, assuming a
@@ -105,7 +105,7 @@ class WCSimDigitizerLikelihood
        * @param digi Digitized P.E. recorded by the PMT
        * @return likelihood of getting the recorded P.E.
        */
-      Double_t GetSimpleLikelihood( const Double_t &undigi, const Double_t &digi );
+      Double_t GetPoissonLikelihood( const Double_t &undigi, const Double_t &digi );
 
       /**
        * Mean digitized P.E. returned by the PMT for a given predicted mean
@@ -114,7 +114,7 @@ class WCSimDigitizerLikelihood
        * @param undigi Predicted mean number of photoelectrons at PMT
        * @return Most-likely resulting digitized P.E.
        */
-      Double_t GetSimpleExpectation( const Double_t & undigi );
+      Double_t GetPoissonExpectation( const Double_t & undigi );
       
 
       /**

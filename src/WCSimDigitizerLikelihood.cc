@@ -23,7 +23,7 @@ WCSimDigitizerLikelihood::WCSimDigitizerLikelihood() : fType(kUnknown), fSK1peFi
 													   fPMTSimFile(NULL), fPMTSimHist(NULL), fEfficiency(1.0)
 {
 
-  fDigiTypeNames["kSimple"]  = kSimple;
+  fDigiTypeNames["kPoisson"]  = kPoisson;
   fDigiTypeNames["kSK1pe"]   = kSK1pe;
   fDigiTypeNames["kPMTSim"]  = kPMTSim;
   fDigiTypeNames["kUnknown"] = kUnknown;
@@ -105,9 +105,9 @@ Double_t WCSimDigitizerLikelihood::GetMinus2LnL( const Double_t &undigi, const D
   double m2LnL = 25.0;
   switch( fType )
   {
-    case WCSimDigitizerLikelihood::kSimple:
+    case WCSimDigitizerLikelihood::kPoisson:
     {
-      m2LnL = this->GetSimpleMinus2LnL( undigi, digi );
+      m2LnL = this->GetPoissonMinus2LnL( undigi, digi );
       break;
     }
     case WCSimDigitizerLikelihood::kSK1pe:
@@ -129,7 +129,7 @@ Double_t WCSimDigitizerLikelihood::GetMinus2LnL( const Double_t &undigi, const D
     {
       std::cout << "Digitizer type is " << fType << std::endl;
       assert(    fType == WCSimDigitizerLikelihood::kSK1pe
-    		  || fType == WCSimDigitizerLikelihood::kSimple
+    		  || fType == WCSimDigitizerLikelihood::kPoisson
 			  || fType == WCSimDigitizerLikelihood::kPMTSim);
       break;
     }
@@ -144,9 +144,9 @@ Double_t WCSimDigitizerLikelihood::GetLikelihood( const Double_t &undigi, const 
 {
   switch( fType )
   {
-    case WCSimDigitizerLikelihood::kSimple:
+    case WCSimDigitizerLikelihood::kPoisson:
     {
-      return this->GetSimpleLikelihood( undigi, digi );
+      return this->GetPoissonLikelihood( undigi, digi );
       break;
     }
     case WCSimDigitizerLikelihood::kSK1pe:
@@ -156,7 +156,7 @@ Double_t WCSimDigitizerLikelihood::GetLikelihood( const Double_t &undigi, const 
     }
     default:
     {
-      assert(fType == WCSimDigitizerLikelihood::kSK1pe || fType == WCSimDigitizerLikelihood::kSimple);
+      assert(fType == WCSimDigitizerLikelihood::kSK1pe || fType == WCSimDigitizerLikelihood::kPoisson);
     }
   }
 
@@ -168,9 +168,9 @@ Double_t WCSimDigitizerLikelihood::GetExpectation( const Double_t &undigi )
 {
   switch( fType )
   {
-    case WCSimDigitizerLikelihood::kSimple:
+    case WCSimDigitizerLikelihood::kPoisson:
     {
-      return this->GetSimpleExpectation( undigi );
+      return this->GetPoissonExpectation( undigi );
       break;
     }
     case WCSimDigitizerLikelihood::kSK1pe:
@@ -180,7 +180,7 @@ Double_t WCSimDigitizerLikelihood::GetExpectation( const Double_t &undigi )
     }
     default:
     {
-      assert(fType == WCSimDigitizerLikelihood::kSK1pe || fType == WCSimDigitizerLikelihood::kSimple);
+      assert(fType == WCSimDigitizerLikelihood::kSK1pe || fType == WCSimDigitizerLikelihood::kPoisson);
     }
   }
 
@@ -469,7 +469,7 @@ Double_t WCSimDigitizerLikelihood::GetWCSimExpectation( const Double_t &undigi )
 
 
 
-Double_t WCSimDigitizerLikelihood::GetSimpleLikelihood(const Double_t &undigi, const Double_t &digi)
+Double_t WCSimDigitizerLikelihood::GetPoissonLikelihood(const Double_t &undigi, const Double_t &digi)
 {
   // std::cout << "Digi = " << digi << "   and undigi = " << undigi << std::endl;
   Double_t prob = TMath::Poisson( digi, undigi );
@@ -477,15 +477,15 @@ Double_t WCSimDigitizerLikelihood::GetSimpleLikelihood(const Double_t &undigi, c
   return prob;
 }
 
-Double_t WCSimDigitizerLikelihood::GetSimpleMinus2LnL( const Double_t &undigi, const Double_t &digi )
+Double_t WCSimDigitizerLikelihood::GetPoissonMinus2LnL( const Double_t &undigi, const Double_t &digi )
 {
     return -2.0 * ( digi * TMath::Log(undigi) - undigi - TMath::LnGamma(digi+1));
-  Double_t prob = this->GetSimpleLikelihood( undigi, digi );
+  Double_t prob = this->GetPoissonLikelihood( undigi, digi );
   if(prob > 1e-40){ return -2.0 * TMath::Log(prob);}
   return -(digi * TMath::Log(undigi) - undigi - TMath::LnGamma(digi+1));
 }
 
-Double_t WCSimDigitizerLikelihood::GetSimpleExpectation( const Double_t &undigi )
+Double_t WCSimDigitizerLikelihood::GetPoissonExpectation( const Double_t &undigi )
 {
   return undigi;
 }
