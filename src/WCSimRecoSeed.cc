@@ -23,7 +23,7 @@
 
 ClassImp(WCSimRecoSeed)
 
-WCSimRecoSeed::WCSimRecoSeed()
+WCSimRecoSeed::WCSimRecoSeed() : fDirBeforeRings(0,0,0)
 {
   fNTracks = 9999;
 }
@@ -43,6 +43,8 @@ void WCSimRecoSeed::Run()
 }
 
 void WCSimRecoSeed::Run(WCSimRecoEvent* myEvent){
+
+  
   // filter digits
   // =============
   this->RunFilter(myEvent);
@@ -149,10 +151,12 @@ void WCSimRecoSeed::RunRecoVertex(WCSimRecoEvent* myEvent)
   // Get Vertex Finder
   // =================
   WCSimVertexFinder* myVertexFinder = WCSimVertexFinder::Instance();
+  myVertexFinder->SimpleVertexOnly();
 
   // Run Vertex Finder
   // =================
   WCSimRecoVertex* myVertex = (WCSimRecoVertex*)(myVertexFinder->Run(myEvent));
+  
   
   // Set Vertex
   // ==========
@@ -170,6 +174,12 @@ void WCSimRecoSeed::RunRecoVertex(WCSimRecoEvent* myEvent)
                           myVertex->GetDirY(),
                           myVertex->GetDirZ());
   }
+
+  // Keep direction for later
+  // ========================
+  fDirBeforeRings.SetXYZ(myVertex->GetDirX(), 
+                         myVertex->GetDirY(), 
+                         myVertex->GetDirZ());
 
   // Set FoM
   // =======

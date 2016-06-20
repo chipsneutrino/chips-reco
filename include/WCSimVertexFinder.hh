@@ -18,6 +18,7 @@ class WCSimVertexFinder : public TObject {
   static WCSimVertexFinder* Instance();
 
   static void PointFitOnly(Bool_t yesno = 1);
+  static void SimpleVertexOnly(Bool_t yesno = 1);
   static void UseTrueVertex(Bool_t yesno = 1);
   static void UseTruePosition(Bool_t yesno = 1);
   static void UseTrueDirection(Bool_t yesno = 1);
@@ -40,6 +41,7 @@ class WCSimVertexFinder : public TObject {
   void RunPrintParameters();
 
   void SetPointFitOnly(Bool_t yesno) { fPointFitOnly = yesno; }
+  void SetSimpleVertexOnly(Bool_t yesno) { fSimpleVertexOnly = yesno; }
   void UsingTrueVertex(Bool_t yesno) { fUseTrueVertex = yesno; }
   void UsingTruePosition(Bool_t yesno) { fUseTruePosition = yesno; }
   void UsingTrueDirection(Bool_t yesno) { fUseTrueDirection = yesno; }
@@ -69,6 +71,7 @@ class WCSimVertexFinder : public TObject {
 
   // Run Vertex Fitter
   WCSimRecoVertex* Run(WCSimRecoEvent* event);
+  WCSimRecoVertex* RunSimpleFit(WCSimRecoEvent* event);
   WCSimRecoVertex* RunPointFit(WCSimRecoEvent* event);
   WCSimRecoVertex* RunExtendedFit(WCSimRecoEvent* event);
  
@@ -232,6 +235,7 @@ class WCSimVertexFinder : public TObject {
 
   Double_t fBaseFOM;
   Bool_t fPointFitOnly;
+  Bool_t fSimpleVertexOnly;
   Bool_t fUseTrueVertex;
   Bool_t fUseTruePosition;
   Bool_t fUseTrueDirection;

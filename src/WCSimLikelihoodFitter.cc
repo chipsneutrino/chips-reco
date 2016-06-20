@@ -428,102 +428,74 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
         FreeEnergy();
       }
       
+      std::cout << "FITTTER STAGE 1 - Take seed, fit time (time-only)" << std::endl;
       if(usingTime)
       {
-          std::cout << "Fitting time only" << std::endl;
+          WCSimAnalysisConfig::Instance()->SetUseTimeOnly();
+          FreeTime();
           FixVertex();
           FixDirection();
           FixEnergy();
-          FreeTime();
           FitTime();
           FreeVertex();
-          FreeDirection();
           FreeEnergy();
+          if(usingCharge){ WCSimAnalysisConfig::Instance()->SetUseChargeAndTime(); }
+      }
+      else
+      {
+          std::cout << "  - Not using time - skipping this stage  - " << std::endl;
       }
 		
-      // Now fit the energy
-      std::cout << "Fitting energy only" << std::endl;
+
+      std::cout << "FITTER STAGE 2 - Take time-corrected seed, fit energy" << std::endl;
+      FreeEnergy();
       FixVertex();
       FixDirection();
       FixTime();
       FitEnergy();
-      FreeVertex();
-      FreeDirection();
       FreeTime();
-
-      if(usingTime)
-      {
-          std::cout << "Fitting time only" << std::endl;
-          FixVertex();
-          FixDirection();
-          FixEnergy();
-          FreeTime();
-          FitTime();
-          FreeVertex();
-          FreeDirection();
-          FreeEnergy();
+      FreeDirection();
+      FreeVertex();
+          
       
-          if(    WCSimAnalysisConfig::Instance()->GetEqualiseChargeAndTime()
-              && usingCharge )    
-          {
-              std::vector<double> time2LnLVec = fTotalLikelihood->GetTime2LnLVector();
-              std::vector<double> charge2LnLVec = fTotalLikelihood->GetCharge2LnLVector();
-              double time2LnL = std::accumulate(time2LnLVec.begin(), time2LnLVec.end(), 0.0);
-              double charge2LnL = std::accumulate(charge2LnLVec.begin(), charge2LnLVec.end(), 0.0);
+      if(    WCSimAnalysisConfig::Instance()->GetEqualiseChargeAndTime()
+          && usingCharge 
+          && usingTime)    
+      {
+          std::cout << "EQUALISING CHARGE AND TIME" << std::endl;
+          std::vector<double> time2LnLVec = fTotalLikelihood->GetTime2LnLVector();
+          std::vector<double> charge2LnLVec = fTotalLikelihood->GetCharge2LnLVector();
+          double time2LnL = std::accumulate(time2LnLVec.begin(), time2LnLVec.end(), 0.0);
+          double charge2LnL = std::accumulate(charge2LnLVec.begin(), charge2LnLVec.end(), 0.0);
 
-              double scaleFactor = 1;
-              if( charge2LnL > 0 && time2LnL > 0)
-              {
-                  scaleFactor = charge2LnL / time2LnL;
-              }
-              fTotalLikelihood->SetTimeScaleFactor(scaleFactor);
+          double scaleFactor = 1;
+          if( charge2LnL > 0 && time2LnL > 0)
+          {
+              scaleFactor = charge2LnL / time2LnL;
           }
-      
-          // Fix the directions and energy and move the vertex
-          // along the (average) momentum vector (helps because the seed
-          // often gets this wrong in the direction of the track by 
-          // changing the cone angle)
-          //
-          // Iterate a few times...
-          for(int time = 0; time < 3; ++time)
-          {
-            std::cout << "Fitting along track, iteration " << time << std::endl;
-            FixDirection();
-            FreeTime();
-            FixEnergy();
-            FitAlongTrack();
-            FreeEnergy();
-            // MetropolisHastingsAlongTrack(250);
-            FreeDirection();
-            
-            FixVertex();
-            FixDirection();
-            FixTime();
-            FitEnergy();
-            FreeVertex();
-            FreeDirection();
-            FreeTime();
-        }
+          fTotalLikelihood->SetTimeScaleFactor(scaleFactor);
       }
-      else
+
+      std::cout << "FITTER STAGE 3 - Iteratively correct direction and fit along track" << std::endl;
+      for(int times = 0; times < 2; ++times)
       {
-          std::cout << "Not using the time likelihood" << std::endl;
-          // Fix the directions and energy and move the vertex
-          // along the (average) momentum vector (helps because the seed
-          // often gets this wrong in the direction of the track by 
-          // changing the cone angle)
-          std::cout << "Fitting along track" << std::endl;
           FixDirection();
-          FixTime();
-          FreeEnergy();
           FitAlongTrack();
           FreeDirection();
+
+          FixVertex();
+          FixEnergy();
+          FixTime();
+          Fit();
+          FreeVertex();
+          FreeEnergy();
           FreeTime();
       }
 
-
-  
+    
+      
       // Now freely fit the vertex and direction    
+      std::cout << "FITTER STAGE 4 - Completely free vertex fit" << std::endl;
       FitVertex();
 
       // Finesse the final fit result along the track.  The time likelihood
@@ -533,31 +505,39 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
       {
           // Fit energy and vertex position along track using charge
           WCSimAnalysisConfig::Instance()->SetUseChargeOnly();
-          FixDirection();
-          FixTime();
-          FitAlongTrack();
-          FreeDirection();
-          FreeTime();
-            
-          // Then fit energy
-          WCSimAnalysisConfig::Instance()->SetUseChargeAndTime();
-          FixVertex();
-          FixDirection();
-          FixTime();
-          FitEnergy();
-          FreeVertex();
-          FreeDirection();
-          FreeEnergy();
-
-          // Finally fit the time
-          FixVertex();
-          FixEnergy();
-          FixDirection();
-          FitTime();
-          FreeVertex();
-          FreeEnergy();
-          FreeTime();
+          std::cout << "FITTER STAGE 5 - Adjust along the track using charge only" << std::endl;
       }
+      else
+      {
+          std::cout << "FITTER STAGE 5 - Adjust along the track" << std::endl;
+      }
+
+      FixDirection();
+      FixTime();
+      FitAlongTrack();
+      FreeDirection();
+      FreeTime();
+            
+      // Then fit energy
+      if(usingCharge && usingTime){ WCSimAnalysisConfig::Instance()->SetUseChargeAndTime(); }
+      std::cout << "FITTER STAGE 6 - Final energy fit" << std::endl;
+      FixVertex();
+      FixDirection();
+      FixTime();
+      FitEnergy();
+      FreeVertex();
+      FreeDirection();
+      FreeEnergy();
+
+      // Finally fit the time
+      std::cout << "FITTER STAGE 7 - Final timing fit" << std::endl;
+      FixVertex();
+      FixEnergy();
+      FixDirection();
+      FitTime();
+      FreeVertex();
+      FreeEnergy();
+      FreeTime();
     }
 	fTrueLikelihoodTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
   }
@@ -638,6 +618,7 @@ void WCSimLikelihoodFitter::FillHitComparison() {
 	std::vector<double> predictedCharges = fTotalLikelihood->GetPredictedChargeVector();
 	std::vector<double> measuredCharges = fTotalLikelihood->GetMeasuredChargeVector();
 	std::vector<double> best2LnLs = fTotalLikelihood->GetTotal2LnLVector();
+    std::vector<double> hit2LnLs = fTotalLikelihood->GetHit2LnLVector();
 	std::vector<double> charge2LnLs = fTotalLikelihood->GetCharge2LnLVector();
 	std::vector<double> time2LnLs = fTotalLikelihood->GetTime2LnLVector();
   std::vector<double> predictedTimes = fTotalLikelihood->GetPredictedTimeVector();
@@ -648,10 +629,11 @@ void WCSimLikelihoodFitter::FillHitComparison() {
 	fTotalLikelihood->Calc2LnL();
 	std::vector<double> correctPredictedCharges = fTotalLikelihood->GetPredictedChargeVector();
 	std::vector<double> correctPredictedTimes = fTotalLikelihood->GetPredictedTimeVector();
+    std::vector<double> correctHit2LnLs = fTotalLikelihood->GetHit2LnLVector();
 	std::vector<double> correctCharge2LnLs = fTotalLikelihood->GetCharge2LnLVector();
 	std::vector<double> correctTime2LnLs = fTotalLikelihood->GetTime2LnLVector();
 	std::vector<double> correct2LnLs = fTotalLikelihood->GetTotal2LnLVector();
-	fFitterTree->FillHitComparison(fEvent, fLikelihoodDigitArray, predictedCharges, correctPredictedCharges, measuredCharges, predictedTimes, correctPredictedTimes, best2LnLs, correct2LnLs, charge2LnLs, correctCharge2LnLs, time2LnLs, correctTime2LnLs);
+	fFitterTree->FillHitComparison(fEvent, fLikelihoodDigitArray, predictedCharges, correctPredictedCharges, measuredCharges, predictedTimes, correctPredictedTimes, best2LnLs, correct2LnLs, hit2LnLs, correctHit2LnLs, charge2LnLs, correctCharge2LnLs, time2LnLs, correctTime2LnLs);
 
 }
 
@@ -851,6 +833,13 @@ void WCSimLikelihoodFitter::SeedEvent()
   WCSimRecoEvent* recoEvent = WCSimInterface::RecoEvent();
   std::vector<WCSimRecoEvent*> slicedEvents = myReco->RunSeed(recoEvent);
 
+  // Keep track of the direction associated with the vertex
+  // If the leading ring direction is a long way away from this something suspicious
+  // is going on and we can fall back to this direction instead
+  TVector3 vtxDir = myReco->GetDirBeforeRings();
+  std::cout << "Vertex direction after rings run " << std::endl;
+  vtxDir.Print();
+
   // Make a vector of all of the available rings we have. 
   std::vector<WCSimRecoRing*> ringVec;
   std::vector<std::pair<WCSimRecoRing*,double> > otherRings;
@@ -888,6 +877,25 @@ void WCSimLikelihoodFitter::SeedEvent()
       dirX = ringVec[iTrack]->GetDirX();
       dirY = ringVec[iTrack]->GetDirY();
       dirZ = ringVec[iTrack]->GetDirZ();
+
+      if(fFitterConfig->GetNumTracks() == 1){
+        TVector3 ringDir(dirX, dirY, dirZ);
+        std::cout << "RingDir = " << std::endl;
+        ringDir.Print();
+        std::cout << "And vtxDir = " << std::endl; 
+        vtxDir.Print(); 
+        std::cout << "So angle is " << ringDir.Angle(vtxDir) << " = " << ringDir.Angle(vtxDir) * TMath::RadToDeg() << std::endl;
+        if(ringDir.Angle(vtxDir) * TMath::RadToDeg() > 3){
+            std::cerr << "Warning: Direction for track is > 3 degrees different between naive vertex and Hough transform" << std::endl;
+            std::cerr << "This often indicates that something has gone wrong" << std::endl;
+            std::cerr << "Will use the vertex direction (" << vtxDir.X() << ", " << vtxDir.Y() << ", " << vtxDir.Z() << ")"
+                      << " instead of the Hough direction (" << dirX << ", " << dirY << ", " << dirZ << ")" << std::endl;
+            dirX = vtxDir.X();
+            dirY = vtxDir.Y();
+            dirZ = vtxDir.Z();
+        }
+      }
+
     }
     else{
       seedX = ringVec[0]->GetVtxX();
@@ -955,7 +963,7 @@ void WCSimLikelihoodFitter::SeedEvent()
   for(unsigned int v = 0; v < slicedEvents.size(); ++v){
     delete slicedEvents[v];
   }
-
+    
 }
 
 
@@ -1052,6 +1060,7 @@ void WCSimLikelihoodFitter::FitEnergyGridSearch()
 	double best2LnL = -999.9;
     double bestCharge2LnL = -999.9;
     double bestTime2LnL = -999.9;
+    double bestHit2LnL = -999.9;
 	std::vector<double> bestEnergies;
 
 	// Set everything to the default value
@@ -1091,6 +1100,7 @@ void WCSimLikelihoodFitter::FitEnergyGridSearch()
 				best2LnL = tempMin;
                 bestTime2LnL = fTotalLikelihood->GetLastTime2LnL();
                 bestCharge2LnL = fTotalLikelihood->GetLastCharge2LnL();
+                bestHit2LnL = fTotalLikelihood->GetLastHit2LnL();
 				isFirstLoop = false;
 				bestEnergies.clear();
 				// std::cout << "Pushing back for iBin = " << iBin << std::endl;
@@ -1904,6 +1914,8 @@ void WCSimLikelihoodFitter::FitAlongTrack()
     if(escapeDists[i] < 0 && escapeDists[i] > minVal){ minVal = escapeDists[i]; }
     if(escapeDists[i] > 0 && escapeDists[i] < maxVal){ maxVal = escapeDists[i]; }
   }
+  if(minVal < -500){ minVal = -500; }
+  if(maxVal > 500){ maxVal = 500; }
   std::cout << "MinVal = " << minVal << " and maxVal = " << maxVal << std::endl;
 
 
@@ -1971,7 +1983,7 @@ void WCSimLikelihoodFitter::FitAlongTrack()
   
   if(fixT == false && WCSimAnalysisConfig::Instance()->GetUseTime()) // Adjust the time
   {
-    min->SetLimitedVariable(minE.size()+1, "Time shift", 0, 1., -3, 3);
+    min->SetLimitedVariable(minE.size()+1, "Time shift", 0, 1., -5, 5);
   }
   else
   {
@@ -2520,3 +2532,4 @@ Double_t WCSimLikelihoodFitter::GetPenalty(const std::vector<WCSimLikelihoodTrac
     }
     return penalty;
 }
+

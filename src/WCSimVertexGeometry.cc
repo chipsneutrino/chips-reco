@@ -617,11 +617,13 @@ void WCSimVertexGeometry::CalcResiduals(Double_t vtxX, Double_t vtxY, Double_t v
   // loop over digits
   // ================
   for( Int_t idigit=0; idigit<fNDigits; idigit++ ){
+    // Vector from the vertex to the PMT
     Double_t dx = fDigitX[idigit]-vtxX;
     Double_t dy = fDigitY[idigit]-vtxY;
     Double_t dz = fDigitZ[idigit]-vtxZ;
     Double_t ds = sqrt(dx*dx+dy*dy+dz*dz);
 
+    // Direction vector from the vertex to the PMT
     Double_t px = dx/ds;
     Double_t py = dy/ds;
     Double_t pz = dz/ds;
@@ -639,13 +641,14 @@ void WCSimVertexGeometry::CalcResiduals(Double_t vtxX, Double_t vtxY, Double_t v
     // calculate angles if direction is known
     if( dirX*dirX + dirY*dirY + dirZ*dirZ>0.0 ){
 
-      // zenith angle
+      // zenith angle - angle from the track direction top the PMT, when viewed from vertex
       cosphi = px*dirX+py*dirY+pz*dirZ;
       phi = acos(cosphi); // radians
       phideg = phi/(TMath::Pi()/180.0); // radians->degrees
       sinphi = sqrt(1.0-cosphi*cosphi);
-      sinphi += 0.24*exp(-sinphi/0.24);
-      sinphi /= 0.684;  // sin(phideg)/sin(thetadeg)
+      sinphi += 0.24*exp(-sinphi/0.24);  
+      sinphi /= 0.684;  // sin(phideg)/sin(thetadeg) // Some parametrisation of solid angle, maybe? Guessing based on later variable names
+
 
       // azimuthal angle
       if( dirX*dirX+dirY*dirY>0.0 ){
@@ -662,25 +665,46 @@ void WCSimVertexGeometry::CalcResiduals(Double_t vtxX, Double_t vtxY, Double_t v
       azideg = atan2(ay,ax)/(TMath::Pi()/180.0); // radians->degrees
     }
 
-    Double_t Lpoint = ds;
+    Double_t Lpoint = ds;  // Distance from vertex to PMT
     Double_t Ltrack = 0.0;
     Double_t Lphoton = 0.0;
     Double_t Lscatter = 0.0;
  
+    /*
+     *  PMT
+     *   | `
+     *   |  \  ` 
+     *   |    \    ` 
+     *   |      \Lpho  `    Lpoint
+     *   |        \         ` 
+     *   |          \             `
+     *   |      theta \               phi`
+     *   --------------o<----------------------o vtx
+     *                          Ltrack
+     *
+     *  We're working out these distances
+     *
+     */
     if( phi<theta ){
+      // We have to go forward before we can emit and hit the PMTA
       Ltrack = Lpoint*sin(theta-phi)/sin(theta);
       Lphoton = Lpoint*sin(phi)/sin(theta);
       Lscatter = 0.0;
     }
     else{
+      // We can emit straight away
       Ltrack = 0.0;
       Lphoton = Lpoint;
+
+      // But we assume the light came out at the Cherenkov angle
+      // and had to be scattered the extra distance
       Lscatter = Lpoint*(phi-theta);
     }
 
     Double_t fC = WCSimParameters::SpeedOfLight();
     Double_t fN = WCSimParameters::RefractiveIndex(Lphoton);
 
+    // The total time taken to go from track vertex to PMT hit
     Double_t dt = fDigitT[idigit] - vtxTime;
     Double_t qpes = fDigitQ[idigit];
 
@@ -691,33 +715,32 @@ void WCSimVertexGeometry::CalcResiduals(Double_t vtxX, Double_t vtxY, Double_t v
       WCSimPMTConfig config = fPMTManager->GetPMTByName(std::string(pmtName.Data()));
       fPMTTimeConstantMap[pmtName] = config.GetTimeConstant();
     }
-//    Double_t res = WCSimParameters::TimeResolution(qpes);
-    Double_t res = WCSimParameters::WCSimTimeResolution(qpes,fPMTTimeConstantMap[pmtName]);
+    Double_t res = WCSimParameters::WCSimTimeResolution(qpes,fPMTTimeConstantMap[pmtName]); // PMT time resolution
 
-    fConeAngle[idigit] = thetadeg; // degrees
-    fZenith[idigit] = phideg;      // degrees
-    fAzimuth[idigit] = azideg;     // degrees
-    fSolidAngle[idigit] = sinphi;
+    fConeAngle[idigit] = thetadeg; // degrees (angle of Cherenkov cone)
+    fZenith[idigit] = phideg;      // degrees (angle from the vertex to the PMT wrt the track)
+    fAzimuth[idigit] = azideg;     // degrees (azimuthal angle angle around the ring from vertex to PMT wrt track)
+    fSolidAngle[idigit] = sinphi;  // ?? Possibly an expression for the differential solid angle occupied at this angle. 
 
-    fDistPoint[idigit] = Lpoint;       
-    fDistTrack[idigit] = Ltrack;
-    fDistPhoton[idigit] = Lphoton;
-    fDistScatter[idigit] = Lscatter;
+    fDistPoint[idigit] = Lpoint;       // Distance from vertex to PMT
+    fDistTrack[idigit] = Ltrack;       // Distance travelled by track before photon emitted
+    fDistPhoton[idigit] = Lphoton;     // Distance from photon emission to PMT
+    fDistScatter[idigit] = Lscatter;   // Distance the photon would have to scatter to make it to the PMT
 
-    fDeltaTime[idigit] = dt;
-    fDeltaSigma[idigit] = res;   
+    fDeltaTime[idigit] = dt;   // Time between vertex and PMT hit 
+    fDeltaSigma[idigit] = res; // Error on that time due to PMT resolution
     
-    fDeltaAngle[idigit] = phideg-thetadeg; // degrees
-    fDeltaPoint[idigit] = Lpoint/(fC/fN);
-    fDeltaTrack[idigit] = Ltrack/fC;
-    fDeltaPhoton[idigit] = Lphoton/(fC/fN);
-    fDeltaScatter[idigit] = Lscatter/(fC/fN);
+    fDeltaAngle[idigit] = phideg-thetadeg;    // degrees
+    fDeltaPoint[idigit] = Lpoint/(fC/fN);     // Time taken by light going direct from vertex to PMT
+    fDeltaTrack[idigit] = Ltrack/fC;          // Time taken by propagating track 
+    fDeltaPhoton[idigit] = Lphoton/(fC/fN);   // Time taken by light going from its point of emission to the PMT
+    fDeltaScatter[idigit] = Lscatter/(fC/fN); // Time taken by photon travelling for the required scattering distance
  
-    fPointPath[idigit] = fN*Lpoint;
-    fExtendedPath[idigit] = Ltrack + fN*Lphoton;
+    fPointPath[idigit] = fN*Lpoint;              // Effective path length from vertex to PMT
+    fExtendedPath[idigit] = Ltrack + fN*Lphoton; // Effective path length considering particle and photon travel distance
 
-    fPointResidual[idigit] = dt - Lpoint/(fC/fN);
-    fExtendedResidual[idigit] = dt - Ltrack/fC - Lphoton/(fC/fN);
+    fPointResidual[idigit] = dt - Lpoint/(fC/fN); // Difference between the measured time and the predicted arrival time for light going direct from vertex to PMT
+    fExtendedResidual[idigit] = dt - Ltrack/fC - Lphoton/(fC/fN); // Difference between the measured and predicted times for light emitted after the track has propagated some distance before emitting
 
     fDelta[idigit] = fExtendedResidual[idigit]; // default
   }

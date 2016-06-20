@@ -55,9 +55,9 @@ static void point_direction_chi2(Int_t&, Double_t*, Double_t& f, Double_t* par, 
   Double_t dirTheta = par[0]; // radians
   Double_t dirPhi   = par[1]; // radians
   
-  Double_t dirX = WCSimFastMath::sin(dirTheta)*WCSimFastMath::cos(dirPhi);
-  Double_t dirY = WCSimFastMath::sin(dirTheta)*WCSimFastMath::sin(dirPhi);
-  Double_t dirZ = WCSimFastMath::cos(dirTheta);
+  Double_t dirX = sin(dirTheta)*cos(dirPhi);
+  Double_t dirY = sin(dirTheta)*sin(dirPhi);
+  Double_t dirZ = cos(dirTheta);
 
   Double_t vangle = 0.0;
   Double_t fom = 0.0;
@@ -87,9 +87,9 @@ static void point_vertex_chi2(Int_t&, Double_t*, Double_t& f, Double_t* par, Int
   Double_t dirTheta = par[3]; // radians
   Double_t dirPhi   = par[4]; // radians
 
-  Double_t dirX = WCSimFastMath::sin(dirTheta)*WCSimFastMath::cos(dirPhi);
-  Double_t dirY = WCSimFastMath::sin(dirTheta)*WCSimFastMath::sin(dirPhi);
-  Double_t dirZ = WCSimFastMath::cos(dirTheta);
+  Double_t dirX = sin(dirTheta)*cos(dirPhi);
+  Double_t dirY = sin(dirTheta)*sin(dirPhi);
+  Double_t dirZ = cos(dirTheta);
 
   Double_t vangle = 0.0;
   Double_t vtime  = 0.0;
@@ -120,9 +120,9 @@ static void extended_vertex_chi2(Int_t&, Double_t*, Double_t& f, Double_t* par, 
   Double_t dirTheta = par[3]; // radians
   Double_t dirPhi   = par[4]; // radians
 
-  Double_t dirX = WCSimFastMath::sin(dirTheta)*WCSimFastMath::cos(dirPhi);
-  Double_t dirY = WCSimFastMath::sin(dirTheta)*WCSimFastMath::sin(dirPhi);
-  Double_t dirZ = WCSimFastMath::cos(dirTheta);
+  Double_t dirX = sin(dirTheta)*cos(dirPhi);
+  Double_t dirY = sin(dirTheta)*sin(dirPhi);
+  Double_t dirZ = cos(dirTheta);
 
   Double_t vangle = 0.0;
   Double_t vtime  = 0.0;
@@ -224,6 +224,11 @@ WCSimVertexFinder* WCSimVertexFinder::Instance()
   }
 
   return fgVertexFinder;
+}
+
+void WCSimVertexFinder::SimpleVertexOnly(Bool_t yesno)
+{
+  WCSimVertexFinder::Instance()->SetSimpleVertexOnly(yesno);
 }
 
 void WCSimVertexFinder::PointFitOnly(Bool_t yesno)
@@ -447,6 +452,10 @@ WCSimRecoVertex* WCSimVertexFinder::Run(WCSimRecoEvent* myEvent)
 {
   this->Clear();
   this->GetTimeSeed(myEvent);
+  if( fSimpleVertexOnly) 
+  {
+    return (WCSimRecoVertex*)(this->RunSimpleFit(myEvent));
+  }
   if( fPointFitOnly ){
     return (WCSimRecoVertex*)(this->RunPointFit(myEvent));
   }
@@ -454,6 +463,27 @@ WCSimRecoVertex* WCSimVertexFinder::Run(WCSimRecoEvent* myEvent)
     return (WCSimRecoVertex*)(this->RunExtendedFit(myEvent));
   }
 
+}
+
+WCSimRecoVertex* WCSimVertexFinder::RunSimpleFit(WCSimRecoEvent* myEvent)
+{
+
+  // load event
+  // ==========
+  WCSimVertexGeometry::Instance()->LoadEvent(myEvent);
+
+  std::cout << " *** WCSimVertexFinder::RunPointFit(...) *** " << std::endl;
+
+  // simple positiobn fit
+  // ===================
+  WCSimRecoVertex* simplePos = (WCSimRecoVertex*)(this->FindSimplePosition());
+  WCSimRecoVertex* pointPos  = (WCSimRecoVertex*)(this->FitPointPosition(simplePos));
+
+  // simple direction fit
+  // ===================
+  WCSimRecoVertex* simpleDir = (WCSimRecoVertex*)(this->FindSimpleDirection(pointPos));
+
+  return simpleDir;
 }
 
 WCSimRecoVertex* WCSimVertexFinder::RunPointFit(WCSimRecoEvent* myEvent)
@@ -1329,9 +1359,9 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointDirectionWithMinuit(WCSimRecoVertex*
 
   // sort results
   // ============
-  dirX = WCSimFastMath::sin(dirTheta)*WCSimFastMath::cos(dirPhi);
-  dirY = WCSimFastMath::sin(dirTheta)*WCSimFastMath::sin(dirPhi);
-  dirZ = WCSimFastMath::cos(dirTheta);
+  dirX = sin(dirTheta)*cos(dirPhi);
+  dirY = sin(dirTheta)*sin(dirPhi);
+  dirZ = cos(dirTheta);
 
   vtxFOM = 0.0;
   
@@ -1503,9 +1533,9 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointVertexWithMinuit(WCSimRecoVertex* my
 //  vtxTime = 950.0;
   vtxTime = fTimeSeed;
 
-  dirX = WCSimFastMath::sin(fitTheta)*WCSimFastMath::cos(fitPhi);
-  dirY = WCSimFastMath::sin(fitTheta)*WCSimFastMath::sin(fitPhi);
-  dirZ = WCSimFastMath::cos(fitTheta);  
+  dirX = sin(fitTheta)*cos(fitPhi);
+  dirY = sin(fitTheta)*sin(fitPhi);
+  dirZ = cos(fitTheta);  
 
   vtxFOM = 0.0;
   
@@ -1677,9 +1707,9 @@ WCSimRecoVertex* WCSimVertexFinder::FitExtendedVertexWithMinuit(WCSimRecoVertex*
 //  vtxTime = 950.0;
   vtxTime = fTimeSeed;
 
-  dirX = WCSimFastMath::sin(fitTheta)*WCSimFastMath::cos(fitPhi);
-  dirY = WCSimFastMath::sin(fitTheta)*WCSimFastMath::sin(fitPhi);
-  dirZ = WCSimFastMath::cos(fitTheta);  
+  dirX = sin(fitTheta)*cos(fitPhi);
+  dirY = sin(fitTheta)*sin(fitPhi);
+  dirZ = cos(fitTheta);  
 
   vtxFOM = 0.0;
   
@@ -2445,7 +2475,7 @@ void WCSimVertexFinder::ConePropertiesLnL(Double_t coneParam0, Double_t conePara
   Int_t nbinsInside = 420;
   for( Int_t n=0; n<nbinsInside; n++ ){
     deltaAngle = -42.0 + (n+0.5)*(42.0/(double)nbinsInside);
-    fSconeB += 1.4944765*WCSimFastMath::sin( (42.0+deltaAngle)*(TMath::Pi()/180.0) )
+    fSconeB += 1.4944765*sin( (42.0+deltaAngle)*(TMath::Pi()/180.0) )
                            *( 1.0/(1.0+(deltaAngle*deltaAngle)/(deltaAngle0*deltaAngle0)) )
                            *( 42.0/(double)nbinsInside );
   }
@@ -2459,12 +2489,12 @@ void WCSimVertexFinder::ConePropertiesLnL(Double_t coneParam0, Double_t conePara
     for( Int_t n=0; n<nbinsOutside; n++ ){
       deltaAngle = 0.0 + (n+0.5)*(138.0/(double)nbinsOutside);
 
-      fSmu += 1.4944765*WCSimFastMath::sin( (42.0+deltaAngle)*(TMath::Pi()/180.0) )
+      fSmu += 1.4944765*sin( (42.0+deltaAngle)*(TMath::Pi()/180.0) )
                           *( 1.0/(1.0+alphaMu*(lambdaMuShort/lambdaMuLong)) )*( 1.0/(1.0+(deltaAngle*deltaAngle)/(lambdaMuShort*lambdaMuShort)) 
 	  			            + alphaMu*(lambdaMuShort/lambdaMuLong)/(1.0+(deltaAngle*deltaAngle)/(lambdaMuLong*lambdaMuLong)) )
                           *( 138.0/(double)nbinsOutside );
 
-      fSel += 1.4944765*WCSimFastMath::sin( (42.0+deltaAngle)*(TMath::Pi()/180.0) )
+      fSel += 1.4944765*sin( (42.0+deltaAngle)*(TMath::Pi()/180.0) )
                           *( 1.0/(1.0+alphaEl*(lambdaElShort/lambdaElLong)) )*( 1.0/(1.0+(deltaAngle*deltaAngle)/(lambdaElShort*lambdaElShort)) 
 				          + alphaEl*(lambdaElShort/lambdaElLong)/(1.0+(deltaAngle*deltaAngle)/(lambdaElLong*lambdaElLong)) )
                           *( 138.0/(double)nbinsOutside );
@@ -2510,8 +2540,8 @@ void WCSimVertexFinder::ConePropertiesLnL(Double_t coneParam0, Double_t conePara
       if( deltaAngle<=0 ){
 
         // pdfs inside cone:
-        PconeA = 1.4944765*WCSimFastMath::sin( (42.0+deltaAngle)*(TMath::Pi()/180.0) );
-        PconeB = 1.4944765*WCSimFastMath::sin( (42.0+deltaAngle)*(TMath::Pi()/180.0) )
+        PconeA = 1.4944765*sin( (42.0+deltaAngle)*(TMath::Pi()/180.0) );
+        PconeB = 1.4944765*sin( (42.0+deltaAngle)*(TMath::Pi()/180.0) )
                           *( 1.0/(1.0+(deltaAngle*deltaAngle)/(deltaAngle0*deltaAngle0)) );
 
         Pangle = A*( alpha*PconeA+(1.0-alpha)*PconeB );
@@ -2519,11 +2549,11 @@ void WCSimVertexFinder::ConePropertiesLnL(Double_t coneParam0, Double_t conePara
       else{
 
         // pdfs outside cone
-        Pmu = 1.4944765*WCSimFastMath::sin( (42.0+deltaAngle)*(TMath::Pi()/180.0) )
+        Pmu = 1.4944765*sin( (42.0+deltaAngle)*(TMath::Pi()/180.0) )
                        *( 1.0/(1.0+alphaMu*(lambdaMuShort/lambdaMuLong)) )*( 1.0/(1.0+(deltaAngle*deltaAngle)/(lambdaMuShort*lambdaMuShort)) 
                                           + alphaMu*(lambdaMuShort/lambdaMuLong)/(1.0+(deltaAngle*deltaAngle)/(lambdaMuLong*lambdaMuLong)) );
 
-        Pel = 1.4944765*WCSimFastMath::sin( (42.0+deltaAngle)*(TMath::Pi()/180.0) )
+        Pel = 1.4944765*sin( (42.0+deltaAngle)*(TMath::Pi()/180.0) )
                        *( 1.0/(1.0+alphaEl*(lambdaElShort/lambdaElLong)) )*( 1.0/(1.0+(deltaAngle*deltaAngle)/(lambdaElShort*lambdaElShort)) 
                                           + alphaEl*(lambdaElShort/lambdaElLong)/(1.0+(deltaAngle*deltaAngle)/(lambdaElLong*lambdaElLong)) );
 

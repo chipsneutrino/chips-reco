@@ -2,6 +2,7 @@
 #define WCSIMRECOSEED_HH
 
 #include "WCSimReco.hh"
+#include "TVector3.h"
 
 #include <vector>
 
@@ -27,9 +28,10 @@ class WCSimRecoSeed : public WCSimReco {
 
   void SetNumberOfTracks(unsigned int val){fNTracks = val;};
   unsigned int GetNumberOfTracks(){return fNTracks;};
+  TVector3 GetDirBeforeRings() const{ return fDirBeforeRings; }
 
  private:
-
+  TVector3 fDirBeforeRings;
   unsigned int fNTracks;
 
   ClassDef(WCSimRecoSeed,0)

@@ -75,7 +75,7 @@ WCSimDataCleaner::WCSimDataCleaner()
   fConfig = WCSimDataCleaner::kPulseHeightAndClusters;
 
   // default cleaning parameters
-  fMinPulseHeight = 1.0;     // minimum pulse height (PEs)
+  fMinPulseHeight = 0.0;     // minimum pulse height (PEs)
   fNeighbourRadius = 200.0;  // clustering window (cm)
   fMinNeighbourDigits = 2;   // minimum neighbouring digits
   fClusterRadius = 200.0;    // clustering window (cm)

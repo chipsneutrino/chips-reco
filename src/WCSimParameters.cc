@@ -30,13 +30,13 @@ WCSimParameters* WCSimParameters::Instance()
 WCSimParameters::WCSimParameters()
 {
   fUseSimpleTimeResolution = 0;
-  fUseSimpleTimeSlew = 0;
-  fUseSimpleRefractiveIndex = 0;
+  fUseSimpleTimeSlew = 1;
+  fUseSimpleRefractiveIndex = 1;
 
   // Leigh: Slicer parameters
   fSlicerClusterDistance = 250; 
   fSlicerMinSize = 10; 
-  fSlicerChargeCut = 2.0;
+  fSlicerChargeCut = 0.0;
 }
 
 WCSimParameters::~WCSimParameters()
