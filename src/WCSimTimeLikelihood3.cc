@@ -209,6 +209,7 @@ void WCSimTimeLikelihood3::ClearTracks() {
 
 double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
 	double lnL = 0;  // Default to this so we return 25 as our default penalty
+    double scatterFrac = 0.01; // Component of the hit that we assume can com from scattered light
 
 	WCSimLikelihoodDigit * myDigit = fLikelihoodDigitArray->GetDigit(iDigit);
 	WCSimLikelihoodTrackBase * myTrack = fTracks.at(0);
@@ -233,7 +234,7 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
         if(whichCase == 0x11) // Predict and detect a hit - use PDF overlap
         {
             // Function containing the overlap between the predicted first arrival PDF and the smeared true hit time
-            timeLikelihood = FindOverlap(nPhotons, prediction.GetMean(), prediction.GetRMS(), myDigit->GetT(), reso);
+            timeLikelihood = (1-scatterFrac)*FindOverlap(nPhotons, prediction.GetMean(), prediction.GetRMS(), myDigit->GetT(), reso);
 
             // If the integral was too small there's probably some floating point complexity breaking it
             if(timeLikelihood <= fMinimumLikelihood || timeLikelihood > 1)
@@ -251,7 +252,7 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
 									      myDigit->GetT(), reso);
                 ROOT::Math::WrappedTF1 f1(overlapFuncZoom);
                 ROOT::Math::Integrator ig(f1, ROOT::Math::IntegrationOneDim::kADAPTIVESINGULAR);
-                timeLikelihood = ig.Integral(prediction.GetMean() - 5*prediction.GetRMS(), prediction.GetMean() + 5*prediction.GetRMS());
+                timeLikelihood = (1-scatterFrac)*ig.Integral(prediction.GetMean() - 5*prediction.GetRMS(), prediction.GetMean() + 5*prediction.GetRMS());
 
                 // Even this integral was too small!  Normally the problem comes from erf^(n-1) / 2^n so we can 
                 // use logs to get something sensible for lnL and then exponentiate it.  We'll do that, using
@@ -267,11 +268,11 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
             }
             
             // Add on a flat distribution of scattered light times
-            timeLikelihood += GetScatteredTimeLikelihood(myDigit);
+            timeLikelihood += scatterFrac*GetScatteredTimeLikelihood(myDigit);
         }
         else if(whichCase == 0x10) // Detect a hit but didn't predict one - use exp(-Q)
         {
-            timeLikelihood = GetScatteredTimeLikelihood(myDigit);
+            timeLikelihood = scatterFrac*GetScatteredTimeLikelihood(myDigit);
             //timeLikelihood = 1.0;
         }
         else if(whichCase == 0x01) // Predict a hit but don't detect one - use predicted probability
@@ -383,8 +384,7 @@ double WCSimTimeLikelihood3::GetRefractiveIndex(WCSimLikelihoodDigit * myDigit) 
 
 bool WCSimTimeLikelihood3::IsGoodDigit(WCSimLikelihoodDigit * myDigit)
 {
-    return (myDigit->GetQ() > 0);
-    return true;
+    return (myDigit->GetQ() > 1);
 }
 
 TimePrediction WCSimTimeLikelihood3::PredictArrivalTime(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit)
@@ -1061,7 +1061,7 @@ double WCSimTimeLikelihood3::GetScatteredTimeLikelihood(WCSimLikelihoodDigit * m
 {
     double duration = fLikelihoodDigitArray->GetDuration();
     if(duration < 20){ duration = 20; } // Put a floor of 20ns on the event length
-    double flatProb = 0.01 / duration; // Assume a 1% chance of scattered light distributed uniformly in time throughout the event
+    double flatProb = 1.0 / duration; // Assume scattered light distributed uniformly in time throughout the event
 
     // Want the overlap of y = flatProb with the Gaussian describing the PMT resolutionA
 	double reso = GetPMTTimeResolution(myDigit);

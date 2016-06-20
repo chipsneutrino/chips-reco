@@ -366,6 +366,8 @@ private:
      * @return The PDF that the first of n photons arrives before a certain time, evaluated at x[0]
      */
     double ConvertMeanTimeToMeanFirstTime(double * x, double * par);
+    double ConvertMeanTimeToMeanFirstTimeTF1(double * x, double * par) { return ConvertMeanTimeToMeanFirstTime(x, par); };
+
 
     /**
      * Integrate a unit-normalised Gaussian that describes the PDF for
