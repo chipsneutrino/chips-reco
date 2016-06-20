@@ -157,7 +157,7 @@ void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
     int lastPercent = -1;
 	for( Int_t iR0Bin = 1; iR0Bin <= fNR0Bins; ++iR0Bin)
 	{
-		Double_t R0 = axisR0.GetBinLowEdge(iR0Bin);
+		Double_t R0 = axisR0.GetBinCenter(iR0Bin);
 
 		for( Int_t iCosTh0Bin = 1; iCosTh0Bin <= fNCosTh0Bins; ++iCosTh0Bin)
 		{
@@ -167,7 +167,7 @@ void WCSimIntegralLookupMaker3D::MakeRhoGTables() {
                 std::cout << "\rProcessed " << percent << "%" << std::flush;
                 lastPercent = percent;
             }
-			Double_t cosTh0 = axisCosTh0.GetBinLowEdge(iCosTh0Bin);
+			Double_t cosTh0 = axisCosTh0.GetBinCenter(iCosTh0Bin);
 
 			// Three entries are powers of s = 0,1,2
 			for( Int_t iEBin = 1; iEBin <= binningHisto->GetNbinsX(); ++iEBin)
@@ -278,16 +278,15 @@ void WCSimIntegralLookupMaker3D::MakeRhoGSplines() {
             TSpline3 * rhoGSpline = NULL;
             if(gr->GetN() > 0)
             {
-                std::cout << "Making spline" << std::endl;
 			    rhoGSpline = new TSpline3(name.Data(), gr);
                 rhoGSpline->SetName(name.Data());
             }
 			fIntegrals.SetRhoGSpline(R0, cosTh0, rhoGSpline);
+            if(rhoGSpline != NULL){ delete rhoGSpline; }
 
 
 			name = TString::Format("rhoGSInt_%f_%f", R0, cosTh0);
             TGraph * grS  =  fIntegrals.GetRhoGSInt(R0, cosTh0);
-            if(R0 == 1700 && cosTh0 == 0.96){ std::cout << "RhoGSInt = " << grS << std::endl; }
             TSpline3 * rhoGSSpline = NULL;
             if(grS->GetN() > 0)
             {
@@ -295,6 +294,7 @@ void WCSimIntegralLookupMaker3D::MakeRhoGSplines() {
                 rhoGSSpline->SetName(name.Data());
             }
 			fIntegrals.SetRhoGSSpline(R0, cosTh0, rhoGSSpline);
+            if(rhoGSSpline != NULL){ delete rhoGSSpline; }
 
 			name		 	   = TString::Format("rhoGSSInt_%f_%f", R0, cosTh0);
 			TGraph * grSS      = fIntegrals.GetRhoGSSInt(R0, cosTh0);
@@ -306,6 +306,7 @@ void WCSimIntegralLookupMaker3D::MakeRhoGSplines() {
                 rhoGSSSpline->SetName(name.Data());
             }
 			fIntegrals.SetRhoGSSSpline(R0, cosTh0, rhoGSSSpline);
+            if(rhoGSSSpline != NULL){ delete rhoGSSSpline; }
 		}
 	}
     std::cout << std::endl;
@@ -400,11 +401,11 @@ void WCSimIntegralLookupMaker3D::SmoothRhoGTables()
     // Loop over R0 and cosTh0 and smooth each set of three integral graphs
 	for( Int_t iR0Bin = 1; iR0Bin <= fNR0Bins; ++iR0Bin)
 	{
-		Double_t R0 = axisR0.GetBinLowEdge(iR0Bin);
+		Double_t R0 = axisR0.GetBinCenter(iR0Bin);
 
 		for( Int_t iCosTh0Bin = 1; iCosTh0Bin <= fNCosTh0Bins; ++iCosTh0Bin)
 		{
-			Double_t cosTh0 = axisCosTh0.GetBinLowEdge(iCosTh0Bin);
+			Double_t cosTh0 = axisCosTh0.GetBinCenter(iCosTh0Bin);
 
             // Print out the percentage completed
             int percent = (iCosTh0Bin-1) * (iR0Bin-1) * 100 / nBins;
