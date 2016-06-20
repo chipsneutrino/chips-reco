@@ -223,24 +223,23 @@ void WCSimRecoEvDisplay::CreateMainButtonBar() {
 	next->Connect("Clicked()", "WCSimRecoEvDisplay", this, "NextEvent()");
 	hframe->AddFrame(next, new TGLayoutHints(kLHintsCenterX, 5, 5, 3, 4));
 
-  // Numeric entry field for choosing events
-  fEventInput = new TGNumberEntry(hframe,0,9,999,TGNumberFormat::kNESInteger,
-                               TGNumberFormat::kNEANonNegative);
-  fEventInput->Connect("ValueSet(Long_t)","WCSimRecoEvDisplay",this,"SetEvent()");
-  (fEventInput->GetNumberEntry())->Connect("ReturnPressed()","WCSimEvDisplay",this,"SetEvent()");
-  // Make a label to go along side it
-  TGLabel *eventLabel = new TGLabel(hframe,"Event:");
+    // Numeric entry field for choosing events
+    fEventInput = new TGNumberEntry(hframe,0,9,999,TGNumberFormat::kNESInteger,
+                                 TGNumberFormat::kNEANonNegative);
+    fEventInput->Connect("ValueSet(Long_t)","WCSimRecoEvDisplay",this,"SetEvent()");
+    (fEventInput->GetNumberEntry())->Connect("ReturnPressed()","WCSimEvDisplay",this,"SetEvent()");
+    // Make a label to go along side it
+    TGLabel *eventLabel = new TGLabel(hframe,"Event:");
 	hframe->AddFrame(eventLabel, new TGLayoutHints(kLHintsCenterX&&kLHintsCenterY,5,5,3,4));
 	hframe->AddFrame(fEventInput, new TGLayoutHints(kLHintsCenterX,5,5,3,4)); 
 
-  TGTextButton *disp = new TGTextButton(hframe, "&Print View");
-  disp->Connect("Clicked()","WCSimRecoEvDisplay",this,"ShowDisplayView()");
-  hframe->AddFrame(disp,new TGLayoutHints(kLHintsCenterX,5,5,3,4));
+    TGTextButton *disp = new TGTextButton(hframe, "&Print View");
+    disp->Connect("Clicked()","WCSimRecoEvDisplay",this,"ShowDisplayView()");
+    hframe->AddFrame(disp,new TGLayoutHints(kLHintsCenterX,5,5,3,4));
 	TGTextButton *save = new TGTextButton(hframe, "&Save");
 	save->Connect("Clicked()", "WCSimRecoEvDisplay", this, "SaveEvent()");
 	hframe->AddFrame(save, new TGLayoutHints(kLHintsCenterX, 5, 5, 3, 4));
-	TGTextButton *exit = new TGTextButton(hframe, "&Exit",
-			"gApplication->Terminate(0)");
+	TGTextButton *exit = new TGTextButton(hframe, "&Exit","gApplication->Terminate(0)");
 	hframe->AddFrame(exit, new TGLayoutHints(kLHintsCenterX, 5, 5, 3, 4));
 	this->AddFrame(hframe, new TGLayoutHints(kLHintsCenterX, 2, 2, 2, 2));
 
@@ -252,10 +251,10 @@ void WCSimRecoEvDisplay::CreateSubButtonBar() {
 	// Create a horizontal frame to store buttons specific to WCSim files
 	hWCSimButtons = new TGHorizontalFrame(this, 200, 40);
 
-  // Switch between veto and inner detector PMTs
-  TGTextButton *togVeto = new TGTextButton(hWCSimButtons,"&Veto");
-  togVeto->Connect("Clicked()","WCSimEvDisplay",this,"ShowVeto()");
-  hWCSimButtons->AddFrame(togVeto, new TGLayoutHints(kLHintsCenterX,5,5,3,4));
+    // Switch between veto and inner detector PMTs
+    TGTextButton *togVeto = new TGTextButton(hWCSimButtons,"&Veto");
+    togVeto->Connect("Clicked()","WCSimEvDisplay",this,"ShowVeto()");
+    hWCSimButtons->AddFrame(togVeto, new TGLayoutHints(kLHintsCenterX,5,5,3,4));
 
 	// Show Charge on z axis
 	TGTextButton *togCharge = new TGTextButton(hWCSimButtons, "&Charge");
@@ -309,10 +308,10 @@ void WCSimRecoEvDisplay::CreateSubButtonBar() {
 	hWCSimButtons->AddFrame(peLabel, new TGLayoutHints(kLHintsCenterX && kLHintsCenterY, 5, 5, 3, 4));
 	hWCSimButtons->AddFrame(fPEInput, new TGLayoutHints(kLHintsCenterX, 5, 5, 3, 4));
 
-  // Toggle button for logging the charge z axis
-  TGTextButton *logZToggle = new TGTextButton(hWCSimButtons,"&Log Charge");
-  logZToggle->Connect("Clicked()","WCSimRecoEvDisplay",this,"ToggleLogZ()");
-  hWCSimButtons->AddFrame(logZToggle, new TGLayoutHints(kLHintsCenterX,5,5,3,4));
+    // Toggle button for logging the charge z axis
+    TGTextButton *logZToggle = new TGTextButton(hWCSimButtons,"&Log Charge");
+    logZToggle->Connect("Clicked()","WCSimRecoEvDisplay",this,"ToggleLogZ()");
+    hWCSimButtons->AddFrame(logZToggle, new TGLayoutHints(kLHintsCenterX,5,5,3,4));
 
 	// Add the TGHorizontalFrame to the main layout
 	this->AddFrame(hWCSimButtons, new TGLayoutHints(kLHintsCenterX, 2, 2, 2, 2));
@@ -349,8 +348,48 @@ void WCSimRecoEvDisplay::CreateDebugButtonBar() {
 	togTLnL->Connect("Clicked()", "WCSimRecoEvDisplay", this, "SetViewTLnL()");
 	hDebugButtons->AddFrame(togTLnL, new TGLayoutHints(kLHintsCenterX, 5, 5, 3, 4));
 
+    // Make a second row
+    TGHorizontalFrame *hDebugButtons2 = new TGHorizontalFrame(this, 200, 40);
+
+	// Show charge prediction on z axis
+	TGTextButton *togQPrediction = new TGTextButton(hDebugButtons2, "&Charge Pred.");
+	togQPrediction->Connect("Clicked()", "WCSimRecoEvDisplay", this, "SetViewChargePrediction()");
+	hDebugButtons2->AddFrame(togQPrediction, new TGLayoutHints(kLHintsCenterX, 5, 5, 3, 4));
+
+	// Show time prediction on z axis
+	TGTextButton *togTPrediction = new TGTextButton(hDebugButtons2, "&Time Pred.");
+	togTPrediction->Connect("Clicked()", "WCSimRecoEvDisplay", this, "SetViewTimePrediction()");
+	hDebugButtons2->AddFrame(togTPrediction, new TGLayoutHints(kLHintsCenterX, 5, 5, 3, 4));
+
+	// Show charge prediction on z axis
+	TGTextButton *togQCorrPrediction = new TGTextButton(hDebugButtons2, "&Correct Charge Pred.");
+	togQCorrPrediction->Connect("Clicked()", "WCSimRecoEvDisplay", this, "SetViewCorrectChargePrediction()");
+	hDebugButtons2->AddFrame(togQCorrPrediction, new TGLayoutHints(kLHintsCenterX, 5, 5, 3, 4));
+
+	// Show time prediction on z axis
+	TGTextButton *togTCorrPrediction = new TGTextButton(hDebugButtons2, "&Correct Time Pred,");
+	togTCorrPrediction->Connect("Clicked()", "WCSimRecoEvDisplay", this, "SetViewCorrectTimePrediction()");
+	hDebugButtons2->AddFrame(togTCorrPrediction, new TGLayoutHints(kLHintsCenterX, 5, 5, 3, 4));
+
+	// Show total lnl on z axis
+	TGTextButton *togCorrTotLnL = new TGTextButton(hDebugButtons2, "&Correct LnL");
+	togCorrTotLnL->Connect("Clicked()", "WCSimRecoEvDisplay", this, "SetViewCorrectTotalLnL()");
+	hDebugButtons2->AddFrame(togCorrTotLnL, new TGLayoutHints(kLHintsCenterX, 5, 5, 3, 4));
+
+	// Show charge lnl on z axis
+	TGTextButton *togCorrQLnL = new TGTextButton(hDebugButtons2, "&Correct Q LnL");
+	togCorrQLnL->Connect("Clicked()", "WCSimRecoEvDisplay", this, "SetViewCorrectQLnL()");
+	hDebugButtons2->AddFrame(togCorrQLnL, new TGLayoutHints(kLHintsCenterX, 5, 5, 3, 4));
+
+	// Show time lnl on z axis
+	TGTextButton *togCorrTLnL = new TGTextButton(hDebugButtons2, "&Correct T LnL");
+	togCorrTLnL->Connect("Clicked()", "WCSimRecoEvDisplay", this, "SetViewCorrectTLnL()");
+	hDebugButtons2->AddFrame(togCorrTLnL, new TGLayoutHints(kLHintsCenterX, 5, 5, 3, 4));
+
+
 	// Add the TGHorizontalFrame to the main layout
 	this->AddFrame(hDebugButtons, new TGLayoutHints(kLHintsCenterX, 2, 2, 2, 2));
+	this->AddFrame(hDebugButtons2, new TGLayoutHints(kLHintsCenterX, 2, 2, 2, 2));
 
 }
 
@@ -854,8 +893,17 @@ void WCSimRecoEvDisplay::FillPlots() {
   else if (fViewType < 5){
     FillPlotsFromLikelihood();
   }
-  else{
+  else if( fViewType < 7){
     FillPlotsFromRMT();
+  }
+  else if( fViewType < 9){
+      FillPlotsFromPrediction();
+  }
+  else if(fViewType < 11){ 
+      FillPlotsFromCorrectPrediction();
+  }
+  else{
+      FillPlotsFromCorrectLikelihood();
   }
 }
 
@@ -912,10 +960,50 @@ void WCSimRecoEvDisplay::FillPlotsFromRecoFile() {
 	std::cout << "Number of PMTs hit: " << nDigiHits << std::endl;
 
   // Need to loop through the hits once to find the charge and time ranges
+  // Set up access to the chain
+  int pmtID = -1;
+  int eventID = -1;
+  fHitComparisonChain->SetBranchAddress("eventID",&eventID);
+  fHitComparisonChain->SetBranchAddress("pmtID",&pmtID);
+  
+  double recoQ = -999;
+  double recoT = -999;
+  double correctPredQ = -999;
+  double correctPredT = -999;
+  double trueQ = -999;
+  double trueT = -999; 
+  fHitComparisonChain->SetBranchAddress("predQ",&recoQ);
+  fHitComparisonChain->SetBranchAddress("predT",&recoT);
+  fHitComparisonChain->SetBranchAddress("correctPredQ",&correctPredQ);
+  fHitComparisonChain->SetBranchAddress("correctPredT",&correctPredT);
+
+  // Loop over the chain to find the min and max values of the likelihood
   fQMin = 1e10;
   fQMax = -1e10;
   fTMin = 1e10;
   fTMax = -1e10;
+  // Loop over the chain to fill the plots
+  for(int i = 0; i < fHitComparisonChain->GetEntries(); ++i){
+      fHitComparisonChain->GetEntry(i);
+
+      // Check if we are on the event that we care about
+      if(eventID < fCurrentEvent) continue;
+      if(eventID > fCurrentEvent) break;
+      
+      if(recoQ < 0){ recoQ = 0; }
+      if(correctPredQ < 0){ correctPredQ = 0; }
+
+
+      if(recoQ < fQMin && recoQ > 0) fQMin = recoQ; 
+      if(recoQ > fQMax && recoQ > 0) fQMax = recoQ; 
+      if((recoT < fTMin && recoT > 0) && recoQ > 0) fTMin = recoT; 
+      if(recoT > fTMax && recoQ > 0) fTMax = recoT; 
+      if(correctPredQ < fQMin && correctPredQ > 0) fQMin = correctPredQ; 
+      if(correctPredQ > fQMax && correctPredQ > 0) fQMax = correctPredQ; 
+      if((correctPredT < fTMin && correctPredT > 0) && correctPredQ > 0) fTMin = correctPredT; 
+      if(correctPredT > fTMax && correctPredQ > 0) fTMax = correctPredT; 
+  }
+  
   for(int i = 0; i < nDigiHits; ++i){
 		TObject *element = (wcSimTrigger->GetCherenkovDigiHits())->At(i);
 		WCSimRootCherenkovDigiHit *hit = dynamic_cast<WCSimRootCherenkovDigiHit*>(element);
@@ -935,11 +1023,24 @@ void WCSimRecoEvDisplay::FillPlotsFromRecoFile() {
     if(t < fTMin) fTMin = t;
     if(t > fTMax) fTMax = t;
   }
+  
   // For now, always want charge to start at 0.
   fQMin = 0;
+  if(fQMax > 100){ fQMax = 100; }
+
+
+
 
   this->CalculateChargeAndTimeBins();
   this->ResetGraphs();
+
+  std::string zTitle = "Charge (p.e.)";
+  if(fViewType == 1){
+    zTitle = "Time (ns)";
+  }
+  fBarrelHist->GetZaxis()->SetTitle(zTitle.c_str());
+  fTopHist->GetZaxis()->SetTitle(zTitle.c_str());
+  fBottomHist->GetZaxis()->SetTitle(zTitle.c_str());
 
   // Now loop through again and fill things
 	for (int i=0;i<nDigiHits;i++)
@@ -966,19 +1067,7 @@ void WCSimRecoEvDisplay::FillPlotsFromRecoFile() {
 		double pmtT = wcSimDigiHit->GetT();
 		// Set the z-axis to be charge or time.
 		double colourAxis = pmtQ;
-    fBarrelHist->GetZaxis()->SetTitle("Charge (p.e.)");
-		if(fViewType == 1){
-      colourAxis = pmtT;
-      fBarrelHist->GetZaxis()->SetTitle("Time (ns)");
-    }
-    fTopHist->GetZaxis()->SetTitle("Charge (p.e.)");
-		if(fViewType == 1){
-      fTopHist->GetZaxis()->SetTitle("Time (ns)");
-    }
-    fBottomHist->GetZaxis()->SetTitle("Charge (p.e.)");
-		if(fViewType == 1){
-      fBottomHist->GetZaxis()->SetTitle("Time (ns)");
-    }
+
 
     // Make sure we pass the charge cut
     if(pmtQ > fChargeCut){
@@ -1291,26 +1380,47 @@ void WCSimRecoEvDisplay::ShowDisplayView(){
 }
 
 void WCSimRecoEvDisplay::SetPlotZAxes(){
-
+    
+    // fViewType == 0 -> plot hit charges
   double min = fQMin;
   double max = fQMax;
   if(max > 100.) max = 100.;
 
-  if(fViewType == 1){
+  if(fViewType == 1){ // Plot hit times
     min = fTMin;
     max = fTMax;
   }
-  if(fViewType >= 2 && fViewType < 5){
+  if(fViewType >= 2 && fViewType < 5){ // Plot time, charge and total -2LnL
     min = fLnLMin;
     max = fLnLMax;
   }
-  if(fViewType == 5){
+  if(fViewType == 5){ // Plot charge reco - true
     min = fQRMTMin;
     max = fQRMTMax;
   }
-  if(fViewType == 6){
+  if(fViewType == 6){ // Plot time reco - true
     min = fTRMTMin;
     max = fTRMTMax;
+  }
+  if(fViewType == 7){ // Plot charge prediction at best-fit
+      min = fQMin;
+      max = fQMax;
+  }
+  if(fViewType == 8){// Plot time prediction at best-fit
+      min = fTMin;
+      max = fTMax;
+  }
+  if(fViewType == 9){ // Plot charge prediction for correct track hypothesis
+      min = fQMin;
+      max = fQMax;
+  }
+  if(fViewType == 10){// Plot time prediction for correct track hypothesis
+      min = fTMin;
+      max = fTMax;
+  }
+  if(fViewType > 10){ // Plot the likelihoods for the correct track hypothesis
+      min = fLnLMin;
+      max = fLnLMax;
   }
 
   // Make sure we've updated the palette
@@ -1410,6 +1520,121 @@ void WCSimRecoEvDisplay::SetViewTimeRMT(){
 	}
 }
 
+// Switch the z-axis scale to show the charge prediction at the best-fit
+void WCSimRecoEvDisplay::SetViewChargePrediction(){
+	if(fViewType != 7){
+		fViewType = 7;
+    if(fWhichPads != 0){
+      this->ShowReco();
+    }
+		std::cout << "Setting colour axis to best-fit predicted charge" << std::endl;
+		this->FillPlots();
+	}
+	else{
+		std::cout << "Already viewing best-fit predicted charge" << std::endl;
+	}
+}
+
+// Switch the z-axis scale to show the time prediction at the best-fit
+void WCSimRecoEvDisplay::SetViewTimePrediction(){
+	if(fViewType != 8){
+		fViewType = 8;
+    if(fWhichPads != 0){
+      this->ShowReco();
+    }
+		std::cout << "Setting colour axis to best-fit predicted time" << std::endl;
+		this->FillPlots();
+	}
+	else{
+		std::cout << "Already viewing best-fit predicted time" << std::endl;
+	}
+}
+
+// Switch the z-axis scale to show the charge prediction for the correct track hypothesis
+void WCSimRecoEvDisplay::SetViewCorrectChargePrediction(){
+	if(fViewType != 9){
+		fViewType = 9;
+    if(fWhichPads != 0){
+      this->ShowReco();
+    }
+		std::cout << "Setting colour axis to charge prediction for correct track" << std::endl;
+		this->FillPlots();
+	}
+	else{
+		std::cout << "Already viewing the charge prediction for correct track" << std::endl;
+	}
+}
+
+// Switch the z-axis scale to show the time prediction for the correct track hypothesis
+void WCSimRecoEvDisplay::SetViewCorrectTimePrediction(){
+	if(fViewType != 10){
+		fViewType = 10;
+    if(fWhichPads != 0){
+      this->ShowReco();
+    }
+		std::cout << "Setting colour axis to time prediction for correct track" << std::endl;
+		this->FillPlots();
+	}
+	else{
+		std::cout << "Already viewing time prediction for correct track" << std::endl;
+	}
+}
+
+// Switch the z-axis scale to show to total likelihood for the correct track
+void WCSimRecoEvDisplay::SetViewCorrectTotalLnL(){
+	if(fViewType != 11){
+		fViewType = 11;
+    if(fWhichPads != 0){
+      this->ShowReco();
+    }
+   	if(fShow1DHists == 1){
+      this->Toggle1DHists();
+    }
+		std::cout << "Setting colour axis to total likelihood for correct track" << std::endl;
+		this->FillPlots();
+	}
+	else{
+		std::cerr << "Already viewing total likelihood for correct track" << std::endl;
+	}
+}
+
+// Switch the z-axis scale to show the charge likelihood for correct track
+void WCSimRecoEvDisplay::SetViewCorrectQLnL(){
+	if(fViewType != 12){
+		fViewType = 12;
+    if(fWhichPads != 0){
+      this->ShowReco();
+    }
+   	if(fShow1DHists == 1){
+      this->Toggle1DHists();
+    }
+		std::cout << "Setting colour axis to charge likelihood for correct track" << std::endl;
+		this->FillPlots();
+	}
+	else{
+		std::cerr << "Already viewing charge likelihood for correct track" << std::endl;
+	}
+}
+
+// Switch the z-axis scale to show the time likelihood for correct track.
+void WCSimRecoEvDisplay::SetViewCorrectTLnL(){
+	if(fViewType != 13){
+		fViewType = 13;
+    if(fWhichPads != 0){
+      this->ShowReco();
+    }
+   	if(fShow1DHists == 1){
+      this->Toggle1DHists();
+    }
+		std::cout << "Setting colour axis to time likelihood for correct track" << std::endl;
+		this->FillPlots();
+	}
+	else{
+		std::cout << "Already viewing time likelihood for correct track" << std::endl;
+	}
+}
+
+
 // Function to fill the standard plots using the likelihood values
 void WCSimRecoEvDisplay::FillPlotsFromLikelihood(){
 	// First things first, clear the histograms.
@@ -1423,10 +1648,21 @@ void WCSimRecoEvDisplay::FillPlotsFromLikelihood(){
   
   // Only load the LnL values that we need.
   double lnlVal;
+  double correctLnLVal;
+
   std::string lnlVarName = "minus2LnL";
-  if(fViewType == 3) lnlVarName = "charge2LnL";
-  if(fViewType == 4) lnlVarName = "time2LnL";
+  std::string lnlVarName2 = "correctMinus2LnL";
+
+  if(fViewType == 3){
+      lnlVarName = "charge2LnL";
+      lnlVarName2 = "correctCharge2LnL";
+  }
+  if(fViewType == 4){ 
+      lnlVarName = "time2LnL";
+      lnlVarName2 = "correctTime2LnL";
+  }
   fHitComparisonChain->SetBranchAddress(lnlVarName.c_str(),&lnlVal);
+  fHitComparisonChain->SetBranchAddress(lnlVarName2.c_str(),&correctLnLVal);
 
 	// Get the geometry
 	WCSimRootGeom *geo = new WCSimRootGeom();
@@ -1443,13 +1679,30 @@ void WCSimRecoEvDisplay::FillPlotsFromLikelihood(){
     if(eventID < fCurrentEvent) continue;
     if(eventID > fCurrentEvent) break;
    
+    if(correctLnLVal < fLnLMin) fLnLMin = correctLnLVal; 
+    if(correctLnLVal > fLnLMax) fLnLMax = correctLnLVal; 
     if(lnlVal < fLnLMin) fLnLMin = lnlVal; 
     if(lnlVal > fLnLMax) fLnLMax = lnlVal; 
   }
-  // Let's keep the min at zero for now.
-  fLnLMin = 0;
+  // If the min and max values are the same then shout as we have this component switched off.
+  bool setToZero = false;
+  if(fLnLMin == fLnLMax){
+    std::cerr << "Warning: likelihood components not set, displaying 0 for all PMTs." << std::endl;
+    setToZero = true;
+    fLnLMin = 0;
+    fLnLMax = 1;
+  }
+  else{
+    // Let's keep the min at zero for now.
+    fLnLMin = 0;
+  }
   this->CalculateLnLBins();
   this->ResetGraphs();
+
+  std::string zTitle = "LogLikelihood";
+  fBarrelHist->GetZaxis()->SetTitle(zTitle.c_str());
+  fTopHist->GetZaxis()->SetTitle(zTitle.c_str());
+  fBottomHist->GetZaxis()->SetTitle(zTitle.c_str());
 
   // Loop over the chain to fill the plots
   for(int i = 0; i < fHitComparisonChain->GetEntries(); ++i){
@@ -1461,15 +1714,19 @@ void WCSimRecoEvDisplay::FillPlotsFromLikelihood(){
 
     // Check which bin this value of LnL should go in
     unsigned int bin = this->GetLnLBin(lnlVal);
+    if(setToZero){
+      bin = 1;
+      
+    }
 
     pmtID++; // Looks like we have the off-by-one problem again
 
     // Get the PMT from the geometry. The coordinates are stored in the tree
     // but it is convenient to use the pmt to find out the region.
 		WCSimRootPMT pmt = geo->GetPMTFromTubeID(pmtID);
-		double pmtX = pmt.GetPosition(0);
-		double pmtY = pmt.GetPosition(1);
-		double pmtZ = pmt.GetPosition(2);
+		double pmtX = pmt.GetPosition(0) * 0.01;
+		double pmtY = pmt.GetPosition(1) * 0.01;
+		double pmtZ = pmt.GetPosition(2) * 0.01;
 		double pmtPhi = TMath::ATan2(pmtY,pmtX);
     // Top cap
 		if(pmt.GetCylLoc() == 0){
@@ -1500,6 +1757,425 @@ void WCSimRecoEvDisplay::FillPlotsFromLikelihood(){
   // Now draw whichever pad we need
 	this->UpdateCanvases();
 }
+
+// Function to fill the standard plots using the likelihood values for the correct track
+void WCSimRecoEvDisplay::FillPlotsFromCorrectLikelihood(){
+	// First things first, clear the histograms.
+	this->ClearPlots();
+
+  // Set up access to the chain
+  int pmtID = -1;
+  int eventID = -1;
+  fHitComparisonChain->SetBranchAddress("eventID",&eventID);
+  fHitComparisonChain->SetBranchAddress("pmtID",&pmtID);
+  
+  // Only load the LnL values that we need.
+  double correctLnlVal;
+  double lnlVal;
+  std::string lnlVarName = "correctMinus2LnL";
+  std::string lnlVarName2 = "minus2LnL";
+  if(fViewType == 12){
+      lnlVarName = "correctCharge2LnL";
+      lnlVarName2 = "charge2LnL";
+  }
+  if(fViewType == 13){ 
+      lnlVarName = "correctTime2LnL";
+      lnlVarName2 = "time2LnL";
+  }
+  fHitComparisonChain->SetBranchAddress(lnlVarName.c_str(),&correctLnlVal);
+  fHitComparisonChain->SetBranchAddress(lnlVarName2.c_str(),&lnlVal);
+
+	// Get the geometry
+	WCSimRootGeom *geo = new WCSimRootGeom();
+	fGeomTree->SetBranchAddress("wcsimrootgeom",&geo);
+	fGeomTree->GetEntry(0);
+
+  // Loop over the chain to find the min and max values of the likelihood
+  fLnLMin = 1e10;
+  fLnLMax = -1e10;
+  // Loop over the chain to fill the plots
+  for(int i = 0; i < fHitComparisonChain->GetEntries(); ++i){
+    fHitComparisonChain->GetEntry(i);
+    // Check if we are on the event that we care about
+    if(eventID < fCurrentEvent) continue;
+    if(eventID > fCurrentEvent) break;
+
+    if(lnlVal < fLnLMin) fLnLMin = lnlVal; 
+    if(lnlVal > fLnLMax) fLnLMax = lnlVal; 
+    if(correctLnlVal < fLnLMin) fLnLMin = correctLnlVal; 
+    if(correctLnlVal > fLnLMax) fLnLMax = correctLnlVal; 
+  }
+  // If the min and max values are the same then shout as we have this component switched off.
+  bool setToZero = false;
+  if(fLnLMin == fLnLMax){
+    std::cerr << "Warning: likelihood components not set, displaying 0 for all PMTs." << std::endl;
+    setToZero = true;
+    fLnLMin = 0;
+    fLnLMax = 1;
+  }
+  else{
+    // Let's keep the min at zero for now.
+    fLnLMin = 0;
+  }
+  this->CalculateLnLBins();
+  this->ResetGraphs();
+
+  std::string zTitle = "LogLikelihood";
+  fBarrelHist->GetZaxis()->SetTitle(zTitle.c_str());
+  fTopHist->GetZaxis()->SetTitle(zTitle.c_str());
+  fBottomHist->GetZaxis()->SetTitle(zTitle.c_str());
+
+  // Loop over the chain to fill the plots
+  for(int i = 0; i < fHitComparisonChain->GetEntries(); ++i){
+    fHitComparisonChain->GetEntry(i);
+
+    // Check if we are on the event that we care about
+    if(eventID < fCurrentEvent) continue;
+    if(eventID > fCurrentEvent) break;
+
+    // Check which bin this value of LnL should go in
+    unsigned int bin = this->GetLnLBin(correctLnlVal);
+    if(setToZero){
+      bin = 1;
+      
+    }
+
+    pmtID++; // Looks like we have the off-by-one problem again
+
+    // Get the PMT from the geometry. The coordinates are stored in the tree
+    // but it is convenient to use the pmt to find out the region.
+		WCSimRootPMT pmt = geo->GetPMTFromTubeID(pmtID);
+		double pmtX = pmt.GetPosition(0) * 0.01;
+		double pmtY = pmt.GetPosition(1) * 0.01;
+		double pmtZ = pmt.GetPosition(2) * 0.01;
+		double pmtPhi = TMath::ATan2(pmtY,pmtX);
+    // Top cap
+		if(pmt.GetCylLoc() == 0){
+        fTopGraphs[bin]->SetPoint(fTopGraphs[bin]->GetN(),pmtY,pmtX);
+		}
+		// Bottom cap
+		else if(pmt.GetCylLoc() == 2){
+        fBottomGraphs[bin]->SetPoint(fBottomGraphs[bin]->GetN(),pmtY,pmtX);    
+		}
+		// Barrel
+		else{
+        fBarrelGraphs[bin]->SetPoint(fBarrelGraphs[bin]->GetN(),pmtPhi,pmtZ);
+		}
+  }  
+  delete geo;
+  geo = 0x0;
+
+  // Set the underflow bin of the histograms to make sure the colour axis shows
+  fTopHist->SetBinContent(0,1);
+  fBarrelHist->SetBinContent(0,1);
+  fBottomHist->SetBinContent(0,1);
+
+  // Reset all the addresses linked to this chain
+  fHitComparisonChain->ResetBranchAddresses();
+
+  // Update the pads
+  this->UpdateRecoPads();
+  // Now draw whichever pad we need
+	this->UpdateCanvases();
+}
+
+
+void WCSimRecoEvDisplay::FillPlotsFromPrediction(){
+	// First things first, clear the histograms.
+	this->ClearPlots();
+
+    // Set up access to the chain
+    int pmtID = -1;
+    int eventID = -1;
+    fHitComparisonChain->SetBranchAddress("eventID",&eventID);
+    fHitComparisonChain->SetBranchAddress("pmtID",&pmtID);
+    
+    double recoQ = -999;
+    double recoT = -999;
+    double correctPredQ = -999;
+    double correctPredT = -999;
+    double trueQ = -999;
+    double trueT = -999; 
+    fHitComparisonChain->SetBranchAddress("predQ",&recoQ);
+    fHitComparisonChain->SetBranchAddress("predT",&recoT);
+    fHitComparisonChain->SetBranchAddress("correctPredQ",&correctPredQ);
+    fHitComparisonChain->SetBranchAddress("correctPredT",&correctPredT);
+    fHitComparisonChain->SetBranchAddress("trueQ",&trueQ);
+    fHitComparisonChain->SetBranchAddress("trueT",&trueT);
+
+    // Get the geometry
+	WCSimRootGeom *geo = new WCSimRootGeom();
+	fGeomTree->SetBranchAddress("wcsimrootgeom",&geo);
+	fGeomTree->GetEntry(0);
+
+    // Loop over the chain to find the min and max values of the likelihood
+    fQMin = 1e10;
+    fQMax = -1e10;
+    fTMin = 1e10;
+    fTMax = -1e10;
+    // Loop over the chain to fill the plots
+    for(int i = 0; i < fHitComparisonChain->GetEntries(); ++i){
+        fHitComparisonChain->GetEntry(i);
+
+        // Check if we are on the event that we care about
+        if(eventID < fCurrentEvent) continue;
+        if(eventID > fCurrentEvent) break;
+        
+        if(recoQ < 0){ recoQ = 0; }
+        if(correctPredQ < 0){ correctPredQ = 0; }
+        if(trueQ < 0){ trueQ = 0; }
+
+
+        if(recoQ < fQMin && recoQ > 0) fQMin = recoQ; 
+        if(recoQ > fQMax && recoQ > 0) fQMax = recoQ; 
+        if(recoT < fTMin && recoQ > 0) fTMin = recoT; 
+        if(recoT > fTMax && recoQ > 0) fTMax = recoT; 
+        if(correctPredQ < fQMin && correctPredQ > 0) fQMin = correctPredQ; 
+        if(correctPredQ > fQMax && correctPredQ > 0) fQMax = correctPredQ; 
+        if(correctPredT < fTMin && correctPredQ > 0) fTMin = correctPredT; 
+        if(correctPredT > fTMax && correctPredQ > 0) fTMax = correctPredT; 
+        if(trueQ < fQMin && trueQ > 0) fQMin = trueQ; 
+        if(trueQ > fQMax && trueQ > 0) fQMax = trueQ; 
+        if(trueT < fTMin && trueQ > 0) fTMin = trueT; 
+        if(trueT > fTMax && trueQ > 0) fTMax = trueT; 
+    }
+    
+    fQMin = 0;
+    if(fQMax > 100){ fQMax = 100; }
+
+    this->CalculateChargeAndTimeBins();
+    this->ResetGraphs();
+
+    std::string zTitle = "Predicted Charge (p.e.)";
+    if(fViewType == 1){
+      zTitle = "Predicted Time (ns)";
+    }
+    fBarrelHist->GetZaxis()->SetTitle(zTitle.c_str());
+    fTopHist->GetZaxis()->SetTitle(zTitle.c_str());
+    fBottomHist->GetZaxis()->SetTitle(zTitle.c_str());
+
+    // Make the two 1D histograms
+    if(fChargePredHist != 0x0){
+      delete fChargePredHist;
+    }
+    fChargePredHist = new TH1D("hChargePred","Charge prediction; Charge prediction / PE",100,fQMin,fQMax);
+    if(fTimePredHist != 0x0){
+      delete fTimePredHist;
+    }
+    fTimePredHist = new TH1D("hTimePred","Time prediction; Time prediction / ns",100,fTMin,fTMax);
+
+    // Loop over the chain to fill the plots
+    for(int i = 0; i < fHitComparisonChain->GetEntries(); ++i){
+        fHitComparisonChain->GetEntry(i);
+
+        // Check if we are on the event that we care about
+        if(eventID < fCurrentEvent) continue;
+        if(eventID > fCurrentEvent) break;
+
+        // Make the 1D plots
+        if(recoQ < 0){ recoQ = 0; }
+        if(!(recoQ <= 0)) fChargePredHist->Fill(recoQ);
+        if(!(recoT <= 0)) fTimePredHist->Fill(recoT);
+
+        // If we are looking at time, ignore those that shouldn't be hit
+        if(fViewType == 8 && (recoT <= 0)) continue;
+
+        double fillVal =  -999;
+        if(fViewType == 7) fillVal = recoQ;
+        if(fViewType == 8) fillVal = recoT;
+        // Check which bin this value of LnL should go in
+        unsigned int bin = -1;
+        if(fViewType == 7) bin = this->GetChargeBin(fillVal);
+        if(fViewType == 8) bin = this->GetTimeBin(fillVal);
+
+        pmtID++; // Looks like we have the off-by-one problem again
+
+        // Get the PMT from the geometry. The coordinates are stored in the tree
+        // but it is convenient to use the pmt to find out the region.
+	    WCSimRootPMT pmt = geo->GetPMTFromTubeID(pmtID);
+	    double pmtX = pmt.GetPosition(0) * 0.01;
+	    double pmtY = pmt.GetPosition(1) * 0.01;
+	    double pmtZ = pmt.GetPosition(2) * 0.01;
+	    double pmtPhi = TMath::ATan2(pmtY,pmtX);
+
+        // Top cap
+	    if(pmt.GetCylLoc() == 0){
+            fTopGraphs[bin]->SetPoint(fTopGraphs[bin]->GetN(),pmtY,pmtX);
+	    }
+	    // Bottom cap
+	    else if(pmt.GetCylLoc() == 2){
+            fBottomGraphs[bin]->SetPoint(fBottomGraphs[bin]->GetN(),pmtY,pmtX);    
+	    }
+	    // Barrel
+	    else{
+            fBarrelGraphs[bin]->SetPoint(fBarrelGraphs[bin]->GetN(),pmtPhi,pmtZ);
+	    }
+  }  
+  delete geo;
+  geo = 0x0;
+
+  // Set the underflow bin of the histograms to make sure the colour axis shows
+  fTopHist->SetBinContent(0,1);
+  fBarrelHist->SetBinContent(0,1);
+  fBottomHist->SetBinContent(0,1);
+
+  // Reset all the addresses linked to this chain
+  fHitComparisonChain->ResetBranchAddresses();
+
+  // Update the pads
+  this->UpdateRecoPads();
+  // Now draw whichever pad we need
+	this->UpdateCanvases();
+}
+
+void WCSimRecoEvDisplay::FillPlotsFromCorrectPrediction(){
+	// First things first, clear the histograms.
+	this->ClearPlots();
+
+    // Set up access to the chain
+    int pmtID = -1;
+    int eventID = -1;
+    fHitComparisonChain->SetBranchAddress("eventID",&eventID);
+    fHitComparisonChain->SetBranchAddress("pmtID",&pmtID);
+    
+    double recoQ = -999;
+    double recoT = -999;
+    double correctPredQ = -999;
+    double correctPredT = -999;
+    double trueQ = -999;
+    double trueT = -999;
+    fHitComparisonChain->SetBranchAddress("predQ",&recoQ);
+    fHitComparisonChain->SetBranchAddress("predT",&recoT);
+    fHitComparisonChain->SetBranchAddress("correctPredQ",&correctPredQ);
+    fHitComparisonChain->SetBranchAddress("correctPredT",&correctPredT);
+    fHitComparisonChain->SetBranchAddress("trueQ",&trueQ);
+    fHitComparisonChain->SetBranchAddress("trueT",&trueT);
+
+    // Get the geometry
+	WCSimRootGeom *geo = new WCSimRootGeom();
+	fGeomTree->SetBranchAddress("wcsimrootgeom",&geo);
+	fGeomTree->GetEntry(0);
+
+    // Loop over the chain to find the min and max values of the likelihood
+    fQMin = 1e10;
+    fQMax = -1e10;
+    fTMin = 1e10;
+    fTMax = -1e10;
+    // Loop over the chain to fill the plots
+    for(int i = 0; i < fHitComparisonChain->GetEntries(); ++i){
+        fHitComparisonChain->GetEntry(i);
+
+        // Check if we are on the event that we care about
+        if(eventID < fCurrentEvent) continue;
+        if(eventID > fCurrentEvent) break;
+        
+        if(recoQ < 0){ recoQ = 0; }
+        if(correctPredQ < 0){ correctPredQ = 0; }
+        if(trueQ < 0){ trueQ = 0; }
+
+
+        if(recoQ < fQMin && recoQ > 0) fQMin = recoQ; 
+        if(recoQ > fQMax && recoQ > 0) fQMax = recoQ; 
+        if((recoT < fTMin && recoT > 0) && recoQ > 0) fTMin = recoT; 
+        if(recoT > fTMax && recoQ > 0) fTMax = recoT; 
+        if(correctPredQ < fQMin && correctPredQ > 0) fQMin = correctPredQ; 
+        if(correctPredQ > fQMax && correctPredQ > 0) fQMax = correctPredQ; 
+        if((correctPredT < fTMin && correctPredT > 0) && correctPredQ > 0) fTMin = correctPredT; 
+        if(correctPredT > fTMax && correctPredQ > 0) fTMax = correctPredT; 
+        if(trueQ < fQMin && trueQ > 0) fQMin = trueQ; 
+        if(trueQ > fQMax && trueQ > 0) fQMax = trueQ; 
+        if((trueT < fTMin && trueT > 0 ) && trueQ > 0) fTMin = trueT; 
+        if(trueT > fTMax && trueQ > 0) fTMax = trueT; 
+    }
+    
+    fQMin = 0;
+    if(fQMax > 100){ fQMax = 100; }
+
+    this->CalculateChargeAndTimeBins();
+    this->ResetGraphs();
+
+    std::string zTitle = "Predicted Charge (p.e.)";
+    if(fViewType == 1){
+      zTitle = "Predicted Time (ns)";
+    }
+    fBarrelHist->GetZaxis()->SetTitle(zTitle.c_str());
+    fTopHist->GetZaxis()->SetTitle(zTitle.c_str());
+    fBottomHist->GetZaxis()->SetTitle(zTitle.c_str());
+
+    // Make the two 1D histograms
+    if(fCorrectChargePredHist != 0x0){
+      delete fCorrectChargePredHist;
+    }
+    fCorrectChargePredHist = new TH1D("hCorrectChargePred","Correct charge prediction; Charge prediction / PE",100,fQMin,fQMax);
+    if(fCorrectTimePredHist != 0x0){
+      delete fCorrectTimePredHist;
+    }
+    fCorrectTimePredHist = new TH1D("hCorrectTimePred","Correct time prediction; Time prediction / ns",100,fTMin,fTMax);
+
+    // Loop over the chain to fill the plots
+    for(int i = 0; i < fHitComparisonChain->GetEntries(); ++i){
+        fHitComparisonChain->GetEntry(i);
+
+        // Check if we are on the event that we care about
+        if(eventID < fCurrentEvent) continue;
+        if(eventID > fCurrentEvent) break;
+
+        // Make the 1D plots
+        if(correctPredQ < 0){ correctPredQ = 0; }
+        if(!(correctPredQ <= 0)) fCorrectChargePredHist->Fill(correctPredQ);
+        if(!(correctPredT <= 0)) fCorrectTimePredHist->Fill(correctPredT);
+
+        // If we are looking at time, ignore those that shouldn't be hit
+        if(fViewType == 10 && (correctPredT <= 0)) continue;
+
+        double fillVal =  -999;
+        if(fViewType == 9) fillVal = correctPredQ;
+        if(fViewType == 10) fillVal = correctPredT;
+        // Check which bin this value of LnL should go in
+        unsigned int bin = -1;
+        if(fViewType == 9) bin = this->GetChargeBin(fillVal);
+        if(fViewType == 10) bin = this->GetTimeBin(fillVal);
+
+        pmtID++; // Looks like we have the off-by-one problem again
+
+        // Get the PMT from the geometry. The coordinates are stored in the tree
+        // but it is convenient to use the pmt to find out the region.
+	    WCSimRootPMT pmt = geo->GetPMTFromTubeID(pmtID);
+	    double pmtX = pmt.GetPosition(0) * 0.01;
+	    double pmtY = pmt.GetPosition(1) * 0.01;
+	    double pmtZ = pmt.GetPosition(2) * 0.01;
+	    double pmtPhi = TMath::ATan2(pmtY,pmtX);
+
+        // Top cap
+	    if(pmt.GetCylLoc() == 0){
+            fTopGraphs[bin]->SetPoint(fTopGraphs[bin]->GetN(),pmtY,pmtX);
+	    }
+	    // Bottom cap
+	    else if(pmt.GetCylLoc() == 2){
+            fBottomGraphs[bin]->SetPoint(fBottomGraphs[bin]->GetN(),pmtY,pmtX);    
+	    }
+	    // Barrel
+	    else{
+            fBarrelGraphs[bin]->SetPoint(fBarrelGraphs[bin]->GetN(),pmtPhi,pmtZ);
+	    }
+  }  
+  delete geo;
+  geo = 0x0;
+
+  // Set the underflow bin of the histograms to make sure the colour axis shows
+  fTopHist->SetBinContent(0,1);
+  fBarrelHist->SetBinContent(0,1);
+  fBottomHist->SetBinContent(0,1);
+
+  // Reset all the addresses linked to this chain
+  fHitComparisonChain->ResetBranchAddresses();
+
+  // Update the pads
+  this->UpdateRecoPads();
+  // Now draw whichever pad we need
+	this->UpdateCanvases();
+}
+
 
 // Function to fill the standard plots using the likelihood values
 void WCSimRecoEvDisplay::FillPlotsFromRMT(){
@@ -1537,15 +2213,18 @@ void WCSimRecoEvDisplay::FillPlotsFromRMT(){
     // Check if we are on the event that we care about
     if(eventID < fCurrentEvent) continue;
     if(eventID > fCurrentEvent) break;
+    
+    if(recoQ < 0){ recoQ = 0; }
+
     double rmtValQ = recoQ - trueQ;
     double rmtValT = recoT - trueT;
     // Time can have default values
     if(trueT <= 0 || recoT <= 0) rmtValT = 0;
 
-    if(rmtValQ < fQRMTMin) fQRMTMin = rmtValQ; 
-    if(rmtValQ > fQRMTMax) fQRMTMax = rmtValQ; 
-    if(rmtValT < fTRMTMin) fTRMTMin = rmtValT; 
-    if(rmtValT > fTRMTMax) fTRMTMax = rmtValT; 
+    if(rmtValQ < fQRMTMin && recoQ > 0 && trueQ > 0) fQRMTMin = rmtValQ; 
+    if(rmtValQ > fQRMTMax && recoQ > 0 && trueQ > 0) fQRMTMax = rmtValQ; 
+    if(rmtValT < fTRMTMin && recoQ > 0 && trueQ > 0) fTRMTMin = rmtValT; 
+    if(rmtValT > fTRMTMax && recoQ > 0 && trueQ > 0) fTRMTMax = rmtValT; 
   }
   // Nice to have these plots symmetric about 0:
   if(fabs(fQRMTMin) > fQRMTMax){
@@ -1562,6 +2241,14 @@ void WCSimRecoEvDisplay::FillPlotsFromRMT(){
   }
   this->CalculateRMTBins();
   this->ResetGraphs();
+
+  std::string zTitle = "(Reco - True) Charge (p.e.)";
+  if(fViewType == 1){
+    zTitle = "(Reco - True) Time (ns)";
+  }
+  fBarrelHist->GetZaxis()->SetTitle(zTitle.c_str());
+  fTopHist->GetZaxis()->SetTitle(zTitle.c_str());
+  fBottomHist->GetZaxis()->SetTitle(zTitle.c_str());
 
   // Make the two 1D histograms
   if(fChargeRMTHist != 0x0){
@@ -1582,7 +2269,8 @@ void WCSimRecoEvDisplay::FillPlotsFromRMT(){
     if(eventID > fCurrentEvent) break;
 
     // Make the 1D plots
-    fChargeRMTHist->Fill(recoQ-trueQ);
+    if(recoQ < 0){ recoQ = 0; }
+    if(trueQ > 0){ fChargeRMTHist->Fill(recoQ-trueQ); }
     if(!(trueT <= 0 || recoT <= 0)) fTimeRMTHist->Fill(recoT-trueT);
 
     // If we are looking at time, ignore those that shouldn't be hit
@@ -1601,9 +2289,9 @@ void WCSimRecoEvDisplay::FillPlotsFromRMT(){
     // Get the PMT from the geometry. The coordinates are stored in the tree
     // but it is convenient to use the pmt to find out the region.
 		WCSimRootPMT pmt = geo->GetPMTFromTubeID(pmtID);
-		double pmtX = pmt.GetPosition(0);
-		double pmtY = pmt.GetPosition(1);
-		double pmtZ = pmt.GetPosition(2);
+		double pmtX = pmt.GetPosition(0) * 0.01;
+		double pmtY = pmt.GetPosition(1) * 0.01;
+		double pmtZ = pmt.GetPosition(2) * 0.01;
 		double pmtPhi = TMath::ATan2(pmtY,pmtX);
 
     // Top cap
@@ -1765,8 +2453,17 @@ void WCSimRecoEvDisplay::UpdateRecoPads(){
   if(fViewType < 5){ 
     fChargeHist->Draw();
   }
-  else{
+  else if(fViewType < 7){
     fChargeRMTHist->Draw();
+  }
+  else if(fViewType < 9){
+      fChargePredHist->Draw();
+  }
+  else if(fViewType < 11){
+      fCorrectChargePredHist->Draw();
+  }
+  else{
+      fChargeHist->Draw();
   }
   fChargePad->Modified();
   fChargePad->Update();
@@ -1775,8 +2472,17 @@ void WCSimRecoEvDisplay::UpdateRecoPads(){
   if(fViewType < 5){
     fTimeHist->Draw();
   }
-  else{
+  else if(fViewType < 7){
     fTimeRMTHist->Draw();
+  }
+  else if(fViewType < 9){
+      fTimePredHist->Draw();
+  }
+  else if(fViewType < 11){
+      fCorrectTimePredHist->Draw();
+  }
+  else{
+      fTimeHist->Draw();
   }
   fTimePad->Modified();
   fTimePad->Update();
@@ -1787,8 +2493,8 @@ void WCSimRecoEvDisplay::UpdateRecoPads(){
 void WCSimRecoEvDisplay::MakeGraphColours(){
 
   Int_t startColour = 0;
-  const UInt_t nContours = 100;
-  if(fViewType < 5 && fColoursNormal.size() < nContours){
+  const Int_t nContours = 100;
+  if((fViewType < 5 || fViewType >= 7) && fColoursNormal.size() < nContours){
     fColoursNormal.clear();
     // Make a palette
     const Int_t nRGBs = 9;
@@ -1799,7 +2505,7 @@ void WCSimRecoEvDisplay::MakeGraphColours(){
     Double_t blue[nRGBs] = { 255./255., 205./255., 202./255., 203./255., 208./255., 205./255., 203./255., 206./255., 231./255.};
     startColour = TColor::CreateGradientColorTable(nRGBs, stops, red, green, blue, nContours);
     gStyle->SetNumberContours(nContours);
-    for(size_t i = 0; i < nContours; ++i)
+    for(int i = 0; i < nContours; ++i)
     {
       fColoursNormal.push_back(startColour+i);
     }
@@ -1814,14 +2520,14 @@ void WCSimRecoEvDisplay::MakeGraphColours(){
     Double_t blue[nRGBs] =   { 1.000, 1.000, 1.000, 1.000, 1.000, 0.750, 0.500, 0.250, 0.000 };
     startColour = TColor::CreateGradientColorTable(nRGBs, stops, red, green, blue, nContours);
     gStyle->SetNumberContours(nContours);
-    for(size_t i = 0; i < nContours; ++i)
+    for(int i = 0; i < nContours; ++i)
     {
       fColoursDiff.push_back(startColour+i);
     }
   }
   
   // Update the palette
-  if( fViewType < 5 ){
+  if( fViewType < 5 || fViewType >= 7){
     fColours = fColoursNormal;
   }
   else{
@@ -1835,4 +2541,3 @@ void WCSimRecoEvDisplay::MakeGraphColours(){
     this->InitialiseGraph(fBottomGraphs[g],g);
   }
 }
-

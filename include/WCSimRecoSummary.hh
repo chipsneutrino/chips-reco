@@ -24,16 +24,16 @@ public:
 	  void ResetValues();
 
 	  // Get and set the vertex information
-    void AddVertex(TVector3 vtx, double time);
-    void AddVertex(double x, double y, double z, double time);
+      void AddVertex(TVector3 vtx, double time);
+      void AddVertex(double x, double y, double z, double time);
 
-    TVector3 GetVertex(unsigned int p) const;
-    std::vector<TVector3> GetVertices() const;
+      TVector3 GetVertex(unsigned int p) const;
+      std::vector<TVector3> GetVertices() const;
 	  double GetVertexX(unsigned int p) const;
 	  double GetVertexY(unsigned int p) const;
 	  double GetVertexZ(unsigned int p) const;
-    double GetVertexT(unsigned int p) const;
-    std::vector<double> GetVerticesT() const;
+      double GetVertexT(unsigned int p) const;
+      std::vector<double> GetVerticesT() const;
     
 
 	  // Primary particle functions
@@ -47,7 +47,7 @@ public:
 	  std::vector<TVector3> GetPrimaryDirs() const;
 	  unsigned int GetNPrimaries() const;
 
-    bool HasCommonVertex() const;
+      bool HasCommonVertex() const;
       // Best-fit log likelihoods
       void SetTimeMinus2LnL(double minus2LnL);
       void SetChargeMinus2LnL(double minus2LnL);
@@ -56,13 +56,15 @@ public:
       double GetMinus2LnL() const;
 
 	private:
+
+
       // Likelihoods
       double fTimeMinus2LnL;
       double fChargeMinus2LnL;
       
 	  // Vertex position
 	  std::vector<TVector3> fVertices;
-          std::vector<double> fVerticesT;
+      std::vector<double> fVerticesT;
 
 	  // Also store information about the primary particles (only those escaping the nucleus)
 	  std::vector<int> fPrimaryPDGs;

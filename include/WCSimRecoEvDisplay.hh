@@ -42,10 +42,23 @@ public:
   void SetViewTotalLnL();
   void SetViewQLnL();
   void SetViewTLnL();
+  
+  // Functions to show the different likelihood contributions from the correct track
+  void SetViewCorrectTotalLnL();
+  void SetViewCorrectQLnL();
+  void SetViewCorrectTLnL();
 
   // Show the reco-true distributions
   void SetViewChargeRMT();
   void SetViewTimeRMT();
+
+  // Show the predicted distributions at the best-fit
+  void SetViewChargePrediction();
+  void SetViewTimePrediction();
+
+  // Show the predicted distributions for the correct tracks
+  void SetViewCorrectChargePrediction();
+  void SetViewCorrectTimePrediction();
 
   // Special display view for saving plots
   void ShowDisplayView();
@@ -54,10 +67,13 @@ protected:
 	
   void MakeGraphColours();
 
-	void FillPlots();
-	void FillPlotsFromRecoFile();
+  void FillPlots();
+  void FillPlotsFromRecoFile();
   void FillPlotsFromLikelihood();
+  void FillPlotsFromCorrectLikelihood();
   void FillPlotsFromRMT();
+  void FillPlotsFromPrediction();
+  void FillPlotsFromCorrectPrediction();
   // Draw the reco plots to their pads, but don't show yet.
   void UpdateRecoPads();
   // Update the truth TPaveText panel
@@ -141,6 +157,10 @@ protected:
   unsigned int GetTRMTBin(double rmt) const;
   TH1D *fChargeRMTHist;
   TH1D *fTimeRMTHist;
+  TH1D *fChargePredHist;
+  TH1D *fTimePredHist;
+  TH1D *fCorrectChargePredHist;
+  TH1D *fCorrectTimePredHist;
 
   std::vector<Int_t> fColoursNormal;
   std::vector<Int_t> fColoursDiff;
