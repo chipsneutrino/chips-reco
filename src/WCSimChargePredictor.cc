@@ -156,6 +156,7 @@ double WCSimChargePredictor::GetPredictedCharge(WCSimLikelihoodDigit *myDigit)
   Double_t predictedCharge = 0;
 
   // Work out how many photons we expect at each PMT from each track
+  assert(fTracks.size() <= 1); // Looping over multiple tracks now handled by having multiple ChargePredictors
   for(unsigned int iTrack = 0; iTrack < fTracks.size(); iTrack++)
   {
     trackNum = iTrack;
