@@ -311,6 +311,7 @@ WCSimVertexFinder::WCSimVertexFinder()
   // default configuration
   fBaseFOM = 100.0;
   fPointFitOnly = 0;
+  fSimpleVertexOnly = 1;
   fUseTrueVertex = 0; 
   fUseTruePosition = 0;
   fUseTrueDirection = 0;
@@ -2517,7 +2518,7 @@ void WCSimVertexFinder::ConePropertiesLnL(Double_t coneParam0, Double_t conePara
       // pulse height distribution
       // =========================
       if( deltaAngle<=0 ){
-	sigmaQ = sigmaQmax;
+		sigmaQ = sigmaQmax;
       }
       else{
         sigmaQ = sigmaQmin + (sigmaQmax-sigmaQmin)/(1.0+(deltaAngle*deltaAngle)/(sigmaAngle*sigmaAngle));
