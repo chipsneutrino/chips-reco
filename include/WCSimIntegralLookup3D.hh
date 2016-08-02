@@ -23,6 +23,8 @@ public:
 	/**
 	 * Constructor for when you don't already have an array of integrals
 	 * graphs and splines and are going to build them yourself
+	 * @param EMax Maximum track energy (in MeV)
+	 * @param EMin Minimum track energy (in MeV)
 	 * @param R0Max Maximum value of R0 (in cm) ie. the starting radius of the track
 	 * @param R0Min Minimum value of R0 (in cm)
 	 * @param R0Bins Number of bins in R0
@@ -30,7 +32,8 @@ public:
 	 * @param cosTh0Min Minimum value of cosTheta0 (usually -1)
 	 * @param cosTh0Bins Number of bins in cosTheta0
 	 */
-	WCSimIntegralLookupHistArray( double R0Max, double R0Min, int R0Bins,
+	WCSimIntegralLookupHistArray( double EMin, double EMax,
+                                  double R0Max, double R0Min, int R0Bins,
 								  double cosTh0Max, double cosTh0Min, int cosTh0Bins);
     WCSimIntegralLookupHistArray& operator=(const WCSimIntegralLookupHistArray& rhs);
     virtual ~WCSimIntegralLookupHistArray();
@@ -60,8 +63,8 @@ public:
 	void SetRhoGSSpline(double R0, double cosTh0, TSpline3 * spline);
 	void SetRhoGSSSpline(double R0, double cosTh0, TSpline3 * spline);
 
-	double GetRhoIntegral(const double E, const int sPower);
-	double GetRhoGIntegral(const double E, const double R0, const double cosTh0, const int sPower);
+	double GetRhoIntegral(double E, const int sPower);
+	double GetRhoGIntegral(double E, const double R0, const double cosTh0, const int sPower);
     void Verify();
     void ClearGraphs();
 
@@ -77,6 +80,10 @@ private:
 	std::vector<TSpline3*> fRhoGSSplineArr;
 	std::vector<TGraph*>   fRhoGSSArr;
 	std::vector<TSpline3*> fRhoGSSSplineArr;
+public:
+    double fEMin;
+    double fEMax;
+private:
 	double fR0Min;
 	double fR0Max;
 	int    fR0Bins;

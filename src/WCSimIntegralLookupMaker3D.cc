@@ -77,7 +77,7 @@ void WCSimIntegralLookupMaker3D::SetBins(const int &nEBins, const double &eMin, 
 	fCosTh0Min   = cosTh0Min;
 	fCosTh0Max   = cosTh0Max;
 
-    fIntegrals = WCSimIntegralLookupHistArray(fR0Max, fR0Min, fNR0Bins, fCosTh0Max, fCosTh0Min, fNCosTh0Bins);
+    fIntegrals = WCSimIntegralLookupHistArray(fEMin, fEMax, fR0Max, fR0Min, fNR0Bins, fCosTh0Max, fCosTh0Min, fNCosTh0Bins);
 }
 
 void WCSimIntegralLookupMaker3D::MakeLookupTables() {

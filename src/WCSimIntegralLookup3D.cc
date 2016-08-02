@@ -148,9 +148,11 @@ void WCSimIntegralLookupHistArray::SetSpline(int bin,
     return;
 }
 
-double WCSimIntegralLookupHistArray::GetRhoIntegral(const double E,
+double WCSimIntegralLookupHistArray::GetRhoIntegral(double E,
 		const int sPower) {
 	if( sPower == 0 ) { return 1;}
+    if(E < fEMin){ E = fEMin; }
+    if(E > fEMax){ E = fEMax; }
 	else if(sPower == 1 && fRhoSSpline != NULL){ return fRhoSSpline->Eval(E); }
 	else if(sPower == 2 && fRhoSSSpline != NULL){ return fRhoSSSpline->Eval(E); }
 
@@ -158,11 +160,13 @@ double WCSimIntegralLookupHistArray::GetRhoIntegral(const double E,
 	return 0;
 }
 
-double WCSimIntegralLookupHistArray::GetRhoGIntegral(const double E,
+double WCSimIntegralLookupHistArray::GetRhoGIntegral( double E,
 		const double R0, const double cosTh0, const int sPower) {
-	int bin = GetArrayIndex(R0, cosTh0);
+	unsigned long int bin = GetArrayIndex(R0, cosTh0);
     if(bin >= fRhoGSplineArr.size()){std::cout << "R0 = " << R0 << " and cosTh0 = " << cosTh0 << " and sPower = " << sPower << " so bin is " << bin << " and array has " << fRhoGSplineArr.size() << " bins" << std::endl;}
 
+    if(E < fEMin){ E = fEMin; }
+    if(E > fEMax){ E = fEMax; }
 	if(sPower == 0 && fRhoGSplineArr.at(bin) != NULL){ return fRhoGSplineArr.at(bin)->Eval(E); }
 	if(sPower == 1 && fRhoGSSplineArr.at(bin) != NULL){ return fRhoGSSplineArr.at(bin)->Eval(E); }
 	if(sPower == 2 && fRhoGSSSplineArr.at(bin) != NULL){ return fRhoGSSSplineArr.at(bin)->Eval(E); }
@@ -172,25 +176,31 @@ double WCSimIntegralLookupHistArray::GetRhoGIntegral(const double E,
 }
 
 WCSimIntegralLookupHistArray::WCSimIntegralLookupHistArray() :
+    fEMin(-999), fEMax(-999),
 	fR0Min(-999), fR0Max(-999), fR0Bins(-999),
 	fCosTheta0Min(-999), fCosTheta0Max(-999), fCosTheta0Bins(-999),
 	fRhoInt(NULL), fRhoSInt(NULL), fRhoSSInt(NULL),
 	fRhoSSpline(NULL), fRhoSSSpline(NULL){
 }
 
-WCSimIntegralLookupHistArray::WCSimIntegralLookupHistArray(double R0Max,
-		double R0Min, int R0Bins, double cosTh0Max, double cosTh0Min,
+WCSimIntegralLookupHistArray::WCSimIntegralLookupHistArray(
+        double EMin, double EMax,
+        double R0Max, double R0Min, int R0Bins, double cosTh0Max, double cosTh0Min,
 		int cosTh0Bins) :
+    fEMin(EMin), fEMax(EMax),
 	fR0Min(R0Min), fR0Max(R0Max), fR0Bins(R0Bins),
 	fCosTheta0Min(cosTh0Min), fCosTheta0Max(cosTh0Max), fCosTheta0Bins(cosTh0Bins),
 	fRhoInt(NULL), fRhoSInt(NULL), fRhoSSInt(NULL),
 	fRhoSSpline(NULL), fRhoSSSpline(NULL)
 {
+    std::cout << "fEMin = " << fEMin << std::endl;
+    std::cout << "fEMax = " << fEMax << std::endl;
 	ResetArrays();
 }
 
 WCSimIntegralLookupHistArray::WCSimIntegralLookupHistArray(const WCSimIntegralLookupHistArray& other) : 
-	fR0Min(other.fR0Min), fR0Max(other.fR0Max), fR0Bins(other.fR0Bins),
+	fEMin(other.fEMin), fEMax(other.fEMax),
+    fR0Min(other.fR0Min), fR0Max(other.fR0Max), fR0Bins(other.fR0Bins),
 	fCosTheta0Min(other.fCosTheta0Min), fCosTheta0Max(other.fCosTheta0Max), fCosTheta0Bins(other.fCosTheta0Bins),
 	fRhoInt(NULL), fRhoSInt(NULL), fRhoSSInt(NULL),
 	fRhoSSpline(NULL), fRhoSSSpline(NULL)
@@ -233,6 +243,8 @@ WCSimIntegralLookupHistArray::WCSimIntegralLookupHistArray(const WCSimIntegralLo
 WCSimIntegralLookupHistArray& WCSimIntegralLookupHistArray::operator =(const WCSimIntegralLookupHistArray& rhs)
 {
     // Assign all the simple variables
+    fEMin   = rhs.fEMin;
+    fEMax   = rhs.fEMax;
     fR0Min  = rhs.fR0Min;
     fR0Max  = rhs.fR0Max;
     fR0Bins = rhs.fR0Bins;
