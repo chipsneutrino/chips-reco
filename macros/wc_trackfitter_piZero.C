@@ -30,7 +30,7 @@ void wc_trackfitter_piZero(const char * infile = "", int start=0, int fit=100){
   myInterface.SetTrackType(0, "PhotonLike");
   myInterface.SetTrackType(1, "PhotonLike");
   myInterface.SetIsPiZeroFit(true);
-  myInterface.SetForcePiZeroMass(true);
+  myInterface.SetForcePiZeroMass(false);
 
 //  myInterface.SetTrackType(0, "MuonLike");
 //  myInterface.SetTrackType(1, "MuonLike");
@@ -44,34 +44,31 @@ void wc_trackfitter_piZero(const char * infile = "", int start=0, int fit=100){
   double fVtxX = 0.0;
   double fVtxY = 0.0;
   double fVtxZ = 0.0;
-  double fDirX1 = 0.0;
-  double fDirY1 = 0.0;
-  double fDirZ1 = 0.0;
-  double fDirX2 = 0.0;
-  double fDirY2 = 0.0;
-  double fDirZ2 = 0.0;
-  double fTheta1 = TMath::ACos(fDirZ1);
-  double fPhi1 = TMath::ATan2(fDirY1,fDirX1);
-  double fTheta2 = TMath::ACos(fDirZ2);
-  double fPhi2 = TMath::ATan2(fDirY2,fDirX2);
-  //
-  myInterface.SetParameter(0, "kVtxX", -1200, 1200, fVtxX, fFixVtx);
-  myInterface.SetParameter(0, "kVtxY", -1200, 1200, fVtxY, fFixVtx);
-  myInterface.SetParameter(0, "kVtxZ", -900, 900, fVtxZ, fFixVtx);
-  myInterface.SetParameter(0, "kVtxT", -900, 900, 0, true);
-  myInterface.SetParameter(0, "kDirTh", 0, TMath::Pi(), fTheta1, fFixDir);
-  myInterface.SetParameter(0, "kDirPhi", -TMath::Pi(), TMath::Pi(), fPhi1, fFixDir);
-  myInterface.SetParameter(0, "kEnergy", 100, 3000, 600, false);
-  myInterface.SetParameter(0, "kConversionDistance", 0, 400, 50, false);
+  TVector3 dir1(1,1,0);
+  TVector3 dir2(1,-1,0);
+  double fTheta1 = dir1.Theta();
+  double fPhi1 = dir1.Phi();
+  double fTheta2 = dir2.Theta();
+  double fPhi2 = dir2.Phi();
 
-  myInterface.SetParameter(1, "kVtxX", -1200, 1200, fVtxX, fFixVtx);
-  myInterface.SetParameter(1, "kVtxY", -1200, 1200, fVtxY, fFixVtx);
-  myInterface.SetParameter(1, "kVtxZ", -900, 900, fVtxZ, fFixVtx);
-  myInterface.SetParameter(1, "kVtxT", -900, 900, 0, true);
-  myInterface.SetParameter(1, "kDirTh", 0, TMath::Pi(), fTheta2, fFixDir);
-  myInterface.SetParameter(1, "kDirPhi", -TMath::Pi(), TMath::Pi(), fPhi2, fFixDir);
-  myInterface.SetParameter(1, "kEnergy", 500, 3000, 600, false);
-  myInterface.SetParameter(1, "kConversionDistance", 0, 400, 50, false);
+
+  myInterface.SetParameter(0, "kVtxX", -1200, 1200, fVtxX, fFixVtx, 10.0);
+  myInterface.SetParameter(0, "kVtxY", -1200, 1200, fVtxY, fFixVtx, 10.0);
+  myInterface.SetParameter(0, "kVtxZ", -900, 900, fVtxZ, fFixVtx, 10.0);
+  myInterface.SetParameter(0, "kVtxT", -100, 101000, 5000, false, 1.0);
+  myInterface.SetParameter(0, "kDirTh", 0, TMath::Pi(), fTheta1, fFixDir, 0.01);
+  myInterface.SetParameter(0, "kDirPhi", -TMath::Pi(), TMath::Pi(), fPhi1, fFixDir, 0.02);
+  myInterface.SetParameter(0, "kEnergy", 100, 5000, 600, false, 250.);
+  myInterface.SetParameter(0, "kConversionDistance", 0, 400, 50, false, 10.0);
+
+  myInterface.SetParameter(1, "kVtxX", -1200, 1200, fVtxX, fFixVtx, 10.0);
+  myInterface.SetParameter(1, "kVtxY", -1200, 1200, fVtxY, fFixVtx, 10.0);
+  myInterface.SetParameter(1, "kVtxZ", -900, 900, fVtxZ, fFixVtx, 10.0);
+  myInterface.SetParameter(1, "kVtxT", -100, 101000, 5000, false, 1.0);
+  myInterface.SetParameter(1, "kDirTh", 0, TMath::Pi(), fTheta2, fFixDir, 0.01);
+  myInterface.SetParameter(1, "kDirPhi", -TMath::Pi(), TMath::Pi(), fPhi2, fFixDir, 0.02);
+  myInterface.SetParameter(1, "kEnergy", 100, 5000, 600, false, 250.);
+  myInterface.SetParameter(1, "kConversionDistance", 0, 400, 50, false, 10.0);
 
   myInterface.JoinParametersTogether(0,1,"kVtxX");
   myInterface.JoinParametersTogether(0,1,"kVtxY");
@@ -79,14 +76,15 @@ void wc_trackfitter_piZero(const char * infile = "", int start=0, int fit=100){
   myInterface.JoinParametersTogether(0,1,"kVtxT");
 
   // Set up some initial parameters
-  if(myInterface.GetTrackType(0) == TrackType::MuonLike){
+  /*if(myInterface.GetTrackType(0) == TrackType::MuonLike){
     WCSimParameters::Instance()->SetSlicerClusterDistance(250);
   }
   else{
     WCSimParameters::Instance()->SetSlicerClusterDistance(100);
   }
   WCSimParameters::Instance()->SetSlicerMinSize(10);
-  WCSimParameters::Instance()->SetSlicerChargeCut(1.0);
+  WCSimParameters::Instance()->SetSlicerChargeCut(0.0);
+  */
 
   // Plot best-fit results
   myInterface.PlotForEachEvent("kVtxX");
