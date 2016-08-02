@@ -312,7 +312,12 @@ double WCSimLikelihoodFitter::WrapFuncPiZero(const Double_t * x)
   trackParT = std::make_pair(1, FitterParameterType::kVtxT);
   trackParTh = std::make_pair(1, FitterParameterType::kDirTh);
   trackParPhi = std::make_pair(1, FitterParameterType::kDirPhi);
-  double track1Energy = GetPiZeroSecondTrackEnergy(x);
+
+  double track1Energy = x[fFitterTrackParMap.GetIndex(trackParE)];
+  if( GetUsePiZeroMassConstraint() ){
+    track1Energy = GetPiZeroSecondTrackEnergy(x);
+  }
+
 
   std::map<FitterParameterType::Type, double> extraPars2;
   trackParConversionDistance = std::make_pair(1, FitterParameterType::kConversionDistance);
@@ -457,7 +462,6 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
       FreeDirection();
       FreeVertex();
           
-      
       if(    WCSimAnalysisConfig::Instance()->GetEqualiseChargeAndTime()
           && usingCharge 
           && usingTime)    
@@ -534,10 +538,11 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
       FixVertex();
       FixEnergy();
       FixDirection();
+      FreeTime();
       FitTime();
       FreeVertex();
       FreeEnergy();
-      FreeTime();
+      FreeDirection();
     }
 	fTrueLikelihoodTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
   }
@@ -694,6 +699,8 @@ void WCSimLikelihoodFitter::RunFits() {
 	    {
             std::cout << "Failed for some reason: fMinimum = " << fMinimum << " and fFailed = " << fFailed << std::endl;
 	      fFitterTree->FillRecoFailures(iEvent);
+		  FillTree();
+		  FillHitComparison();
 	    }
 	    fFitterTree->SaveTree();
 		fFitterPlots->SavePlots();
@@ -781,7 +788,7 @@ void WCSimLikelihoodFitter::FillTree() {
 		{
 			trueTrackEscapes.push_back(this->GetTrueTrackEscapes(j));
 		}
-		fFitterTree->Fill(fEvent, fBestFit, bestFitEscapes, *fTrueLikelihoodTracks, trueTrackEscapes, fMinimumChargeComponent, fMinimumTimeComponent);
+		fFitterTree->Fill(fEvent, fBestFit, bestFitEscapes, *fTrueLikelihoodTracks, trueTrackEscapes, fMinimumChargeComponent, fMinimumTimeComponent, fFailed);
 	}
 	return;
 }
@@ -1283,7 +1290,7 @@ void WCSimLikelihoodFitter::FitPiZero(const char * minAlgorithm)
 	min->SetMaxIterations(1);
 	min->SetPrintLevel(3);
 	//min->SetTolerance(0.);
-  min->SetErrorDef(1.0);
+    min->SetErrorDef(1.0);
 	min->SetStrategy(2);
 	std::cout << " Tolerance = " << min->Tolerance() << std::endl;
 
@@ -1308,7 +1315,7 @@ void WCSimLikelihoodFitter::FitPiZero(const char * minAlgorithm)
 	std::vector<bool> currentlyFixed = fFitterTrackParMap.GetCurrentlyFixed();
 	std::vector<std::string> names = fFitterTrackParMap.GetNames();
 	
-  UInt_t trk1EnergyIndex = (fFitterTrackParMap.GetIndex(1, FitterParameterType::kEnergy));
+    UInt_t trk1EnergyIndex = (fFitterTrackParMap.GetIndex(1, FitterParameterType::kEnergy));
 
 	for(UInt_t i = 0; i < nPars; ++i)
 	{
@@ -1342,7 +1349,7 @@ void WCSimLikelihoodFitter::FitPiZero(const char * minAlgorithm)
 		  try
 		  {
 			  min->Minimize();
-			  fMinimum = min->MinValue();
+              fMinimum = min->MinValue();
 			  fStatus = min->Status();
 		  }
 		  catch(FitterArgIsNaN &e)
@@ -1357,11 +1364,28 @@ void WCSimLikelihoodFitter::FitPiZero(const char * minAlgorithm)
 	  // Future tracks need to start from this best fit
 	  for( unsigned int i = 0; i < nPars; ++i)
 	  {
-	    fFitterTrackParMap.SetCurrentValue(i, outPar[i]);
+	      fFitterTrackParMap.SetCurrentValue(i, outPar[i]);
 
-	    if(i == trk1EnergyIndex )
+	    if(i == trk1EnergyIndex && GetUsePiZeroMassConstraint())
 	    {
-	    	fFitterTrackParMap.SetCurrentValue(i, GetPiZeroSecondTrackEnergy(outPar));
+            fFitterTrackParMap.Print();
+            double secondEnergy = GetPiZeroSecondTrackEnergy(outPar);
+            if(secondEnergy < fFitterTrackParMap.GetMinValue(1, FitterParameterType::kEnergy))
+            {
+                fFitterTrackParMap.SetCurrentValue(i, fFitterTrackParMap.GetMinValue(1, FitterParameterType::kEnergy));
+                std::cerr << "Warning: Second photon energy of " << secondEnergy << " less than the allowed minimum. "
+                          << "Using " << fFitterTrackParMap.GetMinValue(1, FitterParameterType::kEnergy) << "instead" << std::endl;
+            }
+            else if(secondEnergy > fFitterTrackParMap.GetMaxValue(1, FitterParameterType::kEnergy))
+            {
+                fFitterTrackParMap.SetCurrentValue(i, fFitterTrackParMap.GetMaxValue(1, FitterParameterType::kEnergy));
+                std::cerr << "Warning: Second photon energy of " << secondEnergy << " greater than the allowed minimum. "
+                          << "Using " << fFitterTrackParMap.GetMaxValue(1, FitterParameterType::kEnergy) << "instead" << std::endl;
+            }
+            else
+            {
+	    	    fFitterTrackParMap.SetCurrentValue(i, secondEnergy);
+            }
 	    }
 	  }
 
@@ -1372,7 +1396,7 @@ void WCSimLikelihoodFitter::FitPiZero(const char * minAlgorithm)
 	  // Get and print the fit results
 	  // std::cout << "Best fit track: " << std::endl;
 	  // RescaleParams(outPar2[0],  outPar2[1],  outPar2[2],  outPar2[3],  outPar2[4],  outPar2[5],  outPar2[6], fType).Print();
-    UpdateBestFits();
+      UpdateBestFits();
 	  return;
 }
 
@@ -2032,12 +2056,13 @@ void WCSimLikelihoodFitter::FitAlongTrack()
 void WCSimLikelihoodFitter::FitPiZeroEvent()
 {
     fCalls = 0;
-	  fFitterTrackParMap.Set();
+    fFitterTrackParMap.Set();
 
     // Run seed
     SeedEvent();
 
     FixVertex();
+    FixTime();
     FreeEnergy();
     FreeDirection();
     FreeConversionLength();
@@ -2062,16 +2087,20 @@ void WCSimLikelihoodFitter::FitPiZeroEvent()
     // And finally tidy up the energy
     FixVertex();
     FixDirection();
+    FixTime();
     FreeEnergy();
     FitPiZero();
+
 
     // Leave everything free at the end
     FreeVertex();
     FreeDirection();    
     FreeEnergy();
+    FreeTime();
     FreeConversionLength();
     Fit();
 
+  fTrueLikelihoodTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
 }
 
 void WCSimLikelihoodFitter::FixConversionLength()
@@ -2114,7 +2143,14 @@ Double_t WCSimLikelihoodFitter::GetPiZeroSecondTrackEnergy(const Double_t * x)
                       // i.e. the cosine of the angle between the two photons
 
   double track1Energy = 0.5 * massOfPiZeroMeV * massOfPiZeroMeV / (track0Energy * (1.0 - cosTheta01));
-  if(track1Energy > 3000) { track1Energy = 3000; }
+  if(track1Energy < fFitterTrackParMap.GetMinValue(1, FitterParameterType::kEnergy))
+  {
+      track1Energy = fFitterTrackParMap.GetMinValue(1, FitterParameterType::kEnergy);
+  }
+  if(track1Energy > fFitterTrackParMap.GetMaxValue(1, FitterParameterType::kEnergy))
+  {
+      track1Energy = fFitterTrackParMap.GetMaxValue(1, FitterParameterType::kEnergy);
+  }
 
   std::cout << "Track 0 energy = " << track0Energy << "   Track 1 energy = " << track1Energy << "   Inv. mass = " << sqrt((2*track0Energy*track1Energy)*(1-cosTheta01)) << std::endl;
   return track1Energy;
