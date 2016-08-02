@@ -5,6 +5,8 @@
 #include "TVector3.h"
 
 #include "WCSimRootGeom.hh"
+#include "WCSimTrackParameterEnums.hh"
+class WCSimEmissionProfileManager;
 
 class WCSimGeometry : public TObject {
 
@@ -40,6 +42,12 @@ class WCSimGeometry : public TObject {
    kLeft    = 20,
    kRight   = 22
   } GeoRegion_t;
+
+  typedef enum ERingRegion {
+      kOutside = 0,
+      kInside = 1,
+      kInsideHole = 2
+  } RingRegion_t;
 
   const char* AsString(GeoConfiguration_t config);
 
@@ -229,11 +237,19 @@ class WCSimGeometry : public TObject {
                                           Double_t& x, Double_t& y, Double_t& z);
   static Double_t DistanceToIntersectLine(Double_t* pos, Double_t* start, Double_t* end, Double_t* intersection);
 
+  bool IsOutsideRing(const TVector3& vtx, const TVector3& dir, const TVector3& pmt, const TrackType::Type& type, const double energy);
+  bool IsInRing(const TVector3& vtx, const TVector3& dir, const TVector3& pmt, const TrackType::Type& type, const double energy);
+  bool IsInRingHole(const TVector3& vtx, const TVector3& dir, const TVector3& pmt, const TrackType::Type& type, const double energy);
+  bool GetEscapes(const TVector3& vtx, const TVector3& dir, const TrackType::Type& type, const double energy);
+  TVector3 GetEnd(const TVector3& vtx, const TVector3& dir, const TrackType::Type& type, const double energy);
  private:
 
   WCSimGeometry();
   WCSimGeometry(WCSimRootGeom* geom);
   ~WCSimGeometry();
+  RingRegion_t GetPMTRingRegion(const TVector3& vtx, const TVector3& dir, const TVector3& pmt, const TrackType::Type& type, const double energy);
+  void TouchEmissionProfileManager();
+
 
   Double_t fScale;
 
@@ -278,6 +294,7 @@ class WCSimGeometry : public TObject {
   Double_t fZpos;
 
   WCSimRootGeom* fWCSimRootGeom;
+  WCSimEmissionProfileManager* fEmissionProfileManager;
 
   ClassDef(WCSimGeometry,0)
 };

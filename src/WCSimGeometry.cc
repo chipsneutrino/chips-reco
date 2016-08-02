@@ -1,5 +1,7 @@
 #include "WCSimGeometry.hh"
 #include "WCSimParameters.hh"
+#include "WCSimTrackParameterEnums.hh"
+#include "WCSimEmissionProfileManager.hh"
 
 #include "TFile.h"
 #include "TTree.h"
@@ -139,7 +141,8 @@ WCSimGeometry::WCSimGeometry() :
   fPmtY(0),
   fPmtZ(0),
   fPmtRegion(0),
-  fWCSimRootGeom(0)
+  fWCSimRootGeom(0),
+  fEmissionProfileManager(0)
 {
   this->SetGeometry(0);
 }
@@ -161,6 +164,7 @@ WCSimGeometry::~WCSimGeometry()
   if( fPmtY )         delete [] fPmtY;       
   if( fPmtZ )         delete [] fPmtZ;       
   if( fPmtRegion )    delete [] fPmtRegion;  
+  if( fEmissionProfileManager ) delete fEmissionProfileManager;
 }
  
 Int_t WCSimGeometry::GetRegion( Int_t tube )
@@ -2458,4 +2462,64 @@ Double_t WCSimGeometry::DistanceToIntersectLine(Double_t* pos, Double_t* start, 
   intersection[0]=x; intersection[1]=y; intersection[2]=z;  
   
   return L;
+}
+
+WCSimGeometry::RingRegion_t WCSimGeometry::GetPMTRingRegion(const TVector3& vtx, const TVector3& dir, const TVector3& pmt, const TrackType::Type& type, const double energy)
+{
+    TouchEmissionProfileManager();
+
+    double length = fEmissionProfileManager->GetTrackLength(type, energy);
+    TVector3  stop  = vtx + length*dir;
+
+    
+    double startAngle = (pmt - vtx).Angle(dir) * TMath::RadToDeg();
+    double stopAngle  =  (pmt - stop).Angle(dir) * TMath::RadToDeg();
+    //std::cout << "Start at (" << vtx.X() << ", " << vtx.Y() << ", " << vtx.Z() << ") and " << TrackType(type) << " with E = " << energy << " travels " << length << "cm" << std::endl;
+    //std::cout << "Stops at (" << stop.X() << ", " << stop.Y() << ", " << stop.Z() << ") so start angle = " << startAngle << " and stopAngle = " << stopAngle << std::endl;
+
+    if( startAngle < 42 && stopAngle > 42){ return WCSimGeometry::kInside; }     // It's in the body of the ring
+    if( startAngle < 42 && stopAngle < 42){ return WCSimGeometry::kInsideHole; } // It's in the hole in the middle of the ring
+    //std::cout << "Outside" << std::endl << std::endl;
+    return kOutside;                                              // It isn't in the ring at all
+    
+}
+
+bool WCSimGeometry::IsOutsideRing(const TVector3& vtx, const TVector3& dir, const TVector3& pmt, const TrackType::Type& type, const double energy)
+{
+    int region = (GetPMTRingRegion(vtx, dir, pmt, type, energy));
+    return (GetPMTRingRegion(vtx, dir, pmt, type, energy) == WCSimGeometry::kOutside);
+}
+
+bool WCSimGeometry::IsInRing(const TVector3& vtx, const TVector3& dir, const TVector3& pmt, const TrackType::Type& type, const double energy)
+{
+    return (GetPMTRingRegion(vtx, dir, pmt, type, energy) == WCSimGeometry::kInside);
+}
+
+bool WCSimGeometry::IsInRingHole(const TVector3& vtx, const TVector3& dir, const TVector3& pmt, const TrackType::Type& type, const double energy)
+{
+    return (GetPMTRingRegion(vtx, dir, pmt, type, energy) == WCSimGeometry::kInsideHole);
+}
+
+void WCSimGeometry::TouchEmissionProfileManager()
+{
+    if(fEmissionProfileManager == NULL)
+    {
+        fEmissionProfileManager = new WCSimEmissionProfileManager(); 
+    }
+}
+
+bool WCSimGeometry::GetEscapes(const TVector3& vtx, const TVector3& dir, const TrackType::Type& type, const double energy)
+{
+    bool startIn = InsideDetector(vtx.X(), vtx.Y(), vtx.Z());
+	TVector3 end = GetEnd(vtx, dir, type, energy);
+    bool endIn = InsideDetector(end.X(), end.Y(), end.Z());
+    return !(startIn && endIn);
+}
+
+TVector3 WCSimGeometry::GetEnd(const TVector3& vtx, const TVector3& dir, const TrackType::Type& type, const double energy)
+{
+    TouchEmissionProfileManager();
+    double length = fEmissionProfileManager->GetTrackLength(type, energy);
+    TVector3 end = vtx + length * dir;
+	return end;
 }

@@ -5,6 +5,7 @@
 #include "WCSimEmissionProfileManager.hh"
 #include "WCSimTrackParameterEnums.hh"
 #include "WCSimEmissionProfiles.hh"
+#include "WCSimFastMath.hh"
 #include <cassert>
 #include <map>
 #include <vector>
@@ -17,9 +18,13 @@ ClassImp(WCSimEmissionProfileManager)
 
 WCSimEmissionProfileManager::WCSimEmissionProfileManager()
 {
-  fNumTracksToCache = 4;
+  fNumTracksToCache = 10;
   fLastNearbyEnergyBin = -999;
   fLastNearbyType = TrackType::Unknown;
+
+  fLastLengthType = TrackType::Unknown;
+  fLastLengthEnergy = -999.9;
+  fLastLength = -999.9;
 }
 
 WCSimEmissionProfileManager::~WCSimEmissionProfileManager()
@@ -219,55 +224,80 @@ double WCSimEmissionProfileManager::GetMostRecentlyUsedEnergy(const TrackType::T
 }
 
 std::vector<double> WCSimEmissionProfileManager::GetFourNearestEnergies(
-		WCSimLikelihoodTrackBase* myTrack) {
+		WCSimLikelihoodTrackBase* myTrack) 
+{
+    return GetFourNearestEnergies(myTrack->GetType(), myTrack->GetE());
+}
+
+
+std::vector<double> WCSimEmissionProfileManager::GetFourNearestEnergies(
+        const TrackType::Type& type, const double& energy)
+{
 
 	// Construct a vector of energies so that the energy we want lies between
 	// index 1 and 2:
     // std::cout << "Get fEnergies" << std::endl;
 	std::vector<double> energies;
-	TAxis * energyAxis = GetEnergyHist(myTrack->GetType())->GetXaxis();
-	int bin = energyAxis->FindBin(myTrack->GetE());
-	if(bin != fLastNearbyEnergyBin || fLastNearbyType != myTrack->GetType())
+	TAxis * energyAxis = GetEnergyHist(type)->GetXaxis();
+	int bin = energyAxis->FindBin(energy);
+	if(bin != fLastNearbyEnergyBin || fLastNearbyType != type)
 	{
 		ResetSCosThetaForTimeHists();
 		ResetSForTimeHists();
 		fEnergies.clear();
 		fEnergies.resize(4, 0.0);
 
-		if(bin == 1)
-		{
-			fEnergies.at(0) = energyAxis->GetBinLowEdge(bin) - energyAxis->GetBinWidth(bin);
-		}
-		else
-		{
-			fEnergies.at(0) = energyAxis->GetBinLowEdge(bin-1);
-		}
-		fEnergies.at(1) = energyAxis->GetBinLowEdge(bin);
+        if(bin == 0)
+        {
+            double lowVal = energyAxis->GetBinLowEdge(1);
+            double width = energyAxis->GetBinLowEdge(1);
+            while( lowVal >= (energy - width) )
+            {
+                lowVal = energy - width;
+            }
+            fEnergies.at(0) = lowVal;
+            fEnergies.at(1) = lowVal +   width;
+            fEnergies.at(2) = lowVal + 2*width;
+            fEnergies.at(3) = lowVal + 3*width;
 
-		if(bin == energyAxis->GetNbins())
+        }
+		else if(bin == energyAxis->GetNbins())
 		{
             // We're in the final energy bin, which goes from our highest simulated energy to 30GeV
             // Just want to return four equally-spaced energies inside this bin such that the 
             // track energy is between the middle two
             double binWidth = energyAxis->GetBinWidth(1);
-            double topLowEdge = energyAxis->GetBinLowEdge(bin);
-            fEnergies.at(1) = floor((myTrack->GetE()) / binWidth) * binWidth;
+            fEnergies.at(1) = floor(energy / binWidth) * binWidth;
             fEnergies.at(0) = fEnergies.at(1) - binWidth;
             fEnergies.at(2) = fEnergies.at(1) + binWidth;
             fEnergies.at(3) = fEnergies.at(2) + binWidth;
 		}
-		else if(bin == energyAxis->GetNbins()-1)
-		{
-			fEnergies.at(2) = energyAxis->GetBinLowEdge(bin+1);
-			fEnergies.at(3) = 2*fEnergies.at(2) - fEnergies.at(1);
-		}
-		else
-		{
-			fEnergies.at(2) = energyAxis->GetBinLowEdge(bin+1);
-			fEnergies.at(3) = energyAxis->GetBinLowEdge(bin+2);
-		}
+        else 
+        {
+            if(bin == 1)
+		    {
+		    	fEnergies.at(0) = energyAxis->GetBinLowEdge(bin) - energyAxis->GetBinWidth(bin);
+		        fEnergies.at(1) = energyAxis->GetBinLowEdge(bin);
+		    }
+		    else
+		    {
+		    	fEnergies.at(0) = energyAxis->GetBinLowEdge(bin-1);
+		        fEnergies.at(1) = energyAxis->GetBinLowEdge(bin);
+		    }
+
+		    if(bin == energyAxis->GetNbins()-1)
+		    {
+		    	fEnergies.at(2) = energyAxis->GetBinLowEdge(bin+1);
+		    	fEnergies.at(3) = 2*fEnergies.at(2) - fEnergies.at(1);
+		    }
+		    else
+		    {
+		    	fEnergies.at(2) = energyAxis->GetBinLowEdge(bin+1);
+		    	fEnergies.at(3) = energyAxis->GetBinLowEdge(bin+2);
+		    }
+        }
 		fLastNearbyEnergyBin = bin;
-		fLastNearbyType = myTrack->GetType();
+		fLastNearbyType = type;
 	}
 	return fEnergies;
 }
@@ -392,4 +422,22 @@ bool WCSimEmissionProfileManager::EnergiesInSameBin(const TrackType::Type& type,
 {
     TH1F * energyHist = GetEnergyHist(type);
     return (energyHist->GetXaxis()->FindBin(energy1) == energyHist->GetXaxis()->FindBin(energy2));
+}
+
+double WCSimEmissionProfileManager::GetTrackLength(const TrackType::Type& type, const double& energy)
+{
+    if(!(fLastLengthType == type && fLastLengthEnergy == energy))
+    {
+        std::vector<double> energies = GetFourNearestEnergies(type, energy);
+        std::vector<double> lengths(energies.size());
+        for(size_t i = 0; i < energies.size(); ++i)
+        {
+            lengths[i] = GetEmissionProfile(type, energy)->GetTrackLengthForPercentile(99);
+        }
+        fLastLengthType = type;
+        fLastLengthEnergy = energy;
+        fLastLength = WCSimFastMath::CatmullRomSpline(&(energies[0]), &(lengths[0]), energy);
+    }
+    return fLastLength;
+
 }
