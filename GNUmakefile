@@ -98,7 +98,7 @@ evDisp:
 fitterProfile:
 	$(CXX) $(CXXFLAGS) `root-config --cflags --glibs --libs --evelibs` -I./include ${WCSIM_INCLUDES} -I/home/ajperch/software/gperftools/include -L${WCSIMANAHOME} -L${WCSIMHOME} -L/home/ajperch/software/gperftools/lib/ -o fitterProfile runFitterProfile.cc ${WCSIMHOME}/src/WCSimRootDict.cc ${WCSIMANAHOME}/src/WCSimAnalysisRootDict.cc -lWCSim -lWCSimAnalysis -lEG -lSpectrum -lMinuit -L/home/ajperch/software/gperftools/lib -lprofiler 
 
-wc_plotLikelihoodOnce:
+wc_plotLikelihoodOnce: wc_plotLikelihoodOnce.cc src/WCSimAnalysisRootDict.cc
 	$(CXX) $(CXXFLAGS) `root-config --cflags --glibs --libs --evelibs` -I./include ${WCSIM_INCLUDES} -I/home/ajperch/software/gperftools/include -L${WCSIMANAHOME} -L${WCSIMHOME} -L/home/ajperch/software/gperftools/lib/ -o wc_plotLikelihoodOnce wc_plotLikelihoodOnce.cc ${WCSIMHOME}/src/WCSimRootDict.cc ${WCSIMANAHOME}/src/WCSimAnalysisRootDict.cc -lWCSim -lWCSimAnalysis -lEG -lSpectrum -lMinuit -L/home/ajperch/software/gperftools/lib -lprofiler 
 
 wc_plotHitTimesVsZ:
@@ -112,9 +112,6 @@ wc_compareTwoRuns:
 
 wc_plotResults:
 	$(CXX) `root-config --cflags --glibs --libs --evelibs` -I./include ${WCSIM_INCLUDES} -L${WCSIMANAHOME} -L${WCSIMHOME} -o wc_plotResults wc_plotResults.cc ${WCSIMHOME}/src/WCSimRootDict.cc ${WCSIMANAHOME}/src/WCSimAnalysisRootDict.cc -lWCSim -lWCSimAnalysis -lEG -lSpectrum -lMinuit
-
-wc_plotResults2:
-	$(CXX) `root-config --cflags --glibs --libs --evelibs` -I./include -I./ ${WCSIM_INCLUDES} -L${WCSIMANAHOME} -L${WCSIMHOME} -o wc_plotResults2 wc_plotResults2.cc WCSimComparisonPlotter.cc ${WCSIMHOME}/src/WCSimRootDict.cc ${WCSIMANAHOME}/src/WCSimAnalysisRootDict.cc -lWCSim -lWCSimAnalysis -lEG -lSpectrum -lMinuit
 
 wc_hitcomparison:
 	$(CXX) `root-config --cflags --glibs --libs --evelibs` -I./include -I./ ${WCSIM_INCLUDES} -L${WCSIMANAHOME} -L${WCSIMHOME} -o wc_hitcomparison wc_hitcomparison.cc ${WCSIMHOME}/src/WCSimRootDict.cc ${WCSIMANAHOME}/src/WCSimAnalysisRootDict.cc -lWCSim -lWCSimAnalysis -lEG -lSpectrum -lMinuit
