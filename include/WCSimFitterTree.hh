@@ -89,7 +89,8 @@ public:
 			  std::vector<WCSimLikelihoodTrackBase*> trueTracks,
 			  std::vector<Bool_t> trueTrackEscapes,
 			  Double_t charge2LnL,
-              Double_t time2LnL);
+              Double_t time2LnL,
+              bool failed);
 	void FillFitTrack(WCSimLikelihoodTrackBase * track, Bool_t escapes, Double_t twoLnL);
 	void FillTrueTrack(WCSimLikelihoodTrackBase * track, Bool_t escapes);
 	void FillHitComparison(
@@ -135,6 +136,7 @@ private:
 	WCSimRootEvent * fWCSimRootEvent;
 
     // Failed reco events
+    bool fFailed;
     int fFailedEvent;
 
 	// The best-fit variables

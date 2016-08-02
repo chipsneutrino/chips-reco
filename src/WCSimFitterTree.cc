@@ -103,7 +103,8 @@ void WCSimFitterTree::MakeTree() {
   fHitComparison = new HitComparison();
 
 	fTrueTree->Branch("event", &fEvent);
-	fTrueTree->Branch("track", &fTrueTrackNum);
+	fTrueTree->Branch("failed", &fFailed);
+    fTrueTree->Branch("track", &fTrueTrackNum);
 	fTrueTree->Branch("vtxX", &fTrueVtxX);
 	fTrueTree->Branch("vtxY", &fTrueVtxY);
 	fTrueTree->Branch("vtxZ", &fTrueVtxZ);
@@ -114,6 +115,7 @@ void WCSimFitterTree::MakeTree() {
 	fTrueTree->Branch("pdg", &fTruePDG);
 	fTrueTree->Branch("escapes", &fTrueEscapes);
   
+
 
 	fFitTree->Branch("event", &fEvent);
 	fFitTree->Branch("track", &fFitTrackNum);
@@ -190,9 +192,11 @@ void WCSimFitterTree::Fill(Int_t iEvent,
 						   std::vector<WCSimLikelihoodTrackBase*> trueTracks,
 						   std::vector<Bool_t> trueTrackEscapes,
 						   Double_t charge2LnL,
-                           Double_t time2LnL) {
+                           Double_t time2LnL,
+                           Bool_t failed) {
 
 	fEvent = iEvent;
+    fFailed = failed;
 
 	// Fill the truth and fit tree entries
 	if( fTrueTree == 0x0 && fFitTree == 0x0 && fGeoTree == 0x0)
@@ -267,6 +271,7 @@ void WCSimFitterTree::FillFitTrack(WCSimLikelihoodTrackBase * track, Bool_t esca
 	fFitPDG      = track->GetPDG();
     fFitConversionDistance = track->GetConversionDistance();
 	fFitEscapes = escapes;
+
 
 	if(fFitTree == 0x0)
 	{
