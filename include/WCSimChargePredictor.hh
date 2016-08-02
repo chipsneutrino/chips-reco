@@ -133,6 +133,8 @@ class WCSimChargePredictor
          */
         void GetTrackParameters(Int_t trackIndex);
 
+        static double GetMinAllowed() { return 2.5e-2; }
+
     protected:
     private:
         /**

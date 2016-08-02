@@ -44,28 +44,34 @@ class WCSimTotalLikelihood : public TObject
        * Calculate the combined charge and time likelihood
        * @return Total -2 log(likelihood) from charge and time components
        */
-      Double_t Calc2LnL(int iDigit);
-
-      /**
-       * Calculate the combined charge and time likelihood
-       * @return Total -2 log(likelihood) from charge and time components
-       */
       Double_t Calc2LnL();
 
 
       /**
-       * Calculate the predicted charge at a given PMT
-       * @return The total of the expected mean number of photons, for all tracks
-       * @param nDigit The number of the PMT in the LikelihoodDigitArray
+       * Calculate the predicted charge for all PMTs
+       * @return Vector of the expected mean number of photons from each track in the form vec[digit][track]
        */
-      Double_t CalcPredictedCharge(unsigned int iDigit);
-      
+      std::vector<std::vector<Double_t> > CalcPredictedCharges();
+
       /**
        * Calculate the predicted charge at a given PMT
        * @return The expected mean number of photons, one entry per track
        * @param nDigit The number of the PMT in the LikelihoodDigitArray
        */
       std::vector<Double_t> CalcPredictedCharges(unsigned int iDigit);
+
+
+
+      /**
+       * @brief Fill the vector fCharge2LnL with charge likelihoods for each PMT
+       */
+      void CalcChargeLikelihoods(const std::vector<std::vector<double> >& chargePredictions);
+
+
+      /**
+       * @brief 
+       */
+      void CalcTimeLikelihoods(const std::vector<std::vector<double> >& chargePredictions);
 
 
       /**
@@ -110,6 +116,7 @@ class WCSimTotalLikelihood : public TObject
   protected:
   private:
       void ClearVectors();
+      double SumTotalCharges(const std::vector<double>& totalCharges) const;
 
       WCSimLikelihoodDigitArray * fLikelihoodDigitArray; ///< Event to build likelihood for
       std::vector<WCSimChargePredictor> fChargeLikelihoodVector; ///< Charge component of likelihood calculation
@@ -128,8 +135,6 @@ class WCSimTotalLikelihood : public TObject
       WCSimEmissionProfileManager * fEmissionProfileManager;
 
 
-      double fMaximum2LnL;
-      double fMinimumL;
 	ClassDef(WCSimTotalLikelihood,1)
 		
 };

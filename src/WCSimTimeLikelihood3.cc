@@ -53,7 +53,8 @@
 ClassImp(WCSimTimeLikelihood3)
 #endif
 
-const double WCSimTimeLikelihood3::fMaximumLnL = 100.0/2.0; // So the maximum of -2LnL = 25
+const double WCSimTimeLikelihood3::fMaximum2LnL = 100.0; // So the maximum of -2LnL = 25
+const double WCSimTimeLikelihood3::fMaximumLnL = WCSimTimeLikelihood3::fMaximum2LnL/2.0; // So the maximum of -2LnL = 25
 const double WCSimTimeLikelihood3::fMinimumLikelihood = TMath::Exp(-fMaximumLnL); // So the maximum of -2LnL = 25
 const double WCSimTimeLikelihood3::fSqrtPi = TMath::Sqrt(TMath::Pi());
 const double WCSimTimeLikelihood3::fLog2 = TMath::Log(2.0);
@@ -207,17 +208,35 @@ void WCSimTimeLikelihood3::ClearTracks() {
   ResetTracks();
 }
 
-double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
+std::vector<std::vector<double> > WCSimTimeLikelihood3::Calc2LnLComponentsAllDigits()
+{
+    std::vector<std::vector<double> > minus2LnLs(fLikelihoodDigitArray->GetNDigits(), std::vector<double>(fTracks.size()));
+    std::vector<WCSimLikelihoodTrackBase*>::iterator trackItr = fTracks.begin();
+    while(trackItr != fTracks.end())
+    {
+        int iTrack = std::distance(fTracks.begin(), trackItr);
+        for(int iDigit = 0; iDigit < fLikelihoodDigitArray->GetNDigits(); ++iDigit)
+        {
+            minus2LnLs[iDigit][iTrack] = CalcDigit2LnL(iDigit, *trackItr);
+        }
+        ++trackItr;
+    }
+    return minus2LnLs;
+}
+
+double WCSimTimeLikelihood3::CalcDigit2LnL(const unsigned int& iDigit, WCSimLikelihoodTrackBase* myTrack) {
 	double lnL = 0;  // Default to this so we return 25 as our default penalty
     double scatterFrac = 0.01; // Component of the hit that we assume can com from scattered light
 
 	WCSimLikelihoodDigit * myDigit = fLikelihoodDigitArray->GetDigit(iDigit);
-	WCSimLikelihoodTrackBase * myTrack = fTracks.at(0);
 	if(IsGoodDigit(myDigit))
 	{
+        TimePrediction prediction(0,0,0);
 		double reso     = GetPMTTimeResolution(myDigit);
 		double nPhotons = myDigit->GetQ();
-		TimePrediction prediction = PredictArrivalTime(myTrack, myDigit);
+		if(nPhotons < 1){ nPhotons = 1.0; }
+
+		prediction = PredictArrivalTime(myTrack, myDigit);
 
 
         // We have four possibilities:
@@ -322,17 +341,6 @@ double WCSimTimeLikelihood3::Calc2LnL(const unsigned int& iDigit) {
     }
 
 	return -2.0 * lnL;
-}
-
-double WCSimTimeLikelihood3::Calc2LnL() {
-	double minusTwoLnL = 0.0;
-	
-  for(int iDigit = 0; iDigit < fLikelihoodDigitArray->GetNDigits(); ++iDigit)
-	{
-		minusTwoLnL += Calc2LnL(iDigit);
-	}
-
-	return minusTwoLnL;
 }
 
 double WCSimTimeLikelihood3::GetPMTTimeResolution(const unsigned int& iDigit) {

@@ -221,16 +221,23 @@ public:
     void ClearTracks();
 
     /**
-     * Calculate the combined charge and time likelihood
-     * @return Total -2 log(likelihood) from charge and time components
+     * @brief Calculate the time likelihood for a single PMT
+     *
+     * @param iDigit number in the LikelihoodDigitArray of the PMT to calculate likelihood for
+     *
+     * @return Vector of -2 * ln(time likelihood) for this PMT, considering all tracks
      */
-    Double_t Calc2LnL(const unsigned int &iDigit);
+    Double_t CalcDigit2LnL(const unsigned int &iDigit, WCSimLikelihoodTrackBase* myTrack);
+
 
     /**
-     * Calculate the combined charge and time likelihood
-     * @return Total -2 log(likelihood) from charge and time components
+     * @brief For each track, calculate the time likelihood contribution at each PMT
+     * @return Vector of -2LnL addressed by vector[PMT][track]
      */
-    Double_t Calc2LnL();
+    std::vector<std::vector<double> > Calc2LnLComponentsAllDigits();
+
+
+
 
     /**
      * Get the vector of the mean predicted time for each PMT
@@ -254,6 +261,9 @@ public:
      */
      TimePrediction PredictArrivalTime(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit);
 
+    static const double fMinimumLikelihood; ///< The minimum likelihood we're allowed to return before cutting off
+    static const double fMaximum2LnL; 		///< The maximum -2 log-likelihood we're allowed to return before cutting off
+    static const double fMaximumLnL; 		///< The maximum -log-likelihood we're allowed to return before cutting off
 private:
 
     /**
@@ -456,8 +466,6 @@ private:
     std::map<TString, double> fPMTTimeConstantMap; 			///< Map that stores the time constant used to calculate the time resolution for each unique PMT name
 
 	float fSpeedOfParticle; 				///< The speed at which the charged particle is assumed to trave, divided by c
-    static const double fMinimumLikelihood; ///< The minimum likelihood we're allowed to return before cutting off
-    static const double fMaximumLnL; 		///< The maximum log-likelihood we're allowed to return before cutting off
 private:
     ClassDef(WCSimTimeLikelihood3,0)
 };

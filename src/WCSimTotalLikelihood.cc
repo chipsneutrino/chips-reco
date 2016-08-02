@@ -58,10 +58,9 @@ void WCSimTotalLikelihood::SetTracks( std::vector<WCSimLikelihoodTrackBase*> &my
   int i = 0;
   for(trackIter = fTracks.begin(); trackIter != fTracks.end(); ++trackIter)
   {
-    // std::cout << "TrackIter -> " << std::endl;
-//    if (i > 0) {
+    std::cout << "Setting track " << std::endl;
+    (*trackIter)->Print();
     fChargeLikelihoodVector.push_back(WCSimChargePredictor(fLikelihoodDigitArray, fEmissionProfileManager));
-//    }
     fChargeLikelihoodVector[i].AddTrack(*trackIter);
     i++;
   }
@@ -94,43 +93,161 @@ Double_t WCSimTotalLikelihood::Calc2LnL()
   // nb. at the moment we're just adding these together
   // may have to account for correlations somewhere
   ClearVectors();
-  Double_t minus2LnL = 0; 
   
-  for(int iDigit = 0; iDigit < fLikelihoodDigitArray->GetNDigits(); ++iDigit) {
-    double digit2LnL = Calc2LnL(iDigit);
-    if(TMath::IsNaN(digit2LnL))
+  std::vector<std::vector<double> > chargePredictions = CalcPredictedCharges();
+  CalcChargeLikelihoods(chargePredictions);
+  CalcTimeLikelihoods(chargePredictions);
+
+
+  double minus2LnL       = 0.0;  // Total -2LnL
+  double chargeComponent = 0.0;  // Total charge -2LnL
+  double timeComponent   = 0.0;  // Total time -2LnL
+  double capSubtracted   = 0.0;  // If (charge+time) exceeds a cap we cut it off
+                                 // - this keeps track of the extra 2LnL we removed
+                                 // so we make make sure everything adds up
+
+  for(int iDigit = 0; iDigit < fLikelihoodDigitArray->GetNDigits(); ++iDigit) 
+  {
+    // Likelihood components for this PMT
+    double charge2LnL = fCharge2LnL[iDigit];
+    double time2LnL   = fTime2LnL[iDigit];
+    double total2LnL  = charge2LnL + time2LnL;
+
+    // Add to the running totals, capping the likelihood per digit if necessary
+    chargeComponent += charge2LnL;
+    timeComponent   += time2LnL;
+    if(total2LnL > WCSimTimeLikelihood3::fMaximum2LnL)
     {
+        capSubtracted += (total2LnL - WCSimTimeLikelihood3::fMaximum2LnL);
+        total2LnL = WCSimTimeLikelihood3::fMaximum2LnL;
+    }
+
+    if(TMath::IsNaN(total2LnL))
+    {
+      std::cerr << "iDigit = " << iDigit << ", and charge = " << charge2LnL << " and time = " << time2LnL << std::endl;
       std::cerr << iDigit << " was NaN in Calc2LnL!!" << std::endl;
       return -99999;
     }
-    if(digit2LnL < 0) { 
-        return -99999; }
+    if(total2LnL < 0) 
+    { 
+        return -99999; 
+    }
     else
     {
-	  minus2LnL += digit2LnL;
+	  minus2LnL += total2LnL;
 	}
   } //for iDigit
 
-  double chargeLnL = 0.0;
-  double timeLnL = 0.0;
-  for(int iDigit = 0; iDigit < fLikelihoodDigitArray->GetNDigits(); ++iDigit)
-  {
-    if(fCharge2LnL.at(iDigit) > 0) { chargeLnL += fCharge2LnL.at(iDigit); }
-    if(fTime2LnL.at(iDigit) > 0) { timeLnL += fTime2LnL.at(iDigit); }
-  }
-  std::cout << "Time component = " << timeLnL << " and charge component = " << chargeLnL << " so total = " << minus2LnL << std::endl;
+  std::cout << "Time component = " << timeComponent << " and charge component = " << chargeComponent << " so total = " << minus2LnL <<  "  (cap of " << WCSimTimeLikelihood3::fMaximum2LnL << " meant " << capSubtracted << " overflow was subtracted)" << std::endl;
   fSetVectors = true;
   return minus2LnL;
 }
 
-/////////////////////////////////////////////////////////////////////////
-//  Calculate the total predicted charge for this digit
-/////////////////////////////////////////////////////////////////////////
-Double_t WCSimTotalLikelihood::CalcPredictedCharge(unsigned int iDigit)
+void WCSimTotalLikelihood::CalcChargeLikelihoods( const std::vector<std::vector<double> >& chargePredictions )
 {
-  std::vector<Double_t> predictedCharges = CalcPredictedCharges(iDigit);
-  double totalCharge = std::accumulate(predictedCharges.begin(), predictedCharges.end(), 0.0);
-  return totalCharge;
+  // Charge component of the likelihoods
+  // ===================================
+  
+  // The integral lookup tables mean it's not time-consuming to flip between
+  // multiple tracks and work this out one digit at a time 
+  for(int iDigit = 0; iDigit < fLikelihoodDigitArray->GetNDigits(); ++iDigit)
+  {
+    if( WCSimAnalysisConfig::Instance()->GetUseCharge())
+    {
+
+      // Work out the predicted charge for this PMT
+      double totalCharge = SumTotalCharges(chargePredictions[iDigit]);
+      assert(!TMath::IsNaN( totalCharge ) );
+
+      // Deal with whether or not the PMT was hit (not used for now)
+      double hitUnhit2LnL = 0.0;
+      fHit2LnL.at(iDigit) = hitUnhit2LnL;
+
+      // Run the prediction and measured charge through the digitiser
+      WCSimLikelihoodDigit* digit  = fLikelihoodDigitArray->GetDigit(iDigit);
+      double chargePart            = fDigitizerLikelihood.GetMinus2LnL(totalCharge, digit->GetQ());
+      fPredictedCharges.at(iDigit) = totalCharge;
+      fCharge2LnL.at(iDigit)       = chargePart;
+    }
+    else
+    {
+        fPredictedCharges.at(iDigit) = -999.9;
+        fCharge2LnL.at(iDigit)       = -999.9;
+    }
+  }
+}
+
+void WCSimTotalLikelihood::CalcTimeLikelihoods( const std::vector<std::vector<double> >& chargePredictions )
+{
+    // Time component of the likelihoods
+    // =================================
+    if( WCSimAnalysisConfig::Instance()->GetUseTime())
+    {
+        // Get the individual -2LnL time components from each track
+        // Vector is vec[digit][track]
+        // Address them directly without .at() because it's faster and they should be guaranteed to be filled
+        std::vector<std::vector<double> > timeParts = fTimeLikelihood->Calc2LnLComponentsAllDigits();
+
+        // If there is more than one track we need to add likelihoods weighted by predicted charge
+        if(timeParts.size() > 1)
+        {
+            size_t nTracks = fTracks.size();
+            
+            // Add up the total predicted charges
+            for(int iDigit = 0; iDigit < fLikelihoodDigitArray->GetNDigits(); ++iDigit)
+            {
+                double total = 0;
+                for(size_t iTrack = 0; iTrack < nTracks; ++iTrack)
+                {
+                    // Add up all the nonzero predicted charges (should be all of them)
+                    total += chargePredictions[iDigit][iTrack] * (chargePredictions[iDigit][iTrack] > 0);
+                }
+                if(total > 0)
+                {
+                    // Convert the log-likelihood back into probabilities, add the two tracks
+                    // together weighted by their predicted charges,  and take the log again
+                    double timeProb = 0.0;
+                    for(size_t iTrack = 0; iTrack < timeParts[iDigit].size(); ++iTrack)
+                    {
+                       double trackWeight = chargePredictions[iDigit][iTrack] / total;
+                       timeProb += exp(-0.5 * timeParts[iDigit][iTrack]) * trackWeight;
+                    }
+                    double timePart = -2.0 * TMath::Log(timeProb) * fTimeScaleFactor;
+                    if(TMath::IsNaN(timePart))
+                    {
+                        std::cerr << "NaN for " << iDigit << "  timePart = " << timePart << std::endl;
+                        for(size_t iTrack = 0; iTrack < timeParts[iDigit].size(); ++iTrack)
+                        {
+                           double trackWeight = chargePredictions[iDigit][iTrack] / total;
+                           std::cout << "  track " << iTrack << " weight = " << chargePredictions[iDigit][iTrack] << " / " << total
+                                     << " and -2LnL = " << timeParts[iDigit][iTrack] << " so prob = " << exp(-0.5*timeParts[iDigit][iTrack]) * trackWeight << std::endl;
+                        }
+                        assert(!TMath::IsNaN(timePart));
+                    }
+                    fTime2LnL[iDigit] = timePart;
+                }
+                else
+                {
+                    fTime2LnL[iDigit] = 0.0;
+                }
+                if( fTime2LnL[iDigit] < 0 )
+                { 
+                    if(fTime2LnL[iDigit] < -1e-6)
+                    { 
+                        std::cerr << "Warning: negative -2LnL of " << fTime2LnL[iDigit] << " for digit " << iDigit << " - setting to zero" << std::endl; 
+                    }
+                    fTime2LnL[iDigit] = 0; 
+                }
+            }
+        }
+        else // Weighting is expensive so only do it if there are >1 tracks
+        {
+            for(int iDigit = 0; iDigit < fLikelihoodDigitArray->GetNDigits(); ++iDigit)
+            {
+                fTime2LnL[iDigit] = timeParts[0][iDigit];
+            }   
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////
@@ -145,77 +262,14 @@ std::vector<Double_t> WCSimTotalLikelihood::CalcPredictedCharges(unsigned int iD
   return predictedCharges;
 }
 
-Double_t WCSimTotalLikelihood::Calc2LnL(int iDigit)
+std::vector<std::vector<Double_t> > WCSimTotalLikelihood::CalcPredictedCharges()
 {
-
-  WCSimLikelihoodDigit *digit = fLikelihoodDigitArray->GetDigit(iDigit);
-  double minus2LnL = 0.0;
-  double totalCharge = -999.9;
-  double timePart = 0, chargePart = 0;
-  bool wasHit = (digit->GetQ() > 0);
-
-
-  // Total log-likelihood is:
-  // ========================
-  // if hit:    P_hit * P(charge = Q | hit) * P(time = t | hit)
-  // if unihit: P_unhit
-
-
-  // Probability for being hit or unhit
-  // ==================================
-  totalCharge = CalcPredictedCharge(iDigit);
-  double hitUnhit2LnL = 0.0;
-  // if(wasHit)
-  // { 
-  //    hitUnhit2LnL = GetHit2LnL(totalCharge);
-  // }
-  // else
-  // {
-  //   hitUnhit2LnL = GetUnhit2LnL(totalCharge);
-  // }
-  fHit2LnL.at(iDigit) = hitUnhit2LnL;
-  // minus2LnL += hitUnhit2LnL;
-
-
-  // Charge component of the likelihoods
-  // ===================================
-  if( WCSimAnalysisConfig::Instance()->GetUseCharge())
-  {
-	  if( TMath::IsNaN( totalCharge ) )
-	  {
-		return -99999;
-	  }
-	  chargePart = fDigitizerLikelihood.GetMinus2LnL(totalCharge, digit->GetQ());
-	  minus2LnL += chargePart;
-	  fPredictedCharges.at(iDigit) = totalCharge;
-	  fCharge2LnL.at(iDigit) = chargePart;
-  }
-  else
-  {
-	  fPredictedCharges.at(iDigit) = -999.9;
-	  fCharge2LnL.at(iDigit) = -999.9;
-  }
-
-  // Time component of the likelihoods
-  // =================================
-  if( WCSimAnalysisConfig::Instance()->GetUseTime())
-  {
-	  timePart = 0.0;
-	  timePart = fTimeLikelihood->Calc2LnL(iDigit) * fTimeScaleFactor;
-	  minus2LnL += (timePart);
-	  fTime2LnL.at(iDigit) = timePart;
-  }
-  else
-  {
-	  fTime2LnL.at(iDigit) = -999.9;
-  }
-
-  if(minus2LnL > 100){ minus2LnL = 100; }
-
-
-  fMeasuredCharges.at(iDigit) = digit->GetQ();
-  fTotal2LnL.at(iDigit) = minus2LnL;
-  return minus2LnL;
+    std::vector<std::vector<Double_t> > predictions(fLikelihoodDigitArray->GetNDigits(), std::vector<double>(fTracks.size()));
+    for(int iDigit = 0; iDigit < fLikelihoodDigitArray->GetNDigits(); ++iDigit)
+    {
+       predictions[iDigit] = CalcPredictedCharges(iDigit); 
+    }
+    return predictions;
 }
 
 void WCSimTotalLikelihood::SetLikelihoodDigitArray(
@@ -376,3 +430,10 @@ double WCSimTotalLikelihood::GetUnhit2LnL(double predictedCharge)
     return 2*predictedCharge;
 }
 
+// Add up a vector of predicted charges for each PMT, and apply a floor if it's too small
+double WCSimTotalLikelihood::SumTotalCharges(const std::vector<double>& totalCharges) const
+{
+    double totalCharge = std::accumulate(totalCharges.begin(), totalCharges.end(), 0.0);
+    if(totalCharge < WCSimChargePredictor::GetMinAllowed()){ totalCharge = WCSimChargePredictor::GetMinAllowed(); }
+    return totalCharge;
+}
