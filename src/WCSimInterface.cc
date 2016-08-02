@@ -236,45 +236,55 @@ void WCSimInterface::BuildTrueLikelihoodTracks() {
   std::cout << " *** WCSimInterface::BuildTrueLikelihoodTracks() *** " << std::endl;
 	this->ResetTrueLikelihoodTracks();
 
-  TDatabasePDG myDatabase;
+    TDatabasePDG myDatabase;
 
 	WCSimTruthSummary sum = fEvent->GetTruthSummary();
 
 	fTrueLikelihoodTracks = new std::vector<WCSimLikelihoodTrackBase*>;
 	if(sum.IsParticleGunEvent())
 	{
-    TParticlePDG * beamParticle = myDatabase.GetParticle(sum.GetBeamPDG());
-    
-    // If we have a pi-zero gun, make sure we treat it properly.
-    if (sum.GetBeamPDG() == 111){
-      std::vector<WCSimLikelihoodTrackBase*> tracks = this->GetPi0PhotonTracks(sum, sum.GetBeamEnergy(),fTrigger->GetTracks());
-      for(unsigned int iTrack = 0 ; iTrack < tracks.size(); ++iTrack)
-      {
-        fTrueLikelihoodTracks->push_back(tracks.at(iTrack));
-      }
-    }
-    else{
-		  double mm_to_cm = 0.1;
-		  WCSimLikelihoodTrackBase * track = WCSimLikelihoodTrackFactory::MakeTrack(
-		  									TrackType::GetTypeFromPDG(sum.GetBeamPDG()),
-		  									sum.GetVertexX() * mm_to_cm,
-		  									sum.GetVertexY() * mm_to_cm,
-		  									sum.GetVertexZ() * mm_to_cm,
+        TParticlePDG * beamParticle = myDatabase.GetParticle(sum.GetBeamPDG());
+        
+        // If we have a pi-zero gun, make sure we treat it properly.
+        if (sum.GetBeamPDG() == 111){
+          std::vector<WCSimLikelihoodTrackBase*> tracks = this->GetPi0PhotonTracks(sum, sum.GetBeamEnergy(),fTrigger->GetTracks());
+          for(unsigned int iTrack = 0 ; iTrack < tracks.size(); ++iTrack)
+          {
+            fTrueLikelihoodTracks->push_back(tracks.at(iTrack));
+          }
+        }
+        else{
+		    double mm_to_cm = 0.1;
+		    WCSimLikelihoodTrackBase * track = WCSimLikelihoodTrackFactory::MakeTrack(
+		  							        TrackType::GetTypeFromPDG(sum.GetBeamPDG()),
+		  	   						    	sum.GetVertexX() * mm_to_cm,
+		  	    				    		sum.GetVertexY() * mm_to_cm,
+		  		    		    			sum.GetVertexZ() * mm_to_cm,
                                             sum.GetVertexT(),
-		  									sum.GetBeamDir().Theta(),
-		  									sum.GetBeamDir().Phi(),
-		  									sum.GetBeamEnergy() - beamParticle->Mass() * 1000 ); // Mass comes in GeV but we work in MeV
-		fTrueLikelihoodTracks->push_back(track);
-    }
+		  		    	    				sum.GetBeamDir().Theta(),
+		  	    			    			sum.GetBeamDir().Phi(),
+		  	   					    		sum.GetBeamEnergy() - beamParticle->Mass() * 1000 ); // Mass comes in GeV but we work in MeV
+		        fTrueLikelihoodTracks->push_back(track);
+        }
 	}
 	else
 	{
 		double mm_to_cm = 0.1;
 		for(unsigned int i = 0; i < sum.GetNPrimaries(); ++i)
 		{
-      if(TrackType::GetTypeFromPDG(sum.GetPrimaryPDG(i)) != TrackType::Unknown)
-      {
-        TParticlePDG * primaryParticle = myDatabase.GetParticle(sum.GetPrimaryPDG(i));
+            // We had a final state pi0, so get the photons it decays to
+            if( sum.GetPrimaryPDG(i) == 111 )
+            {
+                std::vector<WCSimLikelihoodTrackBase*> tracks = this->GetPi0PhotonTracks(sum, sum.GetPrimaryEnergy(i),fTrigger->GetTracks());
+                for(unsigned int iTrack = 0 ; iTrack < tracks.size(); ++iTrack)
+                {
+                  fTrueLikelihoodTracks->push_back(tracks.at(iTrack));
+                }
+            }
+            else if(TrackType::GetTypeFromPDG(sum.GetPrimaryPDG(i)) != TrackType::Unknown)
+            {
+              TParticlePDG * primaryParticle = myDatabase.GetParticle(sum.GetPrimaryPDG(i));
+              if(sum.GetPrimaryEnergy(i) < 20){ continue; }
 			  WCSimLikelihoodTrackBase * track = WCSimLikelihoodTrackFactory::MakeTrack(
 					  	  	  	  	  	  		TrackType::GetTypeFromPDG(sum.GetPrimaryPDG(i)),
 			  	  	  	  	  	  	  	  		sum.GetVertexX() * mm_to_cm, sum.GetVertexY() * mm_to_cm, sum.GetVertexZ() * mm_to_cm,
@@ -284,30 +294,29 @@ void WCSimInterface::BuildTrueLikelihoodTracks() {
 												sum.GetPrimaryEnergy(i) - primaryParticle->Mass()* 1000 // Mass comes in GeV but we want MeV
 												);
 			  fTrueLikelihoodTracks->push_back(track);
-		  }
-    }
-    // Leigh: If this is an overlay event, add the overlays too.
-    if(sum.IsOverlayEvent()){
-      for(unsigned int i = 0; i < sum.GetNOverlays(); ++i){
-        // Make the track
-        TParticlePDG * overlayParticle = myDatabase.GetParticle(sum.GetOverlayPDG(i));
-			  WCSimLikelihoodTrackBase * track = WCSimLikelihoodTrackFactory::MakeTrack(
-					  	  	  	  TrackType::GetTypeFromPDG(sum.GetOverlayPDG(i)),
-			  	  	  	  	  sum.GetOverlayVertexX() * mm_to_cm, 
-                        sum.GetOverlayVertexY() * mm_to_cm, 
-                        sum.GetOverlayVertexZ() * mm_to_cm, 
-                        sum.GetOverlayVertexT(),
-												sum.GetOverlayDir(i).Theta(),
-												sum.GetOverlayDir(i).Phi(),
-												sum.GetOverlayEnergy(i) - overlayParticle->Mass()* 1000 // Mass comes in GeV but we want MeV
-												);
-			  fTrueLikelihoodTracks->push_back(track);
-      }
-    }
+            }
+        }
+        // Leigh: If this is an overlay event, add the overlays too.
+        if(sum.IsOverlayEvent()){
+            for(unsigned int i = 0; i < sum.GetNOverlays(); ++i){
+                // Make the track
+                TParticlePDG * overlayParticle = myDatabase.GetParticle(sum.GetOverlayPDG(i));
+                WCSimLikelihoodTrackBase * track = WCSimLikelihoodTrackFactory::MakeTrack(
+                TrackType::GetTypeFromPDG(sum.GetOverlayPDG(i)),
+                    sum.GetOverlayVertexX() * mm_to_cm, 
+                    sum.GetOverlayVertexY() * mm_to_cm, 
+                    sum.GetOverlayVertexZ() * mm_to_cm, 
+                    sum.GetOverlayVertexT(),
+                    sum.GetOverlayDir(i).Theta(),
+                    sum.GetOverlayDir(i).Phi(),
+                    sum.GetOverlayEnergy(i) - overlayParticle->Mass()* 1000 // Mass comes in GeV but we want MeV
+                );
+                fTrueLikelihoodTracks->push_back(track);
+            }
+        }
 
 	}
-	std::cout << "BuiltTrueLikelihoodTracks!" << std::endl;
-  return;
+    return;
 
 }
 
