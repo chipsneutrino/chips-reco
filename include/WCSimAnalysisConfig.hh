@@ -113,12 +113,6 @@ public:
     Bool_t GetUseChargeAndTime() const;
     
     /**
-     * Should we use the old Hough transform fitter to seed the start values?
-     * @return True if we should seed using the old fitter
-     */
-    Bool_t GetUseHoughFitterForSeed() const;
-
-    /**
      * Should we account for scattering by reading a scattered light percentage from a file
      * that tabulates it as a function of some geometric parameters, or just use a default
      * flat percentage
@@ -273,7 +267,6 @@ private:
     Bool_t        fUseGlassCathodeReflection;  ///< True if we should account for photons being reflected off the PMT glass
     Bool_t        fUseTime;                    ///< True if we should include timing information in the likelihood
     Bool_t        fUseCharge;                  ///< True if we should include charge information in the likelihood
-    Bool_t 	      fUseHoughFitterForSeed;	     ///< True if we should use the old Hough transform fitter to seed the start values
     Bool_t        fUseScatteringTable;         ///< True if we should use the scattering table, false for flat 1% chance
     Bool_t        fUseCustomParticleSpeed;     ///< Normally we assume particles travel at c - this allows us to switch and set it manually
     Bool_t        fUseCustomSpeedOfLight;      ///< Normally we assume light travels at c/(average n) - this allows us to switch and set it manually

@@ -50,12 +50,13 @@ class WCSimLikelihoodFitter
         void RunFits();
         void RunSurfaces();
 
+       
         static bool RingSort(const std::pair<WCSimRecoRing*,double> &a, const std::pair<WCSimRecoRing*,double> &b);
 
 
     protected:
 
-
+        
         void SeedEvent();
         void FixVertex();
         void FreeVertex();
@@ -71,24 +72,87 @@ class WCSimLikelihoodFitter
         void FitEnergy(); ///< Wrapper to fit the energy - calls Fit() currently
         void FitEnergyGridSearch(); ///< Alternative way to fit the energy - with a grid search.  Not used currently
         void FitVertex(); ///< Wrapper to call Fit() in case we ever want to change the vertex method
-        void FitTime();
+        void FitTime();   ///< Wrappter to fit the time - just calls Fit() at the moment
+
+
+        /**
+         * @brief Run the minimiser over the current LikelihoodDigitArray, with the current track configuration
+         *
+         * @param minAlgorithm Name of fitting algorithm to use - has to be one of the options for ROOT::Math::Factory::CreateMinimizer("Minuit2", minAlgorithm);
+         */
         void Fit(const char * minAlgorithm = "Simplex");
+
+
+        /**
+         * @brief Minimise using the current track configuration and return the best-fit -2LnL
+         *
+         * @param minAlgorithm Algorithm to use: passed to ROOT::Math::Factory::CreateMinimizer("Minuit2", minAlgorithm);
+         *
+         * @return Best-fit -2LnL
+         */
         double FitAndGetLikelihood(const char * minAlgorithm = "Simplex"); ///< Does the fit and returns the best -2LnL from this minimization
+
+
+        /**
+         * @brief Special minimisation routine for fitting pi0 events
+         *
+         * @param minAlgorithm Algorithm to use: passed to ROOT::Math::Factory::CreateMinimizer("Minuit2", minAlgorithm);
+         */
         void FitPiZero(const char * minAlgorithm = "Simplex");
+
+
+        /**
+         * @brief Minimise using the current track configuration, but only moving the vertex parallel to the current track direction
+         */
         void FitAlongTrack();
+
+
+        /**
+         * @brief Alternative minimiser that uses Metropolis Hastings MCMC to sample the parameter space
+         *
+         * @param nTries Number of steps to take around the parameter space, calculating likelihood each time
+         */
         void MetropolisHastings(const int nTries = 500);
+
+
+        /**
+         * @brief Alternative MCMC-based mimimiser that only moves the track vertex along its current direction
+         *
+         * @param nTries Number of steps to take around the parameter space, calculating likelihood each time
+         */
         void MetropolisHastingsAlongTrack(const int nTries = 500);
 
+
+        /**
+         * @brief Called by FitEventNumber if we're doing a pi0 fit; uses a different sequence of fixing/freeing track parameters
+         */
         void FitPiZeroEvent();
 
+
+        /**
+         * @brief Fit a single event
+         *
+         * @param iEvent Number of the event to fit
+         */
         void FitEventNumber(Int_t iEvent);
+
+
+        /**
+         * @brief Build a LikelihoodDigitArray and reset the fitter to allow the new event to be fitted
+         *
+         * @param iEvent Number of the event to setup
+         */
         void SetEvent(Int_t iEvent);
+
+
+        /**
+         * @brief Clear everything ready to fit a new event
+         */
         void ResetEvent();
 
         /**
-         * Perform the minimization
+         * @brief Called after doing a minimisation to update the best-fit tracks to the latest ones
          */
-        void Minimize2LnL();
         void UpdateBestFits();
 
         /**
@@ -104,8 +168,37 @@ class WCSimLikelihoodFitter
          * @return -2 log(likelihood) for this set of tracks
          */
         Double_t WrapFunc(const Double_t * x);
+
+
+
+        /**
+         * @brief Wrapper to WCSimTotalLikelihood::Calc2LnL so we can use it as Minuit's FCN to minimise
+         *
+         * @param x Array of parameters used to construct the track objects for the fit
+         *
+         * @return -2 log(likelihood) for this set of tracks
+         */
         Double_t WrapFuncAlongTrack(const Double_t * x);
+
+
+        /**
+         * @brief Special wrapper to WCSimTotalLikelihood::Calc2LnL for pi0 events that can handle the mass constraint
+         *
+         * @param x Array of parameters used to construct the track objects for the fit
+         *
+         * @return -2 log(likelihood) for this set of tracks
+         */
         Double_t WrapFuncPiZero(const Double_t * x);
+
+
+        /**
+         * @brief Penalise fit vertices outside the detector or outside the allowed fit region, depending on how 
+         *        far outside they are (just returning a constant big number gives Minuit NaN trouble)
+         *
+         * @param tracksToFit The tracks for which the likelihood is being calculated
+         *
+         * @return Penalty term for out of bounds vertices
+         */
         Double_t GetPenalty(const std::vector<WCSimLikelihoodTrackBase*> &tracksToFit);
 
         /**
@@ -149,26 +242,143 @@ class WCSimLikelihoodFitter
          * @param x The track parameters being used
          */
         void CheckTrackParametersForNaN(const Double_t * x) const;
+
+        
+        /**
+         * If Minuit encounters a problem (e.g. LnL doesn't change with the track parameters) then
+         * the next iteration's track parameters can be NaN - we want to catch this so it doesn't
+         * break everything.  This version is for when we're not using the full set of track parameter
+         * (eg we're fitting along the track) so you have to tell it the size of the array instead of
+         * guessing it from the number of track parameters
+         * @param x The track parameters being used
+         * @param sizeofX Number of parameters (size of the x array)
+         */
         void CheckTrackParametersForNaN(const Double_t * x, const unsigned int sizeofX) const;
 
 
+        /**
+         * @brief Fill the reco and reco-true plots in WCSimFitterPlots
+         */
         void FillPlots();
+
+
+        /**
+         * @brief Fill the FitTree in WCSimFitterTree
+         */
         void FillTree();
+
+
+        /**
+         * @brief Fill the HitComparisonTree in WCSimFitterTree that compares predicted and measured charges per PMT
+         */
         void FillHitComparison();
 
+
+        /**
+         * @brief Sweep out the likelihood as a function of one fit parameter around the best-fit
+         *
+         * @param trackPar Track number and track parameters to sweep out
+         */
         void Make1DSurface(std::pair<unsigned int, FitterParameterType::Type> trackPar);
+
+
+        /**
+         * @brief Sweep out the likelihood as a function of two fit parameters around the best-fit
+         *
+         * @param trackPar Two sets of track number and parameter to sweep out
+         */
         void Make2DSurface(std::pair<std::pair<unsigned int, FitterParameterType::Type>, std::pair<unsigned int, FitterParameterType::Type> > trackPar);
+
+
+        /**
+         * @brief Sweep out a 2D surface of the displacement in the vertex in distance and time, adjusting parallel to the best-fit track only
+         */
         void Make2DSurfaceAlongTrack();
 
+
+        /**
+         * @brief Find out whether one of the MC truth tracks would have escaped the detector
+         *
+         * @param iTrack Track number to check
+         *
+         * @return True if the track ends outside the detector, according to the emission profile
+         */
         Bool_t GetTrueTrackEscapes(unsigned int iTrack) const;
+
+
+        /**
+         * @brief Find out whether one of the best-fit tracks would have escaped the detector
+         *
+         * @param iTrack Track number to check
+         *
+         * @return True if the track ends outside the detector, according to the emission profile
+         */
         Bool_t GetFitTrackEscapes( unsigned int iTrack) const;
+
+        /**
+         * @brief Find out whether a given would have escaped the detector
+         *
+         * @param track Track object to check
+         *
+         * @return True if the track ends outside the detector, according to the emission profile
+         */
         Bool_t GetTrackEscapes(WCSimLikelihoodTrackBase * track) const;
+
+
+        /**
+         * @brief Check if the second decay photon from a pi0 has its energy constrained so the the invariant mass is that of a pi0
+         *
+         * @return True if the constraint is being applied
+         */
         Bool_t GetUsePiZeroMassConstraint() const;
 
+
+        /**
+         * @brief Work out the energy required for the second pi0 decay photon to give an invariant mass equal to that of a pi0
+         *
+         * @param x The set of track parameters passed to the minimiser
+         *
+         * @return The required energy of the second tracl.  Note this is prevented from going outside the bounds provided to the fitter.
+         */
         Double_t GetPiZeroSecondTrackEnergy(const Double_t * x);
 
+
+        /**
+         * @brief Check if a point is both inside the detector and inside the bounds set using the FitterInterface
+         *
+         * @param iTrack Number of the track whose bounds we're checking against
+         * @param x X coordinate of the point, in cm
+         * @param y Y coordinate of the point, in cm
+         * @param z Z coordinate of the point, in cm
+         *
+         * @return True if the particle is inside all these bounds
+         */
         Bool_t IsInsideAllowedRegion(const Int_t& iTrack, const Double_t& x, const Double_t& y, const Double_t& z);
+
+        /**
+         * @brief Check if a point is outside the detector or outside the bounds set using the FitterInterface
+         *
+         * @param iTrack Number of the track whose bounds we're checking against
+         * @param x X coordinate of the point, in cm
+         * @param y Y coordinate of the point, in cm
+         * @param z Z coordinate of the point, in cm
+         *
+         * @return True if the particle is outside any of these bounds
+         */
         Bool_t IsOutsideAllowedRegion(const Int_t& iTrack, const Double_t& x, const Double_t& y, const Double_t& z);
+
+
+        /**
+         * @brief Adjust the track vertex back inside the detector by moving it along its direction
+         *
+         * @param iTrack Number of the track to be moved
+         * @param seedX Vertex X position, in cm (will be updated)
+         * @param seedY Vertex Y position, in cm (will be updated)
+         * @param seedZ Vertex Z position, in cm (will be updated)
+         * @param dirX Track direction x component
+         * @param dirY Track direction y component
+         * @param dirZ Track direction z component
+         */
         void MoveBackInside(const Int_t iTrack, Double_t& seedX, Double_t& seedY, Double_t& seedZ, 
                             const Double_t& dirX, const Double_t& dirY, const Double_t& dirZ);
 
@@ -201,29 +411,32 @@ class WCSimLikelihoodFitter
                                            Double_t th, Double_t phi, Double_t E,
                                            TrackType::Type type);
         
+        /**
+         * @brief Checks that the event has some hits before trying to fit it
+         *
+         * @return True if there are some hits to try and reconstruct
+         */
         Bool_t CanFitEvent() const;
-
-        Bool_t fUseHoughFitterForSeed;
 
         Int_t fEvent; ///< Number of the event currently being fitted
         Double_t fMinimum; ///< Value of -2 log(likelihood) at the best-fit point
         Double_t fMinimumTimeComponent; ///< Value of -2 log(time likelihood) at best-fit point
         Double_t fMinimumChargeComponent; ///< Value of -2 log(charge likelihood) at best-fit point
 
-        Bool_t fFailed;    ///< Set to true if the fitter fails to flag the bad event
+        Bool_t fFailed; ///< Set to true if the fitter fails, to flag the bad event
 
         Bool_t fIsFirstCall; ///< Flags whether this is the first time the minimizer had calculated a likelihood (to print the seed)
         Int_t fStatus; ///< Minimizer convergence status
 
 
-        WCSimFitterPlots * fFitterPlots;
-        WCSimFitterTree * fFitterTree;
-        WCSimFitterTrackParMap fFitterTrackParMap;
-        WCSimFitterConfig * fFitterConfig;
+        WCSimFitterPlots * fFitterPlots; ///< Responsible for making quick plots of results
+        WCSimFitterTree * fFitterTree; ///< Responsible for saving fit information 
+        WCSimFitterTrackParMap fFitterTrackParMap; ///< Stores and looks-up track parameters in an array
+        WCSimFitterConfig * fFitterConfig; ///< For configuring the fitter options
 
 
 
-        int fCalls;
+        int fCalls; ///< How many times the likelihood has been calculated for this event
     ClassDef(WCSimLikelihoodFitter,1);
 };
 

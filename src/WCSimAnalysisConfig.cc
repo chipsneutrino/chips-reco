@@ -31,7 +31,6 @@ WCSimAnalysisConfig::WCSimAnalysisConfig()
     fUseGlassCathodeReflection = true;
     fUseCharge                 = true;
     fUseTime                   = true; 
-    fUseHoughFitterForSeed	   = true;
     fUseScatteringTable        = true;
     fSaveWCSimRootEvent  = false;
 
@@ -71,7 +70,6 @@ void WCSimAnalysisConfig::Print()
               << "fUseTime = " << fUseTime << std::endl
               << "fUseCharge = " << fUseCharge << std::endl
               << "fUseScatteringTable = " << fUseScatteringTable << std::endl
-    		  << "fSeedWithHough = " << fUseHoughFitterForSeed << std::endl
               << "fEqualiseChargeAndTime = " << fEqualiseChargeAndTime << std::endl;
     return; 
 }
@@ -122,11 +120,6 @@ Bool_t WCSimAnalysisConfig::GetUseTimeOnly() const
 Bool_t WCSimAnalysisConfig::GetUseChargeAndTime() const
 {
     return (fUseCharge && fUseTime);
-}
-
-Bool_t WCSimAnalysisConfig::GetUseHoughFitterForSeed() const
-{
-	return fUseHoughFitterForSeed;
 }
 
 Bool_t WCSimAnalysisConfig::GetUseCharge() const
@@ -461,132 +454,115 @@ void WCSimAnalysisConfig::SetFromMap()
             std::cout << "It's " << ((*itr).second) << std::endl;
             fDigiType = ((*itr).second);
         }
-        else if((*itr).first.compare("UseHoughFitterForSeed") == 0)
+        else if((*itr).first.compare("UseScatteringTable") == 0)
         {
-            if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
-            {
-                fUseHoughFitterForSeed = true;
-            }
-            else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
-            {
-                fUseHoughFitterForSeed = false;
-            }
-            else
-            {
-              std::cerr << "Error: " << (*itr).first << " = " << (*itr).second
-                           << " should equal true/false or 1/0" << std::endl;
-              exit(EXIT_FAILURE);
-            }
+             if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+             {
+                 fUseScatteringTable = true;
+             }
+             else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+             {
+                 fUseScatteringTable = false;
+             }
+             else
+             {
+               std::cerr << "Error: " << (*itr).first << " = " << (*itr).second 
+                            << " should equal true/false or 1/0" << std::endl;
+               exit(EXIT_FAILURE);
+             }
         }
-       else if((*itr).first.compare("UseScatteringTable") == 0)
-       {
-            if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
-            {
-                fUseScatteringTable = true;
-            }
-            else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
-            {
-                fUseScatteringTable = false;
-            }
-            else
-            {
-              std::cerr << "Error: " << (*itr).first << " = " << (*itr).second 
-                           << " should equal true/false or 1/0" << std::endl;
-              exit(EXIT_FAILURE);
-            }
-       }
-       else if((*itr).first.compare("UseCustomParticleSpeed") == 0)
-       {
-            if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
-            {
-                fUseCustomParticleSpeed = true;
-            }
-            else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
-            {
-                fUseCustomParticleSpeed = false;
-            }
-            else
-            {
-              std::cerr << "Error: " << (*itr).first << " = " << (*itr).second 
-                           << " should equal true/false or 1/0" << std::endl;
-              exit(EXIT_FAILURE);
-            }
-       }
-       else if((*itr).first.compare("CustomParticleSpeed") == 0)
-       {
-            std::stringstream ss(itr->second);
-            float speed = 0.0;
-            if( !(ss >> speed) )
-            {
-              std::cerr << "Error: " << (*itr).second << " = " << (*itr).second 
-                           << " should be a double" << std::endl;
-              exit(EXIT_FAILURE);
-            }
-            fCustomParticleSpeed = speed;
-       }
-       else if((*itr).first.compare("UseFittedSpeedOfLight") == 0)
-       {
-            if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
-            {
-                fUseFittedSpeedOfLight = true;
-            }
-            else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
-            {
-                fUseFittedSpeedOfLight = false;
-            }
-            else
-            {
-              std::cerr << "Error: " << (*itr).first << " = " << (*itr).second 
-                           << " should equal true/false or 1/0" << std::endl;
-              exit(EXIT_FAILURE);
-            }
-       }
-       else if((*itr).first.compare("FittedSpeedOfLight") == 0)
-       {
-            std::stringstream ss(itr->second);
-            float speed = 0.0;
-            if( !(ss >> speed) )
-            {
-              std::cerr << "Error: " << (*itr).second << " = " << (*itr).second 
-                           << " should be a double" << std::endl;
-              exit(EXIT_FAILURE);
-            }
-            fFittedSpeedOfLight = speed;
-       }
-       else if((*itr).first.compare("EqualiseChargeAndTime") == 0)
-       {
-            if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
-            {
-                fEqualiseChargeAndTime = true;
-            }
-            else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
-            {
-                fEqualiseChargeAndTime = false;
-            }
-            else
-            {
-              std::cerr << "Error: " << (*itr).first << " = " << (*itr).second 
-                           << " should equal true/false or 1/0" << std::endl;
-              exit(EXIT_FAILURE);
-            }
-       }
-       else if((*itr).first.compare("SaveWCSimRootEvent") == 0)
-       {
-            if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
-            {
-                fSaveWCSimRootEvent = true;
-            }
-            else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
-            {
-                fSaveWCSimRootEvent = false;
-            }
-            else
-            {
-              std::cerr << "Error: " << (*itr).first << " = " << (*itr).second 
-                           << " should equal true/false or 1/0" << std::endl;
-              exit(EXIT_FAILURE);
-            }
-       }
+        else if((*itr).first.compare("UseCustomParticleSpeed") == 0)
+        {
+             if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+             {
+                 fUseCustomParticleSpeed = true;
+             }
+             else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+             {
+                 fUseCustomParticleSpeed = false;
+             }
+             else
+             {
+               std::cerr << "Error: " << (*itr).first << " = " << (*itr).second 
+                            << " should equal true/false or 1/0" << std::endl;
+               exit(EXIT_FAILURE);
+             }
+        }
+        else if((*itr).first.compare("CustomParticleSpeed") == 0)
+        {
+             std::stringstream ss(itr->second);
+             float speed = 0.0;
+             if( !(ss >> speed) )
+             {
+               std::cerr << "Error: " << (*itr).second << " = " << (*itr).second 
+                            << " should be a double" << std::endl;
+               exit(EXIT_FAILURE);
+             }
+             fCustomParticleSpeed = speed;
+        }
+        else if((*itr).first.compare("UseFittedSpeedOfLight") == 0)
+        {
+             if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+             {
+                 fUseFittedSpeedOfLight = true;
+             }
+             else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+             {
+                 fUseFittedSpeedOfLight = false;
+             }
+             else
+             {
+               std::cerr << "Error: " << (*itr).first << " = " << (*itr).second 
+                            << " should equal true/false or 1/0" << std::endl;
+               exit(EXIT_FAILURE);
+             }
+        }
+        else if((*itr).first.compare("FittedSpeedOfLight") == 0)
+        {
+             std::stringstream ss(itr->second);
+             float speed = 0.0;
+             if( !(ss >> speed) )
+             {
+               std::cerr << "Error: " << (*itr).second << " = " << (*itr).second 
+                            << " should be a double" << std::endl;
+               exit(EXIT_FAILURE);
+             }
+             fFittedSpeedOfLight = speed;
+        }
+        else if((*itr).first.compare("EqualiseChargeAndTime") == 0)
+        {
+             if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+             {
+                 fEqualiseChargeAndTime = true;
+             }
+             else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+             {
+                 fEqualiseChargeAndTime = false;
+             }
+             else
+             {
+               std::cerr << "Error: " << (*itr).first << " = " << (*itr).second 
+                            << " should equal true/false or 1/0" << std::endl;
+               exit(EXIT_FAILURE);
+             }
+        }
+        else if((*itr).first.compare("SaveWCSimRootEvent") == 0)
+        {
+             if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+             {
+                 fSaveWCSimRootEvent = true;
+             }
+             else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+             {
+                 fSaveWCSimRootEvent = false;
+             }
+             else
+             {
+               std::cerr << "Error: " << (*itr).first << " = " << (*itr).second 
+                            << " should equal true/false or 1/0" << std::endl;
+               exit(EXIT_FAILURE);
+             }
+        }
     }
     fMap.clear();
 }

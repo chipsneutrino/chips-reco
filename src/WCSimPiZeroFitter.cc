@@ -73,7 +73,6 @@ WCSimPiZeroFitter::WCSimPiZeroFitter(WCSimFitterConfig * config) : WCSimLikeliho
   fTrueLikelihoodTracks = NULL;
   fCalls = 0;
 
-  fUseHoughFitterForSeed = WCSimAnalysisConfig::Instance()->GetUseHoughFitterForSeed();
   ResetEvent();
 }
 

@@ -70,7 +70,6 @@ WCSimLikelihoodFitter::WCSimLikelihoodFitter(WCSimFitterConfig * config) : fFitt
   fLikelihoodDigitArray = NULL;
   fTrueLikelihoodTracks = NULL;
 
-  fUseHoughFitterForSeed = WCSimAnalysisConfig::Instance()->GetUseHoughFitterForSeed();
   ResetEvent();
 }
 
@@ -85,11 +84,6 @@ UInt_t WCSimLikelihoodFitter::GetNPars()
   return nPars;
 }
 
-
-
-void WCSimLikelihoodFitter::Minimize2LnL()
-{
-}
 
 /**
  * Wrapper: constructs the correct number of track objects
