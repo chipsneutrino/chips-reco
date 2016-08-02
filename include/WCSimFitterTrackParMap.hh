@@ -60,6 +60,7 @@ public:
   bool GetIsFixed(int track, FitterParameterType type);
   bool GetIsFixed(TrackAndType trackAndType);
 
+  void Print();
 private:
 	void SetArrays();
 	void ResizeVectors();

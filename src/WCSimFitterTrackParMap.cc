@@ -367,5 +367,13 @@ bool WCSimFitterTrackParMap::GetIsFixed(TrackAndType trackAndType){
   return fCurrentlyFixed[index];
 }
 
+void WCSimFitterTrackParMap::Print(){
+    std::cout << "WCSimFitterTrackParMap::Print()" << std::endl;
+	std::map<TrackAndType, unsigned int>::iterator itr = fTrackAndTypeIndexMap.begin();
+    while(itr != fTrackAndTypeIndexMap.end()){
+        std::cout << "Track " << (itr->first).first << "  Type: " << (itr->first).second << "   Index: " << (itr->second) << std::endl;
+        ++itr;
+    }
+    return;
 
-
+}
