@@ -1,6 +1,10 @@
 #! /bin/bash
 
-export WCSIMHOME=/unix/fnu/ajperch/CHIPS/ResolutionsForPaper/software/WCSim
+if [ "x$WCSIMHOME" == "x" ]; then
+    echo "You need to export WCSIMHOME to point to your WCSim directory"
+    return
+fi
+
 
 #WCSimAnalysis Home Directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
