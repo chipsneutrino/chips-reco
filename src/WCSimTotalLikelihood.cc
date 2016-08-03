@@ -121,6 +121,7 @@ Double_t WCSimTotalLikelihood::Calc2LnL()
         capSubtracted += (total2LnL - WCSimTimeLikelihood3::fMaximum2LnL);
         total2LnL = WCSimTimeLikelihood3::fMaximum2LnL;
     }
+    fTotal2LnL[iDigit] = total2LnL;
 
     if(TMath::IsNaN(total2LnL))
     {
@@ -152,6 +153,7 @@ void WCSimTotalLikelihood::CalcChargeLikelihoods( const std::vector<std::vector<
   // multiple tracks and work this out one digit at a time 
   for(int iDigit = 0; iDigit < fLikelihoodDigitArray->GetNDigits(); ++iDigit)
   {
+    fMeasuredCharges.at(iDigit) = fLikelihoodDigitArray->GetDigit(iDigit)->GetQ();
     if( WCSimAnalysisConfig::Instance()->GetUseCharge())
     {
 
@@ -172,7 +174,7 @@ void WCSimTotalLikelihood::CalcChargeLikelihoods( const std::vector<std::vector<
     else
     {
         fPredictedCharges.at(iDigit) = -999.9;
-        fCharge2LnL.at(iDigit)       = -999.9;
+        fCharge2LnL.at(iDigit)       = 0.0;
     }
   }
 }

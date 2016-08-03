@@ -538,8 +538,14 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
       FreeEnergy();
       FreeDirection();
     }
+
 	fTrueLikelihoodTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
+    fTotalLikelihood->SetTracks(fBestFit);
+    fMinimum = fTotalLikelihood->Calc2LnL();
+    fMinimumTimeComponent = fTotalLikelihood->GetLastTime2LnL();
+    fMinimumChargeComponent = fTotalLikelihood->GetLastCharge2LnL();
   }
+
   std::cout << "Fitted event number " << iEvent << std::endl;
   return;
 }
@@ -691,7 +697,7 @@ void WCSimLikelihoodFitter::RunFits() {
 	    }
 	    else
 	    {
-            std::cout << "Failed for some reason: fMinimum = " << fMinimum << " and fFailed = " << fFailed << std::endl;
+          std::cout << "Failed for some reason: fMinimum = " << fMinimum << " and fFailed = " << fFailed << std::endl;
 	      fFitterTree->FillRecoFailures(iEvent);
 		  FillTree();
 		  FillHitComparison();
