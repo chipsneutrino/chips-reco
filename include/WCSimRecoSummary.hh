@@ -55,7 +55,13 @@ public:
       double GetChargeMinus2LnL() const ;
       double GetMinus2LnL() const;
 
+      int GetEventNumber() const;
+      void SetEventNumber(int event);
+      
+
 	private:
+
+      int fEventNumber; // The event number in the WCSim file being reconstructed
 
 
       // Likelihoods

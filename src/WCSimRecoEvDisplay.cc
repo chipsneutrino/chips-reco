@@ -922,15 +922,17 @@ void WCSimRecoEvDisplay::FillPlotsFromRecoFile() {
 	fGeomTree->SetBranchAddress("wcsimrootgeom",&geo);
 	fGeomTree->GetEntry(0);
 
+    // Get the fit information  
+    fRecoSummaryChain->SetBranchAddress("WCSimRecoSummary",&fRecoSummary);
+    fRecoSummaryChain->GetBranch("WCSimRecoSummary")->SetAutoDelete(kTRUE);
+	fRecoSummaryChain->GetEntry(fCurrentEvent);
+
 	// Get the current event;
-	fChain->GetEntry(fCurrentEvent);
+	fChain->GetEntry(fRecoSummary->GetEventNumber());
 	if(wcSimEvt==0x0) std::cout << "Null pointer :( " << std::endl;
+    std::cout << "Entry " << fCurrentEvent << " in the RecoSummaryTree corresponds to Event " << fRecoSummary->GetEventNumber() << std::endl;
 	WCSimRootTrigger* wcSimTrigger = wcSimEvt->GetTrigger(0);
     
-  // Get the fit information  
-  fRecoSummaryChain->SetBranchAddress("WCSimRecoSummary",&fRecoSummary);
-  fRecoSummaryChain->GetBranch("WCSimRecoSummary")->SetAutoDelete(kTRUE);
-	fRecoSummaryChain->GetEntry(fCurrentEvent);
   this->UpdateFitPave();
 
   // Get the truth information

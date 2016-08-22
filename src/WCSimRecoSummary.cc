@@ -219,3 +219,13 @@ double WCSimRecoSummary::GetMinus2LnL() const
 {
     return fTimeMinus2LnL + fChargeMinus2LnL;
 }
+
+void WCSimRecoSummary::SetEventNumber(int event)
+{
+    fEventNumber = event;
+}
+
+int WCSimRecoSummary::GetEventNumber() const
+{
+    return fEventNumber;
+}

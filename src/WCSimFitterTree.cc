@@ -351,23 +351,24 @@ void WCSimFitterTree::MakeRecoSummary(
         double charge2LnL,
         double time2LnL) {
 	fRecoSummary->ResetValues();
+    fRecoSummary->SetEventNumber(fEvent);
 
-  std::cout << "There are " << bestFitTracks.size() << " best-fit tracks" << std::endl;
+    std::cout << "Making the recoSummary.  There are " << bestFitTracks.size() << " best-fit tracks" << std::endl;
 	std::sort(bestFitTracks.begin(), bestFitTracks.end(), WCSimLikelihoodTrackBase::EnergyGreaterThanOrEqualPtrs);
 	for(unsigned int iTrack = 0; iTrack < bestFitTracks.size() ; ++iTrack )
 	{
-    std::cout << "Make track " << iTrack << std::endl;
+        std::cout << "Make track " << iTrack << std::endl;
 		WCSimLikelihoodTrackBase * track = (bestFitTracks.at(iTrack));
-    std::cout << "track:" << track->GetX() << ", " << track->GetY() << ", " << track->GetZ() << "    ";
-    std::cout << track->GetType() << std::endl;
-    track->Print();
+        std::cout << "track:" << track->GetX() << ", " << track->GetY() << ", " << track->GetZ() << "    ";
+        std::cout << track->GetType() << std::endl;
+        track->Print();
 //		if(iTrack == 0)
 //		{
 //			fRecoSummary->SetVertex( 10*track->GetX(), 10*track->GetY(), 10*track->GetZ() ); // Convert cm to mm
 //      fRecoSummary->SetVertexT(track->GetT());
 //		}
-    fRecoSummary->AddVertex(10*track->GetX(), 10*track->GetY(), 10*track->GetZ(),track->GetT()); // Convert cm to mm
-    std::cout << "Making reco summary" << std::endl;
+        fRecoSummary->AddVertex(10*track->GetX(), 10*track->GetY(), 10*track->GetZ(),track->GetT()); // Convert cm to mm
+        std::cout << "Making reco summary" << std::endl;
 		fRecoSummary->AddPrimary(track->GetPDG(), track->GetE(), track->GetDir());
 	}
     fRecoSummary->SetChargeMinus2LnL(charge2LnL);
