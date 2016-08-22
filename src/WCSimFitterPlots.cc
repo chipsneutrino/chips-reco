@@ -500,7 +500,10 @@ void WCSimFitterPlots::SaveProfiles(){
 	std::cout << "Saving plots to " << fSaveFileName << std::endl;
 	fSaveFile->cd();
 
-	fSaveFile->mkdir("Profiles");
+    if(fSaveFile->GetDirectory("Profiles") == 0)
+    {
+	    fSaveFile->mkdir("Profiles");
+    }
 	fSaveFile->cd("Profiles");
 
 	std::map<std::pair<unsigned int, FitterParameterType::Type>, TH1D*>::iterator surf1DItr = fSurfaces1D.begin();
@@ -544,7 +547,10 @@ void WCSimFitterPlots::SavePlots() {
 
 
 	fSaveFile->cd();
-	fSaveFile->mkdir("FitResults");
+	if(fSaveFile->GetDirectory("FitResults") == 0)
+    {
+        fSaveFile->mkdir("FitResults");
+    }
 	fSaveFile->cd("FitResults");
 	std::map<FitterParameterType::Type, std::vector<TH1D*> >::iterator eachEventItr = fForEachEvent.begin();
 	for( ; eachEventItr != fForEachEvent.end() ; ++eachEventItr)
@@ -561,7 +567,10 @@ void WCSimFitterPlots::SavePlots() {
 
 
 	fSaveFile->cd();
-	fSaveFile->mkdir("RecoMinusTrue");
+    if(fSaveFile->GetDirectory("RecoMinusTrue") == 0)
+    {
+	    fSaveFile->mkdir("RecoMinusTrue");
+    }
 	fSaveFile->cd("RecoMinusTrue");
 	std::map<FitterParameterType::Type, std::vector<TH1D*> >::iterator rmtItr = fRecoMinusTrue.begin();
 	for( ; rmtItr != fRecoMinusTrue.end() ; ++rmtItr)
