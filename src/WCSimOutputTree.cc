@@ -371,13 +371,13 @@ void RecoInfo::SetNHits(int in, int out, int hole)
     fNHitsInRing = in;
     fNHitsOutsideRing = out;
     fNHitsInRingHole = hole;
-    int nHits = in + out + hole;
+    float nHits = in + out + hole;
 
     if(nHits > 0)
     {
-        fFracNHitsInRing = fNHitsInRing/static_cast<float>(nHits);
-        fFracNHitsOutsideRing = fNHitsOutsideRing/static_cast<float>(nHits);
-        fFracNHitsInRingHole = fNHitsInRingHole/static_cast<float>(nHits);
+        fFracNHitsInRing = fNHitsInRing/nHits;
+        fFracNHitsOutsideRing = fNHitsOutsideRing/nHits;
+        fFracNHitsInRingHole = fNHitsInRingHole/nHits;
     }
     else
     {

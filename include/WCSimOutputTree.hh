@@ -168,9 +168,9 @@ class RecoInfo : public TObject{
         float GetFracTotalQOutsideRing() const{ return fFracTotalQOutsideRing; }
         float GetFracTotalQInRingHole() const{ return fFracTotalQInRingHole; }
 
-        int GetFracNHitsInRing(){ return fFracNHitsInRing; }
-        int GetFracNHitsOutsideRing(){ return fFracNHitsOutsideRing; }
-        int GetFracNHitsInRingHole(){ return fFracNHitsInRingHole; }
+        float  GetFracNHitsInRing(){ return fFracNHitsInRing; }
+        float  GetFracNHitsOutsideRing(){ return fFracNHitsOutsideRing; }
+        float  GetFracNHitsInRingHole(){ return fFracNHitsInRingHole; }
 
         float GetFracPredQInRing() const{ return fFracPredQInRing; }
         float GetFracPredQOutsideRing() const{ return fFracPredQOutsideRing; }
@@ -217,9 +217,9 @@ class RecoInfo : public TObject{
         float fFracTotalQOutsideRing;
         float fFracTotalQInRingHole;
 
-        int fFracNHitsInRing;
-        int fFracNHitsOutsideRing;
-        int fFracNHitsInRingHole;
+        float fFracNHitsInRing;
+        float fFracNHitsOutsideRing;
+        float fFracNHitsInRingHole;
 
         float fFracPredQInRing;
         float fFracPredQOutsideRing;
