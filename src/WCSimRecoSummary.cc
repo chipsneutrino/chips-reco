@@ -31,6 +31,7 @@ WCSimRecoSummary::WCSimRecoSummary(const WCSimRecoSummary &ts) : TObject(ts) {
   fPrimaryDirs = ts.GetPrimaryDirs();
   fTimeMinus2LnL = ts.GetTimeMinus2LnL();
   fChargeMinus2LnL = ts.GetChargeMinus2LnL();
+  fEventNumber = ts.GetEventNumber();
 }
 
 // Destructor
@@ -47,6 +48,7 @@ void WCSimRecoSummary::ResetValues(){
   fPrimaryDirs.clear();
   fTimeMinus2LnL = 0.;
   fChargeMinus2LnL = 0.;
+  fEventNumber = 0;
 }
 
 // Get and set the vertex information
@@ -66,7 +68,7 @@ TVector3 WCSimRecoSummary::GetVertex(unsigned int p) const{
   }
   else{
     std::cerr << "== Request for vertex " << p << " of [0..." << this->GetNPrimaries()-1 << "]" << std::endl;
-    return -999;
+    return TVector3(-9999, -9999, -9999);
   }
 }
 
@@ -222,6 +224,7 @@ double WCSimRecoSummary::GetMinus2LnL() const
 
 void WCSimRecoSummary::SetEventNumber(int event)
 {
+    std::cout << "WCRS: Setting event number to " << event << std::endl;
     fEventNumber = event;
 }
 

@@ -74,7 +74,6 @@
 #pragma link C++ class WCSimAnalysisConfig+;
 #pragma link C++ class WCSimFitterConfig+;
 #pragma link C++ class WCSimFitterPlots+;
-#pragma link C++ class WCSimFitterTree+;
 #pragma link C++ class WCSimFitterInterface+;
 #pragma link C++ class WCSimFitterParameter+;
 #pragma link C++ class WCSimFitterSingleTrackParameters+;
@@ -109,4 +108,14 @@
 #pragma link C++ class WCSimTimeLikelihood3+;
 #pragma link C++ class WCSimIntegralLookup3D+;
 #pragma link C++ class WCSimIntegralLookupHistArray+;
+
+#pragma link C++ class WCSimHitPrediction+;
+#pragma link C++ class WCSimSingleHitComparison+;
+#pragma link C++ class vector<WCSimSingleHitComparison>+;
+#pragma link C++ class HitInfo+;
+#pragma link C++ class TruthInfo+;
+#pragma link C++ class RecoInfo+;
+#pragma link C++ class WCSimOutputTree+;
+
+
 #endif

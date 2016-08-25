@@ -10,18 +10,19 @@
 #include "WCSimLikelihoodFitter.hh"
 #include "WCSimFitterConfig.hh"
 #include "WCSimFitterPlots.hh"
-#include "WCSimFitterTree.hh"
+#include "WCSimOutputTree.hh"
 #include "WCSimPiZeroFitter.hh"
 #include <TString.h>
 #include <TSystem.h>
 #include <TTimeStamp.h>
 #include <cassert>
+#include <stdlib.h>
 
 ClassImp(WCSimFitterInterface)
 
 WCSimFitterInterface::WCSimFitterInterface() :
 		fFitterConfig(NULL), fFileName(""), fNumTracks(0), fFitter(0x0), fPiZeroFitter(0x0),
-		fFitterPlots(0x0), fFitterTree(0x0), fMakeFits(true), fMakeSurfaces(true){
+		fFitterPlots(0x0), fOutputTree(0x0), fMakeFits(true), fMakeSurfaces(true){
 	TTimeStamp ts;
 	unsigned int year, month, day, hour, minute, second;
 	ts.GetDate(true, 0, &year, &month, &day);
@@ -30,7 +31,7 @@ WCSimFitterInterface::WCSimFitterInterface() :
 
 	fFitterConfig = new WCSimFitterConfig();
 	fFitterPlots = new WCSimFitterPlots(saveName);
-	fFitterTree = new WCSimFitterTree(saveName);
+	fOutputTree = new WCSimOutputTree(saveName);
 	// TODO Auto-generated constructor stub
 }
 
@@ -38,7 +39,7 @@ WCSimFitterInterface::~WCSimFitterInterface() {
 	// TODO Auto-generated destructor stub
   if( fFitter != NULL) { delete fFitter; }
   if( fFitterPlots != NULL) { delete fFitterPlots; }
-  if( fFitterTree != NULL ) { delete fFitterTree; }
+  if( fOutputTree != NULL ) { delete fOutputTree; }
   if( fFitterConfig != NULL) { delete fFitterConfig; }
 }
 
@@ -47,12 +48,12 @@ void WCSimFitterInterface::InitFitter()
   if( fFitter == 0x0 && !GetIsPiZeroFit()) { 
     fFitter = new WCSimLikelihoodFitter(fFitterConfig) ; 
     fFitter->SetFitterPlots(fFitterPlots);
-    fFitter->SetFitterTree(fFitterTree);
+    fFitter->SetOutputTree(fOutputTree);
   }
   else if( fPiZeroFitter == 0x0 && GetIsPiZeroFit() ) { 
     fPiZeroFitter = new WCSimPiZeroFitter(fFitterConfig) ; 
     fPiZeroFitter->SetFitterPlots(fFitterPlots);
-    fPiZeroFitter->SetFitterTree(fFitterTree);
+    fPiZeroFitter->SetOutputTree(fOutputTree);
   }
 }
 
@@ -240,13 +241,15 @@ void WCSimFitterInterface::PrintSurfaceConfiguration() {
 
 void WCSimFitterInterface::SetInputFileName(const char * inputfile)
 {
-	fFileName = inputfile;
+    char * fullPath = realpath(inputfile, NULL);
+	fFileName = TString(fullPath);
+    free(fullPath);
 }
 
 void WCSimFitterInterface::SaveResults()
 {
   //std::cout << "  Saving tree " << std::endl;
-  fFitterTree->SaveTree();
+  fOutputTree->SaveTree();
   //std::cout << "  Saving plots " << std::endl;
   fFitterPlots->SavePlots();
 }
@@ -268,7 +271,7 @@ void WCSimFitterInterface::Run() {
   std::cout << " *** Making histograms *** " << std::endl;
   fFitterPlots->MakeHistograms(fFitterConfig);
   std::cout << " *** Making tree *** " << std::endl;
-  fFitterTree->MakeTree();
+  fOutputTree->MakeTree();
 
   std::cout << "  Running fits " << std::endl;
   if(fMakeFits) 
@@ -287,7 +290,7 @@ void WCSimFitterInterface::Run() {
   if(fMakeSurfaces) { fFitter->RunSurfaces(); }
   SaveProfiles();
   std::cout << "  Saving tree " << std::endl;
-  fFitterTree->SaveTree();
+  fOutputTree->SaveTree();
   std::cout << "  Saving plots " << std::endl;
   fFitterPlots->SavePlots();
   std::cout << " *********************************** " << std::endl;
@@ -335,10 +338,10 @@ void WCSimFitterInterface::InitOutputFiles()
                                  fFitterConfig->GetFirstEventToFit(),
                                  fFitterConfig->GetNumEventsToFit() + fFitterConfig->GetFirstEventToFit(),
                                  time.Data());
-    fFitterTree->SetWCSimTreeLocation(fFileName);
+    fOutputTree->SetInputFile(fFileName);
 	fFitterPlots->SetSaveFileName(saveNamePlots);
-	fFitterTree->SetSaveFileName(saveNameTree);
+	fOutputTree->SetSaveFileName(saveNameTree);
     fFitterPlots->MakeSaveFile();
-    fFitterTree->MakeSaveFile();
+    fOutputTree->MakeSaveFile();
     return; 
 }

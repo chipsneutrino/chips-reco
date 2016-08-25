@@ -67,10 +67,12 @@ class WCSimInterface : public TObject {
   WCSimRootEvent* GetWCSimEvent(Int_t ievent);
   WCSimRootTrigger* GetWCSimTrigger(Int_t ievent);
 
+
   void AddFile(const char* file);
   void BuildEvent(Int_t ievent);
   Bool_t CheckEvent();
   Int_t GetEntries();
+  bool EventIsVetoed();
 
   void ResetForNewSample();
 
@@ -87,6 +89,8 @@ class WCSimInterface : public TObject {
   void ResetRecoEvent();
 
  private:
+
+  bool AnyTrueLeptonEscaped();
 
   // These should only get called by BuildTrueEvent and ResetTrueEvent
   void BuildTrueLikelihoodTracks();

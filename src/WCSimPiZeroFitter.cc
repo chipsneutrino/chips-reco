@@ -8,7 +8,6 @@
 #include "WCSimFitterConfig.hh"
 #include "WCSimFitterParameters.hh"
 #include "WCSimFitterPlots.hh"
-#include "WCSimFitterTree.hh"
 #include "WCSimFitterInterface.hh"
 #include "WCSimGeometry.hh"
 #include "WCSimInterface.hh"
@@ -16,6 +15,7 @@
 #include "WCSimLikelihoodFitter.hh"
 #include "WCSimLikelihoodTrackBase.hh"
 #include "WCSimLikelihoodTrackFactory.hh"
+#include "WCSimOutputTree.hh"
 #include "WCSimPiZeroSeed.hh"
 #include "WCSimReco.hh"
 #include "WCSimRecoSeed.hh"
@@ -66,7 +66,6 @@ ClassImp(WCSimPiZeroFitter)
 WCSimPiZeroFitter::WCSimPiZeroFitter(WCSimFitterConfig * config) : WCSimLikelihoodFitter(config), fPiZeroSeedGenerator(config)
 {
   fFitterPlots = NULL;
-  fFitterTree = 0x0;
   fTotalLikelihood = NULL;
   fRootEvent = NULL;
   fLikelihoodDigitArray = NULL;
@@ -201,7 +200,7 @@ void WCSimPiZeroFitter::RunFits()
 	for(UInt_t iEvent = firstEvent; iEvent < firstEvent + numEventsToFit ; ++iEvent)
 	{
 		FitEventNumber(iEvent);
-		fFitterTree->SaveTree();
+		fOutputTree->SaveTree();
 		fFitterPlots->SavePlots();
 	}
 
@@ -255,11 +254,6 @@ void WCSimPiZeroFitter::FitEventNumber(Int_t iEvent) {
   {
 	  FillPlots();
 	  FillTree();
-	  FillHitComparison();
-  }
-  else
-  {
-    fFitterTree->FillRecoFailures(iEvent);
   }
 
   std::cout << "Fitted event number " << iEvent << std::endl;

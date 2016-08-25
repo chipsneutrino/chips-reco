@@ -307,6 +307,7 @@ void WCSimTotalLikelihood::ClearVectors() {
 	  fCharge2LnL.resize(fLikelihoodDigitArray->GetNDigits(), 0.0);
 	  fTime2LnL.resize(fLikelihoodDigitArray->GetNDigits(), 0.0);
 	  fHit2LnL.resize(fLikelihoodDigitArray->GetNDigits(), 0.0);
+	  fCutoff2LnL.resize(fLikelihoodDigitArray->GetNDigits(), 0.0);
 }
 
 std::vector<double> WCSimTotalLikelihood::GetMeasuredChargeVector() const {
@@ -409,6 +410,11 @@ double WCSimTotalLikelihood::GetLastCharge2LnL() const
 double WCSimTotalLikelihood::GetLastTime2LnL() const
 {
     return std::accumulate(fTime2LnL.begin(), fTime2LnL.end(), 0.0);
+}
+
+double WCSimTotalLikelihood::GetLastCutoff2LnL() const
+{
+    return std::accumulate(fCutoff2LnL.begin(), fCutoff2LnL.end(), 0.0);
 }
 
 double WCSimTotalLikelihood::GetLastHit2LnL() const

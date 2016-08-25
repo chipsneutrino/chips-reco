@@ -11,17 +11,18 @@
 #include "WCSimRecoEvent.hh"
 #include "WCSimRecoDigit.hh"
 
-#include <TClonesArray.h>
 #include <TChainElement.h>
+#include <TClonesArray.h>
+#include <TDatabasePDG.h>
 #include <TIterator.h>
 #include <TObjArray.h>
 #include <TObjString.h>
 #include <TParticlePDG.h>
-#include <TDatabasePDG.h>
 
+#include <cassert>
 #include <cmath>
 #include <iostream>
-#include <cassert>
+#include <set>
 
 ClassImp(WCSimInterface)
 
@@ -896,4 +897,41 @@ std::vector<WCSimLikelihoodTrackBase*> WCSimInterface::GetPi0PhotonTracks(const 
     photons.push_back(track);
   }
   return photons;
+}
+
+bool WCSimInterface::EventIsVetoed()
+{
+    return AnyTrueLeptonEscaped();
+}
+
+bool WCSimInterface::AnyTrueLeptonEscaped()
+{
+    WCSimTruthSummary ts(fEvent->GetTruthSummary());
+    TVector3 vtx = ts.GetVertex() * 0.1;
+    TVector3 dir = ts.GetPrimaryDir(0);
+    
+    if(fEvent->GetNumberOfEvents() <= 0){ return false; }
+    bool escapes = false;
+
+    WCSimRootTrigger * fTrigger = fEvent->GetTrigger(0);
+    TObjArray * allTracks = fTrigger->GetTracks();
+    int nTracks = fTrigger->GetNtrack();
+
+    std::set<int> startVols;
+    std::set<int> endVols;
+
+    for(int i = 0; i < nTracks; ++i)
+    {
+        // Only look at electron and muon tracks
+        WCSimRootTrack * myTrack = (WCSimRootTrack*)allTracks->At(i);
+
+        if(myTrack->GetIpnu() != 11 && myTrack->GetIpnu() != 13)
+        {
+            continue;
+        }
+
+        startVols.insert(myTrack->GetStartvol());
+        endVols.insert(myTrack->GetStopvol());
+    }
+
 }

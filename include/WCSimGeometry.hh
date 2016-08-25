@@ -242,12 +242,12 @@ class WCSimGeometry : public TObject {
   bool IsInRingHole(const TVector3& vtx, const TVector3& dir, const TVector3& pmt, const TrackType::Type& type, const double energy);
   bool GetEscapes(const TVector3& vtx, const TVector3& dir, const TrackType::Type& type, const double energy);
   TVector3 GetEnd(const TVector3& vtx, const TVector3& dir, const TrackType::Type& type, const double energy);
+  RingRegion_t GetPMTRingRegion(const TVector3& vtx, const TVector3& dir, const TVector3& pmt, const TrackType::Type& type, const double energy);
  private:
 
   WCSimGeometry();
   WCSimGeometry(WCSimRootGeom* geom);
   ~WCSimGeometry();
-  RingRegion_t GetPMTRingRegion(const TVector3& vtx, const TVector3& dir, const TVector3& pmt, const TrackType::Type& type, const double energy);
   void TouchEmissionProfileManager();
 
 

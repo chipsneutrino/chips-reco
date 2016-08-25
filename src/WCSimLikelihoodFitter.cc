@@ -1,21 +1,23 @@
 #include "WCSimAnalysisConfig.hh"
 #include "WCSimChargePredictor.hh"
 #include "WCSimFitterConfig.hh"
+#include "WCSimFitterInterface.hh"
 #include "WCSimFitterParameters.hh"
 #include "WCSimFitterPlots.hh"
-#include "WCSimFitterTree.hh"
-#include "WCSimFitterInterface.hh"
 #include "WCSimGeometry.hh"
+#include "WCSimHitComparison.hh"
 #include "WCSimInterface.hh"
 #include "WCSimLikelihoodDigitArray.hh"
 #include "WCSimLikelihoodFitter.hh"
 #include "WCSimLikelihoodTrackBase.hh"
 #include "WCSimLikelihoodTrackFactory.hh"
+#include "WCSimOutputTree.hh"
 #include "WCSimReco.hh"
-#include "WCSimRecoSeed.hh"
 #include "WCSimRecoDigit.hh"
 #include "WCSimRecoEvent.hh"
 #include "WCSimRecoFactory.hh"
+#include "WCSimRecoSeed.hh"
+#include "WCSimRecoSummary.hh"
 #include "WCSimRootEvent.hh"
 #include "WCSimRootGeom.hh"
 #include "WCSimTimeLikelihood.hh"
@@ -64,7 +66,7 @@ WCSimLikelihoodFitter::WCSimLikelihoodFitter(WCSimFitterConfig * config) : fFitt
   fEvent = -999;
   fFitterConfig = config;
   fFitterPlots = NULL;
-  fFitterTree = 0x0;
+  fOutputTree = 0x0;
   fTotalLikelihood = NULL;
   fRootEvent = NULL;
   fLikelihoodDigitArray = NULL;
@@ -544,6 +546,8 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
     fMinimum = fTotalLikelihood->Calc2LnL();
     fMinimumTimeComponent = fTotalLikelihood->GetLastTime2LnL();
     fMinimumChargeComponent = fTotalLikelihood->GetLastCharge2LnL();
+    fMinimumHitComponent = fTotalLikelihood->GetLastHit2LnL();
+    fMinimumCutoffComponent = fTotalLikelihood->GetLastCutoff2LnL();
   }
 
   std::cout << "Fitted event number " << iEvent << std::endl;
@@ -617,31 +621,6 @@ void WCSimLikelihoodFitter::PerformEnergyGridSearch(Double_t& best2LnL,
 
 }
 
-void WCSimLikelihoodFitter::FillHitComparison() {
-  fTotalLikelihood->SetTracks(fBestFit);
-  fTotalLikelihood->Calc2LnL();
-	std::vector<double> predictedCharges = fTotalLikelihood->GetPredictedChargeVector();
-	std::vector<double> measuredCharges = fTotalLikelihood->GetMeasuredChargeVector();
-	std::vector<double> best2LnLs = fTotalLikelihood->GetTotal2LnLVector();
-    std::vector<double> hit2LnLs = fTotalLikelihood->GetHit2LnLVector();
-	std::vector<double> charge2LnLs = fTotalLikelihood->GetCharge2LnLVector();
-	std::vector<double> time2LnLs = fTotalLikelihood->GetTime2LnLVector();
-  std::vector<double> predictedTimes = fTotalLikelihood->GetPredictedTimeVector();
-
-	std::vector<WCSimLikelihoodTrackBase*> *correctTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
-  
-	fTotalLikelihood->SetTracks(*correctTracks);
-	fTotalLikelihood->Calc2LnL();
-	std::vector<double> correctPredictedCharges = fTotalLikelihood->GetPredictedChargeVector();
-	std::vector<double> correctPredictedTimes = fTotalLikelihood->GetPredictedTimeVector();
-    std::vector<double> correctHit2LnLs = fTotalLikelihood->GetHit2LnLVector();
-	std::vector<double> correctCharge2LnLs = fTotalLikelihood->GetCharge2LnLVector();
-	std::vector<double> correctTime2LnLs = fTotalLikelihood->GetTime2LnLVector();
-	std::vector<double> correct2LnLs = fTotalLikelihood->GetTotal2LnLVector();
-	fFitterTree->FillHitComparison(fEvent, fLikelihoodDigitArray, predictedCharges, correctPredictedCharges, measuredCharges, predictedTimes, correctPredictedTimes, best2LnLs, correct2LnLs, hit2LnLs, correctHit2LnLs, charge2LnLs, correctCharge2LnLs, time2LnLs, correctTime2LnLs);
-
-}
-
 WCSimLikelihoodTrackBase * WCSimLikelihoodFitter::RescaleParams(Double_t x, Double_t y, Double_t z, Double_t t,
                                                           Double_t th, Double_t phi, Double_t E, 
                                                           TrackType::Type type)
@@ -692,17 +671,13 @@ void WCSimLikelihoodFitter::RunFits() {
 	    {
             std::cout << "Filling successful event" << std::endl;
 			  FillPlots();
-			  FillTree();
-			  FillHitComparison();
 	    }
 	    else
 	    {
           std::cout << "Failed for some reason: fMinimum = " << fMinimum << " and fFailed = " << fFailed << std::endl;
-	      fFitterTree->FillRecoFailures(iEvent);
-		  FillTree();
-		  FillHitComparison();
-	    }
-	    fFitterTree->SaveTree();
+        }
+		FillTree();
+	    fOutputTree->SaveTree();
 		fFitterPlots->SavePlots();
 	}
 }
@@ -776,26 +751,32 @@ void WCSimLikelihoodFitter::FillPlots() {
 }
 
 void WCSimLikelihoodFitter::FillTree() {
-	if(fFitterTree != NULL)
+	if(fOutputTree != NULL)
 	{
-		std::vector<Bool_t> bestFitEscapes;
-		std::vector<Bool_t> trueTrackEscapes;
-		for(unsigned int i = 0; i < fBestFit.size(); ++i)
-		{
-			bestFitEscapes.push_back(this->GetFitTrackEscapes(i));
-		}
-		for(unsigned int j = 0; j < fTrueLikelihoodTracks->size(); ++j)
-		{
-			trueTrackEscapes.push_back(this->GetTrueTrackEscapes(j));
-		}
-		fFitterTree->Fill(fEvent, fBestFit, bestFitEscapes, *fTrueLikelihoodTracks, trueTrackEscapes, fMinimumChargeComponent, fMinimumTimeComponent, fFailed);
+        WCSimRecoSummary summ = BuildRecoSummary();
+        WCSimHitComparison hitComp = BuildHitComparison();
+        HitInfo hitInfo = BuildHitInfo();
+        RecoInfo recoInfo = BuildRecoInfo();
+        TruthInfo truthInfo = BuildTruthInfo();
+        std::string recoType = GetRecoType();
+
+        fOutputTree->Fill(
+                fFailed,
+                fEvent,
+                recoType,
+                summ,
+                hitComp,
+                hitInfo,
+                recoInfo,
+                truthInfo
+                );
 	}
 	return;
 }
 
-void WCSimLikelihoodFitter::SetFitterTree(WCSimFitterTree* fitterTree) {
-  std::cout << "Setting fFitterTree" << std::endl;
-  fFitterTree = fitterTree;
+void WCSimLikelihoodFitter::SetOutputTree(WCSimOutputTree* fitterTree) {
+  std::cout << "Setting fOutputTree" << std::endl;
+  fOutputTree = fitterTree;
 }
 
 Bool_t WCSimLikelihoodFitter::GetTrueTrackEscapes(unsigned int iTrack) const{
@@ -2567,5 +2548,313 @@ Double_t WCSimLikelihoodFitter::GetPenalty(const std::vector<WCSimLikelihoodTrac
         ++tIt;
     }
     return penalty;
+}
+
+WCSimRecoSummary WCSimLikelihoodFitter::BuildRecoSummary()
+{
+
+    // First we need to work out whether any of the reco or true tracks
+    // would escape, according to the emission profiles
+	std::vector<Bool_t> bestFitEscapes;
+	std::vector<Bool_t> trueTrackEscapes;
+	for(unsigned int i = 0; i < fBestFit.size(); ++i)
+	{
+		bestFitEscapes.push_back(this->GetFitTrackEscapes(i));
+	}
+	for(unsigned int j = 0; j < fTrueLikelihoodTracks->size(); ++j)
+	{
+		trueTrackEscapes.push_back(this->GetTrueTrackEscapes(j));
+	}
+   
+    // Now build an empty RecoSummary to populate
+    WCSimRecoSummary rs;
+	rs.ResetValues();
+    std::cout << "Setting event number to " << fEvent << std::endl;
+    rs.SetEventNumber(fEvent);
+
+	// Arrange reco tracks in descending order of energy
+    std::sort(
+            fBestFit.begin(), 
+            fBestFit.end(), 
+            WCSimLikelihoodTrackBase::EnergyGreaterThanOrEqualPtrs
+            );
+
+    // Add each of the best-fit tracks to the RecoSummary
+	for(unsigned int iTrack = 0; iTrack < fBestFit.size() ; ++iTrack )
+	{
+        std::cout << "RecoSummary, make track " << iTrack << std::endl;
+		WCSimLikelihoodTrackBase * track = (fBestFit.at(iTrack));
+        std::cout << "track:" << track->GetX() << ", " << track->GetY() 
+                  << ", " << track->GetZ() << "    "
+                  << track->GetType() << std::endl;
+        track->Print();
+        
+        rs.AddVertex(
+                10*track->GetX(), 
+                10*track->GetY(), 
+                10*track->GetZ(),track->GetT()
+                ); // Convert cm to mm
+
+		rs.AddPrimary(
+                track->GetPDG(), 
+                track->GetE(), 
+                track->GetDir()
+                );
+	}
+
+    rs.SetChargeMinus2LnL(fMinimumChargeComponent);
+    rs.SetTimeMinus2LnL(fMinimumTimeComponent);
+	return rs;
+}
+
+WCSimHitComparison WCSimLikelihoodFitter::BuildHitComparison()
+{
+    // Get all the predicted values and likelihoods for the best-fit tracks:
+    fTotalLikelihood->SetTracks(fBestFit);
+    fTotalLikelihood->Calc2LnL();
+	std::vector<double> predictedCharges = fTotalLikelihood->GetPredictedChargeVector();
+	std::vector<double> measuredCharges = fTotalLikelihood->GetMeasuredChargeVector();
+	std::vector<double> best2LnLs = fTotalLikelihood->GetTotal2LnLVector();
+    std::vector<double> hit2LnLs = fTotalLikelihood->GetHit2LnLVector();
+	std::vector<double> charge2LnLs = fTotalLikelihood->GetCharge2LnLVector();
+	std::vector<double> time2LnLs = fTotalLikelihood->GetTime2LnLVector();
+    std::vector<double> predictedTimes = fTotalLikelihood->GetPredictedTimeVector();
+    
+    
+    // Update best-fit components
+    fMinimumTimeComponent = fTotalLikelihood->GetLastTime2LnL();
+    fMinimumChargeComponent = fTotalLikelihood->GetLastCharge2LnL();
+    fMinimumHitComponent = fTotalLikelihood->GetLastHit2LnL();
+    fMinimumCutoffComponent = fTotalLikelihood->GetLastCutoff2LnL();
+
+
+    // Now get all the predicted values and likelihoods for the correct tracks:
+	std::vector<WCSimLikelihoodTrackBase*> *correctTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
+	fTotalLikelihood->SetTracks(*correctTracks);
+	fTotalLikelihood->Calc2LnL();
+	std::vector<double> correctPredictedCharges = fTotalLikelihood->GetPredictedChargeVector();
+	std::vector<double> correctPredictedTimes = fTotalLikelihood->GetPredictedTimeVector();
+    std::vector<double> correctHit2LnLs = fTotalLikelihood->GetHit2LnLVector();
+	std::vector<double> correctCharge2LnLs = fTotalLikelihood->GetCharge2LnLVector();
+	std::vector<double> correctTime2LnLs = fTotalLikelihood->GetTime2LnLVector();
+	std::vector<double> correct2LnLs = fTotalLikelihood->GetTotal2LnLVector();
+    
+
+    // Now make a vector of easy-to-handle hit comparison objects:
+    WCSimHitComparison hitComparisons;
+    for(int i = 0; i < fLikelihoodDigitArray->GetNDigits(); ++i)
+    {
+        WCSimHitPrediction bestFit( 
+                predictedCharges.at(i),
+                predictedTimes.at(i),
+                best2LnLs.at(i),
+                charge2LnLs.at(i), 
+                time2LnLs.at(i),
+                hit2LnLs.at(i)
+                );
+
+        WCSimHitPrediction correctFit( 
+                correctPredictedCharges.at(i),
+                correctPredictedTimes.at(i),
+                correct2LnLs.at(i),
+                correctCharge2LnLs.at(i), 
+                correctTime2LnLs.at(i),
+                correctHit2LnLs.at(i)
+                );
+
+        WCSimLikelihoodDigit thisDigit(*fLikelihoodDigitArray->GetDigit(i));
+                                    
+        // Add this digit to the list of hit comparisons
+        WCSimSingleHitComparison comp(thisDigit, bestFit, correctFit);
+        hitComparisons.push_back(comp);
+    }
+    return hitComparisons;
+}
+
+HitInfo WCSimLikelihoodFitter::BuildHitInfo()
+{
+
+    bool veto = WCSimInterface::Instance()->EventIsVetoed();
+    int nPMTs = fLikelihoodDigitArray->GetNDigits();
+
+    // Track the number of hits and total charge
+    // Only need the total and the amount upstream - HitInfo 
+    // knows that upstream + downstream = total
+    int hits = 0;
+    int hitsUpstream = 0;
+    float charge = 0.0;
+    float chargeUpstream = 0.0;
+
+    // Look for all the hit PMTs
+    for(int iPMT = 0; iPMT < nPMTs; ++ iPMT)
+    {
+        WCSimLikelihoodDigit* myDigit = fLikelihoodDigitArray->GetDigit(iPMT);
+        bool isUpstream = (myDigit->GetX() > 0);
+        
+        if(myDigit->GetQ() > 0)
+        {
+            hits++;
+            charge += myDigit->GetQ();
+
+            if(isUpstream)
+            {
+                hitsUpstream++;
+                chargeUpstream += myDigit->GetQ();
+            }
+        }
+    }
+
+    return HitInfo(veto, hits, hitsUpstream, charge, chargeUpstream);
+}
+
+RecoInfo WCSimLikelihoodFitter::BuildRecoInfo()
+{
+    RecoInfo recoInfo;
+
+    // First get the likelihood components
+    fMinimumTimeComponent = fTotalLikelihood->GetLastTime2LnL();
+    fMinimumChargeComponent = fTotalLikelihood->GetLastCharge2LnL();
+    fMinimumHitComponent = fTotalLikelihood->GetLastHit2LnL();
+    fMinimumCutoffComponent = fTotalLikelihood->GetLastCutoff2LnL();
+    float totalLikelihood = fMinimumTimeComponent 
+                            + fMinimumChargeComponent
+                            + fMinimumHitComponent
+                            - fMinimumCutoffComponent;
+    recoInfo.SetLikelihoods(totalLikelihood, fMinimumHitComponent, 
+                            fMinimumChargeComponent, fMinimumTimeComponent);
+    
+    // Store the vertex, direction and end of the leading track
+    std::sort(
+            fBestFit.begin(), 
+            fBestFit.end(), 
+            WCSimLikelihoodTrackBase::EnergyGreaterThanOrEqualPtrs
+            );
+    
+    TVector3 vtx = fBestFit.at(0)->GetVtx();
+    TVector3 dir = fBestFit.at(0)->GetDir();
+    double stoppingDistance = 
+        fTotalLikelihood->GetEmissionProfileManager()->GetStoppingDistance(
+            fBestFit.at(0)
+            );
+    TVector3 end = vtx + stoppingDistance * dir;
+
+    recoInfo.SetVtx(vtx.X(), vtx.Y(), vtx.Z());
+    recoInfo.SetDir(dir.X(), dir.Y(), dir.Z());
+    recoInfo.SetEnd(end.X(), end.Y(), end.Z());
+    recoInfo.SetEscapes(GetTrackEscapes(fBestFit.at(0)));
+
+
+    // Now loop over all PMTs to work out the contributions inside the fit ring
+    std::vector<double> predQ = fTotalLikelihood->GetPredictedChargeVector();
+    int nPMTs = fLikelihoodDigitArray->GetNDigits();
+    int hitsInside = 0;
+    int hitsOutside = 0;
+    int hitsInHole = 0;
+    float chargeInside = 0;
+    float chargeOutside = 0;
+    float chargeInHole = 0;
+    float predChargeInside = 0;
+    float predChargeOutside = 0;
+    float predChargeInHole = 0;
+
+    for(int iPMT = 0; iPMT < nPMTs; ++iPMT)
+    {
+        // Skip unhit PMTs
+        double charge = fLikelihoodDigitArray->GetDigit(iPMT)->GetQ();
+        if(charge == 0)
+        { 
+            continue;
+        }
+
+
+        // Assign a RingRegion to hit PMTs
+        TVector3 pmtPos = fLikelihoodDigitArray->GetDigit(iPMT)->GetPos();
+        WCSimGeometry::RingRegion_t region = WCSimGeometry::kOutside;
+        for(size_t iTrack = 0; iTrack < fBestFit.size(); ++iTrack)
+        {
+            WCSimGeometry::RingRegion_t thisPMT = 
+                WCSimGeometry::Instance()->GetPMTRingRegion(
+                    fBestFit[iTrack]->GetVtx(),
+                    fBestFit[iTrack]->GetDir(),
+                    pmtPos, 
+                    fBestFit[iTrack]->GetType(),
+                    fBestFit[iTrack]->GetE()
+                    );
+
+            // With multiple tracks we want to flag a region that's in one ring
+            // but not the other as 'inside', and similarly, if it's in the hole
+            // for one but outside the other, as 'in hole'
+            if(thisPMT == WCSimGeometry::kInside)
+            {
+                region = thisPMT;
+                break;
+            }
+            else if(thisPMT == WCSimGeometry::kInsideHole 
+                    && region == WCSimGeometry::kOutside)
+            {
+                region = thisPMT;
+            }
+        }
+
+        
+        // Now increment the appropriate region's hits, charges, and predictions
+        if(region == WCSimGeometry::kInside)
+        {
+            hitsInside++;
+            chargeInside += charge;
+            predChargeInside += predQ.at(iPMT);
+        }
+        else if(region == WCSimGeometry::kOutside)
+        {
+            hitsOutside++;
+            chargeOutside += charge;
+            predChargeOutside += predQ.at(iPMT);
+        }
+        else
+        {
+            hitsInHole++;
+            chargeInHole += charge;
+            predChargeInHole += predQ.at(iPMT);
+        }
+    }
+    recoInfo.SetTotalQ(chargeInside, chargeOutside, chargeInHole);
+    recoInfo.SetNHits(hitsInside, hitsOutside, hitsInHole);
+    recoInfo.SetPredQ(predChargeInside, predChargeOutside, predChargeInHole);
+
+    return recoInfo;
+}
+
+TruthInfo WCSimLikelihoodFitter::BuildTruthInfo()
+{
+    WCSimTruthSummary ts = WCSimInterface::Instance()->GetTruthSummary();
+
+    int type = ts.GetInteractionMode();
+    int beamPDG = ts.GetBeamPDG();
+    float beamEnergy = ts.GetBeamEnergy();
+
+    int leadPDG = ts.GetPrimaryPDG(0);
+    float leadEnergy = ts.GetPrimaryEnergy(0);
+
+    return TruthInfo(type, beamPDG, beamEnergy, leadPDG, leadEnergy);
+}
+
+std::string WCSimLikelihoodFitter::GetRecoType()
+{
+    if(fFitterConfig->GetIsPiZeroFit())
+    {
+        return "piZero";
+    }
+    else if(fFitterConfig->GetNumTracks() == 1)
+    {
+        if(fFitterConfig->GetTrackType(0) == TrackType::MuonLike)
+        {
+            return "muon";
+        }
+        else if(fFitterConfig->GetTrackType(0) == TrackType::ElectronLike)
+        {
+            return "electron";
+        }
+    }
+    return "other";
 }
 

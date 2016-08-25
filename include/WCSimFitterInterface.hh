@@ -13,7 +13,7 @@
 class WCSimLikelihoodFitter;
 class WCSimFitterConfig;
 class WCSimFitterPlots;
-class WCSimFitterTree;
+class WCSimOutputTree;
 class WCSimPiZeroFitter;
 
 
@@ -102,7 +102,7 @@ private:
 	WCSimLikelihoodFitter * fFitter;
 	WCSimPiZeroFitter * fPiZeroFitter;
 	WCSimFitterPlots * fFitterPlots;
-	WCSimFitterTree * fFitterTree;
+	WCSimOutputTree * fOutputTree;
 
 	Bool_t fMakeFits;
 	Bool_t fMakeSurfaces;

@@ -104,6 +104,7 @@ class WCSimTotalLikelihood : public TObject
       std::vector<double> GetCharge2LnLVector() const; // Leigh: Get the charge component only
       std::vector<double> GetTime2LnLVector() const; // Leigh: Get the time component only
       std::vector<double> GetPredictedTimeVector() const;
+      double GetLastCutoff2LnL() const;
       double GetLastHit2LnL() const;
       double GetLastTime2LnL() const;
       double GetLastCharge2LnL() const;
@@ -132,6 +133,7 @@ class WCSimTotalLikelihood : public TObject
       std::vector<double> fCharge2LnL; // Leigh: Store the charge part only
       std::vector<double> fTime2LnL; // Leigh: Store the time part only
       std::vector<double> fHit2LnL; // Likelihood that a hit PMT was hit or an unhit PMT was unhit
+      std::vector<double> fCutoff2LnL; // Likelihood thrown away by the maximum cap
       WCSimEmissionProfileManager * fEmissionProfileManager;
 
 

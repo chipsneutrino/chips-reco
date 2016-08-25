@@ -12,8 +12,10 @@
 #include "WCSimFitterPlots.hh"
 #include "WCSimLikelihoodDigitArray.hh"
 #include "WCSimLikelihoodTrackBase.hh"
+#include "WCSimOutputTree.hh"
 #include "WCSimReco.hh"
 #include "WCSimRecoDigit.hh"
+#include "WCSimRecoSummary.hh"
 #include "WCSimRootEvent.hh"
 #include "WCSimTotalLikelihood.hh"
 #include "WCSimFitterTrackParMap.hh"
@@ -24,7 +26,7 @@
 #include <map>
 
 //class WCSimChargeLikelihood;
-class WCSimFitterTree;
+class WCSimOutputTree;
 class WCSimFitterConfig;
 
 struct FitterArgIsNaN : public std::exception
@@ -46,7 +48,7 @@ class WCSimLikelihoodFitter
 		WCSimLikelihoodFitter(WCSimFitterConfig * config);
         virtual ~WCSimLikelihoodFitter();
         void SetFitterPlots(WCSimFitterPlots * fitterPlots);
-        void SetFitterTree(WCSimFitterTree * fitterTree);
+        void SetOutputTree(WCSimOutputTree * fitterTree);
         void RunFits();
         void RunSurfaces();
 
@@ -55,7 +57,12 @@ class WCSimLikelihoodFitter
 
 
     protected:
-
+        WCSimRecoSummary BuildRecoSummary();
+        WCSimHitComparison BuildHitComparison();
+        HitInfo BuildHitInfo();
+        RecoInfo BuildRecoInfo();
+        TruthInfo BuildTruthInfo();
+        std::string GetRecoType();
         
         void SeedEvent();
         void FixVertex();
@@ -263,16 +270,9 @@ class WCSimLikelihoodFitter
 
 
         /**
-         * @brief Fill the FitTree in WCSimFitterTree
+         * @brief Fill the FitTree in WCSimOutputTree
          */
         void FillTree();
-
-
-        /**
-         * @brief Fill the HitComparisonTree in WCSimFitterTree that compares predicted and measured charges per PMT
-         */
-        void FillHitComparison();
-
 
         /**
          * @brief Sweep out the likelihood as a function of one fit parameter around the best-fit
@@ -422,6 +422,8 @@ class WCSimLikelihoodFitter
         Double_t fMinimum; ///< Value of -2 log(likelihood) at the best-fit point
         Double_t fMinimumTimeComponent; ///< Value of -2 log(time likelihood) at best-fit point
         Double_t fMinimumChargeComponent; ///< Value of -2 log(charge likelihood) at best-fit point
+        Double_t fMinimumHitComponent; ///< Value of -2 log(hit likelihood) at best-fit point
+        Double_t fMinimumCutoffComponent; ///< Amount of -2LnL lost due to cutoff at best-fit
 
         Bool_t fFailed; ///< Set to true if the fitter fails, to flag the bad event
 
@@ -430,7 +432,7 @@ class WCSimLikelihoodFitter
 
 
         WCSimFitterPlots * fFitterPlots; ///< Responsible for making quick plots of results
-        WCSimFitterTree * fFitterTree; ///< Responsible for saving fit information 
+        WCSimOutputTree * fOutputTree; ///< Responsible for saving fit information 
         WCSimFitterTrackParMap fFitterTrackParMap; ///< Stores and looks-up track parameters in an array
         WCSimFitterConfig * fFitterConfig; ///< For configuring the fitter options
 
