@@ -530,15 +530,18 @@ void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
       FreeEnergy();
 
       // Finally fit the time
-      std::cout << "FITTER STAGE 7 - Final timing fit" << std::endl;
-      FixVertex();
-      FixEnergy();
-      FixDirection();
-      FreeTime();
-      FitTime();
-      FreeVertex();
-      FreeEnergy();
-      FreeDirection();
+      if(usingTime)
+      {
+        std::cout << "FITTER STAGE 7 - Final timing fit" << std::endl;
+        FixVertex();
+        FixEnergy();
+        FixDirection();
+        FreeTime();
+        FitTime();
+        FreeVertex();
+        FreeEnergy();
+        FreeDirection();
+      }
     }
 
 	fTrueLikelihoodTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
