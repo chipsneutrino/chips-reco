@@ -36,32 +36,32 @@ public:
 	// Button to show truth or reco
 	void ShowFit();
 	void ShowFitOverlay();
-  void ShowTruthOverlay();
+    void ShowTruthOverlay();
 
-  // Functions to show the different likelihood contributions
-  void SetViewTotalLnL();
-  void SetViewQLnL();
-  void SetViewTLnL();
+    // Functions to show the different likelihood contributions
+    void SetViewTotalLnL();
+    void SetViewQLnL();
+    void SetViewTLnL();
   
-  // Functions to show the different likelihood contributions from the correct track
-  void SetViewCorrectTotalLnL();
-  void SetViewCorrectQLnL();
-  void SetViewCorrectTLnL();
+    // Functions to show the different likelihood contributions from the correct track
+    void SetViewCorrectTotalLnL();
+    void SetViewCorrectQLnL();
+    void SetViewCorrectTLnL();
 
-  // Show the reco-true distributions
-  void SetViewChargeRMT();
-  void SetViewTimeRMT();
+    // Show the reco-true distributions
+    void SetViewChargeRMT();
+    void SetViewTimeRMT();
+    
+    // Show the predicted distributions at the best-fit
+    void SetViewChargePrediction();
+    void SetViewTimePrediction();
 
-  // Show the predicted distributions at the best-fit
-  void SetViewChargePrediction();
-  void SetViewTimePrediction();
+    // Show the predicted distributions for the correct tracks
+    void SetViewCorrectChargePrediction();
+    void SetViewCorrectTimePrediction();
 
-  // Show the predicted distributions for the correct tracks
-  void SetViewCorrectChargePrediction();
-  void SetViewCorrectTimePrediction();
-
-  // Special display view for saving plots
-  void ShowDisplayView();
+    // Special display view for saving plots
+    void ShowDisplayView();
 
 protected:
 	

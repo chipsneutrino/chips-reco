@@ -865,7 +865,7 @@ void WCSimRecoEvDisplay::OpenWCSimRecoFile(std::string name) {
 	// Each entry is an event, so use this to set the limits.
 	fMinEvent = 0;
 	fCurrentEvent = 0;
-	fMaxEvent = fChain->GetEntries() - 1;
+	fMaxEvent = fRecoSummaryChain->GetEntries() - 1;
 
 	std::cout << "Filling plots" << std::endl;
 	this->FillPlots();
