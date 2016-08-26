@@ -1,7 +1,6 @@
 #include "WCSimAnalysisConfig.hh"
 #include "WCSimChargePredictor.hh"
 #include "WCSimFitterConfig.hh"
-#include "WCSimFitterInterface.hh"
 #include "WCSimFitterParameters.hh"
 #include "WCSimFitterPlots.hh"
 #include "WCSimGeometry.hh"
@@ -687,7 +686,8 @@ void WCSimLikelihoodFitter::RunFits() {
 
 void WCSimLikelihoodFitter::RunSurfaces() {
 	fRootEvent = WCSimInterface::Instance()->GetWCSimEvent(fFitterConfig->GetFirstEventToFit());
-	fLikelihoodDigitArray = WCSimInterface::Instance()->GetWCSimLikelihoodDigitArray(fFitterConfig->GetFirstEventToFit());
+	fLikelihoodDigitArrayObj = WCSimInterface::Instance()->GetWCSimLikelihoodDigitArray(fFitterConfig->GetFirstEventToFit());
+    fLikelihoodDigitArray = &fLikelihoodDigitArrayObj;
   fFitterTrackParMap.Set();
 	std::cout << "There are " << fLikelihoodDigitArray->GetNDigits() << " digits" << std::endl;
 	if(fTotalLikelihood != NULL)
@@ -2146,7 +2146,8 @@ void WCSimLikelihoodFitter::SetEvent(Int_t iEvent)
 	fEvent = iEvent;
 	WCSimInterface::Instance()->BuildEvent(iEvent);
 	fRootEvent = WCSimInterface::Instance()->GetWCSimEvent(iEvent);
-	fLikelihoodDigitArray = WCSimInterface::Instance()->GetWCSimLikelihoodDigitArray(iEvent);
+	fLikelihoodDigitArrayObj = WCSimInterface::Instance()->GetWCSimLikelihoodDigitArray(iEvent);
+    fLikelihoodDigitArray = &fLikelihoodDigitArrayObj;
 	std::cout << "There are " << fLikelihoodDigitArray->GetNDigits() << " digits" << std::endl;
 	if(fTotalLikelihood != NULL)
 	{

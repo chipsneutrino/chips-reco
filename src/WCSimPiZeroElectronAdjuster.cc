@@ -180,8 +180,8 @@ std::vector<TVector3> WCSimPiZeroElectronAdjuster::GetFirstTrackDirectionsToTry(
 	planeAxis1 = planeAxis1.Unit();
 	planeAxis2 = planeAxis1.Cross(planeUnitNormal).Unit();
 
-	WCSimLikelihoodDigitArray * myLDA = WCSimInterface::Instance()->GetWCSimLikelihoodDigitArray();
-	int nDigits = myLDA->GetNDigits();
+	WCSimLikelihoodDigitArray myLDA = WCSimInterface::Instance()->GetWCSimLikelihoodDigitArray();
+	int nDigits = myLDA.GetNDigits();
 
 
 
@@ -198,8 +198,8 @@ std::vector<TVector3> WCSimPiZeroElectronAdjuster::GetFirstTrackDirectionsToTry(
 
 	for(int iDigit = 0; iDigit < nDigits; ++iDigit)
 	{
-		if(myLDA->GetDigit(iDigit)->GetQ() < 1.0) { continue; }
-		TVector3 digitPos = myLDA->GetDigit(iDigit)->GetPos();
+		if(myLDA.GetDigit(iDigit)->GetQ() < 1.0) { continue; }
+		TVector3 digitPos = myLDA.GetDigit(iDigit)->GetPos();
 		double distanceInTrackDir = (digitPos - planeContains).Dot(planeUnitNormal);
 		// Move the PMT out so they all sit in the same plane
 		if(fabs(projectToDistance/distanceInTrackDir) > 10) { continue; }

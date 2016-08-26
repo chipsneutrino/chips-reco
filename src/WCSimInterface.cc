@@ -109,7 +109,6 @@ WCSimInterface::WCSimInterface()
   fVetoDigitList = new std::vector<WCSimRecoDigit*>;
   fTrackList = new std::vector<WCSimTrueTrack*>;  
   fTrueLikelihoodTracks = new std::vector<WCSimLikelihoodTrackBase*>;
-  fLikelihoodDigitArray = NULL;
 
   fTrigger = 0;
   fEvent = 0;
@@ -821,10 +820,9 @@ void WCSimInterface::BuildRecoEvent(WCSimRootTrigger* myTrigger)
   return;
 }
 
-WCSimLikelihoodDigitArray* WCSimInterface::GetWCSimLikelihoodDigitArray(int ievent) {
+WCSimLikelihoodDigitArray WCSimInterface::GetWCSimLikelihoodDigitArray(int ievent) {
 	WCSimRootEvent* myEvent = (WCSimRootEvent*)(GetWCSimEvent(ievent));
-	if( fLikelihoodDigitArray != NULL ){ delete fLikelihoodDigitArray; }
-	fLikelihoodDigitArray = new WCSimLikelihoodDigitArray(myEvent);
+	fLikelihoodDigitArray = WCSimLikelihoodDigitArray(myEvent);
 	return fLikelihoodDigitArray;
 }
 
@@ -933,5 +931,6 @@ bool WCSimInterface::AnyTrueLeptonEscaped()
         startVols.insert(myTrack->GetStartvol());
         endVols.insert(myTrack->GetStopvol());
     }
-
+    escapes = escapes || ((startVols.size() != 1) || (endVols.size() != 1));
+    return escapes;
 }

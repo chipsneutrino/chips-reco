@@ -186,7 +186,14 @@ int WCSimFitterConfig::GetNumEventsToFit() {
 
 
 void WCSimFitterConfig::Print() {
-	//std::cout << " *** WCSimFitterConfig::Print() *** " << std::endl;
+	std::cout << " *** WCSimFitterConfig::Print() *** " << std::endl;
+    std::cout << "fNumTracks = " << fNumTracks << std::endl;
+    std::cout << "fNumEventsToFit = " << fNumEventsToFit << std::endl;
+    std::cout << "fNumParameters = " << fNumParameters << std::endl;
+    std::cout << "fFirstEventToFit = " << fFirstEventToFit << std::endl;
+    std::cout << "fIsPiZeroFit = " << fIsPiZeroFit << std::endl;
+    std::cout << "fForcePiZeroMass = " << fForcePiZeroMass << std::endl;
+    std::cout << "**************************************" << std::endl;
 	//std::cout << "Should add some statements in here..." << std::endl;
 }
 

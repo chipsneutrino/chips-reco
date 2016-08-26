@@ -193,6 +193,7 @@ UInt_t WCSimPiZeroFitter::GetNPars()
 void WCSimPiZeroFitter::RunFits()
 {
   std::cout << "WCSimLikelihoodFitter::RunFits() " << std::endl;
+
 	UInt_t firstEvent = fFitterConfig->GetFirstEventToFit();
 	UInt_t numEventsToFit = fFitterConfig->GetNumEventsToFit();
 
@@ -211,12 +212,19 @@ void WCSimPiZeroFitter::FitEventNumber(Int_t iEvent) {
 	fIsFirstCall = true;
 	fEvent = iEvent;
 	fCalls = 0;
-	WCSimInterface::Instance()->BuildEvent(iEvent);
-	fRootEvent = WCSimInterface::Instance()->GetWCSimEvent(iEvent);
-	fLikelihoodDigitArray = WCSimInterface::Instance()->GetWCSimLikelihoodDigitArray(iEvent);
-	std::cout << "There are " << fLikelihoodDigitArray->GetNDigits() << " digits" << std::endl;
-	fFitterTrackParMap.Set();
 
+	//////////////////////////////////////////////////////////
+	// Build all the combinations of tracks to try as seeds:
+	//////////////////////////////////////////////////////////
+	std::vector<WCSimPiZeroSeed*> allSeedTracks = this->GetSeeds();
+	std::vector<WCSimPiZeroSeed*>::iterator seedTrackItr = allSeedTracks.begin();
+
+	// We try two minimiser algorithms:
+	// 1. Fix the energy and direction of both tracks, run the fit to find a minimum
+	//    Then free everything and re-run the fit, starting at this minimum
+	// 2. As above, except it only fixes the energies and leaves the directions free
+    SetEvent(iEvent);
+	fFitterTrackParMap.Set();
 
 	if(fTotalLikelihood != NULL)
 	{
@@ -229,18 +237,9 @@ void WCSimPiZeroFitter::FitEventNumber(Int_t iEvent) {
 		fTotalLikelihood = new WCSimTotalLikelihood(fLikelihoodDigitArray);
 	}
 
-	//////////////////////////////////////////////////////////
-	// Build all the combinations of tracks to try as seeds:
-	//////////////////////////////////////////////////////////
-	std::vector<WCSimPiZeroSeed*> allSeedTracks = this->GetSeeds();
-	std::vector<WCSimPiZeroSeed*>::iterator seedTrackItr = allSeedTracks.begin();
+    assert(allSeedTracks.size() > 0);
+    assert(fLikelihoodDigitArray->GetNDigits() > 0);
 
-	// We try two minimiser algorithms:
-	// 1. Fix the energy and direction of both tracks, run the fit to find a minimum
-	//    Then free everything and re-run the fit, starting at this minimum
-	// 2. As above, except it only fixes the energies and leaves the directions free
-
-  assert(allSeedTracks.size() > 0);
 	while(seedTrackItr != allSeedTracks.end())
 	{
 		// These will update fMinimum and the fBestFits if the minimiser improves on the previous best
@@ -250,6 +249,7 @@ void WCSimPiZeroFitter::FitEventNumber(Int_t iEvent) {
 	}
 
 	fTrueLikelihoodTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
+
   if( fMinimum > 0 )
   {
 	  FillPlots();
@@ -399,4 +399,9 @@ void WCSimPiZeroFitter::SeedEvent()
 		(*seedTrackItr)->Print();
 	}
 	return;
+}
+
+std::string WCSimPiZeroFitter::GetRecoType()
+{
+    return "piZero";
 }

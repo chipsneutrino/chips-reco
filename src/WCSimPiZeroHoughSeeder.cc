@@ -97,12 +97,12 @@ void WCSimPiZeroHoughSeeder::RunHough()
 	  }
 	}
 	std::sort(otherRings.begin(), otherRings.end(), RingSort);
-//	for(int i = 0; i < otherRings.size(); ++i)
-//	{
-//		std::cout << "Primary ring " << i << "/" << otherRings.size() << " has height " << otherRings.at(i).first->GetHeight() << "  ";
-//		std::cout << "Vtx (" << otherRings.at(i).first->GetVtxX() << ", " << otherRings.at(i).first->GetVtxY() << ", " << otherRings.at(i).first->GetVtxZ() << ")";
-//		std::cout << "   Dir(" << otherRings.at(i).first->GetDirX() << ", " << otherRings.at(i).first->GetDirY() << ", " << otherRings.at(i).first->GetDirZ() << ")" << std::endl;
-//	}
+	for(int i = 0; i < otherRings.size(); ++i)
+	{
+		std::cout << "Primary ring " << i << "/" << otherRings.size() << " has height " << otherRings.at(i).first->GetHeight() << "  ";
+		std::cout << "Vtx (" << otherRings.at(i).first->GetVtxX() << ", " << otherRings.at(i).first->GetVtxY() << ", " << otherRings.at(i).first->GetVtxZ() << ")";
+		std::cout << "   Dir(" << otherRings.at(i).first->GetDirX() << ", " << otherRings.at(i).first->GetDirY() << ", " << otherRings.at(i).first->GetDirZ() << ")" << std::endl;
+	}
 
 
 
@@ -161,11 +161,12 @@ void WCSimPiZeroHoughSeeder::RunHough()
 
 			fHoughResults.push_back(std::make_pair(track1, track2));
 		}
-		else
-		{
-			std::cout << "Didn't find two rings with the Hough transform" << std::endl;
-		}
 	}
+    if(fHoughResults.size() == 0)
+    {
+		std::cout << "Didn't find two rings with the Hough transform" << std::endl;
+	}
+
 
 	// Tidy up
 	delete myReco;

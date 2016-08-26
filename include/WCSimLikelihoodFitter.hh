@@ -385,6 +385,7 @@ class WCSimLikelihoodFitter
 
         WCSimTotalLikelihood * fTotalLikelihood; ///< Class used to calculate the total (combined charge and time) likelihood that we minimize
         WCSimRootEvent * fRootEvent; ///< Simulated event from WCSim to be reconstructed
+        WCSimLikelihoodDigitArray fLikelihoodDigitArrayObj; ///< Array of PMT responses
         WCSimLikelihoodDigitArray * fLikelihoodDigitArray; ///< Array of PMT responses
         std::vector<TrackType::Type> fTypes; ///< Particle type to fit for
         std::map<Int_t, Int_t> fParMap; ///< Map relating the number of tracks (key) to the number of Minuit parameters (value)

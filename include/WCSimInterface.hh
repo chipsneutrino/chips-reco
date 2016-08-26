@@ -5,6 +5,7 @@
 #include "TObject.h"
 #include "TChain.h"
 
+#include "WCSimLikelihoodDigitArray.hh"
 #include "WCSimLikelihoodTrackBase.hh"
 #include "WCSimRootEvent.hh"
 #include "WCSimRootGeom.hh"
@@ -14,7 +15,6 @@
 class WCSimRecoDigit;
 class WCSimRecoEvent;
 
-class WCSimLikelihoodDigitArray;
 
 class WCSimTrueTrack;
 class WCSimTrueEvent;
@@ -52,8 +52,8 @@ class WCSimInterface : public TObject {
   void SetTrueEnergyThreshold(Double_t ke) { fEnergyThreshold = ke; }
   void SetTrueRangeThreshold(Double_t ds) { fRangeThreshold = ds; }
   
-  WCSimLikelihoodDigitArray * GetWCSimLikelihoodDigitArray(int ievent);
-  WCSimLikelihoodDigitArray * GetWCSimLikelihoodDigitArray() { return fLikelihoodDigitArray;};
+  WCSimLikelihoodDigitArray GetWCSimLikelihoodDigitArray(int ievent);
+  WCSimLikelihoodDigitArray GetWCSimLikelihoodDigitArray() { return fLikelihoodDigitArray;};
 
   std::vector<WCSimLikelihoodTrackBase*> * GetTrueLikelihoodTracks(){ return fTrueLikelihoodTracks; }
 
@@ -80,16 +80,15 @@ class WCSimInterface : public TObject {
   WCSimInterface();
   ~WCSimInterface();
 
-  void BuildEvent(WCSimRootTrigger* trigger);
-
-  void BuildTrueEvent(WCSimRootTrigger* trigger);
-  void BuildRecoEvent(WCSimRootTrigger* trigger);
-
   void ResetTrueEvent();
   void ResetRecoEvent();
 
  private:
 
+  void BuildEvent(WCSimRootTrigger* trigger);
+
+  void BuildTrueEvent(WCSimRootTrigger* trigger);
+  void BuildRecoEvent(WCSimRootTrigger* trigger);
   bool AnyTrueLeptonEscaped();
 
   // These should only get called by BuildTrueEvent and ResetTrueEvent
@@ -111,7 +110,7 @@ class WCSimInterface : public TObject {
   WCSimRootTrigger* fTrigger;
   WCSimRootEvent* fEvent;
   WCSimRootGeom* fGeometry;
-  WCSimLikelihoodDigitArray * fLikelihoodDigitArray;
+  WCSimLikelihoodDigitArray fLikelihoodDigitArray;
   std::vector<WCSimLikelihoodTrackBase*> * fTrueLikelihoodTracks;
 
   Double_t fEnergyThreshold;
