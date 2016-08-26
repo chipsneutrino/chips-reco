@@ -30,7 +30,7 @@ void wc_trackfitter_piZero(const char * infile = "", int start=0, int fit=100){
   myInterface.SetTrackType(0, "PhotonLike");
   myInterface.SetTrackType(1, "PhotonLike");
   myInterface.SetIsPiZeroFit(true);
-  myInterface.SetForcePiZeroMass(false);
+  myInterface.SetForcePiZeroMass(true);
 
 //  myInterface.SetTrackType(0, "MuonLike");
 //  myInterface.SetTrackType(1, "MuonLike");
@@ -59,7 +59,7 @@ void wc_trackfitter_piZero(const char * infile = "", int start=0, int fit=100){
   myInterface.SetParameter(0, "kDirTh", 0, TMath::Pi(), fTheta1, fFixDir, 0.01);
   myInterface.SetParameter(0, "kDirPhi", -TMath::Pi(), TMath::Pi(), fPhi1, fFixDir, 0.02);
   myInterface.SetParameter(0, "kEnergy", 100, 5000, 600, false, 250.);
-  myInterface.SetParameter(0, "kConversionDistance", 0, 400, 50, false, 10.0);
+  myInterface.SetParameter(0, "kConversionDistance", 0, 75, 50, false, 10.0);
 
   myInterface.SetParameter(1, "kVtxX", -1200, 1200, fVtxX, fFixVtx, 10.0);
   myInterface.SetParameter(1, "kVtxY", -1200, 1200, fVtxY, fFixVtx, 10.0);
@@ -68,7 +68,7 @@ void wc_trackfitter_piZero(const char * infile = "", int start=0, int fit=100){
   myInterface.SetParameter(1, "kDirTh", 0, TMath::Pi(), fTheta2, fFixDir, 0.01);
   myInterface.SetParameter(1, "kDirPhi", -TMath::Pi(), TMath::Pi(), fPhi2, fFixDir, 0.02);
   myInterface.SetParameter(1, "kEnergy", 100, 5000, 600, false, 250.);
-  myInterface.SetParameter(1, "kConversionDistance", 0, 400, 50, false, 10.0);
+  myInterface.SetParameter(1, "kConversionDistance", 0, 75, 50, false, 10.0);
 
   myInterface.JoinParametersTogether(0,1,"kVtxX");
   myInterface.JoinParametersTogether(0,1,"kVtxY");
