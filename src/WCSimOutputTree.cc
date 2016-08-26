@@ -560,6 +560,7 @@ void WCSimOutputTree::Fill(
 	}
     fFailed = failed;
 	fEvent = iEvent;
+    fRecoType = recoType;
     BuildUID();
     delete fRecoSummary;
     fRecoSummary = new WCSimRecoSummary(summ);
