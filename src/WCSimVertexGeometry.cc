@@ -43,7 +43,8 @@ WCSimVertexGeometry* WCSimVertexGeometry::Instance()
 WCSimVertexGeometry::WCSimVertexGeometry()
 {
   if( WCSimGeometry::TouchGeometry() ){
-    fPMTs = WCSimGeometry::Instance()->GetNumPMTs();
+//    fPMTs = WCSimGeometry::Instance()->GetNumPMTs();
+    fPMTs = WCSimGeometry::Instance()->GetNumInnerPMTs();
   }
   else{
     fPMTs = 100000; // maximum number of digits

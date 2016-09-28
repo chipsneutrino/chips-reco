@@ -12,6 +12,7 @@
 #include "WCSimFitterPlots.hh"
 #include "WCSimFitterTree.hh"
 #include "WCSimPiZeroFitter.hh"
+#include "WCSimCosmicFitter.hh"
 #include <TString.h>
 #include <TSystem.h>
 #include <TTimeStamp.h>
@@ -20,7 +21,7 @@
 ClassImp(WCSimFitterInterface)
 
 WCSimFitterInterface::WCSimFitterInterface() :
-		fFitterConfig(NULL), fFileName(""), fNumTracks(0), fFitter(0x0), fPiZeroFitter(0x0),
+		fFitterConfig(NULL), fFileName(""), fNumTracks(0), fFitter(0x0), fPiZeroFitter(0x0), fCosmicFitter(0x0),
 		fFitterPlots(0x0), fFitterTree(0x0), fMakeFits(true), fMakeSurfaces(true){
 	TTimeStamp ts;
 	unsigned int year, month, day, hour, minute, second;
@@ -37,6 +38,8 @@ WCSimFitterInterface::WCSimFitterInterface() :
 WCSimFitterInterface::~WCSimFitterInterface() {
 	// TODO Auto-generated destructor stub
   if( fFitter != NULL) { delete fFitter; }
+  if( fPiZeroFitter != NULL) { delete fPiZeroFitter; }
+  if( fCosmicFitter != NULL) { delete fCosmicFitter; }
   if( fFitterPlots != NULL) { delete fFitterPlots; }
   if( fFitterTree != NULL ) { delete fFitterTree; }
   if( fFitterConfig != NULL) { delete fFitterConfig; }
@@ -44,16 +47,29 @@ WCSimFitterInterface::~WCSimFitterInterface() {
 
 void WCSimFitterInterface::InitFitter()
 {
-  if( fFitter == 0x0 && !GetIsPiZeroFit()) { 
-    fFitter = new WCSimLikelihoodFitter(fFitterConfig) ; 
-    fFitter->SetFitterPlots(fFitterPlots);
-    fFitter->SetFitterTree(fFitterTree);
+
+  if(GetIsCosmicFit() ){
+    if(fCosmicFitter == 0x0){  
+      fCosmicFitter = new WCSimCosmicFitter(fFitterConfig) ; 
+      fCosmicFitter->SetFitterPlots(fFitterPlots);
+      fCosmicFitter->SetFitterTree(fFitterTree); 
+    }
   }
-  else if( fPiZeroFitter == 0x0 && GetIsPiZeroFit() ) { 
-    fPiZeroFitter = new WCSimPiZeroFitter(fFitterConfig) ; 
-    fPiZeroFitter->SetFitterPlots(fFitterPlots);
-    fPiZeroFitter->SetFitterTree(fFitterTree);
+  else if(GetIsPiZeroFit() ){
+    if(fPiZeroFitter == 0x0){  
+      fPiZeroFitter = new WCSimPiZeroFitter(fFitterConfig) ; 
+      fPiZeroFitter->SetFitterPlots(fFitterPlots);
+      fPiZeroFitter->SetFitterTree(fFitterTree); 
+    }
   }
+  else{
+    if(fFitter == 0x0){  
+      fFitter = new WCSimLikelihoodFitter(fFitterConfig) ; 
+      fFitter->SetFitterPlots(fFitterPlots);
+      fFitter->SetFitterTree(fFitterTree); 
+    }
+  }
+
 }
 
 void WCSimFitterInterface::FixParameter(unsigned int numTrack, const char* name, bool doIt) { 
@@ -278,6 +294,11 @@ void WCSimFitterInterface::Run() {
       std::cout << "Pi zero" << std::endl;
       fPiZeroFitter->RunFits();
     }
+    else if(fFitterConfig->GetIsCosmicFit())
+    {
+      std::cout << "Cosmic" << std::endl;
+      fCosmicFitter->RunFits();
+    }
     else
     {
       fFitter->RunFits(); 
@@ -312,6 +333,16 @@ void WCSimFitterInterface::SetForcePiZeroMass(const bool& doIt)
 bool WCSimFitterInterface::GetForcePiZeroMass() const
 {
 	return fFitterConfig->GetForcePiZeroMass();
+}
+
+void WCSimFitterInterface::SetIsCosmicFit(const bool &val)
+{
+  fFitterConfig->SetIsCosmicFit(val);
+}
+
+bool WCSimFitterInterface::GetIsCosmicFit() const
+{
+  return fFitterConfig->GetIsCosmicFit();
 }
 
 void WCSimFitterInterface::InitOutputFiles()

@@ -15,6 +15,7 @@ class WCSimFitterConfig;
 class WCSimFitterPlots;
 class WCSimFitterTree;
 class WCSimPiZeroFitter;
+class WCSimCosmicFitter;
 
 
 class WCSimFitterInterface {
@@ -83,6 +84,9 @@ public:
 	void SetForcePiZeroMass(const bool &doIt = true);
 	bool GetForcePiZeroMass() const;
 
+  void SetIsCosmicFit(const bool &val);
+  bool GetIsCosmicFit() const;
+
 	void PrintFitConfiguration();
 	void PrintPlotsConfiguration();
 	void PrintSurfaceConfiguration();
@@ -101,6 +105,7 @@ private:
 	unsigned int fNumTracks;
 	WCSimLikelihoodFitter * fFitter;
 	WCSimPiZeroFitter * fPiZeroFitter;
+	WCSimCosmicFitter * fCosmicFitter;
 	WCSimFitterPlots * fFitterPlots;
 	WCSimFitterTree * fFitterTree;
 

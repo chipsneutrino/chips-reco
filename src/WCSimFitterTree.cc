@@ -162,7 +162,7 @@ void WCSimFitterTree::MakeTree() {
   fHitComparisonTree->Branch("correctTime2LnL",&(fHitComparison->correctTime2LnL));
 
   fRecoFailureTree->Branch("failedEvent",&fFailedEvent);
-  fEvent = 0;
+//  fEvent = 0;
 
 }
 
@@ -195,14 +195,15 @@ void WCSimFitterTree::Fill(Int_t iEvent,
                            Double_t time2LnL,
                            Bool_t failed) {
 
-	fEvent = iEvent;
-    fFailed = failed;
 
 	// Fill the truth and fit tree entries
 	if( fTrueTree == 0x0 && fFitTree == 0x0 && fGeoTree == 0x0)
 	{
 		MakeTree();
 	}
+
+	fEvent = iEvent;
+  fFailed = failed;
 
 	// Now fill the truth and best-fit trees themselves
 	std::vector<WCSimLikelihoodTrackBase*>::iterator bfIter;
@@ -224,6 +225,7 @@ void WCSimFitterTree::Fill(Int_t iEvent,
 		WCSimLikelihoodTrackBase* track = (*truIter);
 		FillTrueTrack(track, escapes);
 	}
+	fEvent = iEvent; // FillTrueTrack can reset this...
 
 	// Fill the geometry tree
 	if(fGeoTree->GetEntries() == 0)
@@ -233,6 +235,7 @@ void WCSimFitterTree::Fill(Int_t iEvent,
       
 	  fGeoTree->Fill();
 	}
+
 
 	// Make the reco summary object for the event display, and fill its tree
 	if(fRecoSummaryTree != 0x0)
@@ -313,7 +316,6 @@ void WCSimFitterTree::SaveTree() {
 	return;
 }
 
-
 void WCSimFitterTree::FillTrueTrack(WCSimLikelihoodTrackBase * track, Bool_t escapes) {
 	std::cout << "Filling true tree" << std::endl;
 	track->Print();
@@ -333,8 +335,8 @@ void WCSimFitterTree::FillTrueTrack(WCSimLikelihoodTrackBase * track, Bool_t esc
 		MakeTree();
 	}
 	fTrueTree->Fill();
-	std::cout << "Showing fTrueTree(0) " << std::endl;
-	fTrueTree->Show(0);
+	std::cout << "Showing latest entry " << std::endl;
+	fTrueTree->Show(fTrueTree->GetEntries()-1);
 }
 
 void WCSimFitterTree::SetSaveFileName(TString saveName) {
@@ -352,7 +354,7 @@ void WCSimFitterTree::MakeRecoSummary(
         double time2LnL) {
 	fRecoSummary->ResetValues();
     fRecoSummary->SetEventNumber(fEvent);
-
+    std::cout << "RECO SUMMARY FOR EVENT " << fEvent << " (" << fRecoSummary->GetEventNumber() << ")" <<std::endl; // LEIGH
     std::cout << "Making the recoSummary.  There are " << bestFitTracks.size() << " best-fit tracks" << std::endl;
 	std::sort(bestFitTracks.begin(), bestFitTracks.end(), WCSimLikelihoodTrackBase::EnergyGreaterThanOrEqualPtrs);
 	for(unsigned int iTrack = 0; iTrack < bestFitTracks.size() ; ++iTrack )

@@ -30,13 +30,22 @@ WCSimParameters* WCSimParameters::Instance()
 WCSimParameters::WCSimParameters()
 {
   fUseSimpleTimeResolution = 0;
-  fUseSimpleTimeSlew = 1;
-  fUseSimpleRefractiveIndex = 1;
+  fUseSimpleTimeSlew = 0;
+  fUseSimpleRefractiveIndex = 0;
 
   // Leigh: Slicer parameters
-  fSlicerClusterDistance = 250; 
-  fSlicerMinSize = 10; 
-  fSlicerChargeCut = 0.0;
+  fSlicerClusterDistance = 250.; 
+  fSlicerMinSize = 25; 
+  fSlicerChargeCut = 2.0;
+  fSlicerTimeCut = 30.;
+  fIterateSlicing = false;
+
+  // Leigh: Veto slicing parameters
+  fVetoClusterDistance = 500.;
+  fVetoMinSize = 5;
+  fVetoMinChargeCut = 2.0;
+  fVetoMaxChargeCut = 20.0;
+  fVetoTimeCut = 100.0;
 }
 
 WCSimParameters::~WCSimParameters()

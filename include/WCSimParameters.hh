@@ -53,6 +53,28 @@ class WCSimParameters : public TObject {
   void SetSlicerChargeCut(Double_t val) {fSlicerChargeCut = val;};
   Double_t GetSlicerChargeCut() {return fSlicerChargeCut;};
 
+  void SetSlicerTimeCut(Double_t val) {fSlicerTimeCut = val;};
+  Double_t GetSlicerTimeCut() {return fSlicerTimeCut;};
+
+  void SetIterateSlicing(Bool_t val) {fIterateSlicing = val;};
+  Bool_t GetIterateSlicing() {return fIterateSlicing;};
+
+  // Veto slicing parameters
+  void SetVetoClusterDistance(Double_t val) {fVetoClusterDistance = val;};
+  Double_t GetVetoClusterDistance() {return fVetoClusterDistance;};
+
+  void SetVetoMinSize(UInt_t val) {fVetoMinSize = val;};
+  UInt_t GetVetoMinSize() {return fVetoMinSize;};
+
+  void SetVetoMinChargeCut(Double_t val) {fVetoMinChargeCut = val;};
+  Double_t GetVetoMinChargeCut() {return fVetoMinChargeCut;};
+
+  void SetVetoMaxChargeCut(Double_t val) {fVetoMaxChargeCut = val;};
+  Double_t GetVetoMaxChargeCut() {return fVetoMaxChargeCut;};
+
+  void SetVetoTimeCut(Double_t val) {fVetoTimeCut = val;};
+  Double_t GetVetoTimeCut() {return fVetoTimeCut;};
+
  private:
   WCSimParameters();
   ~WCSimParameters();
@@ -65,6 +87,17 @@ class WCSimParameters : public TObject {
   Double_t fSlicerClusterDistance; // Max distance in cm between hits in the slices
   UInt_t fSlicerMinSize; // Minimum number of hits for a slice to be formed
   Double_t fSlicerChargeCut; // Only consider digits above the charge threshold
+  Double_t fSlicerTimeCut; // Maximum gap allowed between hits when ordered by time in order
+                           // to be associated with the previous hit.
+  Double_t fIterateSlicing; // Iterate the charge cut to make as many slices as we have tracks
+
+  // Veto slicing parameters
+  Double_t fVetoClusterDistance; // Max distance in cm between hits in the slices
+  UInt_t fVetoMinSize; // Minimum number of hits for a slice to be formed
+  Double_t fVetoMinChargeCut; // Only consider digits above the charge threshold, set initially
+  Double_t fVetoMaxChargeCut; // at the min value, and iterates up to the max value.
+  Double_t fVetoTimeCut; // Maximum gap allowed between hits when ordered by time in order
+                           // to be associated with the previous hit.
 
   ClassDef(WCSimParameters,0)
 
