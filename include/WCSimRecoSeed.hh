@@ -9,6 +9,7 @@
 class WCSimRecoDigit;
 class WCSimRecoVertex;
 class WCSimRecoRing;
+class WCSimCosmicSeed;
 
 class WCSimRecoSeed : public WCSimReco {
 
@@ -30,9 +31,18 @@ class WCSimRecoSeed : public WCSimReco {
   unsigned int GetNumberOfTracks(){return fNTracks;};
   TVector3 GetDirBeforeRings() const{ return fDirBeforeRings; }
 
+  void SetCosmicFit(bool val){fCosmicFit = val;};
+  bool GetCosmicFit(){return fCosmicFit;};
+
+  WCSimCosmicSeed* GetCosmicSeed() {return fCosmicSeed;};
+
  private:
   TVector3 fDirBeforeRings;
   unsigned int fNTracks;
+
+  WCSimCosmicSeed* fCosmicSeed;
+
+  bool fCosmicFit;
 
   ClassDef(WCSimRecoSeed,0)
 };

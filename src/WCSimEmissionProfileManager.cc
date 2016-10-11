@@ -261,7 +261,7 @@ std::vector<double> WCSimEmissionProfileManager::GetFourNearestEnergies(
             fEnergies.at(3) = lowVal + 3*width;
 
         }
-		else if(bin == energyAxis->GetNbins())
+		else if(bin >= energyAxis->GetNbins())
 		{
             // We're in the final energy bin, which goes from our highest simulated energy to 30GeV
             // Just want to return four equally-spaced energies inside this bin such that the 

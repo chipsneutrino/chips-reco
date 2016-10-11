@@ -3,25 +3,36 @@
 #include <algorithm> 
 #include <cassert>
 #include <cmath>
+#include <sstream>
 
 #include "WCSimRecoSlicer.hh"
 #include "WCSimRecoEvent.hh"
 #include "WCSimRecoDigit.hh"
 #include "WCSimParameters.hh"
+#include "WCSimCosmicSeed.hh"
+#include "WCSimRecoClusteringUtil.hh"
+
+#include <TFile.h>
+#include <TDirectory.h>
+#include <TH3D.h>
 
 // A little sort function for events
 bool SortTheSlices(WCSimRecoEvent* a, WCSimRecoEvent *b);
 
-// A little sort function for digits
-bool SortDigitsByCharge(WCSimRecoDigit* a, WCSimRecoDigit *b);
-
 WCSimRecoSlicer::WCSimRecoSlicer(){
   fInputEvent = 0x0;
+  fCosmicSeed = 0x0;
   this->UpdateParameters();
+  fClusteringUtil = 0x0;
 }
 
 WCSimRecoSlicer::~WCSimRecoSlicer(){
   // Created events must be deleted by the user at a later point
+
+  if(fClusteringUtil != 0x0){
+    delete fClusteringUtil;
+  }
+
 }
 
 void WCSimRecoSlicer::UpdateParameters(){
@@ -29,6 +40,16 @@ void WCSimRecoSlicer::UpdateParameters(){
   fDistanceCut = pars->GetSlicerClusterDistance();
   fMinSliceSize = pars->GetSlicerMinSize();
   fChargeCut = pars->GetSlicerChargeCut();
+  fTimeCut = pars->GetSlicerTimeCut();
+  fIterateSlicing = pars->GetIterateSlicing();
+}
+
+void WCSimRecoSlicer::ResetSlices(){
+  // Only want to reset the slice vectors.
+  for(unsigned int i = 0; i < fSlicedDigits.size(); ++i){
+    fSlicedDigits[i].clear();
+  }
+  fSlicedDigits.clear();
 }
 
 void WCSimRecoSlicer::SetInputEvent(WCSimRecoEvent* evt){
@@ -36,7 +57,7 @@ void WCSimRecoSlicer::SetInputEvent(WCSimRecoEvent* evt){
 
 }
 
-void WCSimRecoSlicer::SliceTheEvent(){
+void WCSimRecoSlicer::Run(){
 
   if(fInputEvent == 0x0){
     std::cerr << "WCSimRecoSlicer: Can't slice an empty event!" << std::endl;
@@ -48,109 +69,82 @@ void WCSimRecoSlicer::SliceTheEvent(){
     assert(0);
   }
 
-  std::vector<WCSimRecoDigit*> digitVector;
-  // Make a charge sorted vector of those digits above the charge threshold
-  for(unsigned int v = 0; v < fInputEvent->GetFilterDigitList()->size(); ++v){
-    if((*(fInputEvent->GetFilterDigitList()))[v]->GetRawQPEs() >= fChargeCut){
-      digitVector.push_back((*(fInputEvent->GetFilterDigitList()))[v]);
+  // Make the slices
+  this->SliceTheEvent();   
+
+  // Do we need to increase the charge cut and try again?
+  if(fIterateSlicing && (fSlicedDigits.size() < fNTracks)){
+    std::cout << "Now iterating the slicing" << std::endl;
+    while((fSlicedDigits.size() < fNTracks) && (fChargeCut < 9.01)){
+      ++fChargeCut;
+      std::cout << " - Charge cut updated to " << fChargeCut << " pe." << std::endl;
+      this->ResetSlices();
+      this->SliceTheEvent();
     }
-  }
-  std::sort(digitVector.begin(),digitVector.end(),SortDigitsByCharge);
-//  std::cout << " Slicing " << digitVector.size() << " digits from " << digitVector[0]->GetRawQPEs() 
-//            << " to " << digitVector[digitVector.size()-1]->GetRawQPEs() << " PE." << std::endl;
-
-  fIsDigitClustered.clear();
-  for(unsigned int d = 0; d < digitVector.size(); ++d){
-    fIsDigitClustered.push_back(0);
-  }
-
-  std::vector<std::vector<WCSimRecoDigit*> > slicedDigits;
-  // Don't do any slicing if we don't have enough digits
-  if(digitVector.size() < 3){
-    std::cerr << "Not performing slicing, too few digits" << std::endl;
-  }
-  else{
-    unsigned int clusterNum = 0;
-    std::vector<WCSimRecoDigit*> tempVec;
-
-    while(!AreAllDigitsClustered()){
-      slicedDigits.push_back(tempVec);
-      unsigned int nextDigitSeed = GetFirstUnclusteredDigit();
-      // Seed the cluster with the next unclustered digit.
-      slicedDigits[clusterNum].push_back(digitVector[nextDigitSeed]);
-      fIsDigitClustered[nextDigitSeed] = true;
-  
-      // Loop over the filtered digits in the event
-      bool addedHit = true;
-      while(addedHit){
-        int nAdded = 0;
-        for(unsigned int d = 0; d < digitVector.size(); ++d){
-          if(fIsDigitClustered[d]) continue;
-
-          // Check if we should add the hit.
-          fIsDigitClustered[d] = AddDigitIfClose(digitVector[d],slicedDigits[clusterNum]);  
-          if(fIsDigitClustered[d]) ++nAdded;
-        } // End the for loop.
-
-        // If we added any hits then we should iterate over the list again.
-        if(nAdded > 0){
-          addedHit = true;
-        }
-        else{
-          addedHit = false;
-        }
-      } // End clustering while loop
-
-      ++clusterNum;
-    } // End the while loop
-  }
-
-  // Now we should have all of our clusters.
-  // Want to copy those that are big enough into the main slice vector.
-  for(unsigned int v = 0; v < slicedDigits.size(); ++v){
-    if(slicedDigits[v].size() >= fMinSliceSize){
-      fSlicedDigits.push_back(slicedDigits[v]);
+    // Do we have the right number of slices?
+    if(fSlicedDigits.size() < fNTracks){
+      // It wasn't possible. Go back to default values.
+      std::cout << "No addition slicing possible using iteration. Returing to default." << std::endl;
+      this->UpdateParameters();
+      this->ResetSlices();
+      this->SliceTheEvent();
     }
   }
 
   // Now we need to turn our slices back into WCSimRecoEvents
-  BuildEvents();
+  this->BuildEvents();
 
 }
 
-bool WCSimRecoSlicer::AddDigitIfClose(WCSimRecoDigit* digit, std::vector<WCSimRecoDigit*>& cluster){
+void WCSimRecoSlicer::SliceTheEvent(){
 
-  for(unsigned int d = 0; d < cluster.size(); ++d){
-    if(GetDistanceBetweenDigits(digit,cluster[d]) < fDistanceCut){
-      cluster.push_back(digit);
-      return true;
+  std::vector<WCSimRecoDigit*> digitVector;
+  // Make a charge sorted vector of those digits above the charge threshold
+  int shadowHits = 0;
+/*
+  TDirectory* tmpd = gDirectory;
+  TFile *shadowFile = new TFile("shadowFile.root","recreate");
+  shadowFile->cd();
+  TH3F* hShadowHits = new TH3F("hShadow",";x;y;z",100,-13000,13000,100,-13000,13000,100,-11000,11000);
+  TH3F* hNormalHits = new TH3F("hNormal",";x;y;z",100,-13000,13000,100,-13000,13000,100,-11000,11000);
+*/
+  for(unsigned int v = 0; v < fInputEvent->GetFilterDigitList()->size(); ++v){
+    WCSimRecoDigit *dig = (*(fInputEvent->GetFilterDigitList()))[v];
+    // If we are using the cosmic seed, make sure we haven't shadowed this hit
+    if(fCosmicSeed != 0x0){
+      if(fCosmicSeed->IsHitShadowed(dig->GetX(),dig->GetY(),dig->GetZ())){
+//        hShadowHits->Fill(dig->GetX(),dig->GetY(),dig->GetZ());
+        ++shadowHits;
+        continue;
+      }
+//      hNormalHits->Fill(dig->GetX(),dig->GetY(),dig->GetZ());
     }
+    digitVector.push_back(dig);
   }
-  return false;
-}
 
-double WCSimRecoSlicer::GetDistanceBetweenDigits(WCSimRecoDigit* digit1, WCSimRecoDigit* digit2){
-  double dist = (digit1->GetX()-digit2->GetX())*(digit1->GetX()-digit2->GetX());
-  dist += (digit1->GetY()-digit2->GetY())*(digit1->GetY()-digit2->GetY());
-  dist += (digit1->GetZ()-digit2->GetZ())*(digit1->GetZ()-digit2->GetZ());
-  return sqrt(dist);
-}
-
-unsigned int WCSimRecoSlicer::GetFirstUnclusteredDigit(){
-  for(unsigned int i = 0; i < fIsDigitClustered.size(); ++i){
-    if(fIsDigitClustered[i] == false){
-      return i;
-    }
+  if(fCosmicSeed != 0x0){
+    std::cout << "Shadowed hits above threshold = " << shadowHits << std::endl;
   }
-  return 999999;
+
+  if(fClusteringUtil != 0x0){
+    delete fClusteringUtil;
+  }
+  fClusteringUtil = new WCSimRecoClusteringUtil(digitVector,fChargeCut,fTimeCut,fDistanceCut,fMinSliceSize);
+
+  fClusteringUtil->PerformClustering();
+  fSlicedDigits = fClusteringUtil->GetFullSlicedDigits();
+/*
+  // Tidy up the files
+  hShadowHits->Write();
+  hNormalHits->Write();
+  shadowFile->Close();
+  delete hShadowHits;
+  delete hNormalHits;
+  delete shadowFile;
+  gDirectory = tmpd;
+*/
 }
 
-bool WCSimRecoSlicer::AreAllDigitsClustered(){
-
-  if(GetFirstUnclusteredDigit() == 999999) return true;
-  else return false;
-
-}
 
 void WCSimRecoSlicer::BuildEvents(){
 
@@ -176,7 +170,7 @@ void WCSimRecoSlicer::BuildEvents(){
       newEvt->AddFilterDigit(fSlicedDigits[v][d]);
     }
     fSlicedEvents.push_back(newEvt);
-//    sortVec.push_back(std::make_pair<unsigned int, WCSimRecoEvent*>(fSlicedDigits[v].size(),newEvt));
+    std::cout << "Created event with " << newEvt->GetNFilterDigits() << " hits." << std::endl;
   }
 
   if(fSlicedEvents.size() == 0)
@@ -216,10 +210,5 @@ bool SortTheSlices(WCSimRecoEvent* a, WCSimRecoEvent *b){
   unsigned int aSize = a->GetFilterDigitList()->size();
   unsigned int bSize = b->GetFilterDigitList()->size();
   return aSize > bSize;
-}
-
-// Sort the digits time
-bool SortDigitsByCharge(WCSimRecoDigit *a, WCSimRecoDigit *b){
-  return a->GetRawQPEs() > b->GetRawQPEs();
 }
 

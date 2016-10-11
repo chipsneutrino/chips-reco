@@ -31,8 +31,12 @@
 #pragma link C++ class WCSimRecoDigit+;
 #pragma link C++ class WCSimRecoCluster+;
 #pragma link C++ class WCSimRecoClusterDigit+;
+#pragma link C++ class WCSimRecoClusteringUtil+;
 #pragma link C++ class WCSimRecoRing+;
 #pragma link C++ class WCSimRecoVertex+;
+
+#pragma link C++ class WCSimCosmicSeed+;
+#pragma link C++ class WCSimCosmicFitter+;
 
 #pragma link C++ class WCSimVertexFinder+;
 #pragma link C++ class WCSimRingFinder+;

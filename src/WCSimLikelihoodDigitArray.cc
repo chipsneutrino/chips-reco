@@ -24,8 +24,9 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( )
 WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myEvent )
 {
   fNumHitPMTs = 0;
-  // Check the number of PMTs and create a TClonesArray with one entry per PMT
-  Int_t numPMT = ((WCSimGeometry::Instance())->GetNumPMTs());	 
+  // Check the number of inner detector PMTs and create a TClonesArray with one entry per PMT
+//  Int_t numPMT = ((WCSimGeometry::Instance())->GetNumPMTs());	 
+  Int_t numPMT = ((WCSimGeometry::Instance())->GetNumInnerPMTs());	 
   WCSimGeometry::PrintGeometry();
 	fLikelihoodDigitArray = new TClonesArray("WCSimLikelihoodDigit",numPMT);
   TClonesArray &digitArray = *fLikelihoodDigitArray;
@@ -80,6 +81,7 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myEvent )
   {	
 	  Int_t tubeID = (*filterIter)->GetTubeID();
     Int_t arrayIndex = tubeID - 1;
+
 	  hitPMT[arrayIndex] = kTRUE; 
 
     // Things for likelihood digit constructor
@@ -136,7 +138,7 @@ WCSimLikelihoodDigitArray::WCSimLikelihoodDigitArray( WCSimRootEvent * myRootEve
     }
     fNumHitPMTs = 0;
 	// Check the number of PMTs and create a TClonesArray with one entry per PMT
-    Int_t numPMT = ((WCSimGeometry::Instance())->GetNumPMTs());  // WCSimGeometry adds 1 to the true number to prevent overflow errors
+    Int_t numPMT = ((WCSimGeometry::Instance())->GetNumInnerPMTs());  // WCSimGeometry adds 1 to the true number to prevent overflow errors
   	WCSimGeometry::PrintGeometry();
   	std::cout << "There are " << numPMT << " PMTs" << std::endl;
 	fLikelihoodDigitArray = new TClonesArray("WCSimLikelihoodDigit",numPMT);

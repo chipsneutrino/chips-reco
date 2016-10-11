@@ -1,4 +1,5 @@
 #include "WCSimRecoSeed.hh"
+#include "WCSimCosmicSeed.hh"
 
 #include "WCSimInterface.hh"
 
@@ -26,11 +27,15 @@ ClassImp(WCSimRecoSeed)
 WCSimRecoSeed::WCSimRecoSeed() : fDirBeforeRings(0,0,0)
 {
   fNTracks = 9999;
+  fCosmicSeed = 0x0;
+  fCosmicFit = false;
 }
 
 WCSimRecoSeed::~WCSimRecoSeed()
 {
-
+  if(fCosmicSeed != 0x0){
+    delete fCosmicSeed;
+  }
 }
 
 void WCSimRecoSeed::Run()
@@ -66,6 +71,16 @@ std::vector<WCSimRecoEvent*> WCSimRecoSeed::RunSeed(WCSimRecoEvent* myEvent)
   // =============
   this->RunFilter(myEvent);
 
+  // Run the cosmic seed if required
+  if(fCosmicFit){
+    if(fCosmicSeed!=0x0){
+      delete fCosmicSeed;
+    }
+    fCosmicSeed = new WCSimCosmicSeed(myEvent->GetVetoDigitList());
+    fCosmicSeed->SetInnerDigits(myEvent->GetFilterDigitList());
+    fCosmicSeed->CalcSeedVtxAndDir();
+  }
+
   // Now run the slicer
   std::vector<WCSimRecoEvent*> slicedEvents = this->RunSlicer(myEvent);
 
@@ -73,10 +88,6 @@ std::vector<WCSimRecoEvent*> WCSimRecoSeed::RunSeed(WCSimRecoEvent* myEvent)
   if(slicedEvents.size() > 0){
 
     unsigned int nSlices = slicedEvents.size();
-    // Only consider the number of slices that we need
-//    if(fNTracks < nSlices){
-//      nSlices = fNTracks;
-//    }
 
     for(unsigned int i = 0; i < nSlices; ++i){
       std::cout << "Processing slice " << i << " of " << nSlices << std::endl;
@@ -129,8 +140,20 @@ std::vector<WCSimRecoEvent*> WCSimRecoSeed::RunSlicer(WCSimRecoEvent* myEvent){
 
   WCSimRecoSlicer recoSlicer;
   recoSlicer.SetInputEvent(myEvent);
-  recoSlicer.SliceTheEvent();
+  recoSlicer.SetNumberOfTracks(fNTracks);
+  if(fCosmicFit){
+    if(fCosmicSeed != 0x0){
+      if(fCosmicSeed->GetSuccess()){
+        recoSlicer.SetCosmicSeed(fCosmicSeed);
+      }
+    }
+  }
+  recoSlicer.Run();
   return recoSlicer.GetSlicedEvents();
+//  WCSimRecoSlicer recoSlicer;
+//  recoSlicer.SetInputEvent(myEvent);
+//  recoSlicer.SliceTheEvent();
+//  return recoSlicer.GetSlicedEvents();
 }
 
 void WCSimRecoSeed::RunRecoVertex(WCSimRecoEvent* myEvent)

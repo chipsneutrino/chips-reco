@@ -30,7 +30,7 @@ public:
 	void FreeTrackParameter(int numTrack, const char * name, bool doIt = true);
 	bool GetIsFixedParameter(int numTrack, const char * name);
 
-    void SetParameter(unsigned int numTrack, const char * name, double min, double max, double start, double step, bool fixIt);
+  void SetParameter(unsigned int numTrack, const char * name, double min, double max, double start, double step, bool fixIt);
 
 	void SetParMin( int numTrack, const char * name, double min);
 	double GetParMin( unsigned int numTrack, const char * name );
@@ -68,6 +68,10 @@ public:
 
 	bool GetIsPiZeroFit() const;
 	void SetIsPiZeroFit(bool isPiZero);
+
+  bool GetIsCosmicFit() const;
+  void SetIsCosmicFit(bool val);
+
 private:
 
 
@@ -80,6 +84,8 @@ private:
 	int fFirstEventToFit;
 	bool fIsPiZeroFit;
 	bool fForcePiZeroMass;
+  bool fIsCosmicFit;
+
 };
 
 #endif /* WCSIMFITTERCONFIG_HH_ */

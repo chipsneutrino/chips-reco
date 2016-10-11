@@ -314,6 +314,7 @@ void WCSimGeometry::SetGeometry(WCSimRootGeom* myGeometry)
   // ===============================================
   std::cout << "   reading PMTs: " << myGeometry->GetWCNumPMT() << std::endl;
   fPMTs = myGeometry->GetWCNumPMT();
+  fVetoPMTs = myGeometry->GetWCNumVetoPMT();
 
   fPmtX = new Double_t[fPMTs];
   fPmtY = new Double_t[fPMTs];

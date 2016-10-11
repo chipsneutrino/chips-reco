@@ -11,6 +11,7 @@
 
 WCSimFitterConfig::WCSimFitterConfig() : fNumTracks(1), fNumEventsToFit(0), fFirstEventToFit(0){
   fIsPiZeroFit = 0;
+  fIsCosmicFit = 0;
   fNumParameters = 0;
   fForcePiZeroMass = 0;
   fMakeFits = 1;
@@ -270,6 +271,11 @@ bool WCSimFitterConfig::GetIsPiZeroFit() const
   return fIsPiZeroFit;
 }
 
+bool WCSimFitterConfig::GetIsCosmicFit() const
+{
+  return fIsCosmicFit;
+}
+
 bool WCSimFitterConfig::GetMakeFits() const
 {
 	return fMakeFits;
@@ -283,6 +289,11 @@ void WCSimFitterConfig::SetMakeFits(const bool& makeFits)
 void WCSimFitterConfig::SetIsPiZeroFit(bool isPiZero)
 {
   fIsPiZeroFit = isPiZero;
+}
+
+void WCSimFitterConfig::SetIsCosmicFit(bool val)
+{
+  fIsCosmicFit = val;
 }
 
 void WCSimFitterConfig::SetForcePiZeroMass(const bool& doIt)
