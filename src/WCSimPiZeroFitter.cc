@@ -400,8 +400,3 @@ void WCSimPiZeroFitter::SeedEvent()
 	}
 	return;
 }
-
-std::string WCSimPiZeroFitter::GetRecoType()
-{
-    return "piZero";
-}
