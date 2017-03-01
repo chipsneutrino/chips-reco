@@ -123,7 +123,7 @@ TruthInfo::TruthInfo()
     fBeamPDG = -999;
     fBeamEnergy = 0.0;
     fLeadPDG = -999;
-    fLeadEnergy = 0;
+    fLeadEnergy = 0.0;
     fIsCC = false;
     fIsNC = false;
     fIsQE = false;
@@ -133,6 +133,18 @@ TruthInfo::TruthInfo()
     fIsNueElectronElastic = false;
     fIsInverseMuonDecay = false;
     fIsOther = false;
+    
+    fVtxTime = 0.0;
+    fVtxX = 0.0; 
+    fVtxY = 0.0; 
+    fVtxZ = 0.0;
+    fBeamDirX = 0.0; 
+    fBeamDirY = 0.0; 
+    fBeamDirZ = 0.0;
+    fLeadDirX = 0.0; 
+    fLeadDirY = 0.0; 
+    fLeadDirZ = 0.0;
+
 }
 
 TruthInfo::TruthInfo(int type, int beamPDG, float beamE, float leadPDG, float leadEnergy) : 
@@ -149,6 +161,19 @@ TruthInfo::TruthInfo(int type, int beamPDG, float beamE, float leadPDG, float le
     fIsInverseMuonDecay = WCSimTruthSummary::TypeIsInverseMuonDecayEvent(type);
     fIsOther = fIsCC && !(fIsQE || fIsRes || fIsDIS || fIsCoherent 
                           || fIsNueElectronElastic || fIsInverseMuonDecay);
+
+
+
+    fVtxTime = 0.0;
+    fVtxX = 0.0; 
+    fVtxY = 0.0; 
+    fVtxZ = 0.0;
+    fBeamDirX = 0.0; 
+    fBeamDirY = 0.0; 
+    fBeamDirZ = 0.0;
+    fLeadDirX = 0.0; 
+    fLeadDirY = 0.0; 
+    fLeadDirZ = 0.0;
     
 }
 
@@ -167,7 +192,18 @@ TruthInfo::TruthInfo(const TruthInfo& other):
     fIsCoherent(other.fIsCoherent),
     fIsNueElectronElastic(other.fIsNueElectronElastic),
     fIsInverseMuonDecay(other.fIsInverseMuonDecay),
-    fIsOther(other.fIsOther)
+    fIsOther(other.fIsOther),
+    fVtxTime(other.fVtxTime),
+    fVtxX(other.fVtxX),
+    fVtxY(other.fVtxY),
+    fVtxZ(other.fVtxZ),
+    fBeamDirX(other.fBeamDirX),
+    fBeamDirY(other.fBeamDirY),
+    fBeamDirZ(other.fBeamDirZ),
+    fLeadDirX(other.fLeadDirX),
+    fLeadDirY(other.fLeadDirY),
+    fLeadDirZ(other.fLeadDirZ)
+
 {
     // Empty
 }
@@ -190,6 +226,19 @@ TruthInfo& TruthInfo::operator=(const TruthInfo& rhs)
         fIsNueElectronElastic = rhs.fIsNueElectronElastic;
         fIsInverseMuonDecay = rhs.fIsInverseMuonDecay;
         fIsOther = rhs.fIsOther;
+
+        fVtxTime = rhs.fVtxTime;
+        fVtxX = rhs.fVtxX;
+        fVtxY = rhs.fVtxY;
+        fVtxZ = rhs.fVtxZ;
+
+        fBeamDirX = rhs.fBeamDirX;
+        fBeamDirY = rhs.fBeamDirY;
+        fBeamDirZ = rhs.fBeamDirZ;
+        fLeadDirX = rhs.fLeadDirX;
+        fLeadDirY = rhs.fLeadDirY;
+        fLeadDirZ = rhs.fLeadDirZ;
+
     }
     return *this;
 }
@@ -197,6 +246,33 @@ TruthInfo& TruthInfo::operator=(const TruthInfo& rhs)
 TruthInfo::~TruthInfo()
 {
     // Empty
+}
+
+
+void TruthInfo::SetVtxTime(float t)
+{
+  fVtxTime = t;
+}
+
+void TruthInfo::SetVtx(float x, float y, float z)
+{
+    fVtxX = x;
+    fVtxY = y;
+    fVtxZ = z;
+}
+
+void TruthInfo::SetBeamDir(float x, float y, float z)
+{
+    fBeamDirX = x;
+    fBeamDirY = y;
+    fBeamDirZ = z;
+}
+
+void TruthInfo::SetLeadDir(float x, float y, float z)
+{
+    fLeadDirX = x;
+    fLeadDirY = y;
+    fLeadDirZ = z;
 }
 
 
@@ -214,6 +290,7 @@ RecoInfo::RecoInfo() :
     fFracNHitsInRing(0.0), fFracNHitsOutsideRing(0.0), fFracNHitsInRingHole(0.0),
     fFracPredQInRing(0.0), fFracPredQOutsideRing(0.0), fFracPredQInRingHole(0.0),
     fPredictedOverTotalCharge(0.0),
+    fVtxTime(0.0),fEnergy(0.0),
     fVtxX(0.0), fVtxY(0.0), fVtxZ(0.0), fVtxRho(0.0),
     fEndX(0.0), fEndY(0.0), fEndZ(0.0), fEndRho(0.0),
     fDirX(0.0), fDirY(0.0), fDirZ(0.0),
@@ -247,6 +324,8 @@ RecoInfo::RecoInfo(const RecoInfo& other) :
     fFracPredQOutsideRing(other.fFracPredQOutsideRing),
     fFracPredQInRingHole(other.fFracPredQInRingHole),
     fPredictedOverTotalCharge(other.fPredictedOverTotalCharge),
+    fEnergy(other.fEnergy),
+    fVtxTime(other.fVtxTime),
     fVtxX(other.fVtxX),
     fVtxY(other.fVtxY),
     fVtxZ(other.fVtxZ),
@@ -298,7 +377,9 @@ RecoInfo& RecoInfo::operator=(const RecoInfo& other)
         fFracPredQInRingHole = other.fFracPredQInRingHole;
 
         fPredictedOverTotalCharge = other.fPredictedOverTotalCharge;
-
+	
+	fEnergy = other.fEnergy; 
+        fVtxTime = other.fVtxTime;
         fVtxX = other.fVtxX;
         fVtxY = other.fVtxY;
         fVtxZ = other.fVtxZ;
@@ -418,6 +499,17 @@ void RecoInfo::SetPredQ(float in, float out, float hole)
         fPredictedOverTotalCharge = 0.0;
     }
     return;
+}
+
+
+void RecoInfo::SetEnergy(float E)
+{
+  fEnergy = E;
+}
+
+void RecoInfo::SetVtxTime(float t)
+{
+  fVtxTime = t;
 }
 
 void RecoInfo::SetVtx(float x, float y, float z)

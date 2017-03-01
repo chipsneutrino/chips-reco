@@ -85,11 +85,16 @@ class TruthInfo : public TObject{
         TruthInfo& operator=(const TruthInfo& rhs);
         ~TruthInfo();
 
+        void SetVtxTime(float t);
+        void SetVtx(float x, float y, float z);
+        void SetBeamDir(float x, float y, float z);
+        void SetLeadDir(float x, float y, float z);
+
         int GetType(){ return fType; }
         float GetBeamE(){ return fBeamEnergy; }
-        float GetBeamPDG(){ return fBeamPDG; }
-        int GetLeadPDG(){ return fLeadPDG; }
-        int GetLeadEnergy(){ return fLeadEnergy; }
+        int GetBeamPDG(){ return fBeamPDG; }
+        float GetLeadEnergy(){ return fLeadEnergy; }
+        int GetLeadPDG(){ return fLeadPDG; }        
         bool IsCC(){ return fIsCC; }
         bool IsNC(){ return fIsNC; }
         bool IsQE(){ return fIsQE; }
@@ -100,14 +105,25 @@ class TruthInfo : public TObject{
         bool IsInverseMuonDecay(){ return fIsInverseMuonDecay; }
         bool IsOther(){ return fIsOther; }
 
+        float GetVtxTime() const{ return fVtxTime; }
+        float GetVtxX() const{ return fVtxX; }
+        float GetVtxY() const{ return fVtxY; }
+        float GetVtxZ() const{ return fVtxZ; }
+
+        float GetBeamDirX() const{ return fBeamDirX; }
+        float GetBeamDirY() const{ return fBeamDirY; }
+        float GetBeamDirZ() const{ return fBeamDirZ; }
+        float GetLeadDirX() const{ return fLeadDirX; }
+        float GetLeadDirY() const{ return fLeadDirY; }
+        float GetLeadDirZ() const{ return fLeadDirZ; }
 
     private:
 
         int fType;  // Interaction type code from WCSimTruthSummary
-        float fBeamPDG;  // PDG code of the beam particle (usually a neutrino)
+        int fBeamPDG;  // PDG code of the beam particle (usually a neutrino)
         float fBeamEnergy;  // Energy of the incident beam particle
         int fLeadPDG;   // PDG code of the highest energy final state particle
-        int fLeadEnergy; // Energy of the highest-energy final state particle
+        float fLeadEnergy; // Energy of the highest-energy final state particle
         bool fIsCC;
         bool fIsNC;
         bool fIsQE;
@@ -119,6 +135,19 @@ class TruthInfo : public TObject{
         bool fIsOther; // A CC event that doesn't fall into any of the above
                        // categories - sometimes there isn't a nuance code
                        // for the type of event Genie has made
+
+        float fVtxTime;
+        float fVtxX;
+        float fVtxY;
+        float fVtxZ;
+
+        float fBeamDirX;
+        float fBeamDirY;
+        float fBeamDirZ;
+        float fLeadDirX;
+        float fLeadDirY;
+        float fLeadDirZ;
+
         
         ClassDef(TruthInfo,1)
 };
@@ -139,6 +168,8 @@ class RecoInfo : public TObject{
         void SetNHits(int in, int out, int hole);
         void SetPredQ(float in, float out, float hole);
 
+        void SetEnergy(float E);
+        void SetVtxTime(float t);
         void SetVtx(float x, float y, float z);
         void SetEnd(float x, float y, float z);
         void SetDir(float x, float y, float z);
@@ -178,6 +209,8 @@ class RecoInfo : public TObject{
 
         float GetPredictedOverTotalCharge() const{ return fPredictedOverTotalCharge; }
 
+        float GetEnergy() const{ return fEnergy; }
+        float GetVtxTime() const{ return fVtxTime; }
         float GetVtxX() const{ return fVtxX; }
         float GetVtxY() const{ return fVtxY; }
         float GetVtxZ() const{ return fVtxZ; }
@@ -227,6 +260,8 @@ class RecoInfo : public TObject{
 
         float fPredictedOverTotalCharge;
 
+        float fEnergy;
+        float fVtxTime;
         float fVtxX;
         float fVtxY;
         float fVtxZ;

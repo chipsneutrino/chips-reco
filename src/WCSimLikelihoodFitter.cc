@@ -2715,11 +2715,12 @@ RecoInfo WCSimLikelihoodFitter::BuildRecoInfo()
 {
     RecoInfo recoInfo;
 
-    // First get the likelihood components
-    fMinimumTimeComponent = fTotalLikelihood->GetLastTime2LnL();
-    fMinimumChargeComponent = fTotalLikelihood->GetLastCharge2LnL();
-    fMinimumHitComponent = fTotalLikelihood->GetLastHit2LnL();
-    fMinimumCutoffComponent = fTotalLikelihood->GetLastCutoff2LnL();
+    // First get the likelihood components  (coomented because results depend on last call even if info has been already stored)
+    //    fMinimumTimeComponent = fTotalLikelihood->GetLastTime2LnL();
+    //    fMinimumChargeComponent = fTotalLikelihood->GetLastCharge2LnL();
+    //    fMinimumHitComponent = fTotalLikelihood->GetLastHit2LnL();
+    //    fMinimumCutoffComponent = fTotalLikelihood->GetLastCutoff2LnL();
+
     float totalLikelihood = fMinimumTimeComponent 
                             + fMinimumChargeComponent
                             + fMinimumHitComponent
@@ -2734,6 +2735,8 @@ RecoInfo WCSimLikelihoodFitter::BuildRecoInfo()
             WCSimLikelihoodTrackBase::EnergyGreaterThanOrEqualPtrs
             );
     
+    double energy = fBestFit.at(0)->GetE();
+    double time   = fBestFit.at(0)->GetT();
     TVector3 vtx = fBestFit.at(0)->GetVtx();
     TVector3 dir = fBestFit.at(0)->GetDir();
     double stoppingDistance = 
@@ -2742,6 +2745,8 @@ RecoInfo WCSimLikelihoodFitter::BuildRecoInfo()
             );
     TVector3 end = vtx + stoppingDistance * dir;
 
+    recoInfo.SetEnergy(energy);
+    recoInfo.SetVtxTime(time);
     recoInfo.SetVtx(vtx.X(), vtx.Y(), vtx.Z());
     recoInfo.SetDir(dir.X(), dir.Y(), dir.Z());
     recoInfo.SetEnd(end.X(), end.Y(), end.Z());
@@ -2839,7 +2844,26 @@ TruthInfo WCSimLikelihoodFitter::BuildTruthInfo()
     int leadPDG = ts.GetPrimaryPDG(0);
     float leadEnergy = ts.GetPrimaryEnergy(0);
 
-    return TruthInfo(type, beamPDG, beamEnergy, leadPDG, leadEnergy);
+    double t = ts.GetVertexT();
+    double x = ts.GetVertexX();
+    double y = ts.GetVertexY();
+    double z = ts.GetVertexZ();
+
+    double bdx = ts.GetBeamDir().X();
+    double bdy = ts.GetBeamDir().Y();
+    double bdz = ts.GetBeamDir().Z();
+
+    double ldx = ts.GetPrimaryDir(0).X();
+    double ldy = ts.GetPrimaryDir(0).Y();
+    double ldz = ts.GetPrimaryDir(0).Z();
+
+    TruthInfo ti(type, beamPDG, beamEnergy, leadPDG, leadEnergy);
+    ti.SetVtxTime(t);
+    ti.SetVtx(x, y, z);
+    ti.SetBeamDir(bdx, bdy, bdz);
+    ti.SetLeadDir(ldx, ldy, ldz);
+
+    return ti;
 }
 
 std::string WCSimLikelihoodFitter::GetRecoType()
