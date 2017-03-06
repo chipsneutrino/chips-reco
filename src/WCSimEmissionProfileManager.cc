@@ -253,7 +253,7 @@ std::vector<double> WCSimEmissionProfileManager::GetFourNearestEnergies(
             double width = energyAxis->GetBinLowEdge(1);
             while( lowVal >= (energy - width) )
             {
-                lowVal = energy - width;
+                lowVal = lowVal - width;
             }
             fEnergies.at(0) = lowVal;
             fEnergies.at(1) = lowVal +   width;
