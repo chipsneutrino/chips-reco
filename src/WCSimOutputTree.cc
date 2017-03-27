@@ -122,8 +122,12 @@ TruthInfo::TruthInfo()
     fType = -999;
     fBeamPDG = -999;
     fBeamEnergy = 0.0;
-    fLeadPDG = -999;
-    fLeadEnergy = 0.0;
+
+    fNPrimaries = -999;
+    fPrimaryPDGs.clear();
+    fPrimaryEnergies.clear();
+    fPrimaryDirs.clear(); 
+
     fIsCC = false;
     fIsNC = false;
     fIsQE = false;
@@ -141,15 +145,13 @@ TruthInfo::TruthInfo()
     fBeamDirX = 0.0; 
     fBeamDirY = 0.0; 
     fBeamDirZ = 0.0;
-    fLeadDirX = 0.0; 
-    fLeadDirY = 0.0; 
-    fLeadDirZ = 0.0;
 
 }
 
-TruthInfo::TruthInfo(int type, int beamPDG, float beamE, float leadPDG, float leadEnergy) : 
-    fType(type), fBeamPDG(beamPDG), fBeamEnergy(beamE), 
-    fLeadPDG(leadPDG), fLeadEnergy(leadEnergy)
+TruthInfo::TruthInfo(int type, int beamPDG, float beamEnergy, int nPrimaries, std::vector<int> primaryPDGs,
+                     std::vector<double> primaryEnergies, std::vector<TVector3> primaryDirs) : 
+    fType(type), fBeamPDG(beamPDG), fBeamEnergy(beamEnergy), fNPrimaries(nPrimaries),
+    fPrimaryPDGs(primaryPDGs), fPrimaryEnergies(primaryEnergies), fPrimaryDirs(primaryDirs)
 {
     fIsCC = WCSimTruthSummary::TypeIsCCEvent(fType);
     fIsNC = WCSimTruthSummary::TypeIsNCEvent(fType);
@@ -162,19 +164,13 @@ TruthInfo::TruthInfo(int type, int beamPDG, float beamE, float leadPDG, float le
     fIsOther = fIsCC && !(fIsQE || fIsRes || fIsDIS || fIsCoherent 
                           || fIsNueElectronElastic || fIsInverseMuonDecay);
 
-
-
     fVtxTime = 0.0;
     fVtxX = 0.0; 
     fVtxY = 0.0; 
     fVtxZ = 0.0;
     fBeamDirX = 0.0; 
     fBeamDirY = 0.0; 
-    fBeamDirZ = 0.0;
-    fLeadDirX = 0.0; 
-    fLeadDirY = 0.0; 
-    fLeadDirZ = 0.0;
-    
+    fBeamDirZ = 0.0;   
 }
 
 
@@ -182,8 +178,12 @@ TruthInfo::TruthInfo(const TruthInfo& other):
     fType(other.fType),
     fBeamPDG(other.fBeamPDG),
     fBeamEnergy(other.fBeamEnergy),
-    fLeadPDG(other.fLeadPDG),
-    fLeadEnergy(other.fLeadEnergy),
+
+    fNPrimaries(other.fNPrimaries),
+    fPrimaryPDGs(other.fPrimaryPDGs),
+    fPrimaryEnergies(other.fPrimaryEnergies),
+    fPrimaryDirs(other.fPrimaryDirs),
+
     fIsCC(other.fIsCC),
     fIsNC(other.fIsNC),
     fIsQE(other.fIsQE),
@@ -199,10 +199,7 @@ TruthInfo::TruthInfo(const TruthInfo& other):
     fVtxZ(other.fVtxZ),
     fBeamDirX(other.fBeamDirX),
     fBeamDirY(other.fBeamDirY),
-    fBeamDirZ(other.fBeamDirZ),
-    fLeadDirX(other.fLeadDirX),
-    fLeadDirY(other.fLeadDirY),
-    fLeadDirZ(other.fLeadDirZ)
+    fBeamDirZ(other.fBeamDirZ)
 
 {
     // Empty
@@ -215,8 +212,12 @@ TruthInfo& TruthInfo::operator=(const TruthInfo& rhs)
         fType = rhs.fType;
         fBeamPDG = rhs.fBeamPDG;
         fBeamEnergy = rhs.fBeamEnergy;
-        fLeadPDG = rhs.fLeadPDG;
-        fLeadEnergy = rhs.fLeadEnergy;
+
+        fNPrimaries = rhs.fNPrimaries;
+        fPrimaryPDGs = rhs.fPrimaryPDGs;
+        fPrimaryEnergies = rhs.fPrimaryEnergies;
+        fPrimaryDirs = rhs.fPrimaryDirs;
+
         fIsCC = rhs.fIsCC;
         fIsNC = rhs.fIsNC;
         fIsQE = rhs.fIsQE;
@@ -235,9 +236,6 @@ TruthInfo& TruthInfo::operator=(const TruthInfo& rhs)
         fBeamDirX = rhs.fBeamDirX;
         fBeamDirY = rhs.fBeamDirY;
         fBeamDirZ = rhs.fBeamDirZ;
-        fLeadDirX = rhs.fLeadDirX;
-        fLeadDirY = rhs.fLeadDirY;
-        fLeadDirZ = rhs.fLeadDirZ;
 
     }
     return *this;
@@ -266,13 +264,6 @@ void TruthInfo::SetBeamDir(float x, float y, float z)
     fBeamDirX = x;
     fBeamDirY = y;
     fBeamDirZ = z;
-}
-
-void TruthInfo::SetLeadDir(float x, float y, float z)
-{
-    fLeadDirX = x;
-    fLeadDirY = y;
-    fLeadDirZ = z;
 }
 
 

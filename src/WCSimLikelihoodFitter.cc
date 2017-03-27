@@ -2841,8 +2841,10 @@ TruthInfo WCSimLikelihoodFitter::BuildTruthInfo()
     int beamPDG = ts.GetBeamPDG();
     float beamEnergy = ts.GetBeamEnergy();
 
-    int leadPDG = ts.GetPrimaryPDG(0);
-    float leadEnergy = ts.GetPrimaryEnergy(0);
+    std::vector<int> primaryPDGs = ts.GetPrimaryPDGs();
+    std::vector<double> primaryEnergies = ts.GetPrimaryEnergies();
+    std::vector<TVector3> primaryDirs = ts.GetPrimaryDirs();
+    int nPrimaries = ts.GetNPrimaries();
 
     double t = ts.GetVertexT();
     double x = ts.GetVertexX();
@@ -2853,15 +2855,10 @@ TruthInfo WCSimLikelihoodFitter::BuildTruthInfo()
     double bdy = ts.GetBeamDir().Y();
     double bdz = ts.GetBeamDir().Z();
 
-    double ldx = ts.GetPrimaryDir(0).X();
-    double ldy = ts.GetPrimaryDir(0).Y();
-    double ldz = ts.GetPrimaryDir(0).Z();
-
-    TruthInfo ti(type, beamPDG, beamEnergy, leadPDG, leadEnergy);
+    TruthInfo ti(type, beamPDG, beamEnergy, nPrimaries, primaryPDGs, primaryEnergies, primaryDirs);
     ti.SetVtxTime(t);
     ti.SetVtx(x, y, z);
     ti.SetBeamDir(bdx, bdy, bdz);
-    ti.SetLeadDir(ldx, ldy, ldz);
 
     return ti;
 }

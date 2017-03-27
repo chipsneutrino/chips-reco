@@ -80,7 +80,8 @@ class TruthInfo : public TObject{
 
     public:
         TruthInfo(); 
-        TruthInfo(int type, int beamPDG, float beamEnergy, float leadPDG, float leadEnergy);
+        TruthInfo(int type, int beamPDG, float beamEnergy, int nPrimaries, std::vector<int> primaryPDGs, 
+                  std::vector<double> primaryEnergies, std::vector<TVector3> primaryDirs);
         TruthInfo(const TruthInfo& other);
         TruthInfo& operator=(const TruthInfo& rhs);
         ~TruthInfo();
@@ -88,13 +89,44 @@ class TruthInfo : public TObject{
         void SetVtxTime(float t);
         void SetVtx(float x, float y, float z);
         void SetBeamDir(float x, float y, float z);
-        void SetLeadDir(float x, float y, float z);
 
         int GetType(){ return fType; }
         float GetBeamE(){ return fBeamEnergy; }
         int GetBeamPDG(){ return fBeamPDG; }
-        float GetLeadEnergy(){ return fLeadEnergy; }
-        int GetLeadPDG(){ return fLeadPDG; }        
+
+        int GetPrimaryPDG(int p){ 
+            if(p < fNPrimaries){
+                return fPrimaryPDGs[p]; // Index starts at 0   
+            }
+            else{ 
+                std::cerr << "GetPrimaryPDG(index) out of range [0..." << fNPrimaries-1 << "]" << std::endl;
+                return -999;
+            }
+        } 
+        double GetPrimaryEnergy(int p){
+            if(p < fNPrimaries){
+                return fPrimaryEnergies[p]; // Index starts at 0   
+            }
+            else{ 
+                std::cerr << "GetPrimaryEnergies(index) out of range [0..." << fNPrimaries-1 << "]" << std::endl;
+                return -999;
+            }
+        } // Index starts at 0
+        TVector3 GetPrimaryDir(int p){ 
+            if(p < fNPrimaries){
+                return fPrimaryDirs[p]; // Index starts at 0   
+            }
+            else{ 
+                std::cerr << "GetPrimaryDir(index) out of range [0..." << fNPrimaries-1 << "]" << std::endl;
+                return TVector3(-999, -999, -999);
+            }
+        } // Index starts at 0 
+
+        int GetNPrimaries(){ return fNPrimaries; }
+        std::vector<int> GetPrimaryPDGs(){ return fPrimaryPDGs; }
+        std::vector<double> GetPrimaryEnergies(){ return fPrimaryEnergies; }  
+        std::vector<TVector3> GetPrimaryDirs(){ return fPrimaryDirs; }    
+
         bool IsCC(){ return fIsCC; }
         bool IsNC(){ return fIsNC; }
         bool IsQE(){ return fIsQE; }
@@ -113,17 +145,18 @@ class TruthInfo : public TObject{
         float GetBeamDirX() const{ return fBeamDirX; }
         float GetBeamDirY() const{ return fBeamDirY; }
         float GetBeamDirZ() const{ return fBeamDirZ; }
-        float GetLeadDirX() const{ return fLeadDirX; }
-        float GetLeadDirY() const{ return fLeadDirY; }
-        float GetLeadDirZ() const{ return fLeadDirZ; }
 
     private:
 
         int fType;  // Interaction type code from WCSimTruthSummary
         int fBeamPDG;  // PDG code of the beam particle (usually a neutrino)
         float fBeamEnergy;  // Energy of the incident beam particle
-        int fLeadPDG;   // PDG code of the highest energy final state particle
-        float fLeadEnergy; // Energy of the highest-energy final state particle
+
+        int fNPrimaries;
+        std::vector<int> fPrimaryPDGs; //Vector of primary PDG's
+        std::vector<double> fPrimaryEnergies; //Vector of primary energies
+        std::vector<TVector3> fPrimaryDirs; //Vector of primary directions <TVector3>
+
         bool fIsCC;
         bool fIsNC;
         bool fIsQE;
@@ -140,14 +173,9 @@ class TruthInfo : public TObject{
         float fVtxX;
         float fVtxY;
         float fVtxZ;
-
         float fBeamDirX;
         float fBeamDirY;
         float fBeamDirZ;
-        float fLeadDirX;
-        float fLeadDirY;
-        float fLeadDirZ;
-
         
         ClassDef(TruthInfo,1)
 };
