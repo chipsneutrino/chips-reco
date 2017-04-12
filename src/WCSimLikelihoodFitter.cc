@@ -852,6 +852,12 @@ void WCSimLikelihoodFitter::SeedEvent()
     ringTime.push_back(otherRings[r].second);
   }
 
+  // Temp storage of seed variables for outputTree..
+  std::vector<TVector3> fSeedVertices;
+  std::vector<TVector3> fSeedDirs;
+  std::vector<double> fSeedVerticesT;
+  std::vector<double> fSeedEnergies;
+
   // Now we need to loop over all the track parameters available to the fitter
   // and set them to the corresponding seed parameter
   for(unsigned int iTrack = 0; iTrack < fFitterConfig->GetNumTracks(); ++iTrack)
@@ -947,7 +953,20 @@ void WCSimLikelihoodFitter::SeedEvent()
         fFitterTrackParMap.SetCurrentValue(iTrack, FitterParameterType::kDirPhi, seedPhi);
       }
     }
+
+	fSeedVertices.push_back(TVector3(seedX, seedY, seedZ));
+	fSeedDirs.push_back(TVector3(dirX, dirY, dirZ));
+	fSeedVerticesT.push_back(seedT);
+	fSeedEnergies.push_back(fFitterTrackParMap.GetCurrentValue(iTrack, FitterParameterType::kEnergy));
+
   }
+
+  // Need to fill the SeedInfo in the outputTree...
+  if(fOutputTree != NULL){
+	  SeedInfo se(fSeedVertices, fSeedDirs, fSeedVerticesT, fSeedEnergies);
+	  fOutputTree->SetSeed(se);
+  }
+
   delete myReco;
 
   // Need to delete the elements of slicedEvents as they are not destroyed by WCSimRecoSlicer

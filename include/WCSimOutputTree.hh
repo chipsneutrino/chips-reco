@@ -76,6 +76,32 @@ class HitInfo : public TObject{
 };
 
 
+class SeedInfo : public TObject{
+
+	public:
+		SeedInfo();
+		SeedInfo(std::vector<TVector3> seedVertices, std::vector<TVector3> seedDirs,
+				 std::vector<double> seedVerticesT, std::vector<double> seedEnergies);
+		SeedInfo(const SeedInfo& other);
+		SeedInfo& operator=(const SeedInfo& rhs);
+    	~SeedInfo();
+
+    	std::vector<TVector3> GetSeedVertices(){ return fSeedVertices; }
+    	std::vector<TVector3> GetSeedDirs(){ return fSeedDirs; }
+    	std::vector<double> GetSeedTimes(){ return fSeedVerticesT; }
+    	std::vector<double> GetSeedEnergies(){ return fSeedEnergies; }
+
+	private:
+
+    	std::vector<TVector3> fSeedVertices;
+    	std::vector<TVector3> fSeedDirs;
+    	std::vector<double> fSeedVerticesT;
+    	std::vector<double> fSeedEnergies;
+
+    	ClassDef(SeedInfo,1)
+};
+
+
 class TruthInfo : public TObject{
 
     public:
@@ -322,6 +348,8 @@ public:
 	void SetSaveFileName(TString saveName);
 	TString GetSaveFileName() const;
 
+	void SetSeed(SeedInfo& seedInfo);
+
     void Fill(
               bool failed,
               Int_t iEvent,
@@ -356,11 +384,12 @@ private:
     HitInfo * fHitInfo;
     RecoInfo * fRecoInfo;
     TruthInfo * fTruthInfo;
+    SeedInfo * fSeedInfo;
     std::string fRecoType;
     int fEvent;
     bool fFailed;
 
-    ClassDef(WCSimOutputTree, 1)
+    ClassDef(WCSimOutputTree, 2)
 };
 
 #endif /* WCSIMOUTPUTTREE_HH */

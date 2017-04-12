@@ -30,12 +30,12 @@
 
 #ifndef REFLEX_DICTIONARY
 ClassImp(HitInfo);
+ClassImp(SeedInfo);
 ClassImp(TruthInfo);
 ClassImp(RecoInfo); 
 ClassImp(WCSimOutputTree);
 #endif
 
-    
 ///////////////////////////////////////////////////////////////
 //  METHODS FOR HITINFO CLASS
 //////////////////////////////////////////////////////////////
@@ -51,8 +51,6 @@ HitInfo::HitInfo() :
     fTotalQDownstream = 0.0;
     fFracQUpstream = 0.0;
     fFracQDownstream = 0.0;
-    
-
 }
 
 HitInfo::HitInfo(
@@ -109,9 +107,56 @@ HitInfo& HitInfo::operator=(const HitInfo& rhs)
 
 HitInfo::~HitInfo()
 {
+
     // Empty
 }
         
+///////////////////////////////////////////////////////////////
+//  METHODS FOR SEEDINFO CLASS
+//////////////////////////////////////////////////////////////
+
+SeedInfo::SeedInfo()
+{
+	fSeedVertices.clear();
+	fSeedDirs.clear();
+	fSeedVerticesT.clear();
+	fSeedEnergies.clear();
+}
+
+SeedInfo::SeedInfo(std::vector<TVector3> seedVertices, std::vector<TVector3> seedDirs,
+		 	 	   std::vector<double> seedVerticesT, std::vector<double> seedEnergies) :
+		 	 	   fSeedVertices(seedVertices), fSeedDirs(seedDirs),
+				   fSeedVerticesT(seedVerticesT), fSeedEnergies(seedEnergies)
+{
+	// Empty...
+}
+
+SeedInfo::SeedInfo(const SeedInfo& other):
+	fSeedVertices(other.fSeedVertices),
+	fSeedDirs(other.fSeedDirs),
+	fSeedVerticesT(other.fSeedVerticesT),
+	fSeedEnergies(other.fSeedEnergies)
+{
+	// Empty...
+}
+
+SeedInfo& SeedInfo::operator=(const SeedInfo& rhs)
+{
+    if(this != &rhs)
+    {
+    	fSeedVertices = rhs.fSeedVertices;
+    	fSeedDirs = rhs.fSeedDirs;
+    	fSeedVerticesT = rhs.fSeedVerticesT;
+    	fSeedEnergies = rhs.fSeedEnergies;
+    }
+    return *this;
+}
+
+SeedInfo::~SeedInfo()
+{
+	// Empty...
+}
+
 
 ///////////////////////////////////////////////////////////////
 //  METHODS FOR TRUTHINFO CLASS
@@ -544,6 +589,7 @@ WCSimOutputTree::WCSimOutputTree(const TString &saveFileName) :
                 fInputEvent(0),
                 fRecoSummary(0x0), fHitComparison(0x0),
                 fHitInfo(0x0), fRecoInfo(0x0), fTruthInfo(0x0),
+				fSeedInfo(0x0),
                 fRecoType("_other"), fEvent(0), fFailed(false)
 {
 	// TODO Auto-generated constructor stub
@@ -591,6 +637,13 @@ WCSimOutputTree::~WCSimOutputTree() {
         fTruthInfo = 0x0;
         std::cout << "done" << std::endl;
     }
+    if(fSeedInfo != 0x0)
+    {
+        std::cout << "delete seed info" << std::endl;
+        delete fSeedInfo;
+        fSeedInfo = 0x0;
+        std::cout << "done" << std::endl;
+    }
     //
 }
 
@@ -610,6 +663,7 @@ void WCSimOutputTree::MakeTree() {
     fHitInfo = new HitInfo();
     fRecoInfo = new RecoInfo();
     fTruthInfo = new TruthInfo();
+    fSeedInfo = new SeedInfo();
 
     fResultsTree->Branch("UID", &fUID);
     fResultsTree->Branch("InputFile", &fInputFile);
@@ -620,9 +674,20 @@ void WCSimOutputTree::MakeTree() {
     fResultsTree->Branch("HitInfo", "HitInfo", &fHitInfo, 64000, 1);
     fResultsTree->Branch("RecoInfo", "RecoInfo", &fRecoInfo, 64000, 1);
     fResultsTree->Branch("TruthInfo", "TruthInfo", &fTruthInfo, 64000, 1);
+    fResultsTree->Branch("SeedInfo", "SeedInfo", &fSeedInfo, 64000, 1);
 
     fEvent = 0;
 
+}
+
+void WCSimOutputTree::SetSeed(SeedInfo& seedInfo)
+{
+	if( fResultsTree == 0x0)
+	{
+		MakeTree();
+	}
+	delete fSeedInfo;
+	fSeedInfo = new SeedInfo(seedInfo);
 }
 
 void WCSimOutputTree::Fill(
@@ -765,6 +830,12 @@ void WCSimOutputTree::DeletePointersIfExist()
     {
         delete fTruthInfo;
         fTruthInfo = 0x0;
+    }
+
+    if(fSeedInfo != 0x0)
+    {
+        delete fSeedInfo;
+        fSeedInfo = 0x0;
     }
 }
 
