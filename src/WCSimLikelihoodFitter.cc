@@ -963,7 +963,7 @@ void WCSimLikelihoodFitter::SeedEvent()
 
   // Need to fill the SeedInfo in the outputTree...
   if(fOutputTree != NULL){
-	  SeedInfo se(fSeedVertices, fSeedDirs, fSeedVerticesT, fSeedEnergies);
+	  SeedInfo se(fFitterConfig->GetNumTracks(), fSeedVertices, fSeedDirs, fSeedVerticesT, fSeedEnergies);
 	  fOutputTree->SetSeed(se);
   }
 

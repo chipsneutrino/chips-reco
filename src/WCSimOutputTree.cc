@@ -117,14 +117,17 @@ HitInfo::~HitInfo()
 
 SeedInfo::SeedInfo()
 {
+	fNTracks = 0;
 	fSeedVertices.clear();
 	fSeedDirs.clear();
 	fSeedVerticesT.clear();
 	fSeedEnergies.clear();
 }
 
-SeedInfo::SeedInfo(std::vector<TVector3> seedVertices, std::vector<TVector3> seedDirs,
+SeedInfo::SeedInfo(int nTracks,
+				   std::vector<TVector3> seedVertices, std::vector<TVector3> seedDirs,
 		 	 	   std::vector<double> seedVerticesT, std::vector<double> seedEnergies) :
+		 	 	   fNTracks(nTracks),
 		 	 	   fSeedVertices(seedVertices), fSeedDirs(seedDirs),
 				   fSeedVerticesT(seedVerticesT), fSeedEnergies(seedEnergies)
 {
@@ -132,6 +135,7 @@ SeedInfo::SeedInfo(std::vector<TVector3> seedVertices, std::vector<TVector3> see
 }
 
 SeedInfo::SeedInfo(const SeedInfo& other):
+	fNTracks(other.fNTracks),
 	fSeedVertices(other.fSeedVertices),
 	fSeedDirs(other.fSeedDirs),
 	fSeedVerticesT(other.fSeedVerticesT),
@@ -144,6 +148,7 @@ SeedInfo& SeedInfo::operator=(const SeedInfo& rhs)
 {
     if(this != &rhs)
     {
+    	fNTracks = rhs.fNTracks;
     	fSeedVertices = rhs.fSeedVertices;
     	fSeedDirs = rhs.fSeedDirs;
     	fSeedVerticesT = rhs.fSeedVerticesT;
