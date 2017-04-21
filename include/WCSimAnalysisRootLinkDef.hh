@@ -95,6 +95,13 @@
 #pragma link C++ class WCSimLikelihoodTrackBase+;
 #pragma link C++ class vector<WCSimLikelihoodTrackBase*>;
 #pragma link C++ class WCSimLikelihoodPhotonTrack+;
+#pragma link C++ class vector<WCSimLikelihoodPhotonTrack>;
+#pragma link C++ class vector<vector<WCSimLikelihoodPhotonTrack> >;
+#pragma link C++ class vector<WCSimLikelihoodPhotonTrack*>;
+#pragma link C++ class WCSimLikelihoodUnknownTrack+;
+#pragma link C++ class vector<WCSimLikelihoodUnknownTrack>;
+#pragma link C++ class vector<vector<WCSimLikelihoodUnknownTrack> >;
+#pragma link C++ class vector<WCSimLikelihoodUnknownTrack*>;
 #pragma link C++ class WCSimLikelihoodTrackFactory+;
 #pragma link C++ class WCSimTimePredictor+;
 #pragma link C++ class WCSimTimeLikelihood2+;

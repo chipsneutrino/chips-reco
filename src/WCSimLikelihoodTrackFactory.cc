@@ -8,7 +8,6 @@
 #include "WCSimLikelihoodTrackFactory.hh"
 #include "WCSimLikelihoodTrackBase.hh"
 #include "WCSimLikelihoodTrack.hh"
-#include "WCSimLikelihoodPhotonTrack.hh"
 #include "WCSimTrackParameterEnums.hh"
 #include <map>
 
@@ -32,19 +31,24 @@ WCSimLikelihoodTrackBase* WCSimLikelihoodTrackFactory::MakeTrack(
 		|| type == TrackType::MuonLike 	)
 	{
 		myTrack = new WCSimLikelihoodTrack();
-    myTrack->SetType(type);
+		myTrack->SetType(type);
 	}
 	else if( type == TrackType::PhotonLike)
 	{
-    myTrack = new WCSimLikelihoodPhotonTrack();
-    myTrack->SetType(type);
+		myTrack = new WCSimLikelihoodPhotonTrack();
+		myTrack->SetType(type);
 	}
-  else
-  {
-	  std::cerr << "Error in WCSimLikelihoodTrackFactory::MakeTrack" << std::endl
+	else if( type ==  TrackType::Unknown )
+	{
+		myTrack = new WCSimLikelihoodUnknownTrack();
+		myTrack->SetType(type);
+	}
+	else
+	{
+		std::cerr << "Error in WCSimLikelihoodTrackFactory::MakeTrack" << std::endl
 	  		<< "Don't know how to make a track of type " << type
 		  	<< " (" << TrackType::AsString(type) << ")" << std::endl;
-	  assert(false);
+		assert(false);
 	}
   return myTrack;
 }
@@ -70,12 +74,21 @@ WCSimLikelihoodTrackBase* WCSimLikelihoodTrackFactory::MakeTrack(
 		}
 		return new WCSimLikelihoodPhotonTrack(x, y, z, t, theta, phi, energy, conversionDistance);
 	}
+	else if( type == TrackType::Unknown )
+	{
+		std::map<FitterParameterType::Type, double>::iterator mapItr = extraPars.find(FitterParameterType::kConversionDistance);
+		double conversionDistance = 0.0;
+		if( mapItr != extraPars.end() )
+		{
+			conversionDistance = mapItr->second;
+		}
+		return new WCSimLikelihoodUnknownTrack(x, y, z, t, theta, phi, energy, conversionDistance);
+	}
 	std::cerr << "Error in WCSimLikelihoodTrackFactory::MakeTrack" << std::endl
 			<< "Don't know how to make a track of type " << type
 			<< " (" << TrackType::AsString(type) << ")" << std::endl;
 	assert(false);
 	return 0x0;
-
 }
 
 WCSimLikelihoodTrackBase* WCSimLikelihoodTrackFactory::MakeTrack(
