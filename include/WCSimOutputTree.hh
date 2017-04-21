@@ -9,7 +9,9 @@
  */
 
 #include "WCSimLikelihoodTrackBase.hh"
+#include "WCSimLikelihoodTrack.hh"
 #include "WCSimHitComparison.hh"
+#include "WCSimLikelihoodTrackFactory.hh"
 
 #include "TObject.h"
 
@@ -78,69 +80,33 @@ class HitInfo : public TObject{
 
 class SeedInfo : public TObject{
 
+	//For now can just cope with 1 seed (can have multiple tracks) per event.
+	//This should be expanded so that you can store multiple seeds per event.
+
 	public:
 		SeedInfo();
-		SeedInfo(int nTracks,
-				 std::vector<TVector3> seedVertices, std::vector<TVector3> seedDirs,
-				 std::vector<double> seedVerticesT, std::vector<double> seedEnergies);
+		SeedInfo(std::vector<WCSimLikelihoodTrackBase*> tracks);
+		SeedInfo(WCSimLikelihoodTrackBase* track);
 		SeedInfo(const SeedInfo& other);
 		SeedInfo& operator=(const SeedInfo& rhs);
     	~SeedInfo();
 
-    	int GetNumSeeds(){ return fNTracks; }
-    	std::vector<TVector3> GetSeedVertices(){ return fSeedVertices; }
-    	std::vector<TVector3> GetSeedDirs(){ return fSeedDirs; }
-    	std::vector<double> GetSeedTimes(){ return fSeedVerticesT; }
-    	std::vector<double> GetSeedEnergies(){ return fSeedEnergies; }
 
-        TVector3 GetSeedVtx(int p){
-            if(p < fNTracks){
-                return fSeedVertices[p]; // Index starts at 0
+    	int GetNumTracks(){ return fTracks.size(); }
+    	std::vector<WCSimLikelihoodTrackBase*> GetTracks(){ return fTracks; }
+    	WCSimLikelihoodTrackBase* GetTrack(int p){
+            if(p < fTracks.size()){
+                return fTracks[p]; // Index starts at 0
             }
             else{
-                std::cerr << "GetSeedVtx(index) out of range [0..." << fNTracks-1 << "]" << std::endl;
-                return TVector3(-999, -999, -999);
-            }
-        }
-
-        TVector3 GetSeedDir(int p){
-            if(p < fNTracks){
-                return fSeedDirs[p]; // Index starts at 0
-            }
-            else{
-                std::cerr << "GetSeedDir(index) out of range [0..." << fNTracks-1 << "]" << std::endl;
-                return TVector3(-999, -999, -999);
-            }
-        }
-
-        double GetSeedTime(int p){
-            if(p < fNTracks){
-                return fSeedVerticesT[p]; // Index starts at 0
-            }
-            else{
-                std::cerr << "GetSeedTime(index) out of range [0..." << fNTracks-1 << "]" << std::endl;
-                return -999;
-            }
-        }
-
-        double GetSeedEnergy(int p){
-            if(p < fNTracks){
-                return fSeedEnergies[p]; // Index starts at 0
-            }
-            else{
-                std::cerr << "GetSeedEnergy(index) out of range [0..." << fNTracks-1 << "]" << std::endl;
-                return -999;
+                std::cerr << "GetTrack(index) out of range [0..." << fTracks.size()-1 << "]" << std::endl;
+                return WCSimLikelihoodTrackFactory::MakeTrack(TrackType::Unknown, -999, -999, -999, -999,
+                											  -999, -999, -999, -999);
             }
         }
 
 	private:
-
-        int fNTracks;
-    	std::vector<TVector3> fSeedVertices;
-    	std::vector<TVector3> fSeedDirs;
-    	std::vector<double> fSeedVerticesT;
-    	std::vector<double> fSeedEnergies;
-
+    	std::vector<WCSimLikelihoodTrackBase*> fTracks;
     	ClassDef(SeedInfo,1)
 };
 
@@ -391,7 +357,8 @@ public:
 	void SetSaveFileName(TString saveName);
 	TString GetSaveFileName() const;
 
-	void SetSeed(SeedInfo& seedInfo);
+	void SetSeed(std::vector<WCSimLikelihoodTrackBase*> tracks);
+	void SetSeed(WCSimLikelihoodTrackBase* track);
 
     void Fill(
               bool failed,

@@ -853,10 +853,7 @@ void WCSimLikelihoodFitter::SeedEvent()
   }
 
   // Temp storage of seed variables for outputTree..
-  std::vector<TVector3> fSeedVertices;
-  std::vector<TVector3> fSeedDirs;
-  std::vector<double> fSeedVerticesT;
-  std::vector<double> fSeedEnergies;
+  std::vector<WCSimLikelihoodTrackBase*> fSeeds;
 
   // Now we need to loop over all the track parameters available to the fitter
   // and set them to the corresponding seed parameter
@@ -954,17 +951,15 @@ void WCSimLikelihoodFitter::SeedEvent()
       }
     }
 
-	fSeedVertices.push_back(TVector3(seedX, seedY, seedZ));
-	fSeedDirs.push_back(TVector3(dirX, dirY, dirZ));
-	fSeedVerticesT.push_back(seedT);
-	fSeedEnergies.push_back(fFitterTrackParMap.GetCurrentValue(iTrack, FitterParameterType::kEnergy));
-
+    fSeeds.push_back(WCSimLikelihoodTrackFactory::MakeTrack(fFitterConfig->GetTrackType(iTrack),
+    														seedX, seedY, seedZ, seedT,
+                											seedTheta, seedPhi,
+															fFitterTrackParMap.GetCurrentValue(iTrack, FitterParameterType::kEnergy)));
   }
 
   // Need to fill the SeedInfo in the outputTree...
   if(fOutputTree != NULL){
-	  SeedInfo se(fFitterConfig->GetNumTracks(), fSeedVertices, fSeedDirs, fSeedVerticesT, fSeedEnergies);
-	  fOutputTree->SetSeed(se);
+	  fOutputTree->SetSeed(fSeeds);
   }
 
   delete myReco;

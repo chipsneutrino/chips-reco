@@ -117,29 +117,22 @@ HitInfo::~HitInfo()
 
 SeedInfo::SeedInfo()
 {
-	fNTracks = 0;
-	fSeedVertices.clear();
-	fSeedDirs.clear();
-	fSeedVerticesT.clear();
-	fSeedEnergies.clear();
+	fTracks.clear();
 }
 
-SeedInfo::SeedInfo(int nTracks,
-				   std::vector<TVector3> seedVertices, std::vector<TVector3> seedDirs,
-		 	 	   std::vector<double> seedVerticesT, std::vector<double> seedEnergies) :
-		 	 	   fNTracks(nTracks),
-		 	 	   fSeedVertices(seedVertices), fSeedDirs(seedDirs),
-				   fSeedVerticesT(seedVerticesT), fSeedEnergies(seedEnergies)
+SeedInfo::SeedInfo(std::vector<WCSimLikelihoodTrackBase*> tracks) :
+		 	 	   fTracks(tracks)
 {
 	// Empty...
 }
 
+SeedInfo::SeedInfo(WCSimLikelihoodTrackBase* track)
+{
+	fTracks.push_back(track);
+}
+
 SeedInfo::SeedInfo(const SeedInfo& other):
-	fNTracks(other.fNTracks),
-	fSeedVertices(other.fSeedVertices),
-	fSeedDirs(other.fSeedDirs),
-	fSeedVerticesT(other.fSeedVerticesT),
-	fSeedEnergies(other.fSeedEnergies)
+	fTracks(other.fTracks)
 {
 	// Empty...
 }
@@ -148,11 +141,7 @@ SeedInfo& SeedInfo::operator=(const SeedInfo& rhs)
 {
     if(this != &rhs)
     {
-    	fNTracks = rhs.fNTracks;
-    	fSeedVertices = rhs.fSeedVertices;
-    	fSeedDirs = rhs.fSeedDirs;
-    	fSeedVerticesT = rhs.fSeedVerticesT;
-    	fSeedEnergies = rhs.fSeedEnergies;
+    	fTracks = rhs.fTracks;
     }
     return *this;
 }
@@ -685,14 +674,24 @@ void WCSimOutputTree::MakeTree() {
 
 }
 
-void WCSimOutputTree::SetSeed(SeedInfo& seedInfo)
+void WCSimOutputTree::SetSeed(std::vector<WCSimLikelihoodTrackBase*> tracks)
 {
 	if( fResultsTree == 0x0)
 	{
 		MakeTree();
 	}
 	delete fSeedInfo;
-	fSeedInfo = new SeedInfo(seedInfo);
+	fSeedInfo = new SeedInfo(tracks);
+}
+
+void WCSimOutputTree::SetSeed(WCSimLikelihoodTrackBase* track)
+{
+	if( fResultsTree == 0x0)
+	{
+		MakeTree();
+	}
+	delete fSeedInfo;
+	fSeedInfo = new SeedInfo(track);
 }
 
 void WCSimOutputTree::Fill(
