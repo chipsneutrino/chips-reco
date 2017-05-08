@@ -237,16 +237,39 @@ void WCSimPiZeroFitter::FitEventNumber(Int_t iEvent) {
 		fTotalLikelihood = new WCSimTotalLikelihood(fLikelihoodDigitArray);
 	}
 
+
     assert(allSeedTracks.size() > 0);
     assert(fLikelihoodDigitArray->GetNDigits() > 0);
 
+    // Temp storage of seed variables for outputTree..
+    std::vector<WCSimLikelihoodTrackBase*> fSeeds;
+
 	while(seedTrackItr != allSeedTracks.end())
 	{
+		//Add the two photon tracks to the fSeeds vector!!!
+		WCSimPiZeroSeed * seed = *seedTrackItr;
+		fSeeds.push_back(WCSimLikelihoodTrackFactory::MakeTrack(TrackType::PhotonLike,
+				  	  	  	  	  	  	  	  	  	  	  	  	  seed->GetTrack1()->GetX(), seed->GetTrack1()->GetY(), seed->GetTrack1()->GetZ(),
+																  seed->GetTrack1()->GetT(),
+																  seed->GetTrack1()->GetTheta(), seed->GetTrack1()->GetPhi(),
+																  seed->GetTrack1()->GetE(), seed->GetTrack1()->GetConversionDistance()));
+
+		fSeeds.push_back(WCSimLikelihoodTrackFactory::MakeTrack(TrackType::PhotonLike,
+				  	  	  	  	  	  	  	  	  	  	  	  	  seed->GetTrack2()->GetX(), seed->GetTrack2()->GetY(), seed->GetTrack2()->GetZ(),
+																  seed->GetTrack2()->GetT(),
+																  seed->GetTrack2()->GetTheta(), seed->GetTrack2()->GetPhi(),
+																  seed->GetTrack2()->GetE(), seed->GetTrack2()->GetConversionDistance()));
+
 		// These will update fMinimum and the fBestFits if the minimiser improves on the previous best
 		FitAfterFixingDirectionAndEnergy(*seedTrackItr);
 		FitAfterFixingEnergy(*seedTrackItr);
 		++seedTrackItr;
 	}
+
+	// Need to fill the SeedInfo in the outputTree...
+  if(fOutputTree != NULL){
+	  fOutputTree->SetSeed(fSeeds);
+  }
 
 	fTrueLikelihoodTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
 
@@ -259,8 +282,6 @@ void WCSimPiZeroFitter::FitEventNumber(Int_t iEvent) {
   std::cout << "Fitted event number " << iEvent << std::endl;
   return;
 }
-
-
 
 std::vector<WCSimPiZeroSeed*> WCSimPiZeroFitter::GetSeeds()
 {
