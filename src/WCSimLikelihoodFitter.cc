@@ -2627,36 +2627,38 @@ WCSimRecoSummary WCSimLikelihoodFitter::BuildRecoSummary()
 
 WCSimHitComparison WCSimLikelihoodFitter::BuildHitComparison()
 {
-    // Get all the predicted values and likelihoods for the best-fit tracks:
-    fTotalLikelihood->SetTracks(fBestFit);
-    fTotalLikelihood->Calc2LnL();
-	std::vector<double> predictedCharges = fTotalLikelihood->GetPredictedChargeVector();
-	std::vector<double> measuredCharges = fTotalLikelihood->GetMeasuredChargeVector();
-	std::vector<double> best2LnLs = fTotalLikelihood->GetTotal2LnLVector();
-    std::vector<double> hit2LnLs = fTotalLikelihood->GetHit2LnLVector();
-	std::vector<double> charge2LnLs = fTotalLikelihood->GetCharge2LnLVector();
-	std::vector<double> time2LnLs = fTotalLikelihood->GetTime2LnLVector();
-    std::vector<double> predictedTimes = fTotalLikelihood->GetPredictedTimeVector();
+
+
+  // Get all the predicted values and likelihoods for the correct tracks:
+  std::vector<WCSimLikelihoodTrackBase*> *correctTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
+  fTotalLikelihood->SetTracks(*correctTracks);
+  fTotalLikelihood->Calc2LnL();
+  std::vector<double> correctPredictedCharges = fTotalLikelihood->GetPredictedChargeVector();
+  std::vector<double> correctPredictedTimes = fTotalLikelihood->GetPredictedTimeVector();
+  std::vector<double> correctHit2LnLs = fTotalLikelihood->GetHit2LnLVector();
+  std::vector<double> correctCharge2LnLs = fTotalLikelihood->GetCharge2LnLVector();
+  std::vector<double> correctTime2LnLs = fTotalLikelihood->GetTime2LnLVector();
+  std::vector<double> correct2LnLs = fTotalLikelihood->GetTotal2LnLVector();
+
+
+
+  // Get all the predicted values and likelihoods for the best-fit tracks:
+  fTotalLikelihood->SetTracks(fBestFit);
+  fTotalLikelihood->Calc2LnL();
+  std::vector<double> predictedCharges = fTotalLikelihood->GetPredictedChargeVector();
+  std::vector<double> measuredCharges = fTotalLikelihood->GetMeasuredChargeVector();
+  std::vector<double> best2LnLs = fTotalLikelihood->GetTotal2LnLVector();
+  std::vector<double> hit2LnLs = fTotalLikelihood->GetHit2LnLVector();
+  std::vector<double> charge2LnLs = fTotalLikelihood->GetCharge2LnLVector();
+  std::vector<double> time2LnLs = fTotalLikelihood->GetTime2LnLVector();
+  std::vector<double> predictedTimes = fTotalLikelihood->GetPredictedTimeVector();
     
     
     // Update best-fit components
     fMinimumTimeComponent = fTotalLikelihood->GetLastTime2LnL();
     fMinimumChargeComponent = fTotalLikelihood->GetLastCharge2LnL();
     fMinimumHitComponent = fTotalLikelihood->GetLastHit2LnL();
-    fMinimumCutoffComponent = fTotalLikelihood->GetLastCutoff2LnL();
-
-
-    // Now get all the predicted values and likelihoods for the correct tracks:
-	std::vector<WCSimLikelihoodTrackBase*> *correctTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
-	fTotalLikelihood->SetTracks(*correctTracks);
-	fTotalLikelihood->Calc2LnL();
-	std::vector<double> correctPredictedCharges = fTotalLikelihood->GetPredictedChargeVector();
-	std::vector<double> correctPredictedTimes = fTotalLikelihood->GetPredictedTimeVector();
-    std::vector<double> correctHit2LnLs = fTotalLikelihood->GetHit2LnLVector();
-	std::vector<double> correctCharge2LnLs = fTotalLikelihood->GetCharge2LnLVector();
-	std::vector<double> correctTime2LnLs = fTotalLikelihood->GetTime2LnLVector();
-	std::vector<double> correct2LnLs = fTotalLikelihood->GetTotal2LnLVector();
-    
+    fMinimumCutoffComponent = fTotalLikelihood->GetLastCutoff2LnL();    
 
     // Now make a vector of easy-to-handle hit comparison objects:
     WCSimHitComparison hitComparisons;
