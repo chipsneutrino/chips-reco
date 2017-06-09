@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////////////////
 //  Class and main function to combine WCSimAnalys output Tree for Electron and        //
-//  Muon Hipitheses in order to train a TMVA Neural Network  for PID classification    //
+//  Muon Hypotheses in order to train a TMVA Neural Network  for PID classification    //
 //  (NueCC vs NumuCC) and (NueCC vs NC).                                               //
 //  Adapted from uncommited code by A.J.Perch (UCL)                                    // 
 //                                                                                     // 
