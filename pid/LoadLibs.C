@@ -20,4 +20,7 @@ void LoadLibs(){
   // Load wc_readTMVA macro and compile if necessary
   gROOT->ProcessLine(".L wc_readTMVA.C+");
 
+  // Load wc_combineTrees macro and compile if necessary
+  gROOT->ProcessLine(".L wc_combineTrees.C+");
+
 }
