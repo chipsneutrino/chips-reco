@@ -1,5 +1,5 @@
 /////////////////////////////////////////////////////////////////////////////////////////
-//  Macro to run wc_combineTrees.C to conbine Electron and Muon hipotheses needed      //
+//  Macro to run wc_combineTrees.C to conbine Electron and Muon hypotheses needed      //
 //  for Neural Network training used for PID Classification.                           //  
 //  (NueCC vs NumuCC) and (NueCC vs NC) using  WCSimAnalys output Tree                 //
 //                                                                                     //
