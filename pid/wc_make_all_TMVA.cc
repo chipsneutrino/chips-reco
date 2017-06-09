@@ -19,7 +19,7 @@
 //  Adapted from http://www.pp.rhul.ac.uk/~cowan/stat/root/tmva/ for Glen     // 
 //  Cowan's statistical analysis of data problem set 6 to include the MLP.    //
 ////////////////////////////////////////////////////////////////////////////////
-//   Adapdet for WCSimAnalysi output Tree June 2017                           //
+//   Adapted for WCSimAnalysi output Tree June 2017                           //
 //   S.Germani UCL (s.germani@ucl.ac.uk)                                      //
 ////////////////////////////////////////////////////////////////////////////////
 int main(int argc, char *argv[])
