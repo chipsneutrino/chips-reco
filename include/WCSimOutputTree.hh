@@ -12,6 +12,7 @@
 #include "WCSimLikelihoodTrack.hh"
 #include "WCSimHitComparison.hh"
 #include "WCSimLikelihoodTrackFactory.hh"
+#include "WCSimRecoRing.hh"
 
 #include "TObject.h"
 
@@ -80,17 +81,16 @@ class HitInfo : public TObject{
 
 class SeedInfo : public TObject{
 
-	//For now can just cope with 1 seed (can have multiple tracks) per event.
-	//This should be expanded so that you can store multiple seeds per event.
+	//As likelihoods can not be compared between different types of seed, ntrack = nseeds.
 
 	public:
 		SeedInfo();
-		SeedInfo(std::vector<WCSimLikelihoodTrackBase*> tracks);
-		SeedInfo(WCSimLikelihoodTrackBase* track);
+		SeedInfo(std::string type, std::vector<WCSimLikelihoodTrackBase*> tracks, int slices, std::vector<WCSimRecoRing*> ringVec, std::vector<double> ringTime);
 		SeedInfo(const SeedInfo& other);
 		SeedInfo& operator=(const SeedInfo& rhs);
     	~SeedInfo();
 
+    	std::string GetSeedType(){ return fType; }
 
     	int GetNumTracks(){ return fTracks.size(); }
     	std::vector<WCSimLikelihoodTrackBase*> GetTracks(){ return fTracks; }
@@ -100,13 +100,78 @@ class SeedInfo : public TObject{
             }
             else{
                 std::cerr << "GetTrack(index) out of range [0..." << fTracks.size()-1 << "]" << std::endl;
-                return WCSimLikelihoodTrackFactory::MakeTrack(TrackType::Unknown, -999, -999, -999, -999,
-                											  -999, -999, -999, -999);
+                return NULL;
+                //return WCSimLikelihoodTrackFactory::MakeTrack(TrackType::Unknown, -999, -999, -999, -999, -999, -999, -999, -999);
+            }
+        }
+
+    	int GetNumSlices(){ return fNSlices; }
+    	int GetNumRings(){
+    		if( fRingHeight.size() == fRingTime.size()){
+    			return fRingHeight.size();
+    		}
+    		else{
+    			std::cout << "fRingVec and fRingTime are not the same size!!!" << std::endl;
+    			return -999;
+    		}
+    	}
+
+    	std::vector<double> GetRingHeights(){ return fRingHeight; }
+    	double GetRingHeight(int p){
+            if(p < fRingHeight.size()){ return fRingHeight[p]; }
+            else{
+                std::cerr << "GetRing(index) out of range [0..." << fRingHeight.size()-1 << "]" << std::endl;
+                return -999;
+            }
+        }
+
+    	std::vector<double> GetRingTimes(){ return fRingTime; }
+    	double GetRingTime(int p){
+            if(p < fRingTime.size()){ return fRingTime[p]; }
+            else{
+                std::cerr << "GetRingTime(index) out of range [0..." << fRingTime.size()-1 << "]" << std::endl;
+                return -999;
+            }
+        }
+
+    	std::vector<double> GetRingAngles(){ return fRingAngle; }
+    	double GetRingAngle(int p){
+            if(p < fRingAngle.size()){ return fRingAngle[p]; }
+            else{
+                std::cerr << "GetRingAngle(index) out of range [0..." << fRingAngle.size()-1 << "]" << std::endl;
+                return -999;
+            }
+        }
+
+    	std::vector<TVector3> GetRingVtxs(){ return fRingVtx; }
+    	TVector3 GetRingVtx(int p){
+            if(p < fRingVtx.size()){ return fRingVtx[p]; }
+            else{
+                std::cerr << "GetRingVtx(index) out of range [0..." << fRingVtx.size()-1 << "]" << std::endl;
+                return TVector3(-999, -999, -999);
+            }
+        }
+
+    	std::vector<TVector3> GetRingDirs(){ return fRingDir; }
+    	TVector3 GetRingDir(int p){
+            if(p < fRingDir.size()){ return fRingDir[p]; }
+            else{
+                std::cerr << "GetRingDir(index) out of range [0..." << fRingDir.size()-1 << "]" << std::endl;
+                return TVector3(-999, -999, -999);
             }
         }
 
 	private:
-    	std::vector<WCSimLikelihoodTrackBase*> fTracks;
+    	std::string fType; // Records the type of seed used to produce the passed on tracks.
+    	std::vector<WCSimLikelihoodTrackBase*> fTracks; // Stores a vector of the tracks actually passed to the fitter.
+
+    	int fNSlices; // Number of slices produced by the seeder.
+    	std::vector<double> fRingHeight; // Stores the ring heights produces by the seeder.
+    	std::vector<double> fRingTime; // Stores the vertex times of the rings. These are the same for all rings belonging to the same slice.
+    	std::vector<double> fRingAngle; // Stores the ring angles
+    	std::vector<TVector3> fRingVtx; // Stores TVector3 objects containing the ring vtx positions
+    	std::vector<TVector3> fRingDir; // Stores Tvector3 objects containing the ring dirs.
+
     	ClassDef(SeedInfo,1)
 };
 
@@ -357,15 +422,14 @@ public:
 	void SetSaveFileName(TString saveName);
 	TString GetSaveFileName() const;
 
-	void SetSeed(std::vector<WCSimLikelihoodTrackBase*> tracks);
-	void SetSeed(WCSimLikelihoodTrackBase* track);
+	void SetSeed(std::string type, std::vector<WCSimLikelihoodTrackBase*> tracks, int slices, std::vector<WCSimRecoRing*> ringVec, std::vector<double> ringTime);
 
     void Fill(
               bool failed,
               Int_t iEvent,
               std::string recoType,
               WCSimRecoSummary& summ,
-              WCSimHitComparison& hitComp,
+              //WCSimHitComparison& hitComp,
               HitInfo& hitInfo,
               RecoInfo& recoInfo,
               TruthInfo& truthInfo
@@ -390,7 +454,7 @@ private:
     std::string fInputFile;
     int fInputEvent;
 	WCSimRecoSummary * fRecoSummary;
-    WCSimHitComparison * fHitComparison;
+    //WCSimHitComparison * fHitComparison;
     HitInfo * fHitInfo;
     RecoInfo * fRecoInfo;
     TruthInfo * fTruthInfo;

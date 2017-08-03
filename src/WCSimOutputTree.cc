@@ -120,19 +120,30 @@ SeedInfo::SeedInfo()
 	fTracks.clear();
 }
 
-SeedInfo::SeedInfo(std::vector<WCSimLikelihoodTrackBase*> tracks) :
-		 	 	   fTracks(tracks)
+SeedInfo::SeedInfo(std::string type, std::vector<WCSimLikelihoodTrackBase*> tracks, int slices, std::vector<WCSimRecoRing*> ringVec, std::vector<double> ringTime) :
+		 	 	   fType(type), fTracks(tracks), fNSlices(slices), fRingTime(ringTime)
 {
-	// Empty...
-}
-
-SeedInfo::SeedInfo(WCSimLikelihoodTrackBase* track)
-{
-	fTracks.push_back(track);
+	fRingHeight.clear();
+	fRingAngle.clear();
+	fRingVtx.clear();
+	fRingDir.clear();
+	for(int r=0; r<ringVec.size(); r++){
+		fRingHeight.push_back(ringVec[r]->GetHeight());
+    	fRingAngle.push_back(ringVec[r]->GetAngle());
+    	fRingVtx.push_back(TVector3(ringVec[r]->GetVtxX(), ringVec[r]->GetVtxY(), ringVec[r]->GetVtxZ()));
+    	fRingDir.push_back(TVector3(ringVec[r]->GetDirX(), ringVec[r]->GetDirY(), ringVec[r]->GetDirZ()));
+	}
 }
 
 SeedInfo::SeedInfo(const SeedInfo& other):
-	fTracks(other.fTracks)
+	fType(other.fType),
+	fTracks(other.fTracks),
+	fNSlices(other.fNSlices),
+	fRingHeight(other.fRingHeight),
+	fRingTime(other.fRingTime),
+	fRingAngle(other.fRingAngle),
+	fRingVtx(other.fRingVtx),
+	fRingDir(other.fRingDir)
 {
 	// Empty...
 }
@@ -141,7 +152,14 @@ SeedInfo& SeedInfo::operator=(const SeedInfo& rhs)
 {
     if(this != &rhs)
     {
+    	fType = rhs.fType;
     	fTracks = rhs.fTracks;
+    	fNSlices = rhs.fNSlices;
+    	fRingHeight = rhs.fRingHeight;
+    	fRingTime = rhs.fRingTime;
+    	fRingAngle = rhs.fRingAngle;
+    	fRingVtx = rhs.fRingVtx;
+    	fRingDir = rhs.fRingDir;
     }
     return *this;
 }
@@ -581,7 +599,7 @@ WCSimOutputTree::WCSimOutputTree(const TString &saveFileName) :
                 fGeometry(0x0),
                 fUID(""), fInputFile(""),
                 fInputEvent(0),
-                fRecoSummary(0x0), fHitComparison(0x0),
+                fRecoSummary(0x0), //fHitComparison(0x0),
                 fHitInfo(0x0), fRecoInfo(0x0), fTruthInfo(0x0),
 				fSeedInfo(0x0),
                 fRecoType("_other"), fEvent(0), fFailed(false)
@@ -600,13 +618,13 @@ WCSimOutputTree::~WCSimOutputTree() {
         std::cout << "done" << std::endl;
     }
 
-    if(fHitComparison != 0x0)
-    {
-        std::cout << "delete hit comp" << std::endl;
-        delete fHitComparison;
-        fHitComparison = 0x0;
-        std::cout << "done" << std::endl;
-    }
+    //if(fHitComparison != 0x0)
+    //{
+    //    std::cout << "delete hit comp" << std::endl;
+    //    delete fHitComparison;
+    //    fHitComparison = 0x0;
+    //    std::cout << "done" << std::endl;
+    //}
 
     if(fHitInfo != 0x0)
     {
@@ -653,7 +671,7 @@ void WCSimOutputTree::MakeTree() {
 
     fResultsTree = new TTree("fResultsTree","ResultsTree");
     fRecoSummary = new WCSimRecoSummary();
-    fHitComparison = new WCSimHitComparison();
+    //fHitComparison = new WCSimHitComparison();
     fHitInfo = new HitInfo();
     fRecoInfo = new RecoInfo();
     fTruthInfo = new TruthInfo();
@@ -664,7 +682,7 @@ void WCSimOutputTree::MakeTree() {
     fResultsTree->Branch("InputEvent", &fInputEvent);
     fResultsTree->Branch("RecoType", &fRecoType);
     fResultsTree->Branch("RecoSummary", "WCSimRecoSummary", &fRecoSummary, 64000, 0);
-    fResultsTree->Branch("HitComparison", "WCSimHitComparison", &fHitComparison, 64000, 1);
+    //fResultsTree->Branch("HitComparison", "WCSimHitComparison", &fHitComparison, 64000, 1);
     fResultsTree->Branch("HitInfo", "HitInfo", &fHitInfo, 64000, 1);
     fResultsTree->Branch("RecoInfo", "RecoInfo", &fRecoInfo, 64000, 1);
     fResultsTree->Branch("TruthInfo", "TruthInfo", &fTruthInfo, 64000, 1);
@@ -674,24 +692,14 @@ void WCSimOutputTree::MakeTree() {
 
 }
 
-void WCSimOutputTree::SetSeed(std::vector<WCSimLikelihoodTrackBase*> tracks)
+void WCSimOutputTree::SetSeed(std::string type, std::vector<WCSimLikelihoodTrackBase*> tracks, int slices, std::vector<WCSimRecoRing*> ringVec, std::vector<double> ringTime)
 {
 	if( fResultsTree == 0x0)
 	{
 		MakeTree();
 	}
 	delete fSeedInfo;
-	fSeedInfo = new SeedInfo(tracks);
-}
-
-void WCSimOutputTree::SetSeed(WCSimLikelihoodTrackBase* track)
-{
-	if( fResultsTree == 0x0)
-	{
-		MakeTree();
-	}
-	delete fSeedInfo;
-	fSeedInfo = new SeedInfo(track);
+	fSeedInfo = new SeedInfo(type, tracks, slices, ringVec, ringTime);
 }
 
 void WCSimOutputTree::Fill(
@@ -699,7 +707,7 @@ void WCSimOutputTree::Fill(
                            Int_t iEvent,
                            std::string recoType,
                            WCSimRecoSummary& summ,
-                           WCSimHitComparison& hitComp,
+                           //WCSimHitComparison& hitComp,
                            HitInfo& hitInfo,
                            RecoInfo& recoInfo,
                            TruthInfo& truthInfo)
@@ -717,8 +725,8 @@ void WCSimOutputTree::Fill(
     delete fRecoSummary;
     fRecoSummary = new WCSimRecoSummary(summ);
 
-    delete fHitComparison;
-    fHitComparison = new WCSimHitComparison(hitComp);
+    //delete fHitComparison;
+    //fHitComparison = new WCSimHitComparison(hitComp);
 
     delete fHitInfo;
     fHitInfo = new HitInfo(hitInfo);
@@ -812,11 +820,11 @@ void WCSimOutputTree::DeletePointersIfExist()
         delete fRecoSummary;
     }
 
-    if(fHitComparison != 0x0)
-    {
-        delete fHitComparison;
-        fHitComparison = 0x0;
-    }
+    //if(fHitComparison != 0x0)
+    //{
+    //    delete fHitComparison;
+    //    fHitComparison = 0x0;
+    //}
 
     if(fHitInfo != 0x0)
     {

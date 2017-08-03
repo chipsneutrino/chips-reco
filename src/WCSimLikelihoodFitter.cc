@@ -757,7 +757,7 @@ void WCSimLikelihoodFitter::FillTree() {
 	if(fOutputTree != NULL)
 	{
         WCSimRecoSummary summ = BuildRecoSummary();
-        WCSimHitComparison hitComp = BuildHitComparison();
+        //WCSimHitComparison hitComp = BuildHitComparison();
         HitInfo hitInfo = BuildHitInfo();
         RecoInfo recoInfo = BuildRecoInfo();
         TruthInfo truthInfo = BuildTruthInfo();
@@ -768,7 +768,7 @@ void WCSimLikelihoodFitter::FillTree() {
                 fEvent,
                 recoType,
                 summ,
-                hitComp,
+                //hitComp,
                 hitInfo,
                 recoInfo,
                 truthInfo
@@ -959,7 +959,7 @@ void WCSimLikelihoodFitter::SeedEvent()
 
   // Need to fill the SeedInfo in the outputTree...
   if(fOutputTree != NULL){
-	  fOutputTree->SetSeed(fSeeds);
+	  fOutputTree->SetSeed(TrackType::AsString(fFitterConfig->GetTrackType(0)) ,fSeeds, slicedEvents.size(), ringVec, ringTime);
   }
 
   delete myReco;
@@ -2709,7 +2709,7 @@ HitInfo WCSimLikelihoodFitter::BuildHitInfo()
     for(int iPMT = 0; iPMT < nPMTs; ++ iPMT)
     {
         WCSimLikelihoodDigit* myDigit = fLikelihoodDigitArray->GetDigit(iPMT);
-        bool isUpstream = (myDigit->GetX() > 0);
+        bool isUpstream = (myDigit->GetX() < 0);
         
         if(myDigit->GetQ() > 0)
         {
