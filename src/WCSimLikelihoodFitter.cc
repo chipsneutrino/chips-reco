@@ -382,6 +382,11 @@ Double_t WCSimLikelihoodFitter::GetMinimum()
 }
 
 void WCSimLikelihoodFitter::FitEventNumber(Int_t iEvent) {
+
+
+	ResetEvent(); //TESTING!!!
+
+
 	fFailed = false;
 	fIsFirstCall = true;
 	SetEvent(iEvent);
@@ -673,12 +678,13 @@ void WCSimLikelihoodFitter::RunFits() {
 	    {
             std::cout << "Filling successful event" << std::endl;
 			  FillPlots();
+			  FillTree(); //TESTING
 	    }
 	    else
 	    {
           std::cout << "Failed for some reason: fMinimum = " << fMinimum << " and fFailed = " << fFailed << std::endl;
         }
-		FillTree();
+		//FillTree();
 	    fOutputTree->SaveTree();
 		fFitterPlots->SavePlots();
 	}

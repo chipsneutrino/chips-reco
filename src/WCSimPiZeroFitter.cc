@@ -268,7 +268,7 @@ void WCSimPiZeroFitter::FitEventNumber(Int_t iEvent) {
 
 	// Need to fill the SeedInfo in the outputTree...
   if(fOutputTree != NULL){
-	  fOutputTree->SetSeed(fSeeds);
+	  //fOutputTree->SetSeed(fSeeds);
   }
 
 	fTrueLikelihoodTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();

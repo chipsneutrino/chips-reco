@@ -129,5 +129,6 @@
 #pragma link C++ class RecoInfo+;
 #pragma link C++ class WCSimOutputTree+;
 
+#pragma link C++ class WCSimPIDTree+;
 
 #endif

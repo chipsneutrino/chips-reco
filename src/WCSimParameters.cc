@@ -36,7 +36,7 @@ WCSimParameters::WCSimParameters()
   // Leigh: Slicer parameters
   fSlicerClusterDistance = 250.; 
   fSlicerMinSize = 25; 
-  fSlicerChargeCut = 2.0;
+  fSlicerChargeCut = 1.0;
   fSlicerTimeCut = 30.;
   fIterateSlicing = false;
 
