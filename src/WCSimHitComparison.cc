@@ -5,6 +5,17 @@
     ClassImp(WCSimSingleHitComparison)
 #endif
 
+	WCSimHitPrediction::WCSimHitPrediction()
+    {
+        fPredictedCharge = 0.0;
+        fPredictedTime = 0.0;
+        fTotal2LnL = 0.0;
+        fCharge2LnL = 0.0;
+        fTime2LnL = 0.0;
+        fHit2LnL = 0.0;
+        fCutoff2LnL = 0.0;
+    }
+
     WCSimHitPrediction::WCSimHitPrediction(const WCSimHitPrediction& other)
     {
             fPredictedCharge = other.fPredictedCharge;

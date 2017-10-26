@@ -62,6 +62,8 @@
 #pragma link C++ class WCSimLikelihoodTunerCache+;
 #pragma link C++ class WCSimChargePredictor+;
 #pragma link C++ class WCSimLikelihoodDigit+;
+#pragma link C++ class vector<WCSimLikelihoodDigit>+;
+#pragma link C++ class vector<vector<WCSimLikelihoodDigit> >;
 #pragma link C++ class WCSimLikelihoodDigitArray+;
 #pragma link C++ class WCSimLikelihoodTrack+;
 #pragma link C++ class TrackType+;
@@ -121,9 +123,12 @@
 #pragma link C++ class WCSimIntegralLookupHistArray+;
 
 #pragma link C++ class WCSimHitPrediction+;
+#pragma link C++ class vector<WCSimHitPrediction>+;
+#pragma link C++ class vector<vector<WCSimHitPrediction> >;
 #pragma link C++ class WCSimSingleHitComparison+;
 #pragma link C++ class vector<WCSimSingleHitComparison>+;
 #pragma link C++ class HitInfo+;
+#pragma link C++ class FitInfo+;
 #pragma link C++ class SeedInfo+;
 #pragma link C++ class TruthInfo+;
 #pragma link C++ class RecoInfo+;

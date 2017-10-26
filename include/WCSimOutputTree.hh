@@ -19,7 +19,6 @@
 #include <string>
 #include <vector>
 
-
 class TFile;
 class TString;
 class TTree;
@@ -76,6 +75,83 @@ class HitInfo : public TObject{
 
         ClassDef(HitInfo,1)
 
+};
+
+class FitInfo : public TObject{
+
+	public:
+		FitInfo();
+		FitInfo(const FitInfo& other);
+		FitInfo& operator=(const FitInfo& rhs);
+    	~FitInfo();
+
+    	void Print(); // Used to print out a general overview of the FitInfo, the o'th stage is the seed
+
+    	void SetEventFitInfo(std::string type, std::vector< std::vector<double> > digitInfo, std::vector< WCSimHitPrediction > correctPred);
+    	void SetStageInfo(int stageNCalls, std::vector< double > stageMinus2LnLs, std::vector< WCSimHitPrediction > stagePreds, std::vector<WCSimLikelihoodTrackBase*> stageTracks);
+
+    	int GetNumStages(){ return fStageNcalls.size(); } // Return the number of stages from the size of the fStagePreds vector
+    	int GetNumTracks(){ return fStageTracks[0].size(); } // Return the size of the first element in the fStageTracks vector
+
+    	std::string GetFitType(){ return fType; }
+    	std::vector< std::vector<double> > GetCorrectDigitInfo(){ return fDigitInfo; }
+    	std::vector< WCSimHitPrediction > GetCorrectPred(){ return fCorrectPred; }
+
+    	std::vector<int> GetNCallsVec(){ return fStageNcalls; }
+    	int GetNCalls(int stage){
+            if(stage < fStageNcalls.size()){
+                return fStageNcalls[stage]; // Index starts at 0
+            }
+            else{
+                std::cerr << "fStageNcalls(index) out of range [0..." << fStageNcalls.size()-1 << "]" << std::endl;
+                return -999;
+            }
+        }
+
+    	std::vector<double> GetStageMinus2LnLs(int stage){
+            if(stage < fStageMinus2LnLs.size()){
+                return fStageMinus2LnLs[stage]; // Index starts at 0
+            }
+            else{
+                std::cerr << "fStageMinus2LnLs(index) out of range [0..." << fStageMinus2LnLs.size()-1 << "]" << std::endl;
+                std::vector<double> error;
+                error.push_back(-999.9);
+                return error;
+            }
+        }
+
+    	std::vector< WCSimHitPrediction > GetStagePreds(int stage){
+            if(stage < fStagePreds.size()){
+                return fStagePreds[stage]; // Index starts at 0
+            }
+            else{
+                std::cerr << "GetStagePreds(index) out of range [0..." << fStagePreds.size()-1 << "]" << std::endl;
+                std::vector<WCSimHitPrediction> error;
+                WCSimHitPrediction bestFit(-999, -999, -999, -999, -999, -999);
+                error.push_back(bestFit);
+                return error;
+            }
+        }
+
+    	std::vector<WCSimLikelihoodTrackBase*> GetStageTracks(int stage){ return fStageTracks[stage]; } // Don't have the check!!!
+
+    	// Want to include functions that can do all the comparison's for me!!! Want to make WCSimOutputTree make, save and read the output tree components!!!
+    	// double GetTotalCharge();
+
+	private:
+    	std::string fType; // The type of fit taking place (Electron, Muon, piZero etc...)
+
+    	std::vector< WCSimHitPrediction > fCorrectPred; // The WCSimHitPrediction vector of all the digits, for the correct set of track parameters
+    	std::vector< std::vector<double> > fDigitInfo; // (tubeID, charge, time) observed values for all digits in the event. Do not save likelihoodDigitArray as this always causes a seg violation.
+
+    	// Variables that are added to at every stage...
+    	std::vector< int > fStageNcalls; // The number of total calls so far at the end of the stage
+    	std::vector< std::vector<double> > fStageMinus2LnLs; // The total, time and charge components of the -2LnL at the end of the stage, THIS MAY BE UNNECESARY IF THESE CAN BE DETERMINED FROM fStagePreds!!!
+    	std::vector< std::vector< WCSimHitPrediction > > fStagePreds; // The WCSimHitPrediction vector of all the digits at every stage, HIGH STORAGE REQUIRED!
+    	std::vector< std::vector< WCSimLikelihoodTrackBase* > > fStageTracks; // The tracks that are being fitted at the end of every stage
+
+
+    	ClassDef(FitInfo,1)
 };
 
 
@@ -417,12 +493,14 @@ public:
 	WCSimOutputTree(const TString &saveFileName);
 	virtual ~WCSimOutputTree();
 
-	void MakeTree();
+	void MakeTree(const bool &saveSeedInfo, const bool &saveFitInfo);
 	void SaveTree();
 	void SetSaveFileName(TString saveName);
 	TString GetSaveFileName() const;
 
 	void SetSeed(std::string type, std::vector<WCSimLikelihoodTrackBase*> tracks, int slices, std::vector<WCSimRecoRing*> ringVec, std::vector<double> ringTime);
+	void SetEventFitInfo(std::string type, std::vector< std::vector<double> > digitInfo, std::vector< WCSimHitPrediction > correctPred);
+	void SetStageInfo(int stageNCalls, std::vector< double > stageMinus2LnLs, std::vector< WCSimHitPrediction > stagePreds, std::vector<WCSimLikelihoodTrackBase*> stageTracks);
 
     void Fill(
               bool failed,
@@ -459,6 +537,7 @@ private:
     RecoInfo * fRecoInfo;
     TruthInfo * fTruthInfo;
     SeedInfo * fSeedInfo;
+    FitInfo * fFitInfo;
     std::string fRecoType;
     int fEvent;
     bool fFailed;

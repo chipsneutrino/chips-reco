@@ -69,8 +69,14 @@ public:
 	bool GetIsPiZeroFit() const;
 	void SetIsPiZeroFit(bool isPiZero);
 
-  bool GetIsCosmicFit() const;
-  void SetIsCosmicFit(bool val);
+    bool GetIsCosmicFit() const;
+    void SetIsCosmicFit(bool val);
+
+    bool GetSaveSeedInfo() const;
+    void SetSaveSeedInfo(bool saveSeedInfo);
+
+    bool GetSaveFitInfo() const;
+    void SetSaveFitInfo(bool saveFitInfo);
 
 private:
 
@@ -84,7 +90,9 @@ private:
 	int fFirstEventToFit;
 	bool fIsPiZeroFit;
 	bool fForcePiZeroMass;
-  bool fIsCosmicFit;
+    bool fIsCosmicFit;
+    bool fSaveSeedInfo;
+    bool fSaveFitInfo;
 
 };
 

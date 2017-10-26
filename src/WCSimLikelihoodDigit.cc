@@ -10,6 +10,19 @@
 ClassImp(WCSimLikelihoodDigit)
 #endif
 
+WCSimLikelihoodDigit::WCSimLikelihoodDigit()
+{
+    fTubeId = -999;
+    fQ = -999;
+    fT = -999;
+    fPos = {-999, -999, -999};
+    fFace = {-999, -999, -999};
+    fPMTName = "NULL";
+
+    fAverageRefIndex = -999;
+    fExposeHeight = -999;
+}
+
 WCSimLikelihoodDigit::WCSimLikelihoodDigit(Double_t x, Double_t y, Double_t z,
         Double_t t, Double_t Q, Int_t tubeId, Double_t faceX, Double_t faceY,
         Double_t faceZ, TString pmtName, TGraph * wlWeightedQE, double wlWeightedRefIndex, double exposeHeight)

@@ -12,6 +12,7 @@
  */
 class WCSimHitPrediction : public TObject{
 public:
+	WCSimHitPrediction();
     WCSimHitPrediction(double predQ, double predT,
                        double total2LnL, 
                        double charge2LnL, double time2LnL, double hit2LnL) : 

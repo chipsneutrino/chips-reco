@@ -27,9 +27,9 @@
 
 #include <vector>
 
-
 #ifndef REFLEX_DICTIONARY
 ClassImp(HitInfo);
+ClassImp(FitInfo);
 ClassImp(SeedInfo);
 ClassImp(TruthInfo);
 ClassImp(RecoInfo); 
@@ -110,7 +110,87 @@ HitInfo::~HitInfo()
 
     // Empty
 }
-        
+
+///////////////////////////////////////////////////////////////
+//  METHODS FOR FITINFO CLASS
+/////////////////////////////////////////////////////////////
+
+FitInfo::FitInfo()
+{
+	fType = "Unknown";
+	fDigitInfo.clear();
+	fCorrectPred.clear();
+	fStageNcalls.clear();
+	fStageMinus2LnLs.clear();
+	fStagePreds.clear();
+	fStageTracks.clear();
+}
+
+FitInfo::FitInfo(const FitInfo& other):
+	fType(other.fType),
+	fDigitInfo(other.fDigitInfo),
+	fCorrectPred(other.fCorrectPred),
+	fStageNcalls(other.fStageNcalls),
+	fStageMinus2LnLs(other.fStageMinus2LnLs),
+	fStagePreds(other.fStagePreds),
+	fStageTracks(other.fStageTracks)
+{
+	// Empty...
+}
+
+FitInfo& FitInfo::operator=(const FitInfo& rhs)
+{
+    if(this != &rhs)
+    {
+    	fType = rhs.fType;
+    	fDigitInfo = rhs.fDigitInfo;
+    	fCorrectPred = rhs.fCorrectPred;
+    	fStageNcalls = rhs.fStageNcalls;
+    	fStageMinus2LnLs = rhs.fStageMinus2LnLs;
+    	fStagePreds = rhs.fStagePreds;
+    	fStageTracks = rhs.fStageTracks;
+    }
+    return *this;
+}
+
+FitInfo::~FitInfo()
+{
+	// Empty...
+}
+
+void FitInfo::Print() // Used to print out a general overview of the FitInfo, the o'th stage is the seed
+{
+	std::cout << "#### FitInfo Print ####" << std::endl;
+	std::cout << "Number of Stages -> " << fStageNcalls.size() << std::endl;
+	std::cout << "Number of Tracks -> " << fStageTracks[0].size() << std::endl;
+	for(int stage = 0; stage < fStageNcalls.size(); stage++){
+		if( stage == 0 ){ std::cout << "#### Seeding Stage #### "; }
+		else{ std::cout << "#### Stage " << stage << " #### "; }
+
+		std::cout << "Total -2LnL = " << fStageMinus2LnLs[stage][0] << ", Time -2LnL = " << fStageMinus2LnLs[stage][1] << ", Charge -2LnL = " << fStageMinus2LnLs[stage][2] << std::endl;
+
+		for(int t = 0; t<fStageTracks[stage].size(); t++){
+			WCSimLikelihoodTrackBase* track = fStageTracks[stage][t];
+			std::cout << "Track " << t << ", vtx = (" << track->GetX() << "," << track->GetY() << "," << track->GetZ() << "), dir = (" << track->GetTheta() << "," << track->GetPhi() << "), Energy = " << track->GetE() << std::endl;
+		}
+	}
+}
+
+void FitInfo::SetEventFitInfo(std::string type, std::vector< std::vector<double> > digitInfo, std::vector< WCSimHitPrediction > correctPred)
+{
+	fType = type;
+	fDigitInfo = digitInfo;
+	fCorrectPred = correctPred;
+}
+
+void FitInfo::SetStageInfo(int stageNCalls, std::vector< double > stageMinus2LnLs, std::vector< WCSimHitPrediction > stagePreds, std::vector<WCSimLikelihoodTrackBase*> stageTracks)
+{
+	fStageNcalls.push_back(stageNCalls);
+	fStageMinus2LnLs.push_back(stageMinus2LnLs);
+	fStagePreds.push_back(stagePreds);
+	fStageTracks.push_back(stageTracks);
+}
+
 ///////////////////////////////////////////////////////////////
 //  METHODS FOR SEEDINFO CLASS
 //////////////////////////////////////////////////////////////
@@ -601,7 +681,7 @@ WCSimOutputTree::WCSimOutputTree(const TString &saveFileName) :
                 fInputEvent(0),
                 fRecoSummary(0x0), //fHitComparison(0x0),
                 fHitInfo(0x0), fRecoInfo(0x0), fTruthInfo(0x0),
-				fSeedInfo(0x0),
+				fSeedInfo(0x0), fFitInfo(0x0),
                 fRecoType("_other"), fEvent(0), fFailed(false)
 {
 	// TODO Auto-generated constructor stub
@@ -649,6 +729,7 @@ WCSimOutputTree::~WCSimOutputTree() {
         fTruthInfo = 0x0;
         std::cout << "done" << std::endl;
     }
+
     if(fSeedInfo != 0x0)
     {
         std::cout << "delete seed info" << std::endl;
@@ -656,10 +737,18 @@ WCSimOutputTree::~WCSimOutputTree() {
         fSeedInfo = 0x0;
         std::cout << "done" << std::endl;
     }
+
+    if(fFitInfo != 0x0)
+    {
+        std::cout << "delete fit info" << std::endl;
+        delete fFitInfo;
+        fFitInfo = 0x0;
+        std::cout << "done" << std::endl;
+    }
     //
 }
 
-void WCSimOutputTree::MakeTree() {
+void WCSimOutputTree::MakeTree(const bool &saveSeedInfo, const bool &saveFitInfo) {
     std::cout << "fSaveFileName = " << fSaveFileName << " and file is " << fSaveFile << std::endl;
 	fSaveFile->cd();
 
@@ -676,6 +765,7 @@ void WCSimOutputTree::MakeTree() {
     fRecoInfo = new RecoInfo();
     fTruthInfo = new TruthInfo();
     fSeedInfo = new SeedInfo();
+    fFitInfo = new FitInfo();
 
     fResultsTree->Branch("UID", &fUID);
     fResultsTree->Branch("InputFile", &fInputFile);
@@ -686,7 +776,9 @@ void WCSimOutputTree::MakeTree() {
     fResultsTree->Branch("HitInfo", "HitInfo", &fHitInfo, 64000, 1);
     fResultsTree->Branch("RecoInfo", "RecoInfo", &fRecoInfo, 64000, 1);
     fResultsTree->Branch("TruthInfo", "TruthInfo", &fTruthInfo, 64000, 1);
-    fResultsTree->Branch("SeedInfo", "SeedInfo", &fSeedInfo, 64000, 1);
+
+    if(saveSeedInfo){ fResultsTree->Branch("SeedInfo", "SeedInfo", &fSeedInfo, 64000, 1); }
+    if(saveFitInfo){ fResultsTree->Branch("FitInfo", "FitInfo", &fFitInfo, 3200000, 1); }
 
     fEvent = 0;
 
@@ -696,10 +788,31 @@ void WCSimOutputTree::SetSeed(std::string type, std::vector<WCSimLikelihoodTrack
 {
 	if( fResultsTree == 0x0)
 	{
-		MakeTree();
+		std::cerr << "Calling SetSeed before the resultsTree has been made!!!" << std::endl;
+		//MakeTree();
 	}
 	delete fSeedInfo;
 	fSeedInfo = new SeedInfo(type, tracks, slices, ringVec, ringTime);
+}
+
+void WCSimOutputTree::SetEventFitInfo(std::string type, std::vector< std::vector<double> > digitInfo, std::vector< WCSimHitPrediction > correctPred)
+{
+	if( fResultsTree == 0x0)
+	{
+		std::cerr << "Calling SetEventFitInfo before the resultsTree has been made!!!" << std::endl;
+		//MakeTree();
+	}
+	fFitInfo->SetEventFitInfo(type, digitInfo, correctPred);
+}
+
+void WCSimOutputTree::SetStageInfo(int stageNCalls, std::vector< double > stageMinus2LnLs, std::vector< WCSimHitPrediction > stagePreds, std::vector<WCSimLikelihoodTrackBase*> stageTracks)
+{
+	if( fResultsTree == 0x0)
+	{
+		std::cerr << "Calling SetStageInfo before the resultsTree has been made!!!" << std::endl;
+		//MakeTree();
+	}
+	fFitInfo->SetStageInfo(stageNCalls, stageMinus2LnLs, stagePreds, stageTracks);
 }
 
 void WCSimOutputTree::Fill(
@@ -716,7 +829,8 @@ void WCSimOutputTree::Fill(
 	// Fill the truth and fit tree entries
 	if( fResultsTree == 0x0)
 	{
-		MakeTree();
+		std::cerr << "Calling Fill before the resultsTree has been made!!!" << std::endl;
+		//MakeTree();
 	}
     fFailed = failed;
 	fEvent = iEvent;
@@ -747,6 +861,9 @@ void WCSimOutputTree::Fill(
 	}
 
     SaveTree();
+
+    delete fFitInfo;
+    fFitInfo = new FitInfo();
 
 }
 
@@ -848,6 +965,12 @@ void WCSimOutputTree::DeletePointersIfExist()
     {
         delete fSeedInfo;
         fSeedInfo = 0x0;
+    }
+
+    if(fFitInfo != 0x0)
+    {
+        delete fFitInfo;
+        fFitInfo = 0x0;
     }
 }
 

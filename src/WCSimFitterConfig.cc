@@ -296,6 +296,26 @@ void WCSimFitterConfig::SetIsCosmicFit(bool val)
   fIsCosmicFit = val;
 }
 
+bool WCSimFitterConfig::GetSaveSeedInfo() const
+{
+	return fSaveSeedInfo;
+}
+
+void WCSimFitterConfig::SetSaveSeedInfo(bool saveSeedInfo)
+{
+	fSaveSeedInfo = saveSeedInfo;
+}
+
+bool WCSimFitterConfig::GetSaveFitInfo() const
+{
+	return fSaveFitInfo;
+}
+
+void WCSimFitterConfig::SetSaveFitInfo(bool saveFitInfo)
+{
+	fSaveFitInfo = saveFitInfo;
+}
+
 void WCSimFitterConfig::SetForcePiZeroMass(const bool& doIt)
 {
 	if(!fIsPiZeroFit)

@@ -33,6 +33,8 @@ public:
      * @param faceY y co-ordinate of PMT normal
      * @param faceZ z co-ordinate of PMT normal
      */
+	WCSimLikelihoodDigit();
+
     WCSimLikelihoodDigit(Double_t x, Double_t y, Double_t z, Double_t t,
             Double_t Q, Int_t tubeId, Double_t faceX, Double_t faceY,
             Double_t faceZ, TString name, TGraph * wlWeightedQE, Double_t wlWeightedRefIndex, double exposeHeight);

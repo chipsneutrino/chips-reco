@@ -84,8 +84,14 @@ public:
 	void SetForcePiZeroMass(const bool &doIt = true);
 	bool GetForcePiZeroMass() const;
 
-  void SetIsCosmicFit(const bool &val);
-  bool GetIsCosmicFit() const;
+    void SetIsCosmicFit(const bool &val);
+    bool GetIsCosmicFit() const;
+
+    void SetSaveSeedInfo(const bool &saveSeedInfo);
+    bool GetSaveSeedInfo() const;
+
+    void SetSaveFitInfo(const bool &saveFitInfo);
+    bool GetSaveFitInfo() const;
 
 	void PrintFitConfiguration();
 	void PrintPlotsConfiguration();

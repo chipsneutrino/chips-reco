@@ -1,5 +1,5 @@
 /**
- * \class WCSimLikelihoodFitter
+Simon McCoy * \class WCSimLikelihoodFitter
  * This class is used to vary the hypothesized tracks
  * and perform the minimization of the resulting negative
  * log likelihood to reconstruct the event.
@@ -64,6 +64,9 @@ class WCSimLikelihoodFitter
         TruthInfo BuildTruthInfo();
         std::string GetRecoType();
         
+        void SetFitInfo();
+        void SetFitInfoStage();
+
         void SeedEvent();
         void FixVertex();
         void FreeVertex();
@@ -436,8 +439,6 @@ class WCSimLikelihoodFitter
         WCSimOutputTree * fOutputTree; ///< Responsible for saving fit information 
         WCSimFitterTrackParMap fFitterTrackParMap; ///< Stores and looks-up track parameters in an array
         WCSimFitterConfig * fFitterConfig; ///< For configuring the fitter options
-
-
 
         int fCalls; ///< How many times the likelihood has been calculated for this event
     ClassDef(WCSimLikelihoodFitter,1);

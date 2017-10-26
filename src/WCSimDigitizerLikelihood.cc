@@ -485,16 +485,18 @@ Double_t WCSimDigitizerLikelihood::GetPoissonMinus2LnL( const Double_t &undigi, 
 
   // New implementation copying what that do in NOVA. undigi = prediction , digi = observation
   const double minexp = 1e-6; // Don't let expectation go lower than this
+
   double minus2LnL = 0;
+  double exp = undigi;
 
   assert(digi >= 0);
-  if(undigi < minexp){
+  if(exp < minexp){
 	  if(!digi){ return 0; }
-	  undigi = minexp;
+	  exp = minexp;
   }
 
-  minus2LnL += 2*(undigi-digi);
-  if(digi){ minus2LnL += 2*digi*TMath::Log(digi/undigi); }
+  minus2LnL += 2*(exp-digi);
+  if(digi){ minus2LnL += 2*digi*TMath::Log(digi/exp); }
 
   return minus2LnL;
 }
