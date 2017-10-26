@@ -171,7 +171,8 @@ double WCSimChargePredictor::GetPredictedCharge(WCSimLikelihoodDigit *myDigit)
 		// Work out the predicted mean charge at this PMT
 		predictedCharge = this->ChargeExpectation(iTrack);
   }
-  if(predictedCharge < 2.5e-2){ predictedCharge = 2.5e-2; }
+
+  if(predictedCharge < 1e-6){ predictedCharge = 1e-6; }
 
   return predictedCharge;
 }

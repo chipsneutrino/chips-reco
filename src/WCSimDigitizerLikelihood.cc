@@ -281,15 +281,12 @@ Double_t WCSimDigitizerLikelihood::GetWCSimLikelihood( Double_t undigi, const Do
     // std::cerr << "Error: predicted charge was less than zero (" << undigi << ")" << std::endl
     //           << "Indicdentally, the measured charge was " << digi << std::endl;
     undigi = 1e-6;
-    assert(undigi >0);
+    assert(undigi > 0);
   }
   if( undigi > 0 )
   {
     // std::cerr << "Looking good - we predict " << undigi << " and measure " << digi << std::endl;
   }
-
-
-
 
  	// Get the likelihood of an undigitized hit resulting in a given digitized one
  	if( undigi <= 0) { undigi = fSK1peHist->GetXaxis()->GetBinCenter(1); }
@@ -479,10 +476,27 @@ Double_t WCSimDigitizerLikelihood::GetPoissonLikelihood(const Double_t &undigi, 
 
 Double_t WCSimDigitizerLikelihood::GetPoissonMinus2LnL( const Double_t &undigi, const Double_t &digi )
 {
-    return -2.0 * ( digi * TMath::Log(undigi) - undigi - TMath::LnGamma(digi+1));
-  Double_t prob = this->GetPoissonLikelihood( undigi, digi );
-  if(prob > 1e-40){ return -2.0 * TMath::Log(prob);}
-  return -(digi * TMath::Log(undigi) - undigi - TMath::LnGamma(digi+1));
+  // This used to be done by using...
+  // return -2.0 * ( digi * TMath::Log(undigi) - undigi - TMath::LnGamma(digi+1));
+  // Other bits that were used in the past...
+  // Double_t prob = this->GetPoissonLikelihood( undigi, digi );
+  // if(prob > 1e-40){ return -2.0 * TMath::Log(prob);}
+  // return -(digi * TMath::Log(undigi) - undigi - TMath::LnGamma(digi+1));
+
+  // New implementation copying what that do in NOVA. undigi = prediction , digi = observation
+  const double minexp = 1e-6; // Don't let expectation go lower than this
+  double minus2LnL = 0;
+
+  assert(digi >= 0);
+  if(undigi < minexp){
+	  if(!digi){ return 0; }
+	  undigi = minexp;
+  }
+
+  minus2LnL += 2*(undigi-digi);
+  if(digi){ minus2LnL += 2*digi*TMath::Log(digi/undigi); }
+
+  return minus2LnL;
 }
 
 Double_t WCSimDigitizerLikelihood::GetPoissonExpectation( const Double_t &undigi )
