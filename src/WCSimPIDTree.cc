@@ -188,7 +188,7 @@ void WCSimPIDTree::GetEntry(int entry)
 	    dirZ_el = recoInfo_el->GetDirZ();
 	    escapes_el = recoInfo_el->Escapes();
 
-	    preselected = !(nHits < 50 || recoE_el < 550 || recoE_mu < 550 || recoE_el > 4950 || recoE_mu > 4950 || vtxRho_el > 1150 || vtxZ_el > 900 || vtxZ_el < -900 || veto || fracHitsDownstream < 0 || nRings < 0 || firstRingHeight < 0 || lastRingHeight < 0);
+	    preselected = !(nHits < 50 || recoE_el < 550 || recoE_mu < 550 || recoE_el > 4950 || recoE_mu > 4950 || vtxRho_el > 1100 || vtxZ_el > 900 || vtxZ_el < -900 || veto || fracHitsDownstream < 0 || nRings < 0 || firstRingHeight < 0 || lastRingHeight < 0);
 	}
 	else
 	{
