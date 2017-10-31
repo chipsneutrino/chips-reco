@@ -97,7 +97,7 @@ void WCSimPiZeroHoughSeeder::RunHough()
 	  }
 	}
 	std::sort(otherRings.begin(), otherRings.end(), RingSort);
-	for(int i = 0; i < otherRings.size(); ++i)
+	for(int i = 0; (size_t)i < otherRings.size(); ++i)
 	{
 		std::cout << "Primary ring " << i << "/" << otherRings.size() << " has height " << otherRings.at(i).first->GetHeight() << "  ";
 		std::cout << "Vtx (" << otherRings.at(i).first->GetVtxX() << ", " << otherRings.at(i).first->GetVtxY() << ", " << otherRings.at(i).first->GetVtxZ() << ")";

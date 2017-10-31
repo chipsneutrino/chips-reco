@@ -99,7 +99,7 @@ class FitInfo : public TObject{
 
     	std::vector<int> GetNCallsVec(){ return fStageNcalls; }
     	int GetNCalls(int stage){
-            if(stage < fStageNcalls.size()){
+            if(stage >= 0 && (size_t)stage < fStageNcalls.size()){
                 return fStageNcalls[stage]; // Index starts at 0
             }
             else{
@@ -109,7 +109,7 @@ class FitInfo : public TObject{
         }
 
     	std::vector<double> GetStageMinus2LnLs(int stage){
-            if(stage < fStageMinus2LnLs.size()){
+            if(stage >= 0 && (size_t)stage < fStageMinus2LnLs.size()){
                 return fStageMinus2LnLs[stage]; // Index starts at 0
             }
             else{
@@ -121,7 +121,7 @@ class FitInfo : public TObject{
         }
 
     	std::vector< WCSimHitPrediction > GetStagePreds(int stage){
-            if(stage < fStagePreds.size()){
+            if(stage >= 0 && (size_t)stage < fStagePreds.size()){
                 return fStagePreds[stage]; // Index starts at 0
             }
             else{
@@ -133,23 +133,31 @@ class FitInfo : public TObject{
             }
         }
 
-    	std::vector<WCSimLikelihoodTrackBase*> GetStageTracks(int stage){ return fStageTracks[stage]; } // Don't have the check!!!
+    	std::vector<WCSimLikelihoodTrackBase*> GetStageTracks(int stage){
+            if(stage >= 0 && (size_t)stage < fStageTracks.size()){
+                return fStageTracks[stage]; // Index starts at 0
+            }
+            else{
+                std::cerr << "GetStageTracks(index) out of range [0..." << fStagePreds.size()-1 << "]" << std::endl;
+                std::vector<WCSimLikelihoodTrackBase*> error;
+                error.push_back(WCSimLikelihoodTrackFactory::MakeTrack(TrackType::Unknown, -999, -999, -999, -999, -999, -999, -999, -999));
+                return error;
+            }
+    	}
 
-    	// Want to include functions that can do all the comparison's for me!!! Want to make WCSimOutputTree make, save and read the output tree components!!!
-    	// double GetTotalCharge();
+    	// TODO: Add functions to get total predicted charge etc...
 
 	private:
     	std::string fType; // The type of fit taking place (Electron, Muon, piZero etc...)
 
-    	std::vector< WCSimHitPrediction > fCorrectPred; // The WCSimHitPrediction vector of all the digits, for the correct set of track parameters
     	std::vector< std::vector<double> > fDigitInfo; // (tubeID, charge, time) observed values for all digits in the event. Do not save likelihoodDigitArray as this always causes a seg violation.
+    	std::vector< WCSimHitPrediction > fCorrectPred; // The WCSimHitPrediction vector of all the digits, for the correct set of track parameters
 
     	// Variables that are added to at every stage...
     	std::vector< int > fStageNcalls; // The number of total calls so far at the end of the stage
     	std::vector< std::vector<double> > fStageMinus2LnLs; // The total, time and charge components of the -2LnL at the end of the stage, THIS MAY BE UNNECESARY IF THESE CAN BE DETERMINED FROM fStagePreds!!!
     	std::vector< std::vector< WCSimHitPrediction > > fStagePreds; // The WCSimHitPrediction vector of all the digits at every stage, HIGH STORAGE REQUIRED!
     	std::vector< std::vector< WCSimLikelihoodTrackBase* > > fStageTracks; // The tracks that are being fitted at the end of every stage
-
 
     	ClassDef(FitInfo,1)
 };
@@ -171,7 +179,7 @@ class SeedInfo : public TObject{
     	int GetNumTracks(){ return fTracks.size(); }
     	std::vector<WCSimLikelihoodTrackBase*> GetTracks(){ return fTracks; }
     	WCSimLikelihoodTrackBase* GetTrack(int p){
-            if(p < fTracks.size()){
+            if(p >= 0 && (size_t)p < fTracks.size()){
                 return fTracks[p]; // Index starts at 0
             }
             else{
@@ -194,7 +202,7 @@ class SeedInfo : public TObject{
 
     	std::vector<double> GetRingHeights(){ return fRingHeight; }
     	double GetRingHeight(int p){
-            if(p < fRingHeight.size()){ return fRingHeight[p]; }
+            if(p >= 0 && (size_t)p < fRingHeight.size()){ return fRingHeight[p]; }
             else{
                 std::cerr << "GetRing(index) out of range [0..." << fRingHeight.size()-1 << "]" << std::endl;
                 return -999;
@@ -203,7 +211,7 @@ class SeedInfo : public TObject{
 
     	std::vector<double> GetRingTimes(){ return fRingTime; }
     	double GetRingTime(int p){
-            if(p < fRingTime.size()){ return fRingTime[p]; }
+            if(p >= 0 && (size_t)p < fRingTime.size()){ return fRingTime[p]; }
             else{
                 std::cerr << "GetRingTime(index) out of range [0..." << fRingTime.size()-1 << "]" << std::endl;
                 return -999;
@@ -212,7 +220,7 @@ class SeedInfo : public TObject{
 
     	std::vector<double> GetRingAngles(){ return fRingAngle; }
     	double GetRingAngle(int p){
-            if(p < fRingAngle.size()){ return fRingAngle[p]; }
+            if(p >= 0 && (size_t)p < fRingAngle.size()){ return fRingAngle[p]; }
             else{
                 std::cerr << "GetRingAngle(index) out of range [0..." << fRingAngle.size()-1 << "]" << std::endl;
                 return -999;
@@ -221,7 +229,7 @@ class SeedInfo : public TObject{
 
     	std::vector<TVector3> GetRingVtxs(){ return fRingVtx; }
     	TVector3 GetRingVtx(int p){
-            if(p < fRingVtx.size()){ return fRingVtx[p]; }
+            if(p >= 0 && (size_t)p < fRingVtx.size()){ return fRingVtx[p]; }
             else{
                 std::cerr << "GetRingVtx(index) out of range [0..." << fRingVtx.size()-1 << "]" << std::endl;
                 return TVector3(-999, -999, -999);
@@ -230,7 +238,7 @@ class SeedInfo : public TObject{
 
     	std::vector<TVector3> GetRingDirs(){ return fRingDir; }
     	TVector3 GetRingDir(int p){
-            if(p < fRingDir.size()){ return fRingDir[p]; }
+            if(p >= 0 && (size_t)p < fRingDir.size()){ return fRingDir[p]; }
             else{
                 std::cerr << "GetRingDir(index) out of range [0..." << fRingDir.size()-1 << "]" << std::endl;
                 return TVector3(-999, -999, -999);
@@ -464,8 +472,8 @@ class RecoInfo : public TObject{
 
         float fPredictedOverTotalCharge;
 
-        float fEnergy;
         float fVtxTime;
+        float fEnergy;
         float fVtxX;
         float fVtxY;
         float fVtxZ;

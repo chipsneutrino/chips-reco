@@ -163,13 +163,13 @@ void FitInfo::Print() // Used to print out a general overview of the FitInfo, th
 	std::cout << "#### FitInfo Print ####" << std::endl;
 	std::cout << "Number of Stages -> " << fStageNcalls.size() << std::endl;
 	std::cout << "Number of Tracks -> " << fStageTracks[0].size() << std::endl;
-	for(int stage = 0; stage < fStageNcalls.size(); stage++){
+	for(int stage = 0; (size_t)stage < fStageNcalls.size(); stage++){
 		if( stage == 0 ){ std::cout << "#### Seeding Stage #### "; }
 		else{ std::cout << "#### Stage " << stage << " #### "; }
 
 		std::cout << "Total -2LnL = " << fStageMinus2LnLs[stage][0] << ", Time -2LnL = " << fStageMinus2LnLs[stage][1] << ", Charge -2LnL = " << fStageMinus2LnLs[stage][2] << std::endl;
 
-		for(int t = 0; t<fStageTracks[stage].size(); t++){
+		for(int t = 0; (size_t)t<fStageTracks[stage].size(); t++){
 			WCSimLikelihoodTrackBase* track = fStageTracks[stage][t];
 			std::cout << "Track " << t << ", vtx = (" << track->GetX() << "," << track->GetY() << "," << track->GetZ() << "), dir = (" << track->GetTheta() << "," << track->GetPhi() << "), Energy = " << track->GetE() << std::endl;
 		}
@@ -207,7 +207,7 @@ SeedInfo::SeedInfo(std::string type, std::vector<WCSimLikelihoodTrackBase*> trac
 	fRingAngle.clear();
 	fRingVtx.clear();
 	fRingDir.clear();
-	for(int r=0; r<ringVec.size(); r++){
+	for(int r=0; (size_t)r<ringVec.size(); r++){
 		fRingHeight.push_back(ringVec[r]->GetHeight());
     	fRingAngle.push_back(ringVec[r]->GetAngle());
     	fRingVtx.push_back(TVector3(ringVec[r]->GetVtxX(), ringVec[r]->GetVtxY(), ringVec[r]->GetVtxZ()));
@@ -452,8 +452,8 @@ RecoInfo::RecoInfo(const RecoInfo& other) :
     fFracPredQOutsideRing(other.fFracPredQOutsideRing),
     fFracPredQInRingHole(other.fFracPredQInRingHole),
     fPredictedOverTotalCharge(other.fPredictedOverTotalCharge),
-    fEnergy(other.fEnergy),
     fVtxTime(other.fVtxTime),
+	fEnergy(other.fEnergy),
     fVtxX(other.fVtxX),
     fVtxY(other.fVtxY),
     fVtxZ(other.fVtxZ),

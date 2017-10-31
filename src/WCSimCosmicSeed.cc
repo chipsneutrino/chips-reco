@@ -185,7 +185,7 @@ void WCSimCosmicSeed::RunSimpleCrossingSeed(){
   double minSeedQ = 4.0;
   WCSimRecoDigit* upperHit = 0x0;
   WCSimRecoDigit* lowerHit = 0x0;
-  int upperRegion = -1; // 0 = top, 1 = upper side, 2 = lower side
+  //int upperRegion = -1; // 0 = top, 1 = upper side, 2 = lower side
 
   // Update the booleans to see if we have sizable hits
   isTopHit = isTopHit && (qMaxTop > minSeedQ);

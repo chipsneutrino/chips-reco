@@ -127,7 +127,7 @@ class WCSimGeometry : public TObject {
                                    Double_t px, Double_t py, Double_t pz);
   Double_t BackwardProjectionToEdge(Double_t x, Double_t y, Double_t z,
                                     Double_t px, Double_t py, Double_t pz);
-  bool ProjectMinMaxPosition(TVector3 vtx, TVector3 dir, Double_t &sMin, Double_t &sMax);
+  void ProjectMinMaxPosition(TVector3 vtx, TVector3 dir, Double_t &sMin, Double_t &sMax);
 
   // Projection to Edge of Detector
   // ==============================

@@ -15,10 +15,13 @@ WCSimLikelihoodDigit::WCSimLikelihoodDigit()
     fTubeId = -999;
     fQ = -999;
     fT = -999;
-    fPos = {-999, -999, -999};
-    fFace = {-999, -999, -999};
+    fPos[0] = -999;
+    fPos[1] = -999;
+    fPos[2] = -999;
+    fFace[0] = -999;
+    fFace[1] = -999;
+    fFace[2] = -999;
     fPMTName = "NULL";
-
     fAverageRefIndex = -999;
     fExposeHeight = -999;
 }

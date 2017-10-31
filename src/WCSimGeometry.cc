@@ -796,7 +796,7 @@ Double_t WCSimGeometry::BackwardProjectionToEdge(Double_t x, Double_t y, Double_
 
 // Function to find the minimum and maximum distances along the track direction from the vertex to remain
 // inside the detector. Used mostly by the fit routine that moves the vertex along the track direction.
-bool WCSimGeometry::ProjectMinMaxPosition(TVector3 vtx, TVector3 dir, Double_t &sMin, Double_t &sMax){
+void WCSimGeometry::ProjectMinMaxPosition(TVector3 vtx, TVector3 dir, Double_t &sMin, Double_t &sMax){
 
   Double_t xproj1 = 0.0;
   Double_t yproj1 = 0.0;
@@ -2488,7 +2488,7 @@ WCSimGeometry::RingRegion_t WCSimGeometry::GetPMTRingRegion(const TVector3& vtx,
 bool WCSimGeometry::IsOutsideRing(const TVector3& vtx, const TVector3& dir, const TVector3& pmt, const TrackType::Type& type, const double energy)
 {
     int region = (GetPMTRingRegion(vtx, dir, pmt, type, energy));
-    return (GetPMTRingRegion(vtx, dir, pmt, type, energy) == WCSimGeometry::kOutside);
+    return (region == WCSimGeometry::kOutside);
 }
 
 bool WCSimGeometry::IsInRing(const TVector3& vtx, const TVector3& dir, const TVector3& pmt, const TrackType::Type& type, const double energy)

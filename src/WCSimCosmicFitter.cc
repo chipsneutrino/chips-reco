@@ -700,10 +700,10 @@ void WCSimCosmicFitter::FitAlongTrack()
     double stepE = fFitterTrackParMap.GetStep(i, FitterParameterType::kEnergy);
     bool fixE = fFitterTrackParMap.GetIsFixed(i, FitterParameterType::kEnergy);
 
-    double minT = fFitterTrackParMap.GetMinValue(i, FitterParameterType::kVtxT);
-    double maxT = fFitterTrackParMap.GetMaxValue(i, FitterParameterType::kVtxT);
-    double currT = fFitterTrackParMap.GetCurrentValue(i, FitterParameterType::kVtxT);
-    double stepT = fFitterTrackParMap.GetStep(i, FitterParameterType::kVtxT);
+    //double minT = fFitterTrackParMap.GetMinValue(i, FitterParameterType::kVtxT);
+    //double maxT = fFitterTrackParMap.GetMaxValue(i, FitterParameterType::kVtxT);
+    //double currT = fFitterTrackParMap.GetCurrentValue(i, FitterParameterType::kVtxT);
+    //double stepT = fFitterTrackParMap.GetStep(i, FitterParameterType::kVtxT);
     bool fixT = (fFitterTrackParMap.GetIsFixed(i, FitterParameterType::kVtxT) || !WCSimAnalysisConfig::Instance()->GetUseTime());
 
     TVector3 startVertex(fFitterTrackParMap.GetCurrentValue(i, FitterParameterType::kVtxX),

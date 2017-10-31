@@ -739,7 +739,7 @@ double WCSimTimeLikelihood3::FindCrossing(const double n, const double predMean,
     ROOT::Math::GradFunctor1D  f(finder);
     ROOT::Math::RootFinder rfn(ROOT::Math::RootFinder::kGSL_BRENT);
     rfn.SetFunction(f, min, max);
-    int result = rfn.Solve();
+    rfn.Solve();
     double crossingX = rfn.Root();
 
     return crossingX;
@@ -845,7 +845,7 @@ std::vector<double> WCSimTimeLikelihood3::FindCrossings(const double n, const do
          continue;
      }
      rfn.SetFunction(f, lo, hi);
-     int result = rfn.Solve();
+     rfn.Solve();
      double root = rfn.Root();
 
      if ( (lo <= root || finder.ApproxEqual(root, lo, 1e-6) ) && ( root <= hi || finder.ApproxEqual(root, hi, 1e-6)) )

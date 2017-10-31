@@ -42,7 +42,8 @@ WCSIM_LIBS += -lWCSim
 .PHONY: 
 	all
 
-all: rootcint shared libWCSimAnalysis.a
+all: rootcint shared
+# all: rootcint shared libWCSimAnalysis.a
 
 ROOTSO := $(LIBDIR)/libWCSimAnalysis.so
 
@@ -99,12 +100,12 @@ clean :
 	@echo "<**Clean**>"
 	rm -f $(SRCDIR)/*~ $(INCDIR)/*~ $(TMPDIR)/*.o $(TMPDIR)/*.d $(TMPDIR)/*.a $(LIBDIR)/*.so $(SRCDIR)/WCSimAnalysisRootDict.*
 
-DEPS = $(ROOTOBJS:$(TMPDIR)/%.o=$(TMPDIR)/%.d)
+#DEPS = $(ROOTOBJS:$(TMPDIR)/%.o=$(TMPDIR)/%.d)
 
-ifeq ($(MAKECMDGOALS),all)
- include $(DEPS)
-endif
+#ifeq ($(MAKECMDGOALS),all)
+# include $(DEPS)
+#endif
 
-ifeq ($(MAKECMDGOALS),shared)
- include $(DEPS)
-endif
+#ifeq ($(MAKECMDGOALS),shared)
+# include $(DEPS)
+#endif
