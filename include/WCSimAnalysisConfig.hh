@@ -175,6 +175,24 @@ public:
      */
     Double_t GetFittedSpeedOfLight() const;
 
+    /**
+     * Do we want to save a SeedInfo in the output file?
+     * @return True to save a SeedInfo, false if not
+     */
+    Bool_t GetSaveSeedInfo() const;
+
+    /**
+     * Do we want to save a StageInfo in the output file?
+     * @return True to save a StageInfo, false if not
+     */
+    Bool_t GetSaveStageInfo() const;
+
+    /**
+     * Do we want to save a HitComparison in the output file?
+     * @return True to save a HitComparison, false if not
+     */
+    Bool_t GetSaveHitComparison() const;
+
     Bool_t GetEqualiseChargeAndTime() const;
 
     void SetUseTimeOnly(Bool_t doIt = true);
@@ -206,7 +224,9 @@ public:
     void SetSaveWCSimRootEvent(Bool_t doIt = true);
 
 
-
+    void SetSaveSeedInfo(Bool_t doIt = true);
+    void SetSaveStageInfo(Bool_t doIt = true);
+    void SetSaveHitComparison(Bool_t doIt = true);
 
 private:
     /// Read the configuration text file specified in WCSimAnalysisConfig::fConfName
@@ -257,7 +277,7 @@ private:
 
     /// Iterate through the map and use it to set all the variables it specifies
     void SetFromMap();
-    
+
     std::string   fConfName;                   ///< Path of a text file containing all the configuration parameters
     Bool_t        fCalculateIntegrals;         ///< True if charge likelihood should calculate integrals, false to look them up
     Bool_t        fTruncateIntegrals;          ///< True if charge likelihood should use full lookup tabels for integrals, false to use one that doesn't cut off
@@ -272,15 +292,18 @@ private:
     Bool_t        fUseCustomSpeedOfLight;      ///< Normally we assume light travels at c/(average n) - this allows us to switch and set it manually
     Bool_t        fUseFittedSpeedOfLight;      ///< Normally we assume light travels at c/(average n) - this uses a fitted speed instead
     Bool_t        fEqualiseChargeAndTime;      ///< After we've seeded the vertex, energy and time, we can scale the time likelihood to weight it the same as the charge
-    Bool_t        fSaveWCSimRootEvent;   ///< Whether to save a full copy of the WCSimRootEvent fitted, or just a link to the original file
+    Bool_t        fSaveWCSimRootEvent;   	   ///< Whether to save a full copy of the WCSimRootEvent fitted, or just a link to the original file
     Double_t      fCustomParticleSpeed;        ///< The speed of the propagating particle as a fraction of c       
     Double_t      fCustomSpeedOfLight;         ///< The speed of the propagating particle as a fraction of c       
     Double_t      fFittedSpeedOfLight;         ///< The effective speed of light from our fit as a fraction of c
     std::string   fDigiType;                   ///< Name of digitizer type to use in WCSimDigitizerLikelihood::DigiType_t
+    Bool_t        fSaveSeedInfo;			   ///< True if we should save the SeedInfo in the output file
+    Bool_t        fSaveStageInfo;			   ///< True if we should save the StageInfo in the output file
+    Bool_t        fSaveHitComparison;		   ///< True if we should save the HitComparison in the output file
 
     std::map<std::string, std::string> fMap;   ///< Map to store key names and their values to set
     
-    ClassDef(WCSimAnalysisConfig,0)
+    ClassDef(WCSimAnalysisConfig,1)
 };
 
 #endif	/* WCSIMANALYSISCONFIG_HH */

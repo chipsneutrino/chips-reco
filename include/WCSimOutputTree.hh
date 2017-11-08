@@ -29,19 +29,66 @@ class WCSimTrueEvent;
 class WCSimRootEvent;
 class WCSimRecoSummary;
 
+// TODO: Update the output tree to make it simpler + include the PID tree by default
+// TODO: Add a print() function to each of the outputTree classes
 
+/*
+ * \class EventHeader
+ * Holds metadata type data for the given event
+ */
+class EventHeader : public TObject{
+
+	public:
+		EventHeader();
+		EventHeader(std::string inputFile,
+			    	int inputEvent,
+			    	bool failed,
+			    	std::string recoType
+					);
+		EventHeader(const EventHeader& other);
+		EventHeader& operator=(const EventHeader& rhs);
+        ~EventHeader();
+
+        void Print();
+
+        std::string GetUID(){ return fUID; }
+	    std::string GetInputFile(){ return fInputFile; }
+	    int GetEventNum(){ return fInputEvent; }
+	    bool IsFailed(){ return fFailed; }
+	    std::string GetRecoType(){ return fRecoType; }
+
+	private:
+	    void BuildUID();
+
+	    std::string fUID;			///< Unique Identification Number for a file/event combination
+	    std::string fInputFile;		///< Path to input WCSim file
+	    int fInputEvent;			///< Event number within fInputFile
+	    bool fFailed;				///< True if the event failed
+	    std::string fRecoType;		///< Type of fit conducted in std::string form
+
+        ClassDef(EventHeader,1)
+};
+
+/*
+ * \class HitInfo
+ * This class holds fit independent mainly topological variables
+ * Any output variables that can be deduced entirely from the WCSim output should go here
+ */
 class HitInfo : public TObject{
 
     public:
         HitInfo();
-        HitInfo(
-                bool veto, 
-                int NHits, int NHitsUpstream, 
-                float totalQ, float totalQUpstream
+        HitInfo(bool veto,
+                int NHits,
+				int NHitsUpstream,
+                float totalQ,
+				float totalQUpstream
                 );
         HitInfo(const HitInfo& other);
         HitInfo& operator=(const HitInfo& rhs);
         ~HitInfo();
+
+        void Print();
 
         bool GetVeto() const{ return fVeto; }
 
@@ -59,43 +106,46 @@ class HitInfo : public TObject{
 
     private:
 
-        bool fVeto;
+        bool fVeto;					///< True if the reconstructed track exits the detector
 
-        int fNHits;
-        int fNHitsUpstream;
-        int fNHitsDownstream;
-        float fFracHitsUpstream;
-        float fFracHitsDownstream;
+        int fNHits;					///< Number of PMTs hit in the event
+        int fNHitsUpstream;			///< Number of PMTs hit in the upstream(x<0) region of the detector
+        int fNHitsDownstream;		///< Number of PMTs hit in the downstream(x>=0) region of the detector
+        float fFracHitsUpstream;	///< fFracHitsUpstream = fNHitsUpstream / fNHits
+        float fFracHitsDownstream;	///< fFracHitsDownstream = fNHitsDownstream / fNHits
 
-        float fTotalQ;
-        float fTotalQUpstream;
-        float fTotalQDownstream;
-        float fFracQUpstream;
-        float fFracQDownstream;
+        float fTotalQ;				///< Total collected charge on all PMTs in the event
+        float fTotalQUpstream;		///< Total collected charge on PMTs in the upstream(x<0) region of the detector
+        float fTotalQDownstream;	///< Total collected charge on PMTs in the downstream(x>=0) region of the detector
+        float fFracQUpstream;		///< fFracQUpstream = fTotalQUpstream / fTotalQ
+        float fFracQDownstream;		///< fFracQDownstream = fTotalQDownstream / fTotalQ
 
         ClassDef(HitInfo,1)
 
 };
 
-class FitInfo : public TObject{
+/*
+ * \class StageInfo
+ * This class holds info relating to all the PMTs and tracks at all stages of the fit
+ * WARNING: Causes vastly increased file size, only use if required
+ */
+class StageInfo : public TObject{
 
 	public:
-		FitInfo();
-		FitInfo(const FitInfo& other);
-		FitInfo& operator=(const FitInfo& rhs);
-    	~FitInfo();
+		StageInfo();
+		StageInfo(const StageInfo& other);
+		StageInfo& operator=(const StageInfo& rhs);
+    	~StageInfo();
 
-    	void Print(); // Used to print out a general overview of the FitInfo, the o'th stage is the seed
+    	void SetStageInfo(int stageNCalls,
+    					  std::vector< WCSimHitPrediction > stagePreds,
+						  std::vector<WCSimLikelihoodTrackBase*> stageTracks
+						  );
 
-    	void SetEventFitInfo(std::string type, std::vector< std::vector<double> > digitInfo, std::vector< WCSimHitPrediction > correctPred);
-    	void SetStageInfo(int stageNCalls, std::vector< double > stageMinus2LnLs, std::vector< WCSimHitPrediction > stagePreds, std::vector<WCSimLikelihoodTrackBase*> stageTracks);
+    	void Print();
 
-    	int GetNumStages(){ return fStageNcalls.size(); } // Return the number of stages from the size of the fStagePreds vector
-    	int GetNumTracks(){ return fStageTracks[0].size(); } // Return the size of the first element in the fStageTracks vector
-
-    	std::string GetFitType(){ return fType; }
-    	std::vector< std::vector<double> > GetCorrectDigitInfo(){ return fDigitInfo; }
-    	std::vector< WCSimHitPrediction > GetCorrectPred(){ return fCorrectPred; }
+    	int GetNumStages(){ return int(fStageNcalls.size()); }
+    	int GetNumTracks(){ return int(fStageTracks[0].size()); }
 
     	std::vector<int> GetNCallsVec(){ return fStageNcalls; }
     	int GetNCalls(int stage){
@@ -105,18 +155,6 @@ class FitInfo : public TObject{
             else{
                 std::cerr << "fStageNcalls(index) out of range [0..." << fStageNcalls.size()-1 << "]" << std::endl;
                 return -999;
-            }
-        }
-
-    	std::vector<double> GetStageMinus2LnLs(int stage){
-            if(stage >= 0 && (size_t)stage < fStageMinus2LnLs.size()){
-                return fStageMinus2LnLs[stage]; // Index starts at 0
-            }
-            else{
-                std::cerr << "fStageMinus2LnLs(index) out of range [0..." << fStageMinus2LnLs.size()-1 << "]" << std::endl;
-                std::vector<double> error;
-                error.push_back(-999.9);
-                return error;
             }
         }
 
@@ -145,38 +183,36 @@ class FitInfo : public TObject{
             }
     	}
 
-    	// TODO: Add functions to get total predicted charge etc...
+    	// TODO: Add functions to get total predicted charge etc... Add up the likelihoods in fStagePreds to give total across the stage!
 
 	private:
-    	std::string fType; // The type of fit taking place (Electron, Muon, piZero etc...)
+    	std::vector< int > fStageNcalls; 										///< Number of total function calls at the end of the stage
+    	std::vector< std::vector< WCSimHitPrediction > > fStagePreds; 			///< A vector of WCSimHitPrediction's for every PMT at the end of every stage
+    	std::vector< std::vector< WCSimLikelihoodTrackBase* > > fStageTracks; 	///< A vector of the fitted track at the end of every stage
 
-    	std::vector< std::vector<double> > fDigitInfo; // (tubeID, charge, time) observed values for all digits in the event. Do not save likelihoodDigitArray as this always causes a seg violation.
-    	std::vector< WCSimHitPrediction > fCorrectPred; // The WCSimHitPrediction vector of all the digits, for the correct set of track parameters
-
-    	// Variables that are added to at every stage...
-    	std::vector< int > fStageNcalls; // The number of total calls so far at the end of the stage
-    	std::vector< std::vector<double> > fStageMinus2LnLs; // The total, time and charge components of the -2LnL at the end of the stage, THIS MAY BE UNNECESARY IF THESE CAN BE DETERMINED FROM fStagePreds!!!
-    	std::vector< std::vector< WCSimHitPrediction > > fStagePreds; // The WCSimHitPrediction vector of all the digits at every stage, HIGH STORAGE REQUIRED!
-    	std::vector< std::vector< WCSimLikelihoodTrackBase* > > fStageTracks; // The tracks that are being fitted at the end of every stage
-
-    	ClassDef(FitInfo,1)
+    	ClassDef(StageInfo,1)
 };
 
-
+/*
+ * \class SeedInfo
+ * This class holds info relating to the Hough transform ring finder and resulting seed given to the main fit
+ */
 class SeedInfo : public TObject{
-
-	//As likelihoods can not be compared between different types of seed, ntrack = nseeds.
 
 	public:
 		SeedInfo();
-		SeedInfo(std::string type, std::vector<WCSimLikelihoodTrackBase*> tracks, int slices, std::vector<WCSimRecoRing*> ringVec, std::vector<double> ringTime);
+		SeedInfo(std::vector<WCSimLikelihoodTrackBase*> tracks,
+				 int slices,
+				 std::vector<WCSimRecoRing*> ringVec,
+				 std::vector<double> ringTime);
 		SeedInfo(const SeedInfo& other);
 		SeedInfo& operator=(const SeedInfo& rhs);
     	~SeedInfo();
 
-    	std::string GetSeedType(){ return fType; }
+    	void Print();
 
-    	int GetNumTracks(){ return fTracks.size(); }
+    	int GetNumTracks(){ return int(fTracks.size()); }
+
     	std::vector<WCSimLikelihoodTrackBase*> GetTracks(){ return fTracks; }
     	WCSimLikelihoodTrackBase* GetTrack(int p){
             if(p >= 0 && (size_t)p < fTracks.size()){
@@ -246,29 +282,39 @@ class SeedInfo : public TObject{
         }
 
 	private:
-    	std::string fType; // Records the type of seed used to produce the passed on tracks.
-    	std::vector<WCSimLikelihoodTrackBase*> fTracks; // Stores a vector of the tracks actually passed to the fitter.
+    	std::vector<WCSimLikelihoodTrackBase*> fTracks; ///< Stores a vector of the tracks actually passed to the fitter.
 
-    	int fNSlices; // Number of slices produced by the seeder.
-    	std::vector<double> fRingHeight; // Stores the ring heights produces by the seeder.
-    	std::vector<double> fRingTime; // Stores the vertex times of the rings. These are the same for all rings belonging to the same slice.
-    	std::vector<double> fRingAngle; // Stores the ring angles
-    	std::vector<TVector3> fRingVtx; // Stores TVector3 objects containing the ring vtx positions
-    	std::vector<TVector3> fRingDir; // Stores Tvector3 objects containing the ring dirs.
+    	int fNSlices; 									///< Number of slices produced by the seeder.
+    	std::vector<double> fRingHeight; 				///< Stores the ring heights produces by the seeder.
+    	std::vector<double> fRingTime; 					///< Stores the vertex times of the rings. These are the same for all rings belonging to the same slice.
+    	std::vector<double> fRingAngle; 				///< Stores the ring angles
+    	std::vector<TVector3> fRingVtx; 				///< Stores TVector3 objects containing the ring vtx positions
+    	std::vector<TVector3> fRingDir; 				///< Stores Tvector3 objects containing the ring dirs.
 
     	ClassDef(SeedInfo,1)
 };
 
-
+/*
+ * \class TruthInfo
+ * Very similar to WCSimTruthSummary for WCSim, used for comparison with WCSimRecoSummary
+ */
 class TruthInfo : public TObject{
 
     public:
         TruthInfo(); 
-        TruthInfo(int type, int beamPDG, float beamEnergy, int nPrimaries, std::vector<int> primaryPDGs, 
-                  std::vector<double> primaryEnergies, std::vector<TVector3> primaryDirs);
+        TruthInfo(int type,
+        		  int beamPDG,
+				  float beamEnergy,
+				  int nPrimaries,
+				  std::vector<int> primaryPDGs,
+                  std::vector<double> primaryEnergies,
+				  std::vector<TVector3> primaryDirs
+				  );
         TruthInfo(const TruthInfo& other);
         TruthInfo& operator=(const TruthInfo& rhs);
         ~TruthInfo();
+
+        void Print();
 
         void SetVtxTime(float t);
         void SetVtx(float x, float y, float z);
@@ -332,39 +378,42 @@ class TruthInfo : public TObject{
 
     private:
 
-        int fType;  // Interaction type code from WCSimTruthSummary
-        int fBeamPDG;  // PDG code of the beam particle (usually a neutrino)
-        float fBeamEnergy;  // Energy of the incident beam particle
+        int fType;  							///< Interaction type code from WCSimTruthSummary
+        int fBeamPDG;  							///< PDG code of the beam particle (usually a neutrino)
+        float fBeamEnergy; 						///< Energy of the incident beam particle
 
         int fNPrimaries;
-        std::vector<int> fPrimaryPDGs; //Vector of primary PDG's
-        std::vector<double> fPrimaryEnergies; //Vector of primary energies
-        std::vector<TVector3> fPrimaryDirs; //Vector of primary directions <TVector3>
+        std::vector<int> fPrimaryPDGs; 			///< Vector of primary PDG's
+        std::vector<double> fPrimaryEnergies; 	///< Vector of primary energies
+        std::vector<TVector3> fPrimaryDirs; 	///< Vector of primary directions <TVector3>
 
-        bool fIsCC;
-        bool fIsNC;
-        bool fIsQE;
-        bool fIsRes;
-        bool fIsDIS;
-        bool fIsCoherent;
-        bool fIsNueElectronElastic;
-        bool fIsInverseMuonDecay;
-        bool fIsOther; // A CC event that doesn't fall into any of the above
-                       // categories - sometimes there isn't a nuance code
-                       // for the type of event Genie has made
+        bool fIsCC;								///< True if event is Charged-Current
+        bool fIsNC;								///< True if event is Neutral-Current
+        bool fIsQE;								///< True if event is Quasielastic
+        bool fIsRes;							///< True if event is Resonant
+        bool fIsDIS;							///< True if event is Deep Inelastic Scattering
+        bool fIsCoherent;						///< True if event is Coherent
+        bool fIsNueElectronElastic;				///< True if event is electron elastic
+        bool fIsInverseMuonDecay;				///< True is event is inverse muon decay
+        bool fIsOther; 							///< A CC event that doesn't fall into any of the above categories
+        											// sometimes there isn't a nuance code for the type of event Genie has made
 
-        float fVtxTime;
-        float fVtxX;
-        float fVtxY;
-        float fVtxZ;
-        float fBeamDirX;
-        float fBeamDirY;
-        float fBeamDirZ;
+        float fVtxTime;							///< Neutrino interaction vertex time
+        float fVtxX;							///< Neutrino interaction vertex x-position
+        float fVtxY;							///< Neutrino interaction vertex y-position
+        float fVtxZ;							///< Neutrino interaction vertex z-position
+        float fBeamDirX;						///< Neutrino interaction vertex x-direction
+        float fBeamDirY;						///< Neutrino interaction vertex y-direction
+        float fBeamDirZ;						///< Neutrino interaction vertex z-direction
         
         ClassDef(TruthInfo,1)
 };
 
-
+/*
+ * \class RecoInfo
+ * Holds variables derived from the reconstruction fit, mainly for use in the particle identification
+ * Should probably be merged into a larger class just for use by the PID
+ */
 class RecoInfo : public TObject{
 
     public:
@@ -373,6 +422,8 @@ class RecoInfo : public TObject{
         RecoInfo(const RecoInfo& other);
         RecoInfo& operator=(const RecoInfo& other);
         ~RecoInfo();
+
+        void Print();
 
         void SetLikelihoods(float total, float hit, float charge, float time);
         
@@ -438,117 +489,118 @@ class RecoInfo : public TObject{
         float GetDirZ() const{ return fDirZ; }
 
         bool Escapes() const{ return fEscapes; }
+
     private:
         
-        float fTotal2LnL;
-        float fHit2LnL;
-        float fCharge2LnL;
-        float fTime2LnL;
-        float fCutoff2LnL;
+        float fTotal2LnL;				///< Final total -2LnL
+        float fHit2LnL;					///< Final hit component of total -2LnL
+        float fCharge2LnL;				///< Final charge component of total -2LnL
+        float fTime2LnL;				///< Final time component of total -2LnL
+        float fCutoff2LnL;				///< Final cutoff componenet of total -2LnL
 
-        float fTotalQInRing;
-        float fTotalQOutsideRing;
-        float fTotalQInRingHole;
+        float fTotalQInRing;			///< Total charge within the reconstructed ring
+        float fTotalQOutsideRing;		///< Total charge outside the reconstructed ring
+        float fTotalQInRingHole;		///< Total charge within the hole of the reconstructed ring
 
-        int fNHitsInRing;
-        int fNHitsOutsideRing;
-        int fNHitsInRingHole;
+        int fNHitsInRing;				///< Number of hits within the reconstructed ring
+        int fNHitsOutsideRing;			///< Number of hits outside the reconstructed ring
+        int fNHitsInRingHole;			///< Number of hits within the hole of the reconstructed ring
 
-        float fPredQInRing;
-        float fPredQOutsideRing;
-        float fPredQInRingHole;
+        float fPredQInRing;				///< Predicted charge inside the reconstructed ring
+        float fPredQOutsideRing;		///< Predicted charge outside the reconstructed ring
+        float fPredQInRingHole;			///< Predicted charge within the hole of the reconstructed ring
 
-        float fFracTotalQInRing;
-        float fFracTotalQOutsideRing;
-        float fFracTotalQInRingHole;
+        float fFracTotalQInRing;		///< Fraction of actual total charge inside the reconstructed ring
+        float fFracTotalQOutsideRing;	///< Fraction of actual total charge outside the reconstructed ring
+        float fFracTotalQInRingHole;	///< Fraction of actual total charge within the hole of the reconstructed ring
 
-        float fFracNHitsInRing;
-        float fFracNHitsOutsideRing;
-        float fFracNHitsInRingHole;
+        float fFracNHitsInRing;			///< Fraction of total hits inside the reconstructed ring
+        float fFracNHitsOutsideRing;	///< Fraction of total hits outside the reconstructed ring
+        float fFracNHitsInRingHole;		///< Fraction of total hits within the hole of the reconstructed ring
 
-        float fFracPredQInRing;
-        float fFracPredQOutsideRing;
-        float fFracPredQInRingHole;
+        float fFracPredQInRing;			///< Fraction of predicted charge inside the reconstructed ring
+        float fFracPredQOutsideRing;	///< Fraction of predicted charge outside the reconstructed ring
+        float fFracPredQInRingHole;		///< Fraction of predicted charge within the hole of the reconstructed ring
 
-        float fPredictedOverTotalCharge;
+        float fPredictedOverTotalCharge;///< Total predicted charge over total actual charge
 
-        float fVtxTime;
-        float fEnergy;
-        float fVtxX;
-        float fVtxY;
-        float fVtxZ;
-        float fVtxRho;
+        float fVtxTime;					///< Reconstructed neutrino interaction vertex time
+        float fEnergy;					///< Reconstructed primary particle energy
+        float fVtxX;					///< Reconstructed neutrino interaction x-position
+        float fVtxY;					///< Reconstructed neutrino interaction y-position
+        float fVtxZ;					///< Reconstructed neutrino interaction z-position
+        float fVtxRho;					///< Reconstructed neutrino interaction radial position
 
-        float fEndX;
-        float fEndY;
-        float fEndZ;
-        float fEndRho;
+        float fEndX;					///< Reconstructed track end x-position
+        float fEndY;					///< Reconstructed track end x-position
+        float fEndZ;					///< Reconstructed track end x-position
+        float fEndRho;					///< Reconstructed track end radial position
 
-        float fDirX;
-        float fDirY;
-        float fDirZ;
+        float fDirX;					///< Reconstructed track x-direction
+        float fDirY;					///< Reconstructed track y-direction
+        float fDirZ;					///< Reconstructed track z-direction
 
-        bool fEscapes;
+        bool fEscapes;					///< True if the track escapes the detector
 
         ClassDef(RecoInfo, 1)
 
 };
 
-
-
+/*
+ * \class WCSimOutputTree
+ * Deals with the filling and saving of the output tree from the reconstruction
+ */
 class WCSimOutputTree : public TObject{
 public:
 	WCSimOutputTree(const TString &saveFileName);
 	virtual ~WCSimOutputTree();
 
-	void MakeTree(const bool &saveSeedInfo, const bool &saveFitInfo);
+	void MakeTree();
 	void SaveTree();
+
 	void SetSaveFileName(TString saveName);
 	TString GetSaveFileName() const;
 
-	void SetSeed(std::string type, std::vector<WCSimLikelihoodTrackBase*> tracks, int slices, std::vector<WCSimRecoRing*> ringVec, std::vector<double> ringTime);
-	void SetEventFitInfo(std::string type, std::vector< std::vector<double> > digitInfo, std::vector< WCSimHitPrediction > correctPred);
-	void SetStageInfo(int stageNCalls, std::vector< double > stageMinus2LnLs, std::vector< WCSimHitPrediction > stagePreds, std::vector<WCSimLikelihoodTrackBase*> stageTracks);
+	void SetSeedInfo(SeedInfo& seedInfo);
 
-    void Fill(
-              bool failed,
-              Int_t iEvent,
-              std::string recoType,
+	void SetStageInfo(int stageNCalls,
+					  std::vector< WCSimHitPrediction > stagePreds,
+					  std::vector<WCSimLikelihoodTrackBase*> stageTracks);
+
+	void SetHitComparison(WCSimHitComparison& hitComp);
+
+    void Fill(EventHeader& eventHead,
+              TruthInfo& truthInfo,
               WCSimRecoSummary& summ,
-              //WCSimHitComparison& hitComp,
               HitInfo& hitInfo,
-              RecoInfo& recoInfo,
-              TruthInfo& truthInfo
-              );
+              RecoInfo& recoInfo
+    		  );
 
     void MakeSaveFile();
     void SetInputFile(const TString &location);
 
+    TString GetInputFileName() const;
 
 private:
     void DeletePointersIfExist();
-    void BuildUID();
 
-	TFile * fSaveFile;
-	TString fSaveFileName;
-    TTree * fResultsTree;
-    TTree * fGeoTree;
+    std::string fInputFile;					///< The input file name, included in eventHeader, but for ease of use store seperately
 
-    WCSimRootGeom * fGeometry;
+	TFile * fSaveFile;						///<
+	TString fSaveFileName;					///<
+    TTree * fResultsTree;					///< The main results tree
+    TTree * fGeoTree;						///< The geometry tree, holds geometry and PMT info
 
-    std::string fUID;
-    std::string fInputFile;
-    int fInputEvent;
-	WCSimRecoSummary * fRecoSummary;
-    //WCSimHitComparison * fHitComparison;
-    HitInfo * fHitInfo;
-    RecoInfo * fRecoInfo;
-    TruthInfo * fTruthInfo;
-    SeedInfo * fSeedInfo;
-    FitInfo * fFitInfo;
-    std::string fRecoType;
-    int fEvent;
-    bool fFailed;
+    WCSimRootGeom * fGeometry;				///< The WCSim geometry object that is then saved in the geometry tree
+
+    EventHeader * fEventHeader;				///< Holds info about the input event
+    TruthInfo * fTruthInfo;					///< Akin to WCSimTruthSummary, holds the truth information
+	WCSimRecoSummary * fRecoSummary;		///< Result of the fit, for comparison with the TruthInfo
+    HitInfo * fHitInfo;						///< Holds info on the topology of the event for the PID
+    RecoInfo * fRecoInfo;					///< Holds various variables derived from the fit for use in the PID
+    SeedInfo * fSeedInfo;					///< Holds info on the output from the Hough transform ring finder
+    StageInfo * fStageInfo;					///< Holds info on how the fit parameters and minus2LnL evolve over the stages of the fit
+    WCSimHitComparison * fHitComparison;	///< Holds the final HitComparison for all the PMTs
 
     ClassDef(WCSimOutputTree, 2)
 };

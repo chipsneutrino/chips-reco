@@ -41,6 +41,11 @@ WCSimAnalysisConfig::WCSimAnalysisConfig()
     fUseFittedSpeedOfLight     = true;
     fFittedSpeedOfLight        = 0.71864;
     fEqualiseChargeAndTime     = false;
+
+    fSaveSeedInfo			   = false;
+    fSaveStageInfo			   = false;
+    fSaveHitComparison		   = false;
+
     // Load the file with the default configuration
     // and update the member variables above as necessary
     fConfName = getenv("WCSIMANAHOME");
@@ -70,7 +75,10 @@ void WCSimAnalysisConfig::Print()
               << "fUseTime = " << fUseTime << std::endl
               << "fUseCharge = " << fUseCharge << std::endl
               << "fUseScatteringTable = " << fUseScatteringTable << std::endl
-              << "fEqualiseChargeAndTime = " << fEqualiseChargeAndTime << std::endl;
+              << "fEqualiseChargeAndTime = " << fEqualiseChargeAndTime << std::endl
+    		  << "fSaveSeedInfo = " << fSaveSeedInfo << std::endl
+    		  << "fSaveStageInfo = " << fSaveStageInfo << std::endl
+    		  << "fSaveHitComparison = " << fSaveHitComparison << std::endl;
     return; 
 }
 
@@ -174,6 +182,21 @@ Bool_t WCSimAnalysisConfig::GetEqualiseChargeAndTime() const
 Bool_t WCSimAnalysisConfig::GetSaveWCSimRootEvent() const
 {
     return fSaveWCSimRootEvent;
+}
+
+Bool_t WCSimAnalysisConfig::GetSaveSeedInfo() const
+{
+    return fSaveSeedInfo;
+}
+
+Bool_t WCSimAnalysisConfig::GetSaveStageInfo() const
+{
+    return fSaveStageInfo;
+}
+
+Bool_t WCSimAnalysisConfig::GetSaveHitComparison() const
+{
+    return fSaveHitComparison;
 }
 
 void WCSimAnalysisConfig::LoadConfig()
@@ -563,6 +586,57 @@ void WCSimAnalysisConfig::SetFromMap()
                exit(EXIT_FAILURE);
              }
         }
+        else if((*itr).first.compare("SaveSeedInfo") == 0)
+        {
+             if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+             {
+                 fSaveSeedInfo = true;
+             }
+             else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+             {
+            	 fSaveSeedInfo = false;
+             }
+             else
+             {
+               std::cerr << "Error: " << (*itr).first << " = " << (*itr).second
+                            << " should equal true/false or 1/0" << std::endl;
+               exit(EXIT_FAILURE);
+             }
+        }
+        else if((*itr).first.compare("SaveStageInfo") == 0)
+        {
+             if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+             {
+                 fSaveStageInfo = true;
+             }
+             else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+             {
+            	 fSaveStageInfo = false;
+             }
+             else
+             {
+               std::cerr << "Error: " << (*itr).first << " = " << (*itr).second
+                            << " should equal true/false or 1/0" << std::endl;
+               exit(EXIT_FAILURE);
+             }
+        }
+        else if((*itr).first.compare("SaveHitComparison") == 0)
+        {
+             if((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+             {
+                 fSaveHitComparison = true;
+             }
+             else if((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+             {
+            	 fSaveHitComparison = false;
+             }
+             else
+             {
+               std::cerr << "Error: " << (*itr).first << " = " << (*itr).second
+                            << " should equal true/false or 1/0" << std::endl;
+               exit(EXIT_FAILURE);
+             }
+        }
     }
     fMap.clear();
 }
@@ -661,3 +735,23 @@ void WCSimAnalysisConfig::SetSaveWCSimRootEvent(Bool_t doIt)
     std::cout << " *** WCSimAnalysisConfig::SetSaveWCSimRootEvent to " << doIt << std::endl;
     fSaveWCSimRootEvent = doIt;
 }
+
+void WCSimAnalysisConfig::SetSaveSeedInfo(Bool_t doIt)
+{
+    std::cout << " *** WCSimAnalysisConfig::SetSaveSeedInfo to " << doIt << std::endl;
+    fSaveSeedInfo = doIt;
+}
+
+void WCSimAnalysisConfig::SetSaveStageInfo(Bool_t doIt)
+{
+    std::cout << " *** WCSimAnalysisConfig::SetSaveStageInfo to " << doIt << std::endl;
+    fSaveStageInfo = doIt;
+}
+
+void WCSimAnalysisConfig::SetSaveHitComparison(Bool_t doIt)
+{
+    std::cout << " *** WCSimAnalysisConfig::SetSaveHitComparison to " << doIt << std::endl;
+    fSaveHitComparison = doIt;
+}
+
+

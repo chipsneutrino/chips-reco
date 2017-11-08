@@ -57,6 +57,7 @@ class WCSimLikelihoodFitter
 
 
     protected:
+        EventHeader BuildEventHeader();
         WCSimRecoSummary BuildRecoSummary();
         WCSimHitComparison BuildHitComparison();
         HitInfo BuildHitInfo();
@@ -64,7 +65,6 @@ class WCSimLikelihoodFitter
         TruthInfo BuildTruthInfo();
         std::string GetRecoType();
         
-        void SetFitInfo();
         void SetFitInfoStage();
 
         void SeedEvent();

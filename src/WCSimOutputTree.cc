@@ -28,36 +28,136 @@
 #include <vector>
 
 #ifndef REFLEX_DICTIONARY
+ClassImp(EventHeader);
 ClassImp(HitInfo);
-ClassImp(FitInfo);
+ClassImp(StageInfo);
 ClassImp(SeedInfo);
 ClassImp(TruthInfo);
-ClassImp(RecoInfo); 
+ClassImp(RecoInfo);
 ClassImp(WCSimOutputTree);
 #endif
 
 ///////////////////////////////////////////////////////////////
-//  METHODS FOR HITINFO CLASS
-//////////////////////////////////////////////////////////////
+//  METHODS FOR EVENTHEADER CLASS                            //
+///////////////////////////////////////////////////////////////
 
-HitInfo::HitInfo() : 
-    fVeto(false), fNHits(0), fNHitsUpstream(0),
-            fTotalQ(0), fTotalQUpstream(0)
+EventHeader::EventHeader() :
+	fUID(""),
+	fInputFile(""),
+	fInputEvent(-999),
+	fFailed(false),
+	fRecoType("")
 {
-    fNHitsDownstream = 0;
-    fFracHitsUpstream = 0.0;
-    fFracHitsDownstream = 0.0;
-
-    fTotalQDownstream = 0.0;
-    fFracQUpstream = 0.0;
-    fFracQDownstream = 0.0;
+	// Empty
 }
 
-HitInfo::HitInfo(
-        bool veto, int NHits, int NHitsUpstream, 
-        float totalQ, float totalQUpstream
-        ) : fVeto(veto), fNHits(NHits), fNHitsUpstream(NHitsUpstream),
-            fTotalQ(totalQ), fTotalQUpstream(totalQUpstream)
+EventHeader::EventHeader(std::string inputFile,
+	    				 int inputEvent,
+	    				 bool failed,
+	    				 std::string recoType
+						 ) :
+	fInputFile(inputFile),
+	fInputEvent(inputEvent),
+	fFailed(failed),
+	fRecoType(recoType)
+{
+	BuildUID();
+}
+
+EventHeader::EventHeader(const EventHeader& other) :
+	fUID(other.fUID),
+	fInputFile(other.fInputFile),
+	fInputEvent(other.fInputEvent),
+	fFailed(other.fFailed),
+	fRecoType(other.fRecoType)
+{
+	// Empty
+}
+
+EventHeader& EventHeader::operator=(const EventHeader& rhs)
+{
+    if(&rhs != this)
+    {
+    	fUID = rhs.fUID;
+    	fInputFile = rhs.fInputFile;
+    	fInputEvent = rhs.fInputEvent;
+    	fFailed = rhs.fFailed;
+    	fRecoType = rhs.fRecoType;
+    }
+    return *this;
+}
+
+EventHeader::~EventHeader()
+{
+	// Empty
+}
+
+void EventHeader::Print()
+{
+    std::cout << "EventHeader::Print()..."       << std::endl
+    		  << "UID -> " << fUID               << std::endl
+    		  << "InputFile -> " << fInputFile   << std::endl
+    		  << "InputEvent -> " << fInputEvent << std::endl
+    		  << "Failed -> " << fFailed         << std::endl
+    		  << "RecoType -> " << fRecoType     << std::endl;
+    return;
+}
+
+/**
+ * @brief Make unique identifier for a file/event combination.  Sets fUID to
+ * md5("%s%d", md5(inputFile), eventNumber)
+ *
+**/
+void EventHeader::BuildUID()
+{
+    TMD5 myMD5;
+
+    // Build a char array to hold our filename string:
+    TString inputStr = TString::Format("%s%06d", fInputFile.c_str(), fInputEvent);
+    std::string input(inputStr.Data());
+    const size_t sizeOfString(input.size());
+    UChar_t charArray[sizeOfString];
+    strcpy(reinterpret_cast<char*>(charArray), input.c_str());
+
+    // Hash the filename
+    UChar_t output[16];
+    myMD5.Update(charArray, sizeOfString);
+    myMD5.Final(output);
+    fUID = myMD5.AsString();
+    std::cout << "Hash of " << input.c_str() << " is " << fUID << std::endl;
+}
+
+///////////////////////////////////////////////////////////////
+//  METHODS FOR HITINFO CLASS                            	 //
+///////////////////////////////////////////////////////////////
+
+HitInfo::HitInfo() : 
+	fVeto(false),
+	fNHits(0),
+	fNHitsUpstream(0),
+	fNHitsDownstream(0),
+	fFracHitsUpstream(0.0),
+	fFracHitsDownstream(0.0),
+	fTotalQ(0.0),
+	fTotalQUpstream(0.0),
+	fTotalQDownstream(0.0),
+	fFracQUpstream(0.0),
+	fFracQDownstream(0.0)
+{
+	// Empty
+}
+
+HitInfo::HitInfo(bool veto,
+				 int NHits,
+				 int NHitsUpstream,
+				 float totalQ,
+				 float totalQUpstream
+        		 ) :
+	fVeto(veto),
+	fNHits(NHits),
+	fNHitsUpstream(NHitsUpstream),
+	fTotalQ(totalQ),
+	fTotalQUpstream(totalQUpstream)
 {
     fNHitsDownstream = fNHits - fNHitsUpstream;
     fFracHitsUpstream = fNHitsUpstream/(static_cast<float>(fNHits));
@@ -66,24 +166,22 @@ HitInfo::HitInfo(
     fTotalQDownstream = fTotalQ - fTotalQUpstream;
     fFracQUpstream = fTotalQUpstream / fTotalQ;
     fFracQDownstream = 1 - fFracQUpstream;
-    
-
 }
 
 HitInfo::HitInfo(const HitInfo& other) : 
-        fVeto(other.fVeto),
-        fNHits(other.fNHits), 
-        fNHitsUpstream(other.fNHitsUpstream), 
-        fNHitsDownstream(other.fNHitsDownstream),
-        fFracHitsUpstream(other.fFracHitsUpstream), 
-        fFracHitsDownstream(other.fFracHitsDownstream),
-        fTotalQ(other.fTotalQ),
-        fTotalQUpstream(other.fTotalQUpstream),
-        fTotalQDownstream(other.fTotalQDownstream),
-        fFracQUpstream(other.fFracQUpstream),
-        fFracQDownstream(other.fFracQDownstream)
+	fVeto(other.fVeto),
+    fNHits(other.fNHits),
+    fNHitsUpstream(other.fNHitsUpstream),
+    fNHitsDownstream(other.fNHitsDownstream),
+    fFracHitsUpstream(other.fFracHitsUpstream),
+    fFracHitsDownstream(other.fFracHitsDownstream),
+    fTotalQ(other.fTotalQ),
+    fTotalQUpstream(other.fTotalQUpstream),
+    fTotalQDownstream(other.fTotalQDownstream),
+    fFracQUpstream(other.fFracQUpstream),
+    fFracQDownstream(other.fFracQDownstream)
 {
-    
+	// Empty
 }
 
 HitInfo& HitInfo::operator=(const HitInfo& rhs)
@@ -107,101 +205,127 @@ HitInfo& HitInfo::operator=(const HitInfo& rhs)
 
 HitInfo::~HitInfo()
 {
-
     // Empty
 }
 
-///////////////////////////////////////////////////////////////
-//  METHODS FOR FITINFO CLASS
-/////////////////////////////////////////////////////////////
-
-FitInfo::FitInfo()
+void HitInfo::Print()
 {
-	fType = "Unknown";
-	fDigitInfo.clear();
-	fCorrectPred.clear();
+    std::cout << "HitInfo::Print()..."                           << std::endl
+    		  << "Veto -> " << fVeto                             << std::endl
+    		  << "NHits -> " << fNHits                           << std::endl
+    		  << "NHitsUpstream -> " << fNHitsUpstream           << std::endl
+    		  << "NHitsDownstream -> " << fNHitsDownstream       << std::endl
+    		  << "FracHitsUpstream -> " << fFracHitsUpstream     << std::endl
+    		  << "FracHitsDownstream -> " << fFracHitsDownstream << std::endl
+    		  << "TotalQ -> " << fTotalQ                         << std::endl
+    		  << "TotalQUpstream -> " << fTotalQUpstream         << std::endl
+    		  << "TotalQDownstream -> " << fTotalQDownstream     << std::endl
+    		  << "FracQUpstream -> " << fFracQUpstream           << std::endl
+    		  << "FracQDownstream -> " << fFracQDownstream       << std::endl;
+    return;
+}
+
+///////////////////////////////////////////////////////////////
+//  METHODS FOR STAGEINFO CLASS                            	 //
+///////////////////////////////////////////////////////////////
+
+StageInfo::StageInfo()
+{
 	fStageNcalls.clear();
-	fStageMinus2LnLs.clear();
 	fStagePreds.clear();
 	fStageTracks.clear();
 }
 
-FitInfo::FitInfo(const FitInfo& other):
-	fType(other.fType),
-	fDigitInfo(other.fDigitInfo),
-	fCorrectPred(other.fCorrectPred),
+StageInfo::StageInfo(const StageInfo& other) :
 	fStageNcalls(other.fStageNcalls),
-	fStageMinus2LnLs(other.fStageMinus2LnLs),
 	fStagePreds(other.fStagePreds),
 	fStageTracks(other.fStageTracks)
 {
-	// Empty...
+	// Empty
 }
 
-FitInfo& FitInfo::operator=(const FitInfo& rhs)
+StageInfo& StageInfo::operator=(const StageInfo& rhs)
 {
     if(this != &rhs)
     {
-    	fType = rhs.fType;
-    	fDigitInfo = rhs.fDigitInfo;
-    	fCorrectPred = rhs.fCorrectPred;
     	fStageNcalls = rhs.fStageNcalls;
-    	fStageMinus2LnLs = rhs.fStageMinus2LnLs;
     	fStagePreds = rhs.fStagePreds;
     	fStageTracks = rhs.fStageTracks;
     }
     return *this;
 }
 
-FitInfo::~FitInfo()
+StageInfo::~StageInfo()
 {
-	// Empty...
+	// Empty
 }
 
-void FitInfo::Print() // Used to print out a general overview of the FitInfo, the o'th stage is the seed
+void StageInfo::Print()
 {
-	std::cout << "#### FitInfo Print ####" << std::endl;
+    std::cout << "StageInfo::Print()..."       << std::endl;
 	std::cout << "Number of Stages -> " << fStageNcalls.size() << std::endl;
-	std::cout << "Number of Tracks -> " << fStageTracks[0].size() << std::endl;
-	for(int stage = 0; (size_t)stage < fStageNcalls.size(); stage++){
-		if( stage == 0 ){ std::cout << "#### Seeding Stage #### "; }
-		else{ std::cout << "#### Stage " << stage << " #### "; }
+	std::cout << "Number of Tracks -> " << fStageTracks[0].size() << std::endl << std::endl;
 
-		std::cout << "Total -2LnL = " << fStageMinus2LnLs[stage][0] << ", Time -2LnL = " << fStageMinus2LnLs[stage][1] << ", Charge -2LnL = " << fStageMinus2LnLs[stage][2] << std::endl;
+	for(int stage = 0; (size_t)stage<fStageNcalls.size(); stage++){
+		if(stage==0){ std::cout << "(seed)..." << std::endl; }
+		else{ std::cout << "(stage " << stage << ")..." << std::endl; }
 
-		for(int t = 0; (size_t)t<fStageTracks[stage].size(); t++){
+		std::cout << "NCalls -> " << fStageNcalls[stage] << std::endl;
+
+		// Print the track parameters at this stage...
+		for(int t=0; (size_t)t<fStageTracks[stage].size(); t++ ){
 			WCSimLikelihoodTrackBase* track = fStageTracks[stage][t];
 			std::cout << "Track " << t << ", vtx = (" << track->GetX() << "," << track->GetY() << "," << track->GetZ() << "), dir = (" << track->GetTheta() << "," << track->GetPhi() << "), Energy = " << track->GetE() << std::endl;
 		}
+
+		// Print the likelihoods and charge at this stage...
+		double totPredQ = 0;
+		double totTotal2LnL = 0,  totTime2LnL = 0, totCharge2LnL = 0;
+		for(int p=0; (size_t)p<fStagePreds[stage].size(); p++){
+			totPredQ += fStagePreds[stage][p].GetPredictedCharge();
+			totTotal2LnL += fStagePreds[stage][p].GetTotal2LnL();
+			totTime2LnL += fStagePreds[stage][p].GetTime2LnL();
+			totCharge2LnL += fStagePreds[stage][p].GetCharge2LnL();
+		}
+		std::cout << "NCalls -> " << fStageNcalls[stage] << ", TotalPredQ -> " << totPredQ << std::endl;
+		std::cout << "TotTotal2LnL -> " << totTotal2LnL << "TotTime2LnL -> " << totTime2LnL << "totCharge2LnL -> " << totCharge2LnL << std::endl << std::endl;
 	}
+	return;
 }
 
-void FitInfo::SetEventFitInfo(std::string type, std::vector< std::vector<double> > digitInfo, std::vector< WCSimHitPrediction > correctPred)
-{
-	fType = type;
-	fDigitInfo = digitInfo;
-	fCorrectPred = correctPred;
-}
-
-void FitInfo::SetStageInfo(int stageNCalls, std::vector< double > stageMinus2LnLs, std::vector< WCSimHitPrediction > stagePreds, std::vector<WCSimLikelihoodTrackBase*> stageTracks)
+void StageInfo::SetStageInfo(int stageNCalls,
+				  std::vector< WCSimHitPrediction > stagePreds,
+				  std::vector<WCSimLikelihoodTrackBase*> stageTracks)
 {
 	fStageNcalls.push_back(stageNCalls);
-	fStageMinus2LnLs.push_back(stageMinus2LnLs);
 	fStagePreds.push_back(stagePreds);
 	fStageTracks.push_back(stageTracks);
+	return;
 }
 
 ///////////////////////////////////////////////////////////////
-//  METHODS FOR SEEDINFO CLASS
-//////////////////////////////////////////////////////////////
+//  METHODS FOR SEEDINFO CLASS                            	 //
+///////////////////////////////////////////////////////////////
 
-SeedInfo::SeedInfo()
+SeedInfo::SeedInfo() :
+	fNSlices(-999)
 {
 	fTracks.clear();
+	fRingHeight.clear();
+	fRingTime.clear();
+	fRingAngle.clear();
+	fRingVtx.clear();
+	fRingDir.clear();
 }
 
-SeedInfo::SeedInfo(std::string type, std::vector<WCSimLikelihoodTrackBase*> tracks, int slices, std::vector<WCSimRecoRing*> ringVec, std::vector<double> ringTime) :
-		 	 	   fType(type), fTracks(tracks), fNSlices(slices), fRingTime(ringTime)
+SeedInfo::SeedInfo(std::vector<WCSimLikelihoodTrackBase*> tracks,
+				   int slices,
+				   std::vector<WCSimRecoRing*> ringVec,
+				   std::vector<double> ringTime
+				   ) :
+	fTracks(tracks),
+	fNSlices(slices),
+	fRingTime(ringTime)
 {
 	fRingHeight.clear();
 	fRingAngle.clear();
@@ -216,7 +340,6 @@ SeedInfo::SeedInfo(std::string type, std::vector<WCSimLikelihoodTrackBase*> trac
 }
 
 SeedInfo::SeedInfo(const SeedInfo& other):
-	fType(other.fType),
 	fTracks(other.fTracks),
 	fNSlices(other.fNSlices),
 	fRingHeight(other.fRingHeight),
@@ -232,7 +355,6 @@ SeedInfo& SeedInfo::operator=(const SeedInfo& rhs)
 {
     if(this != &rhs)
     {
-    	fType = rhs.fType;
     	fTracks = rhs.fTracks;
     	fNSlices = rhs.fNSlices;
     	fRingHeight = rhs.fRingHeight;
@@ -249,46 +371,72 @@ SeedInfo::~SeedInfo()
 	// Empty...
 }
 
+void SeedInfo::Print()
+{
+    std::cout << "SeedInfo::Print()..."       << std::endl;
+	std::cout << "NSlices -> " << fNSlices << std::endl;
+	std::cout << "NRings -> " << fRingTime.size() << std::endl;
+	std::cout << "NTracks -> " << fTracks.size() << std::endl;
+
+	// Print out the rings...
+	for(int r=0; (size_t)r<fRingTime.size(); r++){
+		std::cout << "Ring " << r << ": Height->" << fRingHeight[r] << ", Time->" << fRingTime[r] << ", Angle->" << fRingAngle[r] << std::endl;
+		std::cout << "VtxPos->(" << fRingVtx[r].X() << "," << fRingVtx[r].Y() << "," << fRingVtx[r].Z() << ") Dir->(" << fRingDir[r].X() << "," << fRingDir[r].Y() << "," << fRingDir[r].Z() << ")" << std::endl;
+	}
+
+	// Print out the track given to the fitter...
+	for(int t=0; (size_t)t<fTracks.size(); t++){
+		WCSimLikelihoodTrackBase* track = fTracks[t];
+		std::cout << "Track " << t << ", vtx = (" << track->GetX() << "," << track->GetY() << "," << track->GetZ() << "), dir = (" << track->GetTheta() << "," << track->GetPhi() << "), Energy = " << track->GetE() << std::endl;
+	}
+	return;
+}
 
 ///////////////////////////////////////////////////////////////
-//  METHODS FOR TRUTHINFO CLASS
-//////////////////////////////////////////////////////////////
+//  METHODS FOR TRUTHINFO CLASS                            	 //
+///////////////////////////////////////////////////////////////
 
-TruthInfo::TruthInfo()
+TruthInfo::TruthInfo() :
+	fType(-999),
+	fBeamPDG(-999),
+	fBeamEnergy(0.0),
+	fNPrimaries(-999),
+	fIsCC(false),
+	fIsNC(false),
+	fIsRes(false),
+	fIsDIS(false),
+	fIsCoherent(false),
+	fIsNueElectronElastic(false),
+	fIsInverseMuonDecay(false),
+	fIsOther(false),
+	fVtxTime(0.0),
+	fVtxX(0.0),
+	fVtxY(0.0),
+	fVtxZ(0.0),
+	fBeamDirX(0.0),
+	fBeamDirY(0.0),
+	fBeamDirZ(0.0)
 {
-    fType = -999;
-    fBeamPDG = -999;
-    fBeamEnergy = 0.0;
-
-    fNPrimaries = -999;
     fPrimaryPDGs.clear();
     fPrimaryEnergies.clear();
     fPrimaryDirs.clear(); 
-
-    fIsCC = false;
-    fIsNC = false;
-    fIsQE = false;
-    fIsRes = false;
-    fIsDIS = false;
-    fIsCoherent = false;
-    fIsNueElectronElastic = false;
-    fIsInverseMuonDecay = false;
-    fIsOther = false;
-    
-    fVtxTime = 0.0;
-    fVtxX = 0.0; 
-    fVtxY = 0.0; 
-    fVtxZ = 0.0;
-    fBeamDirX = 0.0; 
-    fBeamDirY = 0.0; 
-    fBeamDirZ = 0.0;
-
 }
 
-TruthInfo::TruthInfo(int type, int beamPDG, float beamEnergy, int nPrimaries, std::vector<int> primaryPDGs,
-                     std::vector<double> primaryEnergies, std::vector<TVector3> primaryDirs) : 
-    fType(type), fBeamPDG(beamPDG), fBeamEnergy(beamEnergy), fNPrimaries(nPrimaries),
-    fPrimaryPDGs(primaryPDGs), fPrimaryEnergies(primaryEnergies), fPrimaryDirs(primaryDirs)
+TruthInfo::TruthInfo(int type,
+					 int beamPDG,
+					 float beamEnergy,
+					 int nPrimaries,
+					 std::vector<int> primaryPDGs,
+                     std::vector<double> primaryEnergies,
+					 std::vector<TVector3> primaryDirs
+					 ) :
+	fType(type),
+	fBeamPDG(beamPDG),
+	fBeamEnergy(beamEnergy),
+	fNPrimaries(nPrimaries),
+    fPrimaryPDGs(primaryPDGs),
+	fPrimaryEnergies(primaryEnergies),
+	fPrimaryDirs(primaryDirs)
 {
     fIsCC = WCSimTruthSummary::TypeIsCCEvent(fType);
     fIsNC = WCSimTruthSummary::TypeIsNCEvent(fType);
@@ -300,7 +448,6 @@ TruthInfo::TruthInfo(int type, int beamPDG, float beamEnergy, int nPrimaries, st
     fIsInverseMuonDecay = WCSimTruthSummary::TypeIsInverseMuonDecayEvent(type);
     fIsOther = fIsCC && !(fIsQE || fIsRes || fIsDIS || fIsCoherent 
                           || fIsNueElectronElastic || fIsInverseMuonDecay);
-
     fVtxTime = 0.0;
     fVtxX = 0.0; 
     fVtxY = 0.0; 
@@ -310,17 +457,14 @@ TruthInfo::TruthInfo(int type, int beamPDG, float beamEnergy, int nPrimaries, st
     fBeamDirZ = 0.0;   
 }
 
-
 TruthInfo::TruthInfo(const TruthInfo& other):
     fType(other.fType),
     fBeamPDG(other.fBeamPDG),
     fBeamEnergy(other.fBeamEnergy),
-
     fNPrimaries(other.fNPrimaries),
     fPrimaryPDGs(other.fPrimaryPDGs),
     fPrimaryEnergies(other.fPrimaryEnergies),
     fPrimaryDirs(other.fPrimaryDirs),
-
     fIsCC(other.fIsCC),
     fIsNC(other.fIsNC),
     fIsQE(other.fIsQE),
@@ -337,7 +481,6 @@ TruthInfo::TruthInfo(const TruthInfo& other):
     fBeamDirX(other.fBeamDirX),
     fBeamDirY(other.fBeamDirY),
     fBeamDirZ(other.fBeamDirZ)
-
 {
     // Empty
 }
@@ -349,12 +492,10 @@ TruthInfo& TruthInfo::operator=(const TruthInfo& rhs)
         fType = rhs.fType;
         fBeamPDG = rhs.fBeamPDG;
         fBeamEnergy = rhs.fBeamEnergy;
-
         fNPrimaries = rhs.fNPrimaries;
         fPrimaryPDGs = rhs.fPrimaryPDGs;
         fPrimaryEnergies = rhs.fPrimaryEnergies;
         fPrimaryDirs = rhs.fPrimaryDirs;
-
         fIsCC = rhs.fIsCC;
         fIsNC = rhs.fIsNC;
         fIsQE = rhs.fIsQE;
@@ -364,16 +505,13 @@ TruthInfo& TruthInfo::operator=(const TruthInfo& rhs)
         fIsNueElectronElastic = rhs.fIsNueElectronElastic;
         fIsInverseMuonDecay = rhs.fIsInverseMuonDecay;
         fIsOther = rhs.fIsOther;
-
         fVtxTime = rhs.fVtxTime;
         fVtxX = rhs.fVtxX;
         fVtxY = rhs.fVtxY;
         fVtxZ = rhs.fVtxZ;
-
         fBeamDirX = rhs.fBeamDirX;
         fBeamDirY = rhs.fBeamDirY;
         fBeamDirZ = rhs.fBeamDirZ;
-
     }
     return *this;
 }
@@ -383,30 +521,61 @@ TruthInfo::~TruthInfo()
     // Empty
 }
 
+void TruthInfo::Print()
+{
+    std::cout << "TruthInfo::Print()..."       << std::endl;
+    std::cout << "Beam: PDG->" << fBeamPDG << ", Energy->" << fBeamEnergy << ", Dir->(" << fBeamDirX << "," << fBeamDirY << "," << fBeamDirZ << ")" << std::endl;
+    std::cout << "Vertex: Position->(" << fVtxX << "," << fVtxY << "," << fVtxZ << "), Time->" << fVtxTime << std::endl;
+
+    std::cout << "Interaction type code -> " << fType << std::endl;
+    std::cout << "Interaction is";
+    if(fIsCC){ std::cout << ", Charged-current"; }
+    if(fIsNC){ std::cout << ", Neutral-current"; }
+    if(fIsQE){ std::cout << ", Quasielastic"; }
+    if(fIsRes){ std::cout << ", Resonant"; }
+    if(fIsDIS){ std::cout << ", Deep Inelastic Scattering"; }
+    if(fIsCoherent){ std::cout << ", Coherent"; }
+    if(fIsNueElectronElastic){ std::cout << ", Electron elastic"; }
+    if(fIsInverseMuonDecay){ std::cout << ", Inverse muon decay"; }
+    if(fIsOther){ std::cout << ", Other"; }
+    std::cout << std::endl;
+
+    // Print info about the primaries...
+    for(int p=0; p<fNPrimaries; p++){
+    	std::cout << "Primary " << p << ": PDG->" << fPrimaryPDGs[p] << ", Energy->" << fPrimaryEnergies[p] << ", Dir->(" << fPrimaryDirs[p].X() << "," << fPrimaryDirs[p].Y() << "," << fPrimaryDirs[p].Z() << ")" << std::endl;
+    }
+	return;
+}
 
 void TruthInfo::SetVtxTime(float t)
 {
-  fVtxTime = t;
+	fVtxTime = t;
+	return;
 }
 
-void TruthInfo::SetVtx(float x, float y, float z)
+void TruthInfo::SetVtx(float x,
+					   float y,
+					   float z)
 {
-    fVtxX = x;
-    fVtxY = y;
-    fVtxZ = z;
+	fVtxX = x;
+	fVtxY = y;
+	fVtxZ = z;
+	return;
 }
 
-void TruthInfo::SetBeamDir(float x, float y, float z)
+void TruthInfo::SetBeamDir(float x,
+						   float y,
+						   float z)
 {
-    fBeamDirX = x;
-    fBeamDirY = y;
-    fBeamDirZ = z;
+	fBeamDirX = x;
+	fBeamDirY = y;
+	fBeamDirZ = z;
+	return;
 }
-
 
 ///////////////////////////////////////////////////////////////
-//  METHODS FOR RECOINFO CLASS
-//////////////////////////////////////////////////////////////
+//  METHODS FOR RECOINFO CLASS                            	 //
+///////////////////////////////////////////////////////////////
 
 RecoInfo::RecoInfo() : 
     fTotal2LnL(0.0), 
@@ -418,7 +587,8 @@ RecoInfo::RecoInfo() :
     fFracNHitsInRing(0.0), fFracNHitsOutsideRing(0.0), fFracNHitsInRingHole(0.0),
     fFracPredQInRing(0.0), fFracPredQOutsideRing(0.0), fFracPredQInRingHole(0.0),
     fPredictedOverTotalCharge(0.0),
-    fVtxTime(0.0),fEnergy(0.0),
+    fVtxTime(0.0),
+	fEnergy(0.0),
     fVtxX(0.0), fVtxY(0.0), fVtxZ(0.0), fVtxRho(0.0),
     fEndX(0.0), fEndY(0.0), fEndZ(0.0), fEndRho(0.0),
     fDirX(0.0), fDirY(0.0), fDirZ(0.0),
@@ -506,8 +676,8 @@ RecoInfo& RecoInfo::operator=(const RecoInfo& other)
 
         fPredictedOverTotalCharge = other.fPredictedOverTotalCharge;
 	
-	fEnergy = other.fEnergy; 
         fVtxTime = other.fVtxTime;
+        fEnergy = other.fEnergy;
         fVtxX = other.fVtxX;
         fVtxY = other.fVtxY;
         fVtxZ = other.fVtxZ;
@@ -529,21 +699,69 @@ RecoInfo& RecoInfo::operator=(const RecoInfo& other)
 
 RecoInfo::~RecoInfo()
 {
-
+	// Empty
 }
 
-void RecoInfo::SetLikelihoods(float total, float hit, float charge, float time)
+void RecoInfo::Print()
+{
+    std::cout << "RecoInfo::Print()..."                           << std::endl
+    		  << "fTotal2LnL" << fTotal2LnL << std::endl
+    		  << "fHit2LnL" << fHit2LnL << std::endl
+    		  << "fCharge2LnL" << fCharge2LnL << std::endl
+    		  << "fTime2LnL" << fTime2LnL << std::endl
+    		  << "fCutoff2LnL" << fCutoff2LnL << std::endl
+    		  << "fTotalQInRing" << fTotalQInRing << std::endl
+    		  << "fTotalQOutsideRing" << fTotalQOutsideRing << std::endl
+    		  << "fTotalQInRingHole" << fTotalQInRingHole << std::endl
+    		  << "fNHitsInRing" << fNHitsInRing << std::endl
+    		  << "fNHitsOutsideRing" << fNHitsOutsideRing << std::endl
+    		  << "fNHitsInRingHole" << fNHitsInRingHole << std::endl
+    		  << "fPredQInRing" << fPredQInRing << std::endl
+    		  << "fPredQOutsideRing" << fPredQOutsideRing << std::endl
+    		  << "fPredQInRingHole" << fPredQInRingHole << std::endl
+    		  << "fFracTotalQInRing" << fFracTotalQInRing << std::endl
+    		  << "fFracTotalQOutsideRing" << fFracTotalQOutsideRing << std::endl
+    		  << "fFracTotalQInRingHole" << fFracTotalQInRingHole << std::endl
+    		  << "fFracNHitsInRing" << fFracNHitsInRing << std::endl
+    		  << "fFracNHitsOutsideRing" << fFracNHitsOutsideRing << std::endl
+    		  << "fFracNHitsInRingHole" << fFracNHitsInRingHole << std::endl
+    		  << "fFracPredQInRing" << fFracPredQInRing << std::endl
+    		  << "fFracPredQOutsideRing" << fFracPredQOutsideRing << std::endl
+    		  << "fFracPredQInRingHole" << fFracPredQInRingHole << std::endl
+    		  << "fPredictedOverTotalCharge" << fPredictedOverTotalCharge << std::endl
+    		  << "fVtxTime" << fVtxTime << std::endl
+    		  << "fEnergy" << fEnergy << std::endl
+    		  << "fVtxX" << fVtxX << std::endl
+    		  << "fVtxY" << fVtxY << std::endl
+    		  << "fVtxZ" << fVtxZ << std::endl
+    		  << "fVtxRho" << fVtxRho << std::endl
+    		  << "fEndX" << fEndX << std::endl
+    		  << "fEndY" << fEndY << std::endl
+    		  << "fEndZ" << fEndZ << std::endl
+    		  << "fEndRho" << fEndRho << std::endl
+    		  << "fDirX" << fDirX << std::endl
+    		  << "fDirY" << fDirY << std::endl
+    		  << "fDirZ" << fDirZ << std::endl
+    		  << "fEscapes" << fEscapes << std::endl;
+    return;
+}
+
+void RecoInfo::SetLikelihoods(float total,
+							  float hit,
+							  float charge,
+							  float time)
 {
     fTotal2LnL = total;
     fHit2LnL = hit;
     fCharge2LnL = charge;
     fTime2LnL = time;
     fCutoff2LnL = (hit + charge + time) - total;
-
-    return;
+	return;
 }
 
-void RecoInfo::SetTotalQ(float in, float out, float hole)
+void RecoInfo::SetTotalQ(float in,
+						 float out,
+						 float hole)
 {
     fTotalQInRing = in;
     fTotalQOutsideRing = out;
@@ -572,10 +790,12 @@ void RecoInfo::SetTotalQ(float in, float out, float hole)
     {
         fPredictedOverTotalCharge = 0.0;
     }
-    return;
+	return;
 }
 
-void RecoInfo::SetNHits(int in, int out, int hole)
+void RecoInfo::SetNHits(int in,
+						int out,
+						int hole)
 {
     fNHitsInRing = in;
     fNHitsOutsideRing = out;
@@ -594,10 +814,12 @@ void RecoInfo::SetNHits(int in, int out, int hole)
         fFracNHitsOutsideRing = 0.0;
         fFracNHitsInRingHole = 0.0;
     }
-    return;
+	return;
 }
 
-void RecoInfo::SetPredQ(float in, float out, float hole)
+void RecoInfo::SetPredQ(float in,
+						float out,
+						float hole)
 {
     fPredQInRing = in;
     fPredQOutsideRing = out;
@@ -632,64 +854,95 @@ void RecoInfo::SetPredQ(float in, float out, float hole)
 
 void RecoInfo::SetEnergy(float E)
 {
-  fEnergy = E;
+	fEnergy = E;
+	return;
 }
 
 void RecoInfo::SetVtxTime(float t)
 {
-  fVtxTime = t;
+	fVtxTime = t;
+	return;
 }
 
-void RecoInfo::SetVtx(float x, float y, float z)
+void RecoInfo::SetVtx(float x,
+					  float y,
+					  float z)
 {
     fVtxX = x;
     fVtxY = y;
     fVtxZ = z;
     fVtxRho = TMath::Sqrt(x*x + y*y);
+	return;
 }
 
-void RecoInfo::SetEnd(float x, float y, float z)
+void RecoInfo::SetEnd(float x,
+					  float y,
+					  float z)
 {
     fEndX = x;
     fEndY = y;
     fEndZ = z;
     fEndRho = TMath::Sqrt(x*x + y*y);
+	return;
 }
 
-void RecoInfo::SetDir(float x, float y, float z)
+void RecoInfo::SetDir(float x,
+					  float y,
+					  float z)
 {
     fDirX = x;
     fDirY = y;
     fDirZ = z;
+	return;
 }
 
 void RecoInfo::SetEscapes(bool escapes)
 {
     fEscapes = escapes;
+	return;
 }
 
 
 ///////////////////////////////////////////////////////////////
-//  METHODS FOR OUTPUTTREE CLASS
-//////////////////////////////////////////////////////////////
+//  METHODS FOR WCSimOutputTree CLASS                        //
+///////////////////////////////////////////////////////////////
 
 WCSimOutputTree::WCSimOutputTree(const TString &saveFileName) : 
-                fSaveFile(0x0), fSaveFileName(saveFileName),
-                fResultsTree(0x0), fGeoTree(0x0),
-                fGeometry(0x0),
-                fUID(""), fInputFile(""),
-                fInputEvent(0),
-                fRecoSummary(0x0), //fHitComparison(0x0),
-                fHitInfo(0x0), fRecoInfo(0x0), fTruthInfo(0x0),
-				fSeedInfo(0x0), fFitInfo(0x0),
-                fRecoType("_other"), fEvent(0), fFailed(false)
+	fSaveFile(0x0),
+	fSaveFileName(saveFileName),
+	fResultsTree(0x0),
+	fGeoTree(0x0),
+	fGeometry(0x0),
+    fEventHeader(0x0),
+    fTruthInfo(0x0),
+	fRecoSummary(0x0),
+    fHitInfo(0x0),
+    fRecoInfo(0x0),
+    fSeedInfo(0x0),
+    fStageInfo(0x0),
+    fHitComparison(0x0)
 {
-	// TODO Auto-generated constructor stub
 	fSaveFileName.Form("%s_tree.root", saveFileName.Data());
     fSaveFile = 0x0;
 }
 
-WCSimOutputTree::~WCSimOutputTree() {
+WCSimOutputTree::~WCSimOutputTree()
+{
+    if(fEventHeader != 0x0)
+    {
+        std::cout << "delete Event Header" << std::endl;
+        delete fEventHeader;
+        fEventHeader = 0x0;
+        std::cout << "done" << std::endl;
+    }
+
+    if(fTruthInfo != 0x0)
+    {
+        std::cout << "delete truth info" << std::endl;
+        delete fTruthInfo;
+        fTruthInfo = 0x0;
+        std::cout << "done" << std::endl;
+    }
 
     if(fRecoSummary != 0x0)
     {
@@ -697,14 +950,6 @@ WCSimOutputTree::~WCSimOutputTree() {
         delete fRecoSummary;
         std::cout << "done" << std::endl;
     }
-
-    //if(fHitComparison != 0x0)
-    //{
-    //    std::cout << "delete hit comp" << std::endl;
-    //    delete fHitComparison;
-    //    fHitComparison = 0x0;
-    //    std::cout << "done" << std::endl;
-    //}
 
     if(fHitInfo != 0x0)
     {
@@ -722,14 +967,6 @@ WCSimOutputTree::~WCSimOutputTree() {
         std::cout << "done" << std::endl;
     }
 
-    if(fTruthInfo != 0x0)
-    {
-        std::cout << "delete truth info" << std::endl;
-        delete fTruthInfo;
-        fTruthInfo = 0x0;
-        std::cout << "done" << std::endl;
-    }
-
     if(fSeedInfo != 0x0)
     {
         std::cout << "delete seed info" << std::endl;
@@ -738,17 +975,25 @@ WCSimOutputTree::~WCSimOutputTree() {
         std::cout << "done" << std::endl;
     }
 
-    if(fFitInfo != 0x0)
+    if(fStageInfo != 0x0)
     {
-        std::cout << "delete fit info" << std::endl;
-        delete fFitInfo;
-        fFitInfo = 0x0;
+        std::cout << "delete stage info" << std::endl;
+        delete fStageInfo;
+        fStageInfo = 0x0;
         std::cout << "done" << std::endl;
     }
-    //
+
+    if(fHitComparison != 0x0)
+    {
+        std::cout << "delete hit comp" << std::endl;
+        delete fHitComparison;
+        fHitComparison = 0x0;
+        std::cout << "done" << std::endl;
+    }
 }
 
-void WCSimOutputTree::MakeTree(const bool &saveSeedInfo, const bool &saveFitInfo) {
+void WCSimOutputTree::MakeTree()
+{
     std::cout << "fSaveFileName = " << fSaveFileName << " and file is " << fSaveFile << std::endl;
 	fSaveFile->cd();
 
@@ -759,88 +1004,91 @@ void WCSimOutputTree::MakeTree(const bool &saveSeedInfo, const bool &saveFitInfo
 	fGeoTree->Branch("wcsimrootgeom", "WCSimRootGeom", &fGeometry, 64000,0);
 
     fResultsTree = new TTree("fResultsTree","ResultsTree");
+
+    fEventHeader = new EventHeader();
+    fTruthInfo = new TruthInfo();
     fRecoSummary = new WCSimRecoSummary();
-    //fHitComparison = new WCSimHitComparison();
     fHitInfo = new HitInfo();
     fRecoInfo = new RecoInfo();
-    fTruthInfo = new TruthInfo();
     fSeedInfo = new SeedInfo();
-    fFitInfo = new FitInfo();
+    fStageInfo = new StageInfo();
+    fHitComparison = new WCSimHitComparison();
 
-    fResultsTree->Branch("UID", &fUID);
-    fResultsTree->Branch("InputFile", &fInputFile);
-    fResultsTree->Branch("InputEvent", &fInputEvent);
-    fResultsTree->Branch("RecoType", &fRecoType);
+    fResultsTree->Branch("EventHeader", "EventHeader", &fEventHeader, 64000, 1);
+    fResultsTree->Branch("TruthInfo", "TruthInfo", &fTruthInfo, 64000, 1);
     fResultsTree->Branch("RecoSummary", "WCSimRecoSummary", &fRecoSummary, 64000, 0);
-    //fResultsTree->Branch("HitComparison", "WCSimHitComparison", &fHitComparison, 64000, 1);
     fResultsTree->Branch("HitInfo", "HitInfo", &fHitInfo, 64000, 1);
     fResultsTree->Branch("RecoInfo", "RecoInfo", &fRecoInfo, 64000, 1);
-    fResultsTree->Branch("TruthInfo", "TruthInfo", &fTruthInfo, 64000, 1);
 
-    if(saveSeedInfo){ fResultsTree->Branch("SeedInfo", "SeedInfo", &fSeedInfo, 64000, 1); }
-    if(saveFitInfo){ fResultsTree->Branch("FitInfo", "FitInfo", &fFitInfo, 3200000, 1); }
-
-    fEvent = 0;
-
+    if(WCSimAnalysisConfig::Instance()->GetSaveSeedInfo()){
+    	fResultsTree->Branch("SeedInfo", "SeedInfo", &fSeedInfo, 64000, 1);
+    }
+    if(WCSimAnalysisConfig::Instance()->GetSaveStageInfo()){
+    fResultsTree->Branch("StageInfo", "StageInfo", &fStageInfo, 64000, 1);
+    }
+    if(WCSimAnalysisConfig::Instance()->GetSaveHitComparison()){
+    fResultsTree->Branch("HitComparison", "HitComparison", &fHitComparison, 64000, 1);
+    }
+    return;
 }
 
-void WCSimOutputTree::SetSeed(std::string type, std::vector<WCSimLikelihoodTrackBase*> tracks, int slices, std::vector<WCSimRecoRing*> ringVec, std::vector<double> ringTime)
+void WCSimOutputTree::SetSeedInfo(SeedInfo& seedInfo)
 {
 	if( fResultsTree == 0x0)
 	{
-		std::cerr << "Calling SetSeed before the resultsTree has been made!!!" << std::endl;
-		//MakeTree();
+		std::cerr << "Calling SetSeedInfo before the resultsTree has been made!!!" << std::endl;
+		MakeTree();
 	}
 	delete fSeedInfo;
-	fSeedInfo = new SeedInfo(type, tracks, slices, ringVec, ringTime);
+	fSeedInfo = new SeedInfo(seedInfo);
+	return;
 }
 
-void WCSimOutputTree::SetEventFitInfo(std::string type, std::vector< std::vector<double> > digitInfo, std::vector< WCSimHitPrediction > correctPred)
-{
-	if( fResultsTree == 0x0)
-	{
-		std::cerr << "Calling SetEventFitInfo before the resultsTree has been made!!!" << std::endl;
-		//MakeTree();
-	}
-	fFitInfo->SetEventFitInfo(type, digitInfo, correctPred);
-}
-
-void WCSimOutputTree::SetStageInfo(int stageNCalls, std::vector< double > stageMinus2LnLs, std::vector< WCSimHitPrediction > stagePreds, std::vector<WCSimLikelihoodTrackBase*> stageTracks)
+void WCSimOutputTree::SetStageInfo(int stageNCalls, std::vector< WCSimHitPrediction > stagePreds, std::vector<WCSimLikelihoodTrackBase*> stageTracks)
 {
 	if( fResultsTree == 0x0)
 	{
 		std::cerr << "Calling SetStageInfo before the resultsTree has been made!!!" << std::endl;
-		//MakeTree();
+		MakeTree();
 	}
-	fFitInfo->SetStageInfo(stageNCalls, stageMinus2LnLs, stagePreds, stageTracks);
+	fStageInfo->SetStageInfo(stageNCalls, stagePreds, stageTracks);
+	return;
 }
 
-void WCSimOutputTree::Fill(
-                           bool failed,
-                           Int_t iEvent,
-                           std::string recoType,
-                           WCSimRecoSummary& summ,
-                           //WCSimHitComparison& hitComp,
-                           HitInfo& hitInfo,
-                           RecoInfo& recoInfo,
-                           TruthInfo& truthInfo)
+void WCSimOutputTree::SetHitComparison(WCSimHitComparison& hitComp)
+{
+	if( fResultsTree == 0x0)
+	{
+		std::cerr << "Calling SetHitComparison before the resultsTree has been made!!!" << std::endl;
+		MakeTree();
+	}
+	delete fHitComparison;
+    fHitComparison = new WCSimHitComparison(hitComp);
+	return;
+}
+
+void WCSimOutputTree::Fill(EventHeader& eventHead,
+          	  	  	  	   TruthInfo& truthInfo,
+						   WCSimRecoSummary& summ,
+						   HitInfo& hitInfo,
+						   RecoInfo& recoInfo)
 {
 
 	// Fill the truth and fit tree entries
 	if( fResultsTree == 0x0)
 	{
 		std::cerr << "Calling Fill before the resultsTree has been made!!!" << std::endl;
-		//MakeTree();
+		MakeTree();
 	}
-    fFailed = failed;
-	fEvent = iEvent;
-    fRecoType = recoType;
-    BuildUID();
+
+	delete fEventHeader;
+	fEventHeader = new EventHeader(eventHead);
+
+    delete fTruthInfo;
+    fTruthInfo = new TruthInfo(truthInfo);
+
     delete fRecoSummary;
     fRecoSummary = new WCSimRecoSummary(summ);
-
-    //delete fHitComparison;
-    //fHitComparison = new WCSimHitComparison(hitComp);
 
     delete fHitInfo;
     fHitInfo = new HitInfo(hitInfo);
@@ -848,23 +1096,18 @@ void WCSimOutputTree::Fill(
     delete fRecoInfo;
     fRecoInfo = new RecoInfo(recoInfo);
 
-    delete fTruthInfo;
-    fTruthInfo = new TruthInfo(truthInfo);
     fResultsTree->Fill();
 
 	// Fill the geometry tree
 	if(fGeoTree->GetEntries() == 0)
 	{
-      *fGeometry = *(WCSimGeometry::Instance()->GetWCSimGeometry());
-      WCSimGeometry::Instance()->PrintGeometry();
-	  fGeoTree->Fill();
+		*fGeometry = *(WCSimGeometry::Instance()->GetWCSimGeometry());
+		WCSimGeometry::Instance()->PrintGeometry();
+		fGeoTree->Fill();
 	}
 
     SaveTree();
-
-    delete fFitInfo;
-    fFitInfo = new FitInfo();
-
+    return;
 }
 
 void WCSimOutputTree::SaveTree() {
@@ -874,12 +1117,8 @@ void WCSimOutputTree::SaveTree() {
 	fSaveFile->cd();
 	std::cout << " *** WCSimFitter::SaveTree() *** " << std::endl;
 	std::cout << "Save file name = " << fSaveFileName << std::endl;
-	//std::cout << "fTrueTree = " << fTrueTree << std::endl;
-	//TrueTree->Print();
 
 	assert(fSaveFile->IsOpen());
-	//std::cout << "fTrueTree = " << fTrueTree << std::endl;
-	//fTrueTree->Print();
 	fResultsTree->Write("",TObject::kOverwrite);
 	fGeoTree->Write("",TObject::kOverwrite);
 
@@ -887,9 +1126,9 @@ void WCSimOutputTree::SaveTree() {
 	return;
 }
 
-
 void WCSimOutputTree::SetSaveFileName(TString saveName) {
 	fSaveFileName = saveName;
+	return;
 }
 
 TString WCSimOutputTree::GetSaveFileName() const
@@ -912,11 +1151,18 @@ void WCSimOutputTree::MakeSaveFile()
     std::cout << "  Plots to be saved in file: " << fSaveFileName.Data() << std::endl;
 
     tmpd->cd();
+    return;
 }
 
 void WCSimOutputTree::SetInputFile(const TString &saveFileName)
 {
     fInputFile = std::string(saveFileName.Data());
+	return;
+}
+
+TString WCSimOutputTree::GetInputFileName() const
+{
+	return fInputFile;
 }
 
 void WCSimOutputTree::DeletePointersIfExist()
@@ -930,18 +1176,26 @@ void WCSimOutputTree::DeletePointersIfExist()
     if(fGeoTree != 0x0)
     {
         delete fGeoTree;
+        fGeoTree = 0x0;
+    }
+
+    if(fEventHeader != 0x0)
+    {
+        delete fEventHeader;
+        fEventHeader = 0x0;
+    }
+
+    if(fTruthInfo != 0x0)
+    {
+        delete fTruthInfo;
+        fTruthInfo = 0x0;
     }
 
     if(fRecoSummary != 0x0)
     {
         delete fRecoSummary;
+        fRecoSummary = 0x0;
     }
-
-    //if(fHitComparison != 0x0)
-    //{
-    //    delete fHitComparison;
-    //    fHitComparison = 0x0;
-    //}
 
     if(fHitInfo != 0x0)
     {
@@ -955,46 +1209,23 @@ void WCSimOutputTree::DeletePointersIfExist()
         fRecoInfo = 0x0;
     }
 
-    if(fTruthInfo != 0x0)
-    {
-        delete fTruthInfo;
-        fTruthInfo = 0x0;
-    }
-
     if(fSeedInfo != 0x0)
     {
         delete fSeedInfo;
         fSeedInfo = 0x0;
     }
 
-    if(fFitInfo != 0x0)
+    if(fStageInfo != 0x0)
     {
-        delete fFitInfo;
-        fFitInfo = 0x0;
+        delete fStageInfo;
+        fStageInfo = 0x0;
     }
+
+    if(fHitComparison != 0x0)
+    {
+        delete fHitComparison;
+        fHitComparison = 0x0;
+    }
+    return;
 }
 
-
-/**
- * @brief Make unique identifier for a file/event combination.  Sets fUID to
- * md5("%s%d", md5(inputFile), eventNumber)
- *
-**/
-void WCSimOutputTree::BuildUID()
-{
-    TMD5 myMD5;
-
-    // Build a char array to hold our filename string:
-    TString inputStr = TString::Format("%s%06d", fInputFile.c_str(), fEvent);
-    std::string input(inputStr.Data());
-    const size_t sizeOfString(input.size());
-    UChar_t charArray[sizeOfString];
-    strcpy(reinterpret_cast<char*>(charArray), input.c_str()); 
-
-    // Hash the filename
-    UChar_t output[16];
-    myMD5.Update(charArray, sizeOfString);
-    myMD5.Final(output);
-    fUID = myMD5.AsString();
-    std::cout << "Hash of " << input.c_str() << " is " << fUID << std::endl;
-}

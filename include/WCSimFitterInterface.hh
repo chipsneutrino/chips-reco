@@ -87,12 +87,6 @@ public:
     void SetIsCosmicFit(const bool &val);
     bool GetIsCosmicFit() const;
 
-    void SetSaveSeedInfo(const bool &saveSeedInfo);
-    bool GetSaveSeedInfo() const;
-
-    void SetSaveFitInfo(const bool &saveFitInfo);
-    bool GetSaveFitInfo() const;
-
 	void PrintFitConfiguration();
 	void PrintPlotsConfiguration();
 	void PrintSurfaceConfiguration();

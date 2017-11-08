@@ -286,7 +286,7 @@ void WCSimFitterInterface::Run() {
   std::cout << " *** Making histograms *** " << std::endl;
   fFitterPlots->MakeHistograms(fFitterConfig);
   std::cout << " *** Making tree *** " << std::endl;
-  fOutputTree->MakeTree(fFitterConfig->GetSaveSeedInfo(), fFitterConfig->GetSaveFitInfo());
+  fOutputTree->MakeTree();
 
   std::cout << "  Running fits " << std::endl;
   if(fMakeFits) 
@@ -345,26 +345,6 @@ void WCSimFitterInterface::SetIsCosmicFit(const bool &val)
 bool WCSimFitterInterface::GetIsCosmicFit() const
 {
   return fFitterConfig->GetIsCosmicFit();
-}
-
-void WCSimFitterInterface::SetSaveSeedInfo(const bool &saveSeedInfo)
-{
-	fFitterConfig->SetSaveSeedInfo(saveSeedInfo);
-}
-
-bool WCSimFitterInterface::GetSaveSeedInfo() const
-{
-	return fFitterConfig->GetSaveSeedInfo();
-}
-
-void WCSimFitterInterface::SetSaveFitInfo(const bool &saveFitInfo)
-{
-	fFitterConfig->SetSaveFitInfo(saveFitInfo);
-}
-
-bool WCSimFitterInterface::GetSaveFitInfo() const
-{
-	return fFitterConfig->GetSaveFitInfo();
 }
 
 void WCSimFitterInterface::InitOutputFiles()

@@ -127,8 +127,9 @@
 #pragma link C++ class vector<vector<WCSimHitPrediction> >;
 #pragma link C++ class WCSimSingleHitComparison+;
 #pragma link C++ class vector<WCSimSingleHitComparison>+;
+#pragma link C++ class EventHeader+;
 #pragma link C++ class HitInfo+;
-#pragma link C++ class FitInfo+;
+#pragma link C++ class StageInfo+;
 #pragma link C++ class SeedInfo+;
 #pragma link C++ class TruthInfo+;
 #pragma link C++ class RecoInfo+;

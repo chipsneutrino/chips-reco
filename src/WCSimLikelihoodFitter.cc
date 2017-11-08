@@ -673,8 +673,8 @@ void WCSimLikelihoodFitter::RunFits() {
 
 	for(UInt_t iEvent = firstEvent; iEvent < firstEvent + numEventsToFit ; ++iEvent)
 	{
-		// Set up the Output Tree with the appropriate branches as we will be filling it throughout the fit, not just at the end...
-		//fOutputTree->MakeTree(fFitterConfig->GetSaveSeedInfo(), fFitterConfig->GetSaveFitInfo());
+		// The outputTree should already have been setup in the fitterInterface
+		// fOutputTree->MakeTree();
 
 		// Fit the event...
 		FitEventNumber(iEvent);
@@ -684,7 +684,7 @@ void WCSimLikelihoodFitter::RunFits() {
 	    {
               std::cout << "Filling successful event" << std::endl;
 			  FillPlots();
-			  FillTree(); //TESTING
+			  FillTree();
 	    }
 	    else
 	    {
@@ -769,27 +769,28 @@ void WCSimLikelihoodFitter::FillPlots() {
 void WCSimLikelihoodFitter::FillTree() {
 	if(fOutputTree != NULL)
 	{
-		if(fFitterConfig->GetSaveFitInfo()){
-			SetFitInfo();
-		}
+		// Need to first build all the objects we are going to save
+		// Only hit comparison if needed.
+		// Need to make sure you have set SeedInfo and StageInfo before
+		// this as this will fill the tree with those if required...
 
-        WCSimRecoSummary summ = BuildRecoSummary();
-        //WCSimHitComparison hitComp = BuildHitComparison();
+	    if(WCSimAnalysisConfig::Instance()->GetSaveHitComparison()){
+	    	std::cout << "Building HitComparison..." << std::endl;
+	    	WCSimHitComparison hitComp = BuildHitComparison();
+	    	fOutputTree->SetHitComparison(hitComp);
+	    }
+
+	    EventHeader eventHead = BuildEventHeader();
+        TruthInfo truthInfo = BuildTruthInfo();
+        WCSimRecoSummary recoSumm = BuildRecoSummary();
         HitInfo hitInfo = BuildHitInfo();
         RecoInfo recoInfo = BuildRecoInfo();
-        TruthInfo truthInfo = BuildTruthInfo();
-        std::string recoType = GetRecoType();
 
-        fOutputTree->Fill(
-                fFailed,
-                fEvent,
-                recoType,
-                summ,
-                //hitComp,
-                hitInfo,
-                recoInfo,
-                truthInfo
-                );
+        fOutputTree->Fill(eventHead,
+        		          truthInfo,
+        				  recoSumm,
+        				  hitInfo,
+        				  recoInfo);
 	}
 	return;
 }
@@ -975,8 +976,9 @@ void WCSimLikelihoodFitter::SeedEvent()
   }
 
   // Need to fill the SeedInfo in the outputTree...
-  if(fOutputTree != NULL && fFitterConfig->GetSaveSeedInfo()){
-	  fOutputTree->SetSeed(TrackType::AsString(fFitterConfig->GetTrackType(0)) ,fSeeds, slicedEvents.size(), ringVec, ringTime);
+  if(fOutputTree != NULL && WCSimAnalysisConfig::Instance()->GetSaveSeedInfo()){
+	  SeedInfo seedInfo = SeedInfo(fSeeds, slicedEvents.size(), ringVec, ringTime);
+	  fOutputTree->SetSeedInfo(seedInfo);
   }
 
   delete myReco;
@@ -987,11 +989,10 @@ void WCSimLikelihoodFitter::SeedEvent()
   }
 
   UpdateBestFits();
-  // Need to fill the FitInfo in the outputTree...
-  if(fFitterConfig->GetSaveFitInfo()){
+  // Need to fill the StageInfo in the outputTree...
+  if(fOutputTree != NULL && WCSimAnalysisConfig::Instance()->GetSaveStageInfo()){
 	  SetFitInfoStage();
   }
-    
 }
 
 
@@ -1296,8 +1297,8 @@ double WCSimLikelihoodFitter::FitAndGetLikelihood(const char * minAlgorithm)
 	  // RescaleParams(outPar2[0],  outPar2[1],  outPar2[2],  outPar2[3],  outPar2[4],  outPar2[5],  outPar2[6], fType).Print();
 
 	  UpdateBestFits();
-	  // Need to fill the FitInfo in the outputTree...
-	  if(fFitterConfig->GetSaveFitInfo()){
+	  // Need to fill the StageInfo in the outputTree...
+	  if(fOutputTree != NULL && WCSimAnalysisConfig::Instance()->GetSaveStageInfo()){
 		  SetFitInfoStage();
 	  }
 
@@ -2079,8 +2080,8 @@ void WCSimLikelihoodFitter::FitAlongTrack()
   }
 
   UpdateBestFits();
-  // Need to fill the FitInfo in the outputTree...
-  if(fFitterConfig->GetSaveFitInfo()){
+  // Need to fill the StageInfo in the outputTree...
+  if(fOutputTree != NULL && WCSimAnalysisConfig::Instance()->GetSaveStageInfo()){
 	  SetFitInfoStage();
   }
   
@@ -2666,8 +2667,6 @@ WCSimRecoSummary WCSimLikelihoodFitter::BuildRecoSummary()
 
 WCSimHitComparison WCSimLikelihoodFitter::BuildHitComparison()
 {
-
-
   // Get all the predicted values and likelihoods for the correct tracks:
   std::vector<WCSimLikelihoodTrackBase*> *correctTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
   fTotalLikelihood->SetTracks(*correctTracks);
@@ -2680,8 +2679,8 @@ WCSimHitComparison WCSimLikelihoodFitter::BuildHitComparison()
   std::vector<double> correct2LnLs = fTotalLikelihood->GetTotal2LnLVector();
 
 
-
   // Get all the predicted values and likelihoods for the best-fit tracks:
+  // Doing this second means that if fTotalLikelihood is called after this, it uses the fBestFit as required.
   fTotalLikelihood->SetTracks(fBestFit);
   fTotalLikelihood->Calc2LnL();
   std::vector<double> predictedCharges = fTotalLikelihood->GetPredictedChargeVector();
@@ -2730,6 +2729,13 @@ WCSimHitComparison WCSimLikelihoodFitter::BuildHitComparison()
     return hitComparisons;
 }
 
+EventHeader WCSimLikelihoodFitter::BuildEventHeader()
+{
+	std::string inputFile(fOutputTree->GetInputFileName().Data());
+	std::string recoType = GetRecoType();
+	return EventHeader(inputFile, fEvent, fFailed, recoType);
+}
+
 HitInfo WCSimLikelihoodFitter::BuildHitInfo()
 {
 
@@ -2769,13 +2775,6 @@ HitInfo WCSimLikelihoodFitter::BuildHitInfo()
 RecoInfo WCSimLikelihoodFitter::BuildRecoInfo()
 {
     RecoInfo recoInfo;
-
-    // First get the likelihood components  (commented because results depend on last call even if info has been already stored)
-    //    fMinimumTimeComponent = fTotalLikelihood->GetLastTime2LnL();
-    //    fMinimumChargeComponent = fTotalLikelihood->GetLastCharge2LnL();
-    //    fMinimumHitComponent = fTotalLikelihood->GetLastHit2LnL();
-    //    fMinimumCutoffComponent = fTotalLikelihood->GetLastCutoff2LnL();
-
     float totalLikelihood = fMinimumTimeComponent 
                             + fMinimumChargeComponent
                             + fMinimumHitComponent
@@ -2938,55 +2937,6 @@ std::string WCSimLikelihoodFitter::GetRecoType()
     return "other";
 }
 
-void WCSimLikelihoodFitter::SetFitInfo()
-{
-	if(fOutputTree != NULL){
-		// Get all the predicted values and likelihoods for the correct tracks:
-		std::vector<WCSimLikelihoodTrackBase*> *correctTracks = WCSimInterface::Instance()->GetTrueLikelihoodTracks();
-		fTotalLikelihood->SetTracks(*correctTracks);
-		fTotalLikelihood->Calc2LnL();
-		std::vector<double> correctPredictedCharges = fTotalLikelihood->GetPredictedChargeVector();
-		std::vector<double> correctPredictedTimes = fTotalLikelihood->GetPredictedTimeVector();
-		std::vector<double> correctHit2LnLs = fTotalLikelihood->GetHit2LnLVector();
-		std::vector<double> correctCharge2LnLs = fTotalLikelihood->GetCharge2LnLVector();
-		std::vector<double> correctTime2LnLs = fTotalLikelihood->GetTime2LnLVector();
-		std::vector<double> correct2LnLs = fTotalLikelihood->GetTotal2LnLVector();
-
-		// Update best-fit components
-		//fMinimumTimeComponent = fTotalLikelihood->GetLastTime2LnL();
-		//fMinimumChargeComponent = fTotalLikelihood->GetLastCharge2LnL();
-		//fMinimumHitComponent = fTotalLikelihood->GetLastHit2LnL();
-		//fMinimumCutoffComponent = fTotalLikelihood->GetLastCutoff2LnL();
-
-		// Now make a vector of easy-to-handle hit prediction objects:
-		std::vector< WCSimHitPrediction > hitPredictions;
-		std::vector< std::vector<double> > digitInfo;
-		// Loop through all the digits in the event:
-		for(int i = 0; i < fLikelihoodDigitArray->GetNDigits(); ++i)
-		{
-			WCSimHitPrediction correctFit(
-					  correctPredictedCharges.at(i),
-					  correctPredictedTimes.at(i),
-					  correct2LnLs.at(i),
-					  correctCharge2LnLs.at(i),
-					  correctTime2LnLs.at(i),
-					  correctHit2LnLs.at(i)
-					  );
-			hitPredictions.push_back(correctFit);
-
-	        WCSimLikelihoodDigit* thisDigit = fLikelihoodDigitArray->GetDigit(i);
-			std::vector<double> tempDigitInfo;
-			tempDigitInfo.push_back(double(thisDigit->GetTubeId()));
-			tempDigitInfo.push_back(thisDigit->GetQ());
-			tempDigitInfo.push_back(thisDigit->GetT());
-			digitInfo.push_back(tempDigitInfo);
-
-		}
-
-		fOutputTree->SetEventFitInfo(TrackType::AsString(fFitterConfig->GetTrackType(0)), digitInfo, hitPredictions);
-	}
-}
-
 void WCSimLikelihoodFitter::SetFitInfoStage()
 {
 	// Need to fill the FitInfo in the outputTree...
@@ -3022,7 +2972,7 @@ void WCSimLikelihoodFitter::SetFitInfoStage()
 		stageMinus2LnLs.push_back(fTotalLikelihood->GetLastTime2LnL());
 		stageMinus2LnLs.push_back(fTotalLikelihood->GetLastCharge2LnL());
 
-		fOutputTree->SetStageInfo(fCalls, stageMinus2LnLs, hitPredictions, fBestFit);
+		fOutputTree->SetStageInfo(fCalls, hitPredictions, fBestFit);
 	}
 }
 
