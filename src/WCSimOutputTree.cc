@@ -1021,13 +1021,16 @@ void WCSimOutputTree::MakeTree()
     fResultsTree->Branch("RecoInfo", "RecoInfo", &fRecoInfo, 64000, 1);
 
     if(WCSimAnalysisConfig::Instance()->GetSaveSeedInfo()){
+    	std::cout << "WCSimOutputTree::MakeTree()...Saving Seed Info" << std::endl;
     	fResultsTree->Branch("SeedInfo", "SeedInfo", &fSeedInfo, 64000, 1);
     }
     if(WCSimAnalysisConfig::Instance()->GetSaveStageInfo()){
-    fResultsTree->Branch("StageInfo", "StageInfo", &fStageInfo, 64000, 1);
+    	std::cout << "WCSimOutputTree::MakeTree()...Saving Stage Info" << std::endl;
+    	fResultsTree->Branch("StageInfo", "StageInfo", &fStageInfo, 64000, 1);
     }
     if(WCSimAnalysisConfig::Instance()->GetSaveHitComparison()){
-    fResultsTree->Branch("HitComparison", "HitComparison", &fHitComparison, 64000, 1);
+    	std::cout << "WCSimOutputTree::MakeTree()...Saving Hit Comparison" << std::endl;
+        fResultsTree->Branch("HitComparison", "WCSimHitComparison", &fHitComparison, 64000, 1);
     }
     return;
 }
@@ -1063,7 +1066,7 @@ void WCSimOutputTree::SetHitComparison(WCSimHitComparison& hitComp)
 		MakeTree();
 	}
 	delete fHitComparison;
-    fHitComparison = new WCSimHitComparison(hitComp);
+	fHitComparison = new WCSimHitComparison(hitComp);
 	return;
 }
 

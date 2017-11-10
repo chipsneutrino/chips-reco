@@ -42,8 +42,8 @@ WCSIM_LIBS += -lWCSim
 .PHONY: 
 	all
 
-all: rootcint shared
-# all: rootcint shared libWCSimAnalysis.a
+#all: rootcint shared
+all: rootcint shared libWCSimAnalysis.a
 
 ROOTSO := $(LIBDIR)/libWCSimAnalysis.so
 

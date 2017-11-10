@@ -11,6 +11,7 @@
 #include "WCSimRecoSummary.hh"
 #include "WCSimRootEvent.hh"
 #include "WCSimRootGeom.hh"
+#include "WCSimOutputTree.hh"
 #include <TGButton.h>
 #include <TGFrame.h>
 #include <TGFileDialog.h>
@@ -824,14 +825,22 @@ void WCSimRecoEvDisplay::OpenWCSimRecoFile(std::string name) {
 		delete fRecoSummaryChain;
 	}
 
-
 	fRecoSummaryChain = new TChain("fResultsTree");
 	fRecoSummaryChain->Reset();
 	fRecoSummaryChain->Add(name.c_str());
-    
-    std::string * wcsimFileLocation = new std::string();
-    fRecoSummaryChain->SetBranchAddress("InputFile", &wcsimFileLocation);
+
+    //Set up the Event Header...
+    EventHeader *eventHeader = new EventHeader();
+    TBranch *b_eh =  fRecoSummaryChain->GetBranch("EventHeader");
+    b_eh->SetAddress(&eventHeader);
     fRecoSummaryChain->GetEntry(0);
+    
+    std::string str = eventHeader->GetInputFile();
+    const char *wcsimFileLocation = str.c_str();
+
+    //std::string * wcsimFileLocation = new std::string();
+    //fRecoSummaryChain->SetBranchAddress("InputFile", &wcsimFileLocation);
+    //fRecoSummaryChain->GetEntry(0);
 
 	// Sort the main chain first
 	if(fChain != 0x0){
@@ -841,8 +850,8 @@ void WCSimRecoEvDisplay::OpenWCSimRecoFile(std::string name) {
     // Chain with the WCSimRootEvent from the simulation
     fChain = new TChain("wcsimT");
 	fChain->Reset();
-    fChain->Add(wcsimFileLocation->c_str());
-    delete wcsimFileLocation;
+    fChain->Add(wcsimFileLocation);
+    //delete wcsimFileLocation;
     fRecoSummaryChain->ResetBranchAddresses();
 
     if(fHitComparisonChain != 0x0){
