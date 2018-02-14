@@ -476,14 +476,16 @@ Double_t WCSimDigitizerLikelihood::GetPoissonLikelihood(const Double_t &undigi, 
 
 Double_t WCSimDigitizerLikelihood::GetPoissonMinus2LnL( const Double_t &undigi, const Double_t &digi )
 {
-  // This used to be done by using...
-  // return -2.0 * ( digi * TMath::Log(undigi) - undigi - TMath::LnGamma(digi+1));
+  // This is done by using...
+  return -2.0 * ( digi * TMath::Log(undigi) - undigi - TMath::LnGamma(digi+1));
   // Other bits that were used in the past...
   // Double_t prob = this->GetPoissonLikelihood( undigi, digi );
   // if(prob > 1e-40){ return -2.0 * TMath::Log(prob);}
   // return -(digi * TMath::Log(undigi) - undigi - TMath::LnGamma(digi+1));
 
-  // New implementation copying what that do in NOVA. undigi = prediction , digi = observation
+  // Implementation copying what that do in NOVA. undigi = prediction , digi = observation
+  // NOTE THIS IS WRONG AS IT IS NOT DOING THE DIGITISATION!!!
+  /*
   const double minexp = 1e-6; // Don't let expectation go lower than this
 
   double minus2LnL = 0;
@@ -499,6 +501,7 @@ Double_t WCSimDigitizerLikelihood::GetPoissonMinus2LnL( const Double_t &undigi, 
   if(digi){ minus2LnL += 2*digi*TMath::Log(digi/exp); }
 
   return minus2LnL;
+  */
 }
 
 Double_t WCSimDigitizerLikelihood::GetPoissonExpectation( const Double_t &undigi )
