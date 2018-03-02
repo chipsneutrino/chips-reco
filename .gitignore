@@ -13,6 +13,10 @@
 *~
 lib/
 tmp/
+evDisplay
+src/WCSimAnalysisRootDict.cc
+src/WCSimAnalysisRootDict.h
+libWCSimAnalysis.a
 *.sh.o*
 *.sh.e*
 *.root

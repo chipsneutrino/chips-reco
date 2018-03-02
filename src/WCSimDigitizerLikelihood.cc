@@ -135,6 +135,11 @@ Double_t WCSimDigitizerLikelihood::GetMinus2LnL( const Double_t &undigi, const D
     }
   }
   if(m2LnL < 0 || m2LnL > 25.0){ m2LnL = 25.0; }
+
+
+
+
+
   return m2LnL;
 }
 
@@ -295,7 +300,7 @@ Double_t WCSimDigitizerLikelihood::GetWCSimLikelihood( Double_t undigi, const Do
   if( undigi < 10.0 ) { digitizerLikelihood = this->GetWCSimPickerLikelihood(undigi, digiEff); }
   else if( undigi < 200. ) { digitizerLikelihood = this->GetWCSimGausExpoLikelihood(undigi, digiEff); }
   else { digitizerLikelihood = this->GetWCSimGausLikelihood(undigi, digiEff); }
-  std::cout << "DigitizerLikelihood = " << digitizerLikelihood << std::endl;
+  //std::cout << "DigitizerLikelihood = " << digitizerLikelihood << std::endl;
 
  	if(digitizerLikelihood < 0.0) { digitizerLikelihood = 0.0; }
 	// This is just a safeguard

@@ -208,8 +208,17 @@ Double_t WCSimLikelihoodTuner::Efficiency()
 
 	  // The PMT angular efficiency taken directly from WCSim
 	  const int num_elements = 10;
-	  Double_t collection_angle[num_elements]={0.,10.,20.,30.,40.,50.,60.,70.,80.,90.};
-	  Double_t collection_eff[num_elements]={1.,1.,0.99,0.95,0.90,0.85,0.80,0.69,0.35,0.13};
+	  // 100% angular collection efficiency everywhere, for testing
+	  //Double_t collection_angle[num_elements]={0.,10.,20.,30.,40.,50.,60.,70.,80.,90 };
+	  //Double_t collection_eff[num_elements]={1,0.99,0.95,0.86,0.76,0.67,0.56,0.46,0.36,0.26};
+
+	  // Collection efficiency as suggested by Paul
+	  Double_t collection_angle[num_elements]={0.,10.,20.,30.,40.,50.,60.,70.,80.,90};
+	  Double_t collection_eff[num_elements]={0.91,0.90,0.86,0.78,0.69,0.60,0.50,0.40,0.30,0.22};
+
+	  // The old one we used
+	  //Double_t collection_angle[num_elements]={0.,10.,20.,30.,40.,50.,60.,70.,80.,90.};
+	  //Double_t collection_eff[num_elements]={1.,1.,0.99,0.95,0.90,0.85,0.80,0.69,0.35,0.13};
 
     // Interpolate between the efficiencies for the closes two angles
 	  for(int iEntry = 0; iEntry < num_elements-1; ++iEntry)
