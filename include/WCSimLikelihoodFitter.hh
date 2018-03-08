@@ -60,8 +60,7 @@ class WCSimLikelihoodFitter
         EventHeader BuildEventHeader();
         WCSimRecoSummary BuildRecoSummary();
         WCSimHitComparison BuildHitComparison();
-        HitInfo BuildHitInfo();
-        RecoInfo BuildRecoInfo();
+        PidInfo BuildPidInfo();
         TruthInfo BuildTruthInfo();
         std::string GetRecoType();
         

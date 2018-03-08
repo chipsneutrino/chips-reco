@@ -128,13 +128,13 @@
 #pragma link C++ class WCSimSingleHitComparison+;
 #pragma link C++ class vector<WCSimSingleHitComparison>+;
 #pragma link C++ class EventHeader+;
-#pragma link C++ class HitInfo+;
-#pragma link C++ class StageInfo+;
-#pragma link C++ class SeedInfo+;
 #pragma link C++ class TruthInfo+;
-#pragma link C++ class RecoInfo+;
+#pragma link C++ class PidInfo+;
+#pragma link C++ class SeedInfo+;
+#pragma link C++ class StageInfo+;
 #pragma link C++ class WCSimOutputTree+;
 
 #pragma link C++ class WCSimPIDTree+;
+#pragma link C++ class WCSimPID+;
 
 #endif

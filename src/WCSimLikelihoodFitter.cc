@@ -783,14 +783,12 @@ void WCSimLikelihoodFitter::FillTree() {
 	    EventHeader eventHead = BuildEventHeader();
         TruthInfo truthInfo = BuildTruthInfo();
         WCSimRecoSummary recoSumm = BuildRecoSummary();
-        HitInfo hitInfo = BuildHitInfo();
-        RecoInfo recoInfo = BuildRecoInfo();
+        PidInfo pidInfo = BuildPidInfo();
 
         fOutputTree->Fill(eventHead,
         		          truthInfo,
         				  recoSumm,
-        				  hitInfo,
-        				  recoInfo);
+        				  pidInfo);
 	}
 	return;
 }
@@ -2736,26 +2734,32 @@ EventHeader WCSimLikelihoodFitter::BuildEventHeader()
 	return EventHeader(inputFile, fEvent, fFailed, recoType);
 }
 
-HitInfo WCSimLikelihoodFitter::BuildHitInfo()
-{
+PidInfo WCSimLikelihoodFitter::BuildPidInfo(){
+	PidInfo pidInfo;
 
     bool veto = WCSimInterface::Instance()->EventIsVetoed();
     int nPMTs = fLikelihoodDigitArray->GetNDigits();
 
     // Track the number of hits and total charge
-    // Only need the total and the amount upstream - HitInfo 
+    // Only need the total and the amount upstream - HitInfo
     // knows that upstream + downstream = total
     int hits = 0;
     int hitsUpstream = 0;
+    int hitsInBottom = 0;
+    int hitsInTop = 0;
     float charge = 0.0;
     float chargeUpstream = 0.0;
+    float chargeInBottom = 0.0;
+    float chargeInTop = 0.0;
 
     // Look for all the hit PMTs
     for(int iPMT = 0; iPMT < nPMTs; ++ iPMT)
     {
         WCSimLikelihoodDigit* myDigit = fLikelihoodDigitArray->GetDigit(iPMT);
         bool isUpstream = (myDigit->GetX() < 0);
-        
+        bool inBottom = (myDigit->GetZ() < -999);
+        bool inTop = (myDigit->GetZ() > 999);
+
         if(myDigit->GetQ() > 0)
         {
             hits++;
@@ -2766,20 +2770,26 @@ HitInfo WCSimLikelihoodFitter::BuildHitInfo()
                 hitsUpstream++;
                 chargeUpstream += myDigit->GetQ();
             }
+            if(inBottom)
+            {
+            	hitsInBottom++;
+            	chargeInBottom++;
+            }
+            if(inTop)
+            {
+            	hitsInTop++;
+            	chargeInTop++;
+            }
         }
     }
 
-    return HitInfo(veto, hits, hitsUpstream, charge, chargeUpstream);
-}
+    pidInfo.SetHitInfo(veto, hits, hitsUpstream, hitsInBottom, hitsInTop, charge, chargeUpstream, chargeInBottom, chargeInTop);
 
-RecoInfo WCSimLikelihoodFitter::BuildRecoInfo()
-{
-    RecoInfo recoInfo;
     float totalLikelihood = fMinimumTimeComponent 
                             + fMinimumChargeComponent
                             + fMinimumHitComponent
                             - fMinimumCutoffComponent;
-    recoInfo.SetLikelihoods(totalLikelihood, fMinimumHitComponent, 
+    pidInfo.SetLikelihoods(totalLikelihood, fMinimumHitComponent,
                             fMinimumChargeComponent, fMinimumTimeComponent);
     
     // Store the vertex, direction and end of the leading track
@@ -2799,17 +2809,16 @@ RecoInfo WCSimLikelihoodFitter::BuildRecoInfo()
             );
     TVector3 end = vtx + stoppingDistance * dir;
 
-    recoInfo.SetEnergy(energy);
-    recoInfo.SetVtxTime(time);
-    recoInfo.SetVtx(vtx.X(), vtx.Y(), vtx.Z());
-    recoInfo.SetDir(dir.X(), dir.Y(), dir.Z());
-    recoInfo.SetEnd(end.X(), end.Y(), end.Z());
-    recoInfo.SetEscapes(GetTrackEscapes(fBestFit.at(0)));
+    pidInfo.SetEnergy(energy);
+    pidInfo.SetVtxTime(time);
+    pidInfo.SetVtx(vtx.X(), vtx.Y(), vtx.Z());
+    pidInfo.SetDir(dir.X(), dir.Y(), dir.Z());
+    pidInfo.SetEnd(end.X(), end.Y(), end.Z());
+    pidInfo.SetEscapes(GetTrackEscapes(fBestFit.at(0)));
 
 
     // Now loop over all PMTs to work out the contributions inside the fit ring
     std::vector<double> predQ = fTotalLikelihood->GetPredictedChargeVector();
-    int nPMTs = fLikelihoodDigitArray->GetNDigits();
     int hitsInside = 0;
     int hitsOutside = 0;
     int hitsInHole = 0;
@@ -2880,11 +2889,12 @@ RecoInfo WCSimLikelihoodFitter::BuildRecoInfo()
             predChargeInHole += predQ.at(iPMT);
         }
     }
-    recoInfo.SetTotalQ(chargeInside, chargeOutside, chargeInHole);
-    recoInfo.SetNHits(hitsInside, hitsOutside, hitsInHole);
-    recoInfo.SetPredQ(predChargeInside, predChargeOutside, predChargeInHole);
+    pidInfo.SetTotalQ(chargeInside, chargeOutside, chargeInHole);
+    pidInfo.SetNHits(hitsInside, hitsOutside, hitsInHole);
+    pidInfo.SetPredQ(predChargeInside, predChargeOutside, predChargeInHole);
 
-    return recoInfo;
+    return pidInfo;
+
 }
 
 TruthInfo WCSimLikelihoodFitter::BuildTruthInfo()

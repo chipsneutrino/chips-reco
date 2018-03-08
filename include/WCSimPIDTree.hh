@@ -24,8 +24,8 @@
 
 class TTree;
 class TruthInfo;
-class RecoInfo;
-class HitInfo;
+class PidInfo;
+class SeedInfo;
 
 class WCSimPIDTree : public TObject
 {
@@ -33,9 +33,17 @@ class WCSimPIDTree : public TObject
 		WCSimPIDTree(TTree * tree_mu, TTree * tree_el);
 		~WCSimPIDTree();
 
-		float GetTotalQ(){ return totalQ; }
+		// NEED TO ADD ALL THE STUFF HERE!!!SS
 		bool GetVeto(){ return veto; }
 		int GetNHits(){ return nHits; }
+
+		int GetNHitsUpstream(){ return nHitsUpstream; }
+		int GetNHitsDownstream(){ return nHitsDownstream; }
+		int GetNHitsInBottom(){ return nHitsInBottom; }
+		int GetNHitsInTop(){ return nHitsInTop; }
+
+		float GetTotalQ(){ return totalQ; }
+		float GetFracHitsDownstream(){ return fracHitsDownstream; }
 
 		float GetDeltaCharge2LnL(){ return deltaCharge2LnL; }
 		float GetDeltaTime2LnL(){ return deltaTime2LnL; }
@@ -65,7 +73,6 @@ class WCSimPIDTree : public TObject
 		float GetRecoEOverQ_el(){ return recoEOverQ_el; }
 
 		float GetDirX_el(){ return dirX_el; }
-		float GetFracHitsDownstream(){ return fracHitsDownstream; }
 
 		float GetNRings(){ return nRings; }
 		float GetFirstRingHeight(){ return firstRingHeight; }
@@ -119,13 +126,21 @@ class WCSimPIDTree : public TObject
 		Int_t		   nHits;
 		Int_t		   nHitsUpstream;
 		Int_t		   nHitsDownstream;
+		Int_t		   nHitsInBottom;
+		Int_t		   nHitsInTop;
 		Float_t        fracHitsUpstream;
 		Float_t        fracHitsDownstream;
+		Float_t        fracHitsInBottom;
+		Float_t        fracHitsInTop;
 		Float_t        totalQ;
 		Float_t        totalQUpstream;
 		Float_t        totalQDownstream;
+		Float_t        totalQInBottom;
+		Float_t        totalQInTop;
 		Float_t        fracQUpstream;
 		Float_t        fracQDownstream;
+		Float_t        fracQInBottom;
+		Float_t        fracQInTop;
 
 		Int_t		   nRings;
 		Float_t        firstRingHeight;
@@ -221,30 +236,26 @@ class WCSimPIDTree : public TObject
 		Bool_t         preselected;
 
 		//Declaration of leaves types
-		HitInfo     *hitInfo_el;
-		RecoInfo    *recoInfo_el;
+		PidInfo     *pidInfo_el;
 		TruthInfo   *truthInfo_el;
 		SeedInfo    *seedInfo_el;
 
-		HitInfo     *hitInfo_mu;
-		RecoInfo    *recoInfo_mu;
+		PidInfo     *pidInfo_mu;
 		TruthInfo   *truthInfo_mu;
 		SeedInfo    *seedInfo_mu;
 
 		// Branches
-		TBranch *bhi_el;
-		TBranch *bri_el;
+		TBranch *bpi_el;
 		TBranch *bti_el;
 		TBranch *bsi_el;
-		TBranch *bhi_mu;
-		TBranch *bri_mu;
+		TBranch *bpi_mu;
 		TBranch *bti_mu;
 		TBranch *bsi_mu;
 
 		//The output tree
 		TTree * PIDOutputTree;
 
-        ClassDef(WCSimPIDTree,1)
+        ClassDef(WCSimPIDTree,2)
 
 };
 

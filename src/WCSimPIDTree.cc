@@ -33,13 +33,11 @@ WCSimPIDTree::WCSimPIDTree(TTree * tree_mu, TTree * tree_el)
 	assert(tree_mu->GetEntriesFast() == tree_el->GetEntriesFast());
 	SetTreeBranches(tree_mu, tree_el);
 
-	hitInfo_el   = new HitInfo();
-	recoInfo_el  = new RecoInfo();
+	pidInfo_el   = new PidInfo();
 	truthInfo_el = new TruthInfo();
 	seedInfo_el  = new SeedInfo();
 
-	hitInfo_mu   = new HitInfo();
-	recoInfo_mu  = new RecoInfo();
+	pidInfo_mu   = new PidInfo();
 	truthInfo_mu = new TruthInfo();
 	seedInfo_mu  = new SeedInfo();
 
@@ -58,19 +56,17 @@ WCSimPIDTree::~WCSimPIDTree()
 void WCSimPIDTree::GetEntry(int entry)
 {
 	//Load the entry into the trees
-    bhi_mu->GetEntry(entry);
-    bri_mu->GetEntry(entry);
+    bpi_mu->GetEntry(entry);
     bti_mu->GetEntry(entry);
     bsi_mu->GetEntry(entry);
-    bhi_el->GetEntry(entry);
-    bri_el->GetEntry(entry);
+    bpi_el->GetEntry(entry);
     bti_el->GetEntry(entry);
     bsi_el->GetEntry(entry);
 
 	//Useful variables to have
-    totalQ = (hitInfo_mu->GetTotalQ() == hitInfo_el->GetTotalQ()) ? hitInfo_mu->GetTotalQ()  : -999;
-	veto =   (hitInfo_mu->GetVeto()  == hitInfo_el->GetVeto()) ? hitInfo_mu->GetVeto()  : 1;
-	nHits =  (hitInfo_mu->GetNHits() == hitInfo_el->GetNHits()) ? hitInfo_mu->GetNHits()  : -999;
+    totalQ = (pidInfo_mu->GetTotalQ() == pidInfo_el->GetTotalQ()) ? pidInfo_mu->GetTotalQ()  : -999;
+	veto =   (pidInfo_mu->GetVeto()  == pidInfo_el->GetVeto()) ? pidInfo_mu->GetVeto()  : 1;
+	nHits =  (pidInfo_mu->GetNHits() == pidInfo_el->GetNHits()) ? pidInfo_mu->GetNHits()  : -999;
 
 	//Truth variables
 	trueType = (truthInfo_mu->GetType() == truthInfo_el->GetType()) ? truthInfo_mu->GetType()  : -999;
@@ -89,104 +85,104 @@ void WCSimPIDTree::GetEntry(int entry)
 	if(nHits > 0)
 	{
 		// Combined variables
-		deltaCharge2LnL = recoInfo_el->GetCharge2LnL() - recoInfo_mu->GetCharge2LnL();
-		deltaTime2LnL = recoInfo_el->GetTime2LnL() - recoInfo_mu->GetTime2LnL();
+		deltaCharge2LnL = pidInfo_el->GetCharge2LnL() - pidInfo_mu->GetCharge2LnL();
+		deltaTime2LnL = pidInfo_el->GetTime2LnL() - pidInfo_mu->GetTime2LnL();
 		deltaCharge2LnLOverNHits = deltaCharge2LnL/(nHits);
 
-	    nHitsUpstream = (hitInfo_mu->GetNHitsUpstream() == hitInfo_el->GetNHitsUpstream()) ? hitInfo_mu->GetNHitsUpstream()  : -999;
-	    nHitsDownstream = (hitInfo_mu->GetNHitsDownstream() == hitInfo_el->GetNHitsDownstream()) ? hitInfo_mu->GetNHitsDownstream()  : -999;
-	    fracHitsUpstream = (hitInfo_mu->GetFracHitsUpstream() == hitInfo_el->GetFracHitsUpstream()) ? hitInfo_mu->GetFracHitsUpstream()  : -999;
-	    fracHitsDownstream = (hitInfo_mu->GetFracHitsDownstream() == hitInfo_el->GetFracHitsDownstream()) ? hitInfo_mu->GetFracHitsDownstream()  : -999;
-	    totalQUpstream = (hitInfo_mu->GetTotalQUpstream() == hitInfo_el->GetTotalQUpstream()) ? hitInfo_mu->GetTotalQUpstream()  : -999;
-	    totalQDownstream = (hitInfo_mu->GetTotalQDownstream() == hitInfo_el->GetTotalQDownstream()) ? hitInfo_mu->GetTotalQDownstream()  : -999;
-	    fracQUpstream = (hitInfo_mu->GetFracQUpstream() == hitInfo_el->GetFracQUpstream()) ? hitInfo_mu->GetFracQUpstream()  : -999;
-	    fracQDownstream = (hitInfo_mu->GetFracQDownstream() == hitInfo_el->GetFracQDownstream()) ? hitInfo_mu->GetFracQDownstream()  : -999;
+	    nHitsUpstream = (pidInfo_mu->GetNHitsUpstream() == pidInfo_el->GetNHitsUpstream()) ? pidInfo_mu->GetNHitsUpstream()  : -999;
+	    nHitsDownstream = (pidInfo_mu->GetNHitsDownstream() == pidInfo_el->GetNHitsDownstream()) ? pidInfo_mu->GetNHitsDownstream()  : -999;
+	    fracHitsUpstream = (pidInfo_mu->GetFracHitsUpstream() == pidInfo_el->GetFracHitsUpstream()) ? pidInfo_mu->GetFracHitsUpstream()  : -999;
+	    fracHitsDownstream = (pidInfo_mu->GetFracHitsDownstream() == pidInfo_el->GetFracHitsDownstream()) ? pidInfo_mu->GetFracHitsDownstream()  : -999;
+	    totalQUpstream = (pidInfo_mu->GetTotalQUpstream() == pidInfo_el->GetTotalQUpstream()) ? pidInfo_mu->GetTotalQUpstream()  : -999;
+	    totalQDownstream = (pidInfo_mu->GetTotalQDownstream() == pidInfo_el->GetTotalQDownstream()) ? pidInfo_mu->GetTotalQDownstream()  : -999;
+	    fracQUpstream = (pidInfo_mu->GetFracQUpstream() == pidInfo_el->GetFracQUpstream()) ? pidInfo_mu->GetFracQUpstream()  : -999;
+	    fracQDownstream = (pidInfo_mu->GetFracQDownstream() == pidInfo_el->GetFracQDownstream()) ? pidInfo_mu->GetFracQDownstream()  : -999;
 
 	    nRings = (seedInfo_mu->GetNumRings() == seedInfo_el->GetNumRings()) ? seedInfo_mu->GetNumRings()  : -999;
 	    firstRingHeight = (seedInfo_mu->GetRingHeight(0) == seedInfo_el->GetRingHeight(0)) ? seedInfo_mu->GetRingHeight(0)  : -999;
 	    lastRingHeight = (seedInfo_mu->GetRingHeight(nRings-1) == seedInfo_el->GetRingHeight(nRings-1)) ? seedInfo_mu->GetRingHeight(nRings-1)  : -999;
 
 	    // Muon fit variables
-		charge2LnL_mu = recoInfo_mu->GetCharge2LnL();
-		time2LnL_mu = recoInfo_mu->GetTime2LnL();
-		recoE_mu = recoInfo_mu->GetEnergy();
-		recoEOverQ_mu = recoInfo_mu->GetEnergy()/(totalQ);
+		charge2LnL_mu = pidInfo_mu->GetCharge2LnL();
+		time2LnL_mu = pidInfo_mu->GetTime2LnL();
+		recoE_mu = pidInfo_mu->GetEnergy();
+		recoEOverQ_mu = pidInfo_mu->GetEnergy()/(totalQ);
 
-		totalQOutsideRing_mu = recoInfo_mu->GetTotalQOutsideRing();
-		totalQInRing_mu = recoInfo_mu->GetTotalQInRing();
-		totalQInRingHole_mu = recoInfo_mu->GetTotalQInRingHole();
-		fracQOutsideRing_mu = recoInfo_mu->GetFracTotalQOutsideRing();
-		fracQInRing_mu = recoInfo_mu->GetFracTotalQInRing();
-		fracQInRingHole_mu = recoInfo_mu->GetFracTotalQInRingHole();
+		totalQOutsideRing_mu = pidInfo_mu->GetTotalQOutsideRing();
+		totalQInRing_mu = pidInfo_mu->GetTotalQInRing();
+		totalQInRingHole_mu = pidInfo_mu->GetTotalQInRingHole();
+		fracQOutsideRing_mu = pidInfo_mu->GetFracTotalQOutsideRing();
+		fracQInRing_mu = pidInfo_mu->GetFracTotalQInRing();
+		fracQInRingHole_mu = pidInfo_mu->GetFracTotalQInRingHole();
 
-		nHitsOutsideRing_mu = recoInfo_mu->GetNHitsOutsideRing();
-		nHitsInRing_mu = recoInfo_mu->GetNHitsInRing();
-	    nHitsInRingHole_mu = recoInfo_mu->GetNHitsInRingHole();
-	    fracHitsOutsideRing_mu = recoInfo_mu->GetFracNHitsOutsideRing();
-	    fracHitsInRing_mu = recoInfo_mu->GetFracNHitsInRing();
-	    fracHitsInRingHole_mu = recoInfo_mu->GetFracNHitsInRingHole();
-	    totalPredQ_mu = recoInfo_mu->GetPredQInRing() + recoInfo_mu->GetPredQOutsideRing() + recoInfo_mu->GetPredQInRingHole();
-	    totalPredQOutsideRing_mu = recoInfo_mu->GetPredQOutsideRing();
-	    totalPredQInRing_mu = recoInfo_mu->GetPredQInRing();
-	    totalPredQInRingHole_mu = recoInfo_mu->GetPredQInRingHole();
-	    fracPredQOutsideRing_mu = recoInfo_mu->GetFracPredQOutsideRing();
-	    fracPredQInRing_mu = recoInfo_mu->GetFracPredQInRing();
-	    fracPredQInRingHole_mu = recoInfo_mu->GetFracPredQInRingHole();
+		nHitsOutsideRing_mu = pidInfo_mu->GetNHitsOutsideRing();
+		nHitsInRing_mu = pidInfo_mu->GetNHitsInRing();
+	    nHitsInRingHole_mu = pidInfo_mu->GetNHitsInRingHole();
+	    fracHitsOutsideRing_mu = pidInfo_mu->GetFracNHitsOutsideRing();
+	    fracHitsInRing_mu = pidInfo_mu->GetFracNHitsInRing();
+	    fracHitsInRingHole_mu = pidInfo_mu->GetFracNHitsInRingHole();
+	    totalPredQ_mu = pidInfo_mu->GetPredQInRing() + pidInfo_mu->GetPredQOutsideRing() + pidInfo_mu->GetPredQInRingHole();
+	    totalPredQOutsideRing_mu = pidInfo_mu->GetPredQOutsideRing();
+	    totalPredQInRing_mu = pidInfo_mu->GetPredQInRing();
+	    totalPredQInRingHole_mu = pidInfo_mu->GetPredQInRingHole();
+	    fracPredQOutsideRing_mu = pidInfo_mu->GetFracPredQOutsideRing();
+	    fracPredQInRing_mu = pidInfo_mu->GetFracPredQInRing();
+	    fracPredQInRingHole_mu = pidInfo_mu->GetFracPredQInRingHole();
 	    predictedChargeOverTotalCharge_mu = totalPredQ_mu/(totalQ);
 
-	    vtxRho_mu = recoInfo_mu->GetVtxRho();
-	    endRho_mu = recoInfo_mu->GetEndRho();
-	    vtxX_mu = recoInfo_mu->GetVtxX();
-	    vtxY_mu = recoInfo_mu->GetVtxY();
-	    vtxZ_mu = recoInfo_mu->GetVtxZ();
-	    endX_mu = recoInfo_mu->GetEndX();
-	    endY_mu = recoInfo_mu->GetEndY();
-	    endZ_mu = recoInfo_mu->GetEndZ();
-	    dirX_mu = recoInfo_mu->GetDirX();
-	    dirY_mu = recoInfo_mu->GetDirY();
-	    dirZ_mu = recoInfo_mu->GetDirZ();
-	    escapes_mu = recoInfo_mu->Escapes();
+	    vtxRho_mu = pidInfo_mu->GetVtxRho();
+	    endRho_mu = pidInfo_mu->GetEndRho();
+	    vtxX_mu = pidInfo_mu->GetVtxX();
+	    vtxY_mu = pidInfo_mu->GetVtxY();
+	    vtxZ_mu = pidInfo_mu->GetVtxZ();
+	    endX_mu = pidInfo_mu->GetEndX();
+	    endY_mu = pidInfo_mu->GetEndY();
+	    endZ_mu = pidInfo_mu->GetEndZ();
+	    dirX_mu = pidInfo_mu->GetDirX();
+	    dirY_mu = pidInfo_mu->GetDirY();
+	    dirZ_mu = pidInfo_mu->GetDirZ();
+	    escapes_mu = pidInfo_mu->Escapes();
 
 	    // Electron fit variables
-	    charge2LnL_el = recoInfo_el->GetCharge2LnL();
-	    time2LnL_el = recoInfo_el->GetTime2LnL();
-	    recoE_el = recoInfo_el->GetEnergy();
-	    recoEOverQ_el = recoInfo_el->GetEnergy()/(totalQ);
+	    charge2LnL_el = pidInfo_el->GetCharge2LnL();
+	    time2LnL_el = pidInfo_el->GetTime2LnL();
+	    recoE_el = pidInfo_el->GetEnergy();
+	    recoEOverQ_el = pidInfo_el->GetEnergy()/(totalQ);
 
-	    totalQOutsideRing_el = recoInfo_el->GetTotalQOutsideRing();
-	    totalQInRing_el = recoInfo_el->GetTotalQInRing();
-	    totalQInRingHole_el = recoInfo_el->GetTotalQInRingHole();
-	    fracQOutsideRing_el = recoInfo_el->GetFracTotalQOutsideRing();
-	    fracQInRing_el = recoInfo_el->GetFracTotalQInRing();
-	    fracQInRingHole_el = recoInfo_el->GetFracTotalQInRingHole();
+	    totalQOutsideRing_el = pidInfo_el->GetTotalQOutsideRing();
+	    totalQInRing_el = pidInfo_el->GetTotalQInRing();
+	    totalQInRingHole_el = pidInfo_el->GetTotalQInRingHole();
+	    fracQOutsideRing_el = pidInfo_el->GetFracTotalQOutsideRing();
+	    fracQInRing_el = pidInfo_el->GetFracTotalQInRing();
+	    fracQInRingHole_el = pidInfo_el->GetFracTotalQInRingHole();
 
-	    nHitsOutsideRing_el = recoInfo_el->GetNHitsOutsideRing();
-	    nHitsInRing_el = recoInfo_el->GetNHitsInRing();
-	    nHitsInRingHole_el = recoInfo_el->GetNHitsInRingHole();
-	    fracHitsOutsideRing_el = recoInfo_el->GetFracNHitsOutsideRing();
-	    fracHitsInRing_el = recoInfo_el->GetFracNHitsInRing();
-	    fracHitsInRingHole_el = recoInfo_el->GetFracNHitsInRingHole();
-	    totalPredQ_el = recoInfo_el->GetPredQInRing() + recoInfo_el->GetPredQOutsideRing() + recoInfo_el->GetPredQInRingHole();
-	    totalPredQOutsideRing_el = recoInfo_el->GetPredQOutsideRing();
-	    totalPredQInRing_el = recoInfo_el->GetPredQInRing();
-	    totalPredQInRingHole_el = recoInfo_el->GetPredQInRingHole();
-	    fracPredQOutsideRing_el = recoInfo_el->GetFracPredQOutsideRing();
-	    fracPredQInRing_el = recoInfo_el->GetFracPredQInRing();
-	    fracPredQInRingHole_el = recoInfo_el->GetFracPredQInRingHole();
+	    nHitsOutsideRing_el = pidInfo_el->GetNHitsOutsideRing();
+	    nHitsInRing_el = pidInfo_el->GetNHitsInRing();
+	    nHitsInRingHole_el = pidInfo_el->GetNHitsInRingHole();
+	    fracHitsOutsideRing_el = pidInfo_el->GetFracNHitsOutsideRing();
+	    fracHitsInRing_el = pidInfo_el->GetFracNHitsInRing();
+	    fracHitsInRingHole_el = pidInfo_el->GetFracNHitsInRingHole();
+	    totalPredQ_el = pidInfo_el->GetPredQInRing() + pidInfo_el->GetPredQOutsideRing() + pidInfo_el->GetPredQInRingHole();
+	    totalPredQOutsideRing_el = pidInfo_el->GetPredQOutsideRing();
+	    totalPredQInRing_el = pidInfo_el->GetPredQInRing();
+	    totalPredQInRingHole_el = pidInfo_el->GetPredQInRingHole();
+	    fracPredQOutsideRing_el = pidInfo_el->GetFracPredQOutsideRing();
+	    fracPredQInRing_el = pidInfo_el->GetFracPredQInRing();
+	    fracPredQInRingHole_el = pidInfo_el->GetFracPredQInRingHole();
 	    predictedChargeOverTotalCharge_el = totalPredQ_el/(totalQ);
 
-	    vtxRho_el = recoInfo_el->GetVtxRho();
-	    endRho_el = recoInfo_el->GetEndRho();
-	    vtxX_el = recoInfo_el->GetVtxX();
-	    vtxY_el = recoInfo_el->GetVtxY();
-	    vtxZ_el = recoInfo_el->GetVtxZ();
-	    endX_el = recoInfo_el->GetEndX();
-	    endY_el = recoInfo_el->GetEndY();
-	    endZ_el = recoInfo_el->GetEndZ();
-	    dirX_el = recoInfo_el->GetDirX();
-	    dirY_el = recoInfo_el->GetDirY();
-	    dirZ_el = recoInfo_el->GetDirZ();
-	    escapes_el = recoInfo_el->Escapes();
+	    vtxRho_el = pidInfo_el->GetVtxRho();
+	    endRho_el = pidInfo_el->GetEndRho();
+	    vtxX_el = pidInfo_el->GetVtxX();
+	    vtxY_el = pidInfo_el->GetVtxY();
+	    vtxZ_el = pidInfo_el->GetVtxZ();
+	    endX_el = pidInfo_el->GetEndX();
+	    endY_el = pidInfo_el->GetEndY();
+	    endZ_el = pidInfo_el->GetEndZ();
+	    dirX_el = pidInfo_el->GetDirX();
+	    dirY_el = pidInfo_el->GetDirY();
+	    dirZ_el = pidInfo_el->GetDirZ();
+	    escapes_el = pidInfo_el->Escapes();
 
 	    preselected = !(nHits < 50 || recoE_el < 550 || recoE_mu < 550 || recoE_el > 4950 || recoE_mu > 4950 || vtxRho_el > 1100 || vtxZ_el > 900 || vtxZ_el < -900 || veto || fracHitsDownstream < 0 || nRings < 0 || firstRingHeight < 0 || lastRingHeight < 0);
 	}
@@ -315,27 +311,23 @@ void WCSimPIDTree::FillTree()
 void WCSimPIDTree::SetTreeBranches(TTree * tree_mu, TTree * tree_el)
 {
 	///// Muon Like  ...
-	bhi_mu =  tree_mu->GetBranch("HitInfo");    bhi_mu->SetAddress(&hitInfo_mu);
-	bri_mu =  tree_mu->GetBranch("RecoInfo");   bri_mu->SetAddress(&recoInfo_mu);
+	bpi_mu =  tree_mu->GetBranch("PidInfo");    bpi_mu->SetAddress(&pidInfo_mu);
 	bti_mu =  tree_mu->GetBranch("TruthInfo");  bti_mu->SetAddress(&truthInfo_mu);
 	bsi_mu =  tree_mu->GetBranch("SeedInfo");   bsi_mu->SetAddress(&seedInfo_mu);
 
 	///// Electron Like ...
-	bhi_el =  tree_el->GetBranch("HitInfo");    bhi_el->SetAddress(&hitInfo_el);
-	bri_el =  tree_el->GetBranch("RecoInfo");   bri_el->SetAddress(&recoInfo_el);
+	bpi_el =  tree_el->GetBranch("PidInfo");    bpi_el->SetAddress(&pidInfo_el);
 	bti_el =  tree_el->GetBranch("TruthInfo");  bti_el->SetAddress(&truthInfo_el);
 	bsi_el =  tree_el->GetBranch("SeedInfo");   bsi_el->SetAddress(&seedInfo_el);
 }
 
 void WCSimPIDTree::Clear()
 {
-    hitInfo_mu->Clear();
-    recoInfo_mu->Clear();
+    pidInfo_mu->Clear();
     truthInfo_mu->Clear();
     seedInfo_mu->Clear();
 
-    hitInfo_el->Clear();
-    recoInfo_el->Clear();
+    pidInfo_el->Clear();
     truthInfo_el->Clear();
     seedInfo_el->Clear();
 }

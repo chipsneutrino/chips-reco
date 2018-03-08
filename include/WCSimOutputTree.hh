@@ -70,127 +70,313 @@ class EventHeader : public TObject{
 };
 
 /*
- * \class HitInfo
- * This class holds fit independent mainly topological variables
- * Any output variables that can be deduced entirely from the WCSim output should go here
+ * \class TruthInfo
+ * Very similar to WCSimTruthSummary for WCSim, used for comparison with WCSimRecoSummary
  */
-class HitInfo : public TObject{
+class TruthInfo : public TObject{
 
     public:
-        HitInfo();
-        HitInfo(bool veto,
-                int NHits,
-				int NHitsUpstream,
-                float totalQ,
-				float totalQUpstream
-                );
-        HitInfo(const HitInfo& other);
-        HitInfo& operator=(const HitInfo& rhs);
-        ~HitInfo();
+        TruthInfo();
+        TruthInfo(int type,
+        		  int beamPDG,
+				  float beamEnergy,
+				  int nPrimaries,
+				  std::vector<int> primaryPDGs,
+                  std::vector<double> primaryEnergies,
+				  std::vector<TVector3> primaryDirs
+				  );
+        TruthInfo(const TruthInfo& other);
+        TruthInfo& operator=(const TruthInfo& rhs);
+        ~TruthInfo();
 
         void Print();
+
+        void SetVtxTime(float t);
+        void SetVtx(float x, float y, float z);
+        void SetBeamDir(float x, float y, float z);
+
+        int GetType(){ return fType; }
+        float GetBeamE(){ return fBeamEnergy; }
+        int GetBeamPDG(){ return fBeamPDG; }
+
+        int GetPrimaryPDG(int p){
+            if(p < fNPrimaries){
+                return fPrimaryPDGs[p]; // Index starts at 0
+            }
+            else{
+                std::cerr << "GetPrimaryPDG(index) out of range [0..." << fNPrimaries-1 << "]" << std::endl;
+                return -999;
+            }
+        }
+        double GetPrimaryEnergy(int p){
+            if(p < fNPrimaries){
+                return fPrimaryEnergies[p]; // Index starts at 0
+            }
+            else{
+                std::cerr << "GetPrimaryEnergies(index) out of range [0..." << fNPrimaries-1 << "]" << std::endl;
+                return -999;
+            }
+        } // Index starts at 0
+        TVector3 GetPrimaryDir(int p){
+            if(p < fNPrimaries){
+                return fPrimaryDirs[p]; // Index starts at 0
+            }
+            else{
+                std::cerr << "GetPrimaryDir(index) out of range [0..." << fNPrimaries-1 << "]" << std::endl;
+                return TVector3(-999, -999, -999);
+            }
+        } // Index starts at 0
+
+        int GetNPrimaries(){ return fNPrimaries; }
+        std::vector<int> GetPrimaryPDGs(){ return fPrimaryPDGs; }
+        std::vector<double> GetPrimaryEnergies(){ return fPrimaryEnergies; }
+        std::vector<TVector3> GetPrimaryDirs(){ return fPrimaryDirs; }
+
+        bool IsCC(){ return fIsCC; }
+        bool IsNC(){ return fIsNC; }
+        bool IsQE(){ return fIsQE; }
+        bool IsRes(){ return fIsRes; }
+        bool IsDIS(){ return fIsDIS; }
+        bool IsCoherent(){ return fIsCoherent; }
+        bool IsNueElectronElastic(){ return fIsNueElectronElastic; }
+        bool IsInverseMuonDecay(){ return fIsInverseMuonDecay; }
+        bool IsOther(){ return fIsOther; }
+
+        float GetVtxTime() const{ return fVtxTime; }
+        float GetVtxX() const{ return fVtxX; }
+        float GetVtxY() const{ return fVtxY; }
+        float GetVtxZ() const{ return fVtxZ; }
+
+        float GetBeamDirX() const{ return fBeamDirX; }
+        float GetBeamDirY() const{ return fBeamDirY; }
+        float GetBeamDirZ() const{ return fBeamDirZ; }
+
+    private:
+
+        int fType;  							///< Interaction type code from WCSimTruthSummary
+        int fBeamPDG;  							///< PDG code of the beam particle (usually a neutrino)
+        float fBeamEnergy; 						///< Energy of the incident beam particle
+
+        int fNPrimaries;
+        std::vector<int> fPrimaryPDGs; 			///< Vector of primary PDG's
+        std::vector<double> fPrimaryEnergies; 	///< Vector of primary energies
+        std::vector<TVector3> fPrimaryDirs; 	///< Vector of primary directions <TVector3>
+
+        bool fIsCC;								///< True if event is Charged-Current
+        bool fIsNC;								///< True if event is Neutral-Current
+        bool fIsQE;								///< True if event is Quasielastic
+        bool fIsRes;							///< True if event is Resonant
+        bool fIsDIS;							///< True if event is Deep Inelastic Scattering
+        bool fIsCoherent;						///< True if event is Coherent
+        bool fIsNueElectronElastic;				///< True if event is electron elastic
+        bool fIsInverseMuonDecay;				///< True is event is inverse muon decay
+        bool fIsOther; 							///< A CC event that doesn't fall into any of the above categories
+        											// sometimes there isn't a nuance code for the type of event Genie has made
+
+        float fVtxTime;							///< Neutrino interaction vertex time
+        float fVtxX;							///< Neutrino interaction vertex x-position
+        float fVtxY;							///< Neutrino interaction vertex y-position
+        float fVtxZ;							///< Neutrino interaction vertex z-position
+        float fBeamDirX;						///< Neutrino interaction vertex x-direction
+        float fBeamDirY;						///< Neutrino interaction vertex y-direction
+        float fBeamDirZ;						///< Neutrino interaction vertex z-direction
+
+        ClassDef(TruthInfo,1)
+};
+
+/*
+ * \class PidInfo
+ * This class holds variables destined to be used in various PIDs
+ * Combines the old HitInfo and RecoInfo classes
+ */
+class PidInfo : public TObject{
+
+    public:
+		PidInfo();
+		PidInfo(const PidInfo& other);
+		PidInfo& operator=(const PidInfo& rhs);
+        ~PidInfo();
+
+        void Print();
+
+        // Old HitInfo Functions
+        void SetHitInfo(bool veto,
+                		int NHits,
+						int NHitsUpstream,
+						int NHitsInBottom,
+						int NHitsInTop,
+						float totalQ,
+						float totalQUpstream,
+						float totalQInBottom,
+						float totalQInTop);
 
         bool GetVeto() const{ return fVeto; }
 
         int GetNHits() const{ return fNHits; }
         int GetNHitsUpstream() const{ return fNHitsUpstream; }
         int GetNHitsDownstream() const{ return fNHitsDownstream; }
+        int GetNHitsInBottom() const{ return fNHitsInBottom; }
+        int GetNHitsInTop() const{ return fNHitsInTop; }
         float GetFracHitsUpstream() const{ return fFracHitsUpstream; }
         float GetFracHitsDownstream() const{ return fFracHitsDownstream; }
+        float GetFracHitsInBottom() const{ return fFracHitsInBottom; }
+        float GetFracHitsInTop() const{ return fFracQInTop; }
 
         float GetTotalQ() const{ return fTotalQ; }
         float GetTotalQUpstream() const{ return fTotalQUpstream; }
         float GetTotalQDownstream() const{ return fTotalQDownstream; }
+        float GetTotalQInBottom() const{ return fTotalQInBottom; }
+        float GetTotalQInTop() const{ return fTotalQInTop; }
         float GetFracQUpstream() const{ return fFracQUpstream; }
         float GetFracQDownstream() const{ return fFracQDownstream; }
+        float GetFracQInBottom() const{ return fFracQInBottom; }
+        float GetFracQInTop() const{ return fFracQDownstream; }
+
+        // Old RecoInfo Functions
+        void SetLikelihoods(float total, float hit, float charge, float time);
+
+        void SetTotalQ(float in, float out, float hole);
+        void SetNHits(int in, int out, int hole);
+        void SetPredQ(float in, float out, float hole);
+
+        void SetEnergy(float E);
+        void SetVtxTime(float t);
+        void SetVtx(float x, float y, float z);
+        void SetEnd(float x, float y, float z);
+        void SetDir(float x, float y, float z);
+
+        void SetEscapes(bool escapes);
+
+        float GetTotal2LnL() const{ return fTotal2LnL; }
+        float GetHit2LnL() const{ return fHit2LnL; }
+        float GetCharge2LnL() const{ return fCharge2LnL; }
+        float GetTime2LnL() const{ return fTime2LnL; }
+        float GetCutoff2LnL() const{ return fCutoff2LnL; }
+
+        float GetTotalQInRing() const{ return fTotalQInRing; }
+        float GetTotalQOutsideRing() const{ return fTotalQOutsideRing; }
+        float GetTotalQInRingHole() const{ return fTotalQInRingHole; }
+
+        int GetNHitsInRing(){ return fNHitsInRing; }
+        int GetNHitsOutsideRing(){ return fNHitsOutsideRing; }
+        int GetNHitsInRingHole(){ return fNHitsInRingHole; }
+
+        float GetPredQInRing() const{ return fPredQInRing; }
+        float GetPredQOutsideRing() const{ return fPredQOutsideRing; }
+        float GetPredQInRingHole() const{ return fPredQInRingHole; }
+
+        float GetFracTotalQInRing() const{ return fFracTotalQInRing; }
+        float GetFracTotalQOutsideRing() const{ return fFracTotalQOutsideRing; }
+        float GetFracTotalQInRingHole() const{ return fFracTotalQInRingHole; }
+
+        float  GetFracNHitsInRing(){ return fFracNHitsInRing; }
+        float  GetFracNHitsOutsideRing(){ return fFracNHitsOutsideRing; }
+        float  GetFracNHitsInRingHole(){ return fFracNHitsInRingHole; }
+
+        float GetFracPredQInRing() const{ return fFracPredQInRing; }
+        float GetFracPredQOutsideRing() const{ return fFracPredQOutsideRing; }
+        float GetFracPredQInRingHole() const{ return fFracPredQInRingHole; }
+
+        float GetPredictedOverTotalCharge() const{ return fPredictedOverTotalCharge; }
+
+        float GetEnergy() const{ return fEnergy; }
+        float GetVtxTime() const{ return fVtxTime; }
+        float GetVtxX() const{ return fVtxX; }
+        float GetVtxY() const{ return fVtxY; }
+        float GetVtxZ() const{ return fVtxZ; }
+        float GetVtxRho() const{ return fVtxRho; }
+
+        float GetEndX() const{ return fEndX; }
+        float GetEndY() const{ return fEndY; }
+        float GetEndZ() const{ return fEndZ; }
+        float GetEndRho() const{ return fEndRho; }
+
+        float GetDirX() const{ return fDirX; }
+        float GetDirY() const{ return fDirY; }
+        float GetDirZ() const{ return fDirZ; }
+
+        bool Escapes() const{ return fEscapes; }
 
     private:
 
+        // I think this class should not hold variables that can also be found in RecoSummary
+        // That class can deal with multiple tracks while this one cannot
+
+        // Old HitInfo Variables
         bool fVeto;					///< True if the reconstructed track exits the detector
 
         int fNHits;					///< Number of PMTs hit in the event
         int fNHitsUpstream;			///< Number of PMTs hit in the upstream(x<0) region of the detector
         int fNHitsDownstream;		///< Number of PMTs hit in the downstream(x>=0) region of the detector
+        int fNHitsInBottom;			///< Number of PMTs hit in the bottom endcap
+        int fNHitsInTop;			///< Number of PMTs hit in the top endcap
         float fFracHitsUpstream;	///< fFracHitsUpstream = fNHitsUpstream / fNHits
         float fFracHitsDownstream;	///< fFracHitsDownstream = fNHitsDownstream / fNHits
+        float fFracHitsInBottom;	///< fFracHitsInBottom = fNHitsInBottom / fNHits
+        float fFracHitsInTop;		///< fFracHitsInTop = fNHitsInTop / fNHits
 
         float fTotalQ;				///< Total collected charge on all PMTs in the event
         float fTotalQUpstream;		///< Total collected charge on PMTs in the upstream(x<0) region of the detector
         float fTotalQDownstream;	///< Total collected charge on PMTs in the downstream(x>=0) region of the detector
+        float fTotalQInBottom;		///< Total collected charge on PMTs in the bottom endcap
+        float fTotalQInTop;			///< Total collected charge on PMTs in the top endcap
         float fFracQUpstream;		///< fFracQUpstream = fTotalQUpstream / fTotalQ
         float fFracQDownstream;		///< fFracQDownstream = fTotalQDownstream / fTotalQ
+        float fFracQInBottom;		///< fFracQInBottom = fTotalQInBottom / fTotalQ
+        float fFracQInTop;			///< fFracQInTop = fTotalQInTop / fTotalQ
 
-        ClassDef(HitInfo,1)
+        // Old RecoInfo variables
+        float fTotal2LnL;				///< Final total -2LnL
+        float fHit2LnL;					///< Final hit component of total -2LnL
+        float fCharge2LnL;				///< Final charge component of total -2LnL
+        float fTime2LnL;				///< Final time component of total -2LnL
+        float fCutoff2LnL;				///< Final cutoff componenet of total -2LnL
 
-};
+        float fTotalQInRing;			///< Total charge within the reconstructed ring
+        float fTotalQOutsideRing;		///< Total charge outside the reconstructed ring
+        float fTotalQInRingHole;		///< Total charge within the hole of the reconstructed ring
 
-/*
- * \class StageInfo
- * This class holds info relating to all the PMTs and tracks at all stages of the fit
- * WARNING: Causes vastly increased file size, only use if required
- */
-class StageInfo : public TObject{
+        int fNHitsInRing;				///< Number of hits within the reconstructed ring
+        int fNHitsOutsideRing;			///< Number of hits outside the reconstructed ring
+        int fNHitsInRingHole;			///< Number of hits within the hole of the reconstructed ring
 
-	public:
-		StageInfo();
-		StageInfo(const StageInfo& other);
-		StageInfo& operator=(const StageInfo& rhs);
-    	~StageInfo();
+        float fPredQInRing;				///< Predicted charge inside the reconstructed ring
+        float fPredQOutsideRing;		///< Predicted charge outside the reconstructed ring
+        float fPredQInRingHole;			///< Predicted charge within the hole of the reconstructed ring
 
-    	void SetStageInfo(int stageNCalls,
-    					  std::vector< WCSimHitPrediction > stagePreds,
-						  std::vector<WCSimLikelihoodTrackBase*> stageTracks
-						  );
+        float fFracTotalQInRing;		///< Fraction of actual total charge inside the reconstructed ring
+        float fFracTotalQOutsideRing;	///< Fraction of actual total charge outside the reconstructed ring
+        float fFracTotalQInRingHole;	///< Fraction of actual total charge within the hole of the reconstructed ring
 
-    	void Print();
+        float fFracNHitsInRing;			///< Fraction of total hits inside the reconstructed ring
+        float fFracNHitsOutsideRing;	///< Fraction of total hits outside the reconstructed ring
+        float fFracNHitsInRingHole;		///< Fraction of total hits within the hole of the reconstructed ring
 
-    	int GetNumStages(){ return int(fStageNcalls.size()); }
-    	int GetNumTracks(){ return int(fStageTracks[0].size()); }
+        float fFracPredQInRing;			///< Fraction of predicted charge inside the reconstructed ring
+        float fFracPredQOutsideRing;	///< Fraction of predicted charge outside the reconstructed ring
+        float fFracPredQInRingHole;		///< Fraction of predicted charge within the hole of the reconstructed ring
 
-    	std::vector<int> GetNCallsVec(){ return fStageNcalls; }
-    	int GetNCalls(int stage){
-            if(stage >= 0 && (size_t)stage < fStageNcalls.size()){
-                return fStageNcalls[stage]; // Index starts at 0
-            }
-            else{
-                std::cerr << "fStageNcalls(index) out of range [0..." << fStageNcalls.size()-1 << "]" << std::endl;
-                return -999;
-            }
-        }
+        float fPredictedOverTotalCharge;///< Total predicted charge over total actual charge
 
-    	std::vector< WCSimHitPrediction > GetStagePreds(int stage){
-            if(stage >= 0 && (size_t)stage < fStagePreds.size()){
-                return fStagePreds[stage]; // Index starts at 0
-            }
-            else{
-                std::cerr << "GetStagePreds(index) out of range [0..." << fStagePreds.size()-1 << "]" << std::endl;
-                std::vector<WCSimHitPrediction> error;
-                WCSimHitPrediction bestFit(-999, -999, -999, -999, -999, -999);
-                error.push_back(bestFit);
-                return error;
-            }
-        }
+        float fVtxTime;					///< Reconstructed neutrino interaction vertex time
+        float fEnergy;					///< Reconstructed primary particle energy
+        float fVtxX;					///< Reconstructed neutrino interaction x-position
+        float fVtxY;					///< Reconstructed neutrino interaction y-position
+        float fVtxZ;					///< Reconstructed neutrino interaction z-position
+        float fVtxRho;					///< Reconstructed neutrino interaction radial position
 
-    	std::vector<WCSimLikelihoodTrackBase*> GetStageTracks(int stage){
-            if(stage >= 0 && (size_t)stage < fStageTracks.size()){
-                return fStageTracks[stage]; // Index starts at 0
-            }
-            else{
-                std::cerr << "GetStageTracks(index) out of range [0..." << fStagePreds.size()-1 << "]" << std::endl;
-                std::vector<WCSimLikelihoodTrackBase*> error;
-                error.push_back(WCSimLikelihoodTrackFactory::MakeTrack(TrackType::Unknown, -999, -999, -999, -999, -999, -999, -999, -999));
-                return error;
-            }
-    	}
+        float fEndX;					///< Reconstructed track end x-position
+        float fEndY;					///< Reconstructed track end x-position
+        float fEndZ;					///< Reconstructed track end x-position
+        float fEndRho;					///< Reconstructed track end radial position
 
-    	// TODO: Add functions to get total predicted charge etc... Add up the likelihoods in fStagePreds to give total across the stage!
+        float fDirX;					///< Reconstructed track x-direction
+        float fDirY;					///< Reconstructed track y-direction
+        float fDirZ;					///< Reconstructed track z-direction
 
-	private:
-    	std::vector< int > fStageNcalls; 										///< Number of total function calls at the end of the stage
-    	std::vector< std::vector< WCSimHitPrediction > > fStagePreds; 			///< A vector of WCSimHitPrediction's for every PMT at the end of every stage
-    	std::vector< std::vector< WCSimLikelihoodTrackBase* > > fStageTracks; 	///< A vector of the fitted track at the end of every stage
+        bool fEscapes;					///< True if the track escapes the detector
 
-    	ClassDef(StageInfo,1)
+        ClassDef(PidInfo,1)
 };
 
 /*
@@ -295,255 +481,72 @@ class SeedInfo : public TObject{
 };
 
 /*
- * \class TruthInfo
- * Very similar to WCSimTruthSummary for WCSim, used for comparison with WCSimRecoSummary
+ * \class StageInfo
+ * This class holds info relating to all the PMTs and tracks at all stages of the fit
+ * WARNING: Causes vastly increased file size, only use if required
  */
-class TruthInfo : public TObject{
+class StageInfo : public TObject{
 
-    public:
-        TruthInfo(); 
-        TruthInfo(int type,
-        		  int beamPDG,
-				  float beamEnergy,
-				  int nPrimaries,
-				  std::vector<int> primaryPDGs,
-                  std::vector<double> primaryEnergies,
-				  std::vector<TVector3> primaryDirs
-				  );
-        TruthInfo(const TruthInfo& other);
-        TruthInfo& operator=(const TruthInfo& rhs);
-        ~TruthInfo();
+	public:
+		StageInfo();
+		StageInfo(const StageInfo& other);
+		StageInfo& operator=(const StageInfo& rhs);
+    	~StageInfo();
 
-        void Print();
+    	void SetStageInfo(int stageNCalls,
+    					  std::vector< WCSimHitPrediction > stagePreds,
+						  std::vector<WCSimLikelihoodTrackBase*> stageTracks
+						  );
 
-        void SetVtxTime(float t);
-        void SetVtx(float x, float y, float z);
-        void SetBeamDir(float x, float y, float z);
+    	void Print();
 
-        int GetType(){ return fType; }
-        float GetBeamE(){ return fBeamEnergy; }
-        int GetBeamPDG(){ return fBeamPDG; }
+    	int GetNumStages(){ return int(fStageNcalls.size()); }
+    	int GetNumTracks(){ return int(fStageTracks[0].size()); }
 
-        int GetPrimaryPDG(int p){ 
-            if(p < fNPrimaries){
-                return fPrimaryPDGs[p]; // Index starts at 0   
+    	std::vector<int> GetNCallsVec(){ return fStageNcalls; }
+    	int GetNCalls(int stage){
+            if(stage >= 0 && (size_t)stage < fStageNcalls.size()){
+                return fStageNcalls[stage]; // Index starts at 0
             }
-            else{ 
-                std::cerr << "GetPrimaryPDG(index) out of range [0..." << fNPrimaries-1 << "]" << std::endl;
+            else{
+                std::cerr << "fStageNcalls(index) out of range [0..." << fStageNcalls.size()-1 << "]" << std::endl;
                 return -999;
             }
-        } 
-        double GetPrimaryEnergy(int p){
-            if(p < fNPrimaries){
-                return fPrimaryEnergies[p]; // Index starts at 0   
+        }
+
+    	std::vector< WCSimHitPrediction > GetStagePreds(int stage){
+            if(stage >= 0 && (size_t)stage < fStagePreds.size()){
+                return fStagePreds[stage]; // Index starts at 0
             }
-            else{ 
-                std::cerr << "GetPrimaryEnergies(index) out of range [0..." << fNPrimaries-1 << "]" << std::endl;
-                return -999;
+            else{
+                std::cerr << "GetStagePreds(index) out of range [0..." << fStagePreds.size()-1 << "]" << std::endl;
+                std::vector<WCSimHitPrediction> error;
+                WCSimHitPrediction bestFit(-999, -999, -999, -999, -999, -999);
+                error.push_back(bestFit);
+                return error;
             }
-        } // Index starts at 0
-        TVector3 GetPrimaryDir(int p){ 
-            if(p < fNPrimaries){
-                return fPrimaryDirs[p]; // Index starts at 0   
+        }
+
+    	std::vector<WCSimLikelihoodTrackBase*> GetStageTracks(int stage){
+            if(stage >= 0 && (size_t)stage < fStageTracks.size()){
+                return fStageTracks[stage]; // Index starts at 0
             }
-            else{ 
-                std::cerr << "GetPrimaryDir(index) out of range [0..." << fNPrimaries-1 << "]" << std::endl;
-                return TVector3(-999, -999, -999);
+            else{
+                std::cerr << "GetStageTracks(index) out of range [0..." << fStagePreds.size()-1 << "]" << std::endl;
+                std::vector<WCSimLikelihoodTrackBase*> error;
+                error.push_back(WCSimLikelihoodTrackFactory::MakeTrack(TrackType::Unknown, -999, -999, -999, -999, -999, -999, -999, -999));
+                return error;
             }
-        } // Index starts at 0 
+    	}
 
-        int GetNPrimaries(){ return fNPrimaries; }
-        std::vector<int> GetPrimaryPDGs(){ return fPrimaryPDGs; }
-        std::vector<double> GetPrimaryEnergies(){ return fPrimaryEnergies; }  
-        std::vector<TVector3> GetPrimaryDirs(){ return fPrimaryDirs; }    
+    	// TODO: Add functions to get total predicted charge etc... Add up the likelihoods in fStagePreds to give total across the stage!
 
-        bool IsCC(){ return fIsCC; }
-        bool IsNC(){ return fIsNC; }
-        bool IsQE(){ return fIsQE; }
-        bool IsRes(){ return fIsRes; }
-        bool IsDIS(){ return fIsDIS; }
-        bool IsCoherent(){ return fIsCoherent; }
-        bool IsNueElectronElastic(){ return fIsNueElectronElastic; }
-        bool IsInverseMuonDecay(){ return fIsInverseMuonDecay; }
-        bool IsOther(){ return fIsOther; }
+	private:
+    	std::vector< int > fStageNcalls; 										///< Number of total function calls at the end of the stage
+    	std::vector< std::vector< WCSimHitPrediction > > fStagePreds; 			///< A vector of WCSimHitPrediction's for every PMT at the end of every stage
+    	std::vector< std::vector< WCSimLikelihoodTrackBase* > > fStageTracks; 	///< A vector of the fitted track at the end of every stage
 
-        float GetVtxTime() const{ return fVtxTime; }
-        float GetVtxX() const{ return fVtxX; }
-        float GetVtxY() const{ return fVtxY; }
-        float GetVtxZ() const{ return fVtxZ; }
-
-        float GetBeamDirX() const{ return fBeamDirX; }
-        float GetBeamDirY() const{ return fBeamDirY; }
-        float GetBeamDirZ() const{ return fBeamDirZ; }
-
-    private:
-
-        int fType;  							///< Interaction type code from WCSimTruthSummary
-        int fBeamPDG;  							///< PDG code of the beam particle (usually a neutrino)
-        float fBeamEnergy; 						///< Energy of the incident beam particle
-
-        int fNPrimaries;
-        std::vector<int> fPrimaryPDGs; 			///< Vector of primary PDG's
-        std::vector<double> fPrimaryEnergies; 	///< Vector of primary energies
-        std::vector<TVector3> fPrimaryDirs; 	///< Vector of primary directions <TVector3>
-
-        bool fIsCC;								///< True if event is Charged-Current
-        bool fIsNC;								///< True if event is Neutral-Current
-        bool fIsQE;								///< True if event is Quasielastic
-        bool fIsRes;							///< True if event is Resonant
-        bool fIsDIS;							///< True if event is Deep Inelastic Scattering
-        bool fIsCoherent;						///< True if event is Coherent
-        bool fIsNueElectronElastic;				///< True if event is electron elastic
-        bool fIsInverseMuonDecay;				///< True is event is inverse muon decay
-        bool fIsOther; 							///< A CC event that doesn't fall into any of the above categories
-        											// sometimes there isn't a nuance code for the type of event Genie has made
-
-        float fVtxTime;							///< Neutrino interaction vertex time
-        float fVtxX;							///< Neutrino interaction vertex x-position
-        float fVtxY;							///< Neutrino interaction vertex y-position
-        float fVtxZ;							///< Neutrino interaction vertex z-position
-        float fBeamDirX;						///< Neutrino interaction vertex x-direction
-        float fBeamDirY;						///< Neutrino interaction vertex y-direction
-        float fBeamDirZ;						///< Neutrino interaction vertex z-direction
-        
-        ClassDef(TruthInfo,1)
-};
-
-/*
- * \class RecoInfo
- * Holds variables derived from the reconstruction fit, mainly for use in the particle identification
- * Should probably be merged into a larger class just for use by the PID
- */
-class RecoInfo : public TObject{
-
-    public:
-
-        RecoInfo();
-        RecoInfo(const RecoInfo& other);
-        RecoInfo& operator=(const RecoInfo& other);
-        ~RecoInfo();
-
-        void Print();
-
-        void SetLikelihoods(float total, float hit, float charge, float time);
-        
-        void SetTotalQ(float in, float out, float hole);
-        void SetNHits(int in, int out, int hole);
-        void SetPredQ(float in, float out, float hole);
-
-        void SetEnergy(float E);
-        void SetVtxTime(float t);
-        void SetVtx(float x, float y, float z);
-        void SetEnd(float x, float y, float z);
-        void SetDir(float x, float y, float z);
-
-        void SetEscapes(bool escapes);
-
-
-        float GetTotal2LnL() const{ return fTotal2LnL; }
-        float GetHit2LnL() const{ return fHit2LnL; }
-        float GetCharge2LnL() const{ return fCharge2LnL; }
-        float GetTime2LnL() const{ return fTime2LnL; }
-        float GetCutoff2LnL() const{ return fCutoff2LnL; }
-
-        float GetTotalQInRing() const{ return fTotalQInRing; }
-        float GetTotalQOutsideRing() const{ return fTotalQOutsideRing; }
-        float GetTotalQInRingHole() const{ return fTotalQInRingHole; }
-
-        int GetNHitsInRing(){ return fNHitsInRing; }
-        int GetNHitsOutsideRing(){ return fNHitsOutsideRing; }
-        int GetNHitsInRingHole(){ return fNHitsInRingHole; }
-
-        float GetPredQInRing() const{ return fPredQInRing; }
-        float GetPredQOutsideRing() const{ return fPredQOutsideRing; }
-        float GetPredQInRingHole() const{ return fPredQInRingHole; }
-
-        float GetFracTotalQInRing() const{ return fFracTotalQInRing; }
-        float GetFracTotalQOutsideRing() const{ return fFracTotalQOutsideRing; }
-        float GetFracTotalQInRingHole() const{ return fFracTotalQInRingHole; }
-
-        float  GetFracNHitsInRing(){ return fFracNHitsInRing; }
-        float  GetFracNHitsOutsideRing(){ return fFracNHitsOutsideRing; }
-        float  GetFracNHitsInRingHole(){ return fFracNHitsInRingHole; }
-
-        float GetFracPredQInRing() const{ return fFracPredQInRing; }
-        float GetFracPredQOutsideRing() const{ return fFracPredQOutsideRing; }
-        float GetFracPredQInRingHole() const{ return fFracPredQInRingHole; }
-
-        float GetPredictedOverTotalCharge() const{ return fPredictedOverTotalCharge; }
-
-        float GetEnergy() const{ return fEnergy; }
-        float GetVtxTime() const{ return fVtxTime; }
-        float GetVtxX() const{ return fVtxX; }
-        float GetVtxY() const{ return fVtxY; }
-        float GetVtxZ() const{ return fVtxZ; }
-        float GetVtxRho() const{ return fVtxRho; }
-
-        float GetEndX() const{ return fEndX; }
-        float GetEndY() const{ return fEndY; }
-        float GetEndZ() const{ return fEndZ; }
-        float GetEndRho() const{ return fEndRho; }
-
-        float GetDirX() const{ return fDirX; }
-        float GetDirY() const{ return fDirY; }
-        float GetDirZ() const{ return fDirZ; }
-
-        bool Escapes() const{ return fEscapes; }
-
-    private:
-        
-        float fTotal2LnL;				///< Final total -2LnL
-        float fHit2LnL;					///< Final hit component of total -2LnL
-        float fCharge2LnL;				///< Final charge component of total -2LnL
-        float fTime2LnL;				///< Final time component of total -2LnL
-        float fCutoff2LnL;				///< Final cutoff componenet of total -2LnL
-
-        float fTotalQInRing;			///< Total charge within the reconstructed ring
-        float fTotalQOutsideRing;		///< Total charge outside the reconstructed ring
-        float fTotalQInRingHole;		///< Total charge within the hole of the reconstructed ring
-
-        int fNHitsInRing;				///< Number of hits within the reconstructed ring
-        int fNHitsOutsideRing;			///< Number of hits outside the reconstructed ring
-        int fNHitsInRingHole;			///< Number of hits within the hole of the reconstructed ring
-
-        float fPredQInRing;				///< Predicted charge inside the reconstructed ring
-        float fPredQOutsideRing;		///< Predicted charge outside the reconstructed ring
-        float fPredQInRingHole;			///< Predicted charge within the hole of the reconstructed ring
-
-        float fFracTotalQInRing;		///< Fraction of actual total charge inside the reconstructed ring
-        float fFracTotalQOutsideRing;	///< Fraction of actual total charge outside the reconstructed ring
-        float fFracTotalQInRingHole;	///< Fraction of actual total charge within the hole of the reconstructed ring
-
-        float fFracNHitsInRing;			///< Fraction of total hits inside the reconstructed ring
-        float fFracNHitsOutsideRing;	///< Fraction of total hits outside the reconstructed ring
-        float fFracNHitsInRingHole;		///< Fraction of total hits within the hole of the reconstructed ring
-
-        float fFracPredQInRing;			///< Fraction of predicted charge inside the reconstructed ring
-        float fFracPredQOutsideRing;	///< Fraction of predicted charge outside the reconstructed ring
-        float fFracPredQInRingHole;		///< Fraction of predicted charge within the hole of the reconstructed ring
-
-        float fPredictedOverTotalCharge;///< Total predicted charge over total actual charge
-
-        float fVtxTime;					///< Reconstructed neutrino interaction vertex time
-        float fEnergy;					///< Reconstructed primary particle energy
-        float fVtxX;					///< Reconstructed neutrino interaction x-position
-        float fVtxY;					///< Reconstructed neutrino interaction y-position
-        float fVtxZ;					///< Reconstructed neutrino interaction z-position
-        float fVtxRho;					///< Reconstructed neutrino interaction radial position
-
-        float fEndX;					///< Reconstructed track end x-position
-        float fEndY;					///< Reconstructed track end x-position
-        float fEndZ;					///< Reconstructed track end x-position
-        float fEndRho;					///< Reconstructed track end radial position
-
-        float fDirX;					///< Reconstructed track x-direction
-        float fDirY;					///< Reconstructed track y-direction
-        float fDirZ;					///< Reconstructed track z-direction
-
-        bool fEscapes;					///< True if the track escapes the detector
-
-        ClassDef(RecoInfo, 1)
-
+    	ClassDef(StageInfo,1)
 };
 
 /*
@@ -554,6 +557,8 @@ class WCSimOutputTree : public TObject{
 public:
 	WCSimOutputTree(const TString &saveFileName);
 	virtual ~WCSimOutputTree();
+
+	void InitOutputTree();
 
 	void MakeTree();
 	void SaveTree();
@@ -572,8 +577,7 @@ public:
     void Fill(EventHeader& eventHead,
               TruthInfo& truthInfo,
               WCSimRecoSummary& summ,
-              HitInfo& hitInfo,
-              RecoInfo& recoInfo
+			  PidInfo& pidInfo
     		  );
 
     void MakeSaveFile();
@@ -596,13 +600,12 @@ private:
     EventHeader * fEventHeader;				///< Holds info about the input event
     TruthInfo * fTruthInfo;					///< Akin to WCSimTruthSummary, holds the truth information
 	WCSimRecoSummary * fRecoSummary;		///< Result of the fit, for comparison with the TruthInfo
-    HitInfo * fHitInfo;						///< Holds info on the topology of the event for the PID
-    RecoInfo * fRecoInfo;					///< Holds various variables derived from the fit for use in the PID
+	PidInfo * fPidInfo;						///< Holds variables to be used in the PID, combines the old HitInfo and RecoInfo
     SeedInfo * fSeedInfo;					///< Holds info on the output from the Hough transform ring finder
     StageInfo * fStageInfo;					///< Holds info on how the fit parameters and minus2LnL evolve over the stages of the fit
     WCSimHitComparison * fHitComparison;	///< Holds the final HitComparison for all the PMTs
 
-    ClassDef(WCSimOutputTree, 2)
+    ClassDef(WCSimOutputTree, 3)
 };
 
 #endif /* WCSIMOUTPUTTREE_HH */
