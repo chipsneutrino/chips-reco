@@ -8,9 +8,16 @@
 #ifndef WCSIMDIGITIZERPDFMAKER_H_
 #define WCSIMDIGITIZERPDFMAKER_H_
 
+#include "WCSimCHIPSPMT.hh"
+#include "WCSimSK1pePMT.hh"
+#include "WCSimTOTPMT.hh"
+
 class TH1D;
 class TH2D;
 class TRandom3;
+class WCSimSK1pePMT;
+class WCSimCHIPSPMT;
+class WCSimTOTPMT;
 
 class WCSimDigitizerPDFMaker {
 public:
@@ -28,37 +35,43 @@ public:
 	void SetNumThrows(int num);
 	int GetNumThrows() const;
 
-	void Run();
+	void SetType(int type);
+	int GetType() const;
 
+	void SetTotPoisson(bool set);
+	bool GetTotPoisson() const;
+
+	void Run();
 
 private:
 	void MakeHisto();
 	void LoopDigitize();
 	void Digitize();
-  void FillEmptyBins();
+	void FillEmptyBins();
 	void NormHistogram();
+	void lnHist();
 	void SaveHistogram();
 
-	void BuildQPE0();
 	int ThrowPoisson();
-	double Rn1pe();
-	void Threshold(double& pe,int& iflag);
 
-	double fEfficiency;
+	TRandom3 * fRandom;
+
+	int fNumZero;
 	double fMu;
 	int fNumThrows;
+  	int fType; // 0=sk1pe, 1=pmtSim, 2=tot
 
 	TH2D * fProbHisto;
 	double fChargeMin;
 	double fChargeMax;
 	int fNumChargeBins;
+	bool totPoisson;
 
-	TRandom3 * fRandom;
-	double fQPE0[501];
+	TH1D * fDebug;
 
-  TH1D * fDebug;
-
-
+	WCSimSK1pePMT * fSK1pePMT;
+	WCSimCHIPSPMT * fCHIPSPMT;
+	WCSimTOTPMT * fTOTPMT;
 };
 
 #endif /* WCSIMDIGITIZERPDFMAKER_H_ */

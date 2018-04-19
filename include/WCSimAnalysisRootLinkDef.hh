@@ -137,4 +137,6 @@
 #pragma link C++ class WCSimPIDTree+;
 #pragma link C++ class WCSimPID+;
 
+#pragma link C++ class WCSimDigitizerPDFMaker+;
+
 #endif
