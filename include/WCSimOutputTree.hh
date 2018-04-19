@@ -201,36 +201,51 @@ class PidInfo : public TObject{
 
         // Old HitInfo Functions
         void SetHitInfo(bool veto,
+                        int NVetoHits,
                 		int NHits,
 						int NHitsUpstream,
 						int NHitsInBottom,
 						int NHitsInTop,
+                        int NHitsAboveMid,
 						float totalQ,
 						float totalQUpstream,
 						float totalQInBottom,
-						float totalQInTop);
+						float totalQInTop,
+                        float totalQAboveMid);
 
         bool GetVeto() const{ return fVeto; }
+
+        int GetNVetoHits() const{ return fNVetoHits; }
 
         int GetNHits() const{ return fNHits; }
         int GetNHitsUpstream() const{ return fNHitsUpstream; }
         int GetNHitsDownstream() const{ return fNHitsDownstream; }
         int GetNHitsInBottom() const{ return fNHitsInBottom; }
         int GetNHitsInTop() const{ return fNHitsInTop; }
+        int GetNHitsAboveMid() const{ return fNHitsAboveMid; }
+        int GetNHitsBelowMid() const{ return fNHitsBelowMid; }
+
         float GetFracHitsUpstream() const{ return fFracHitsUpstream; }
         float GetFracHitsDownstream() const{ return fFracHitsDownstream; }
         float GetFracHitsInBottom() const{ return fFracHitsInBottom; }
-        float GetFracHitsInTop() const{ return fFracQInTop; }
+        float GetFracHitsInTop() const{ return fFracHitsInTop; }
+        float GetFracHitsAboveMid() const{ return fFracHitsAboveMid; }
+        float GetFracHitsBelowMid() const{ return fFracHitsBelowMid; }
 
         float GetTotalQ() const{ return fTotalQ; }
         float GetTotalQUpstream() const{ return fTotalQUpstream; }
         float GetTotalQDownstream() const{ return fTotalQDownstream; }
         float GetTotalQInBottom() const{ return fTotalQInBottom; }
         float GetTotalQInTop() const{ return fTotalQInTop; }
+        float GetTotalQAboveMid() const{ return fTotalQAboveMid; }
+        float GetTotalQBelowMid() const{ return fTotalQBelowMid; }
+
         float GetFracQUpstream() const{ return fFracQUpstream; }
         float GetFracQDownstream() const{ return fFracQDownstream; }
         float GetFracQInBottom() const{ return fFracQInBottom; }
         float GetFracQInTop() const{ return fFracQDownstream; }
+        float GetFracQAboveMid() const{ return fFracQAboveMid; }
+        float GetFracQBelowMid() const{ return fFracQBelowMid; }
 
         // Old RecoInfo Functions
         void SetLikelihoods(float total, float hit, float charge, float time);
@@ -305,25 +320,37 @@ class PidInfo : public TObject{
         // Old HitInfo Variables
         bool fVeto;					///< True if the reconstructed track exits the detector
 
+        int fNVetoHits;             ///< Number of PMTs hit in the veto
+
         int fNHits;					///< Number of PMTs hit in the event
         int fNHitsUpstream;			///< Number of PMTs hit in the upstream(x<0) region of the detector
         int fNHitsDownstream;		///< Number of PMTs hit in the downstream(x>=0) region of the detector
         int fNHitsInBottom;			///< Number of PMTs hit in the bottom endcap
         int fNHitsInTop;			///< Number of PMTs hit in the top endcap
+        int fNHitsAboveMid;         ///< Number of PMTs hit with Z>0
+        int fNHitsBelowMid;         ///< Number of PMTs hit with Z<0
+
         float fFracHitsUpstream;	///< fFracHitsUpstream = fNHitsUpstream / fNHits
         float fFracHitsDownstream;	///< fFracHitsDownstream = fNHitsDownstream / fNHits
         float fFracHitsInBottom;	///< fFracHitsInBottom = fNHitsInBottom / fNHits
         float fFracHitsInTop;		///< fFracHitsInTop = fNHitsInTop / fNHits
+        float fFracHitsAboveMid;    ///< fFracHitsAboveMid = fNHitsAboveMid / fNHits
+        float fFracHitsBelowMid;    ///< fFracHitsBelowMid = fNHitfNHitsBelowMidsAboveMid / fNHits 
 
         float fTotalQ;				///< Total collected charge on all PMTs in the event
         float fTotalQUpstream;		///< Total collected charge on PMTs in the upstream(x<0) region of the detector
         float fTotalQDownstream;	///< Total collected charge on PMTs in the downstream(x>=0) region of the detector
         float fTotalQInBottom;		///< Total collected charge on PMTs in the bottom endcap
         float fTotalQInTop;			///< Total collected charge on PMTs in the top endcap
+        float fTotalQAboveMid;      ///< Total collected charge on PMTs with Z>0
+        float fTotalQBelowMid;      ///< Total collected charge on PMTs with Z<0
+
         float fFracQUpstream;		///< fFracQUpstream = fTotalQUpstream / fTotalQ
         float fFracQDownstream;		///< fFracQDownstream = fTotalQDownstream / fTotalQ
         float fFracQInBottom;		///< fFracQInBottom = fTotalQInBottom / fTotalQ
         float fFracQInTop;			///< fFracQInTop = fTotalQInTop / fTotalQ
+        float fFracQAboveMid;       ///< fFracQAboveMid = fTotalQAboveMid / fTotalQ
+        float fFracQBelowMid;       ///< fFracQBelowMid = fTotalQBelowMid / fTotalQ 
 
         // Old RecoInfo variables
         float fTotal2LnL;				///< Final total -2LnL

@@ -2747,18 +2747,21 @@ PidInfo WCSimLikelihoodFitter::BuildPidInfo(){
     int hitsUpstream = 0;
     int hitsInBottom = 0;
     int hitsInTop = 0;
+    int hitsAboveMid = 0;
     float charge = 0.0;
     float chargeUpstream = 0.0;
     float chargeInBottom = 0.0;
     float chargeInTop = 0.0;
+    float chargeAboveMid = 0.0;
 
     // Look for all the hit PMTs
     for(int iPMT = 0; iPMT < nPMTs; ++ iPMT)
     {
         WCSimLikelihoodDigit* myDigit = fLikelihoodDigitArray->GetDigit(iPMT);
         bool isUpstream = (myDigit->GetX() < 0);
-        bool inBottom = (myDigit->GetZ() < -999);
-        bool inTop = (myDigit->GetZ() > 999);
+        bool inBottom = (myDigit->GetZ() < -490);
+        bool inTop = (myDigit->GetZ() > 490);
+        bool aboveMid = (myDigit->GetZ() > 0);
 
         if(myDigit->GetQ() > 0)
         {
@@ -2780,10 +2783,31 @@ PidInfo WCSimLikelihoodFitter::BuildPidInfo(){
             	hitsInTop++;
             	chargeInTop++;
             }
+            if(aboveMid)
+            {
+              hitsAboveMid++;
+              chargeAboveMid++;
+            }
         }
     }
 
-    pidInfo.SetHitInfo(veto, hits, hitsUpstream, hitsInBottom, hitsInTop, charge, chargeUpstream, chargeInBottom, chargeInTop);
+    WCSimRecoEvent* recoEvent = WCSimInterface::RecoEvent();
+    int numVetoDigits = recoEvent->GetNVetoDigits();
+
+    /*
+    for(int iPMTVeto = 0; iPMTVeto < fRootEvent->GetNVetoDigits(); ++ iPMTVeto)
+    {
+        WCSimRecoDigit* myDigit = fRootEvent->GetVetoDigit(iPMTVeto);
+        bool isUpstream = (myDigit->GetX() < 0);
+
+        if(myDigit->GetQ() > 0)
+        {
+
+        }
+    }
+    */
+
+    pidInfo.SetHitInfo(veto, numVetoDigits, hits, hitsUpstream, hitsInBottom, hitsInTop, hitsAboveMid, charge, chargeUpstream, chargeInBottom, chargeInTop, chargeAboveMid);
 
     float totalLikelihood = fMinimumTimeComponent 
                             + fMinimumChargeComponent

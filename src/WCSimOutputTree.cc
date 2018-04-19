@@ -313,24 +313,33 @@ void TruthInfo::SetBeamDir(float x,
 
 PidInfo::PidInfo() :
 	fVeto(false),
+    fNVetoHits(0),
 	fNHits(0),
 	fNHitsUpstream(0),
 	fNHitsDownstream(0),
 	fNHitsInBottom(0),
 	fNHitsInTop(0),
+    fNHitsAboveMid(0),
+    fNHitsBelowMid(0),
 	fFracHitsUpstream(0.0),
 	fFracHitsDownstream(0.0),
 	fFracHitsInBottom(0.0),
 	fFracHitsInTop(0.0),
+    fFracHitsAboveMid(0.0),
+    fFracHitsBelowMid(0.0),
 	fTotalQ(0.0),
 	fTotalQUpstream(0.0),
 	fTotalQDownstream(0.0),
 	fTotalQInBottom(0.0),
 	fTotalQInTop(0.0),
+    fTotalQAboveMid(0.0),
+    fTotalQBelowMid(0.0),
 	fFracQUpstream(0.0),
 	fFracQDownstream(0.0),
 	fFracQInBottom(0.0),
 	fFracQInTop(0.0),
+    fFracQAboveMid(0.0),
+    fFracQBelowMid(0.0),
     fTotal2LnL(0.0),
     fHit2LnL(0.0), fCharge2LnL(0.0), fTime2LnL(0.0), fCutoff2LnL(0.0),
     fTotalQInRing(0.0), fTotalQOutsideRing(0.0), fTotalQInRingHole(0.0),
@@ -352,24 +361,33 @@ PidInfo::PidInfo() :
 
 PidInfo::PidInfo(const PidInfo& other) :
 	fVeto(other.fVeto),
+    fNVetoHits(other.fNVetoHits),
     fNHits(other.fNHits),
     fNHitsUpstream(other.fNHitsUpstream),
     fNHitsDownstream(other.fNHitsDownstream),
 	fNHitsInBottom(other.fNHitsInBottom),
 	fNHitsInTop(other.fNHitsInTop),
+    fNHitsAboveMid(other.fNHitsAboveMid),
+    fNHitsBelowMid(other.fNHitsBelowMid),
     fFracHitsUpstream(other.fFracHitsUpstream),
     fFracHitsDownstream(other.fFracHitsDownstream),
 	fFracHitsInBottom(other.fFracHitsInBottom),
 	fFracHitsInTop(other.fFracHitsInTop),
+    fFracHitsAboveMid(other.fFracHitsAboveMid),
+    fFracHitsBelowMid(other.fFracHitsBelowMid),
     fTotalQ(other.fTotalQ),
     fTotalQUpstream(other.fTotalQUpstream),
     fTotalQDownstream(other.fTotalQDownstream),
 	fTotalQInBottom(other.fTotalQInBottom),
 	fTotalQInTop(other.fTotalQInTop),
+    fTotalQAboveMid(other.fTotalQAboveMid),
+    fTotalQBelowMid(other.fTotalQBelowMid),
     fFracQUpstream(other.fFracQUpstream),
     fFracQDownstream(other.fFracQDownstream),
 	fFracQInBottom(other.fFracQInBottom),
 	fFracQInTop(other.fFracQInTop),
+    fFracQAboveMid(other.fFracQAboveMid),
+    fFracQBelowMid(other.fFracQBelowMid),
     fTotal2LnL(other.fTotal2LnL),
     fHit2LnL(other.fHit2LnL),
     fCharge2LnL(other.fCharge2LnL),
@@ -417,24 +435,33 @@ PidInfo& PidInfo::operator=(const PidInfo& rhs)
     if(&rhs != this)
     {
         fVeto = rhs.fVeto;
+        fNVetoHits = rhs.fNVetoHits;
         fNHits = rhs.fNHits;
         fNHitsUpstream = rhs.fNHitsUpstream;
         fNHitsDownstream = rhs.fNHitsDownstream;
         fNHitsInBottom = rhs.fNHitsInBottom;
         fNHitsInTop = rhs.fNHitsInTop;
+        fNHitsAboveMid = rhs.fNHitsAboveMid;
+        fNHitsBelowMid = rhs.fNHitsBelowMid;
         fFracHitsUpstream = rhs.fFracHitsUpstream;
         fFracHitsDownstream = rhs.fFracHitsDownstream;
         fFracHitsInBottom = rhs.fFracHitsInBottom;
 		fFracHitsInTop = rhs.fFracHitsInTop;
+        fFracHitsAboveMid = rhs.fFracHitsAboveMid;
+        fFracHitsBelowMid = rhs.fFracHitsBelowMid;
         fTotalQ = rhs.fTotalQ;
         fTotalQUpstream = rhs.fTotalQUpstream;
         fTotalQDownstream = rhs.fTotalQDownstream;
         fTotalQInBottom = rhs.fTotalQInBottom;
         fTotalQInTop = rhs.fTotalQInTop;
+        fTotalQAboveMid = rhs.fTotalQAboveMid;
+        fTotalQBelowMid = rhs.fTotalQBelowMid;
         fFracQUpstream = rhs.fFracQUpstream;
         fFracQDownstream = rhs.fFracQDownstream;
         fFracQInBottom = rhs.fFracQInBottom;
         fFracQInTop = rhs.fFracQInTop;
+        fFracQAboveMid = rhs.fFracQAboveMid;
+        fFracQBelowMid = rhs.fFracQBelowMid;
 
         fTotal2LnL = rhs.fTotal2LnL;
         fHit2LnL = rhs.fHit2LnL;
@@ -487,24 +514,33 @@ void PidInfo::Print()
 {
     std::cout << "HitInfo::Print()..."                           << std::endl
     		  << "Veto -> " << fVeto                             << std::endl
+              << "fNVetoHits -> " << fNVetoHits                  << std::endl
     		  << "NHits -> " << fNHits                           << std::endl
     		  << "NHitsUpstream -> " << fNHitsUpstream           << std::endl
     		  << "NHitsDownstream -> " << fNHitsDownstream       << std::endl
     		  << "NHitsInBottom -> " << fNHitsInBottom           << std::endl
     		  << "NHitsInTop -> " << fNHitsInTop       			 << std::endl
+              << "fNHitsAboveMid -> " << fNHitsAboveMid          << std::endl
+              << "fNHitsBelowMid -> " << fNHitsBelowMid          << std::endl
     		  << "FracHitsUpstream -> " << fFracHitsUpstream     << std::endl
     		  << "FracHitsDownstream -> " << fFracHitsDownstream << std::endl
     		  << "fFracHitsInBottom -> " << fFracHitsInBottom    << std::endl
     		  << "fFracHitsInTop -> " << fFracHitsInTop 		 << std::endl
+              << "fFracHitsAboveMid -> " << fFracHitsAboveMid    << std::endl
+              << "fFracHitsBelowMid -> " << fFracHitsBelowMid    << std::endl
     		  << "TotalQ -> " << fTotalQ                         << std::endl
     		  << "TotalQUpstream -> " << fTotalQUpstream         << std::endl
     		  << "TotalQDownstream -> " << fTotalQDownstream     << std::endl
     		  << "TotalQInBottom -> " << fTotalQInBottom         << std::endl
     		  << "TotalQInTop -> " << fTotalQInTop     			 << std::endl
+              << "fTotalQAboveMid -> " << fTotalQAboveMid        << std::endl
+              << "fTotalQBelowMid -> " << fTotalQBelowMid        << std::endl
     		  << "FracQUpstream -> " << fFracQUpstream           << std::endl
     		  << "FracQDownstream -> " << fFracQDownstream       << std::endl
     		  << "FracQInBottom -> " << fFracQInBottom           << std::endl
-    		  << "FracQInTop -> " << fFracQInTop       			 << std::endl;
+    		  << "FracQInTop -> " << fFracQInTop       			 << std::endl
+              << "fFracQAboveMid -> " << fFracQAboveMid          << std::endl
+              << "fFracQBelowMid -> " << fFracQBelowMid          << std::endl;
 
     std::cout << "RecoInfo::Print()..."                           << std::endl
     		  << "fTotal2LnL" << fTotal2LnL << std::endl
@@ -549,24 +585,30 @@ void PidInfo::Print()
 }
 
 void PidInfo::SetHitInfo(bool veto,
-        				 int NHits,
-						 int NHitsUpstream,
-						 int NHitsInBottom,
-						 int NHitsInTop,
-						 float totalQ,
-						 float totalQUpstream,
-						 float totalQInBottom,
-						 float totalQInTop)
+                         int NVetoHits,
+                         int NHits,
+                         int NHitsUpstream,
+                         int NHitsInBottom,
+                         int NHitsInTop,
+                         int NHitsAboveMid,
+                         float totalQ,
+                         float totalQUpstream,
+                         float totalQInBottom,
+                         float totalQInTop,
+                         float totalQAboveMid)
 {
 	fVeto = veto;
 	fNHits = NHits;
+    fNVetoHits = NVetoHits;
 	fNHitsUpstream = NHitsUpstream;
 	fNHitsInBottom = NHitsInBottom;
 	fNHitsInTop = NHitsInTop;
+    fNHitsAboveMid = NHitsAboveMid;
 	fTotalQ = totalQ;
 	fTotalQUpstream = totalQUpstream;
 	fTotalQInBottom = totalQInBottom;
 	fTotalQInTop = totalQInTop;
+    fTotalQAboveMid = totalQAboveMid;
 
     fNHitsDownstream = fNHits - fNHitsUpstream;
     fFracHitsUpstream = fNHitsUpstream/(static_cast<float>(fNHits));
@@ -574,11 +616,20 @@ void PidInfo::SetHitInfo(bool veto,
     fFracHitsInBottom = fNHitsInBottom/(static_cast<float>(fNHits));
     fFracHitsInTop = fNHitsInTop/(static_cast<float>(fNHits));
 
+    fNHitsBelowMid = fNHits - fNHitsAboveMid;
+    fFracHitsAboveMid = fNHitsAboveMid/(static_cast<float>(fNHits));
+    fFracHitsBelowMid = 1 - fFracHitsAboveMid;
+
     fTotalQDownstream = fTotalQ - fTotalQUpstream;
     fFracQUpstream = fTotalQUpstream / fTotalQ;
     fFracQDownstream = 1 - fFracQUpstream;
     fFracQInBottom = fTotalQInBottom / fTotalQ;
     fFracQInTop = fTotalQInTop / fTotalQ;
+
+    fTotalQBelowMid = fTotalQ - fTotalQAboveMid;
+    fFracQAboveMid = fTotalQAboveMid / fTotalQ;
+    fFracQBelowMid = 1 - fFracQAboveMid;
+    
 	return;
 }
 
@@ -987,6 +1038,10 @@ WCSimOutputTree::~WCSimOutputTree()
 
 void WCSimOutputTree::InitOutputTree()
 {
+    // This function is used to deal with the setup and checks associated with adding multiple fits to a single file.
+    // 1) Should be able to tell the fitter to do multiple fits and its stores the results to the same file.
+    // 2) Should be able to give the fitter a file that already contains fits and add an additional fit.
+    //    This will require checks to be made that the events are matching aswell as the EventHeader and TruthInfo.
 	std::cout << "*** WCSimOutputTree::InitOutputTree ***" << std::endl;
 
 	// Check to see if the save file has already been created.
