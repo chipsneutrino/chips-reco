@@ -26,8 +26,9 @@ class WCSimDigitizerLikelihood
       enum DigiType_t
       {
         kPoisson, /// A simple Poisson likelihood
-        kSK1pe,  /// A method derived from the default WCSim digitiser that samples the SK 1pe distribution
+        kSK1pe,  /// A method derived from the default WCSim digitiser that samples the SK1pe distribution
         kPMTSim, /// A method using the full dynode chain simulation
+		kTOT,	 /// Digi simulation that tries to mimic the actual PMTs to be used in CHIPS-10
         kUnknown /// Error state
       };
 
@@ -60,22 +61,30 @@ class WCSimDigitizerLikelihood
       void OpenPMTSimPDFs();
 
       /**
+       * The PDFs based on the TOT method for CHIPS-10 are stored in a 2D histogram
+       * This opens the file containing the histogram and extracts it
+       */
+      void OpenTOTPDFs();
+
+      /**
        * Calculate the -2log(likelihood) of the digitizer returning the measured
        * charge, given the predicted mean number of photoelectrons
        * @param undigi Predicted mean number of photoelectrons at the PMT
        * @param digi Digitized P.E. recorded by the PMT
+       * @param PMTName the name of the pmt if different PMTs are required
        * @return -2 log(likelihood) to measure the digitized charge given the predicted mean number of photoelectrons
        */
-      Double_t GetMinus2LnL( const Double_t &undigi, const Double_t &digi );
+      Double_t GetMinus2LnL( const Double_t &undigi, const Double_t &digi, std::string PMTName);
 
       /**
        * Calculate the likelihood of the digitizer returning the measured
        * charge given the predicted mean number of photoelectrons
        * @param undigi Predicted mean number of photoelectrons as the PMT
        * @param digi Digitized P.E. recorded by the PMT
+       * @param PMTName the name of the pmt if different PMTs are required
        * @return Likelihood to measure the digitized P.E. given the predicted mean number of photoelectrons
        */
-      Double_t GetLikelihood( const Double_t &undigi, const Double_t &digi );
+      Double_t GetLikelihood( const Double_t &undigi, const Double_t &digi, std::string PMTName );
 
       /**
        * Get the most likely number of digitized P.E. measured by the PMT
@@ -106,6 +115,59 @@ class WCSimDigitizerLikelihood
        * @return likelihood of getting the recorded P.E.
        */
       Double_t GetPoissonLikelihood( const Double_t &undigi, const Double_t &digi );
+      
+      /**
+       * Calculate -2log(likelihood) for measured charge, assuming
+       * the sk1pe digitizer
+       * @param undigi Predicted mean number of photoelectrons at PMT
+       * @param digi Digitized P.E. recorded by the PMT
+       * @return -2log(likelihood) of getting the recorded P.E.
+       */
+      Double_t GetSK1peMinus2LnL( const Double_t &undigi, const Double_t &digi );
+
+      /**
+       * Calculate the likelihood for measured charge, assuming
+       * the sk1pe digitizer
+       * @param undigi Predicted mean number of photoelectrons at PMT
+       * @param digi Digitized P.E. recorded by the PMT
+       * @return likelihood of getting the recorded P.E.
+       */
+      Double_t GetSK1peLikelihood( Double_t undigi, const Double_t &digi );
+
+      /**
+       * Mean digitized P.E. returned by the PMT for a given predicted mean
+       * number of photoelectrons, assuming the SK1pe digitizer
+       * @param undigi Predicted mean number of photoelectrons at PMT
+       * @return Most-likely resulting digitized P.E.
+       */
+      Double_t GetSK1peExpectation( const Double_t & undigi );
+
+      /**
+       * Calculate the likelihood for the measured charge using the SK1pe
+       * digitzer, by sampling probability histograms (used for low charges)
+       * @param undigi Predicted mean number of photoelectrons at PMT
+       * @param digi Digitized P.E. recorded aby the PMT
+       * @return
+       */
+      Double_t GetSK1pePickerLikelihood( const Double_t &undigi, const Double_t &digi );
+
+      /**
+       * Calculate the likelihood for the measured charge using the SK1pe
+       * digitzer, by using a Gaussian (x) Exponential (medium P.E.)
+       * @param undigi Predicted mean number of photoelectrons at PMT
+       * @param digi Digitized P.E. recorded aby the PMT
+       * @return
+       */
+      Double_t GetSK1peGausExpoLikelihood( const Double_t &undigi, const Double_t &digi );
+
+      /**
+       * Calculate the likelihood for the measured charge using the SK1pe
+       * digitzer, by using a simple Gaussian (high P.E.)
+       * @param undigi Predicted mean number of photoelectrons at PMT
+       * @param digi Digitized P.E. recorded aby the PMT
+       * @return
+       */
+      Double_t GetSK1peGausLikelihood( const Double_t &undigi, const Double_t &digi );
 
       /**
        * Mean digitized P.E. returned by the PMT for a given predicted mean
@@ -115,7 +177,7 @@ class WCSimDigitizerLikelihood
        * @return Most-likely resulting digitized P.E.
        */
       Double_t GetPoissonExpectation( const Double_t & undigi );
-      
+
 
       /**
        * Calculate -2log(likelihood) for measured charge, assuming the full
@@ -136,58 +198,22 @@ class WCSimDigitizerLikelihood
       Double_t GetPMTSimLikelihood( const Double_t &undigi, const Double_t &digi );
 
       /**
-       * Calculate -2log(likelihood) for measured charge, assuming
-       * the WCSim digitizer
-       * @param undigi Predicted mean number of photoelectrons at PMT
-       * @param digi Digitized P.E. recorded by the PMT
+       * Calculate -2log(likelihood) for measured charge, assuming the full
+       * PMT dynode chain simulation from WCSim
+       * @param undigi Predicted mean number of photoelectrons as the PMT
+       * @param digi Digitised  P.E. recorded by the PMT
        * @return -2log(likelihood) of getting the recorded P.E.
        */
-      Double_t GetWCSimMinus2LnL( const Double_t &undigi, const Double_t &digi );
+      Double_t GetTOTMinus2LnL( const Double_t &undigi, const Double_t &digi, std::string PMTName);
 
       /**
-       * Calculate the likelihood for measured charge, assuming
-       * the WCSim digitizer
-       * @param undigi Predicted mean number of photoelectrons at PMT
-       * @param digi Digitized P.E. recorded by the PMT
+       * Calculate the likelihood for measured charge, assuming the
+       * TOT digi method for CHIPS-10
+       * @param undigi Predicted mean number of photoelectrons as the PMT
+       * @param digi Digitised  P.E. recorded by the PMT
        * @return likelihood of getting the recorded P.E.
        */
-      Double_t GetWCSimLikelihood( Double_t undigi, const Double_t &digi );
-
-      /**
-       * Mean digitized P.E. returned by the PMT for a given predicted mean
-       * number of photoelectrons, assuming the WCSim digitizer
-       * @param undigi Predicted mean number of photoelectrons at PMT
-       * @return Most-likely resulting digitized P.E.
-       */
-      Double_t GetWCSimExpectation( const Double_t & undigi );
-
-      /**
-       * Calculate the likelihood for the measured charge using the WCSim
-       * digitzer, by sampling probability histograms (used for low charges)
-       * @param undigi Predicted mean number of photoelectrons at PMT
-       * @param digi Digitized P.E. recorded aby the PMT
-       * @return
-       */
-      Double_t GetWCSimPickerLikelihood( const Double_t &undigi, const Double_t &digi );
-
-      /**
-       * Calculate the likelihood for the measured charge using the WCSim
-       * digitzer, by using a Gaussian (x) Exponential (medium P.E.)
-       * @param undigi Predicted mean number of photoelectrons at PMT
-       * @param digi Digitized P.E. recorded aby the PMT
-       * @return
-       */
-      Double_t GetWCSimGausExpoLikelihood( const Double_t &undigi, const Double_t &digi );
-
-      /**
-       * Calculate the likelihood for the measured charge using the WCSim
-       * digitzer, by using a simple Gaussian (high P.E.)
-       * @param undigi Predicted mean number of photoelectrons at PMT
-       * @param digi Digitized P.E. recorded aby the PMT
-       * @return
-       */
-      Double_t GetWCSimGausLikelihood( const Double_t &undigi, const Double_t &digi );
-
+      Double_t GetTOTLikelihood( const Double_t &undigi, const Double_t &digi, std::string PMTName);
 
 
       DigiType_t fType;  ///< Which digitizer method to use
@@ -197,19 +223,26 @@ class WCSimDigitizerLikelihood
       // WCSim repeatedly samples a 1pe distribution.  For hits < 10pe I've
       // already done this to build a PDF histogram which these variables 
       // point to
-      TFile * fSK1peFile;  ///< File holding probability density histograms for the sub-10pe WCSim digitizer
-      TH2D  * fSK1peHist;  ///< Probabilitiy density hitogram for the the sub-10pe WCSim digitizer
-
-      // WCSim also has a PMT simulation that amplifies the electrons along the full dynode chain and
-      // introduces nonlinearity when the current is high.  I parametrised this and filled some histograms
-      // so the probability can be looked-up
-      TFile * fPMTSimFile; ///< File holding the probability histogram for the dynode chain simulation method
-      TH2F  * fPMTSimHist; ///< Histogram describing the probability histogram for the dynode chain simulation method
+      TFile * fSK1peFile;  ///< File holding probability density histograms for the sub-10pe SK1pe digitizer
+      TH2D  * fSK1peHist;  ///< Probabilitiy density hitogram for the the sub-10pe SK1pe digitizer
 
       // The WCSim digitizer samples the 1pe distribution repeatedly,
       // then applies a threshold function,
       // then multiplies by an efficiency term
       Double_t fEfficiency; ///< Efficiency value used in the WCSim digitizer
+
+
+      // WCSim also has a PMT simulation that amplifies the electrons along the full dynode chain and
+      // introduces nonlinearity when the current is high.  I parametrised this and filled some histograms
+      // so the probability can be looked-up
+      TFile * fPMTSimFile; ///< File holding the probability histogram for the dynode chain simulation method
+      TH2D  * fPMTSimHist; ///< Histogram describing the probability histogram for the dynode chain simulation method
+
+      // WCSim also has a Time-over-threshold digitisation method to mimic the actual PMTs to be used in CHIPS-10
+      TFile * fTOTFile; ///< File holding the probability histogram for the TOT simulation method
+      TH2D  * fTOTNikhefHist; ///< Histogram describing the probability histogram for the TOT simulation method for the Nikhef PMTs
+      TH2D  * fTOTMadisonHist; ///< Histogram describing the probability histogram for the TOT simulation method for the Madison PMTs
+
 
       Double_t fMinimum; ///< Minimum nonzero likelihood from histogram
 };

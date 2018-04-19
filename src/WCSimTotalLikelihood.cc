@@ -167,7 +167,8 @@ void WCSimTotalLikelihood::CalcChargeLikelihoods( const std::vector<std::vector<
 
       // Run the prediction and measured charge through the digitiser
       WCSimLikelihoodDigit* digit  = fLikelihoodDigitArray->GetDigit(iDigit);
-      double chargePart            = fDigitizerLikelihood.GetMinus2LnL(totalCharge, digit->GetQ());
+      std::string pmtName = digit->GetPMTName().Data();
+      double chargePart            = fDigitizerLikelihood.GetMinus2LnL(totalCharge, digit->GetQ(), pmtName);
       fPredictedCharges.at(iDigit) = totalCharge;
       fCharge2LnL.at(iDigit)       = chargePart;
     }
