@@ -6,33 +6,31 @@
 
 class TFile;
 
-class WCSimScatteringTableManager{
+class WCSimScatteringTableManager {
+	public:
+		static WCSimScatteringTableManager* Instance();
+		~WCSimScatteringTableManager();
 
-public:
+		float GetScatteringValue(std::vector<float> &values, int pmtLocation);
+		float GetScatteringValue(int *bin, int pmtLocation);
 
-  static WCSimScatteringTableManager* Instance();
-  ~WCSimScatteringTableManager();
+	private:
+		WCSimScatteringTableManager();
 
-  float GetScatteringValue(std::vector<float> &values, int pmtLocation);
-  float GetScatteringValue(int *bin, int pmtLocation);
+		void LoadScatteringTables();
 
-private:
-  WCSimScatteringTableManager();
+		int CalculateBin(int dimension, float value, int pmtLocation);
 
-  void LoadScatteringTables();
+		// This class is a singleton, so we need an instance pointer.
+		static WCSimScatteringTableManager* fManager;
 
-  int CalculateBin(int dimension, float value, int pmtLocation);
+		// Since THnSparses don't have a SetDirectory function, also need the file.
+		TFile* fScatteringFile;
 
-  // This class is a singleton, so we need an instance pointer.
-  static WCSimScatteringTableManager* fManager;
-
-  // Since THnSparses don't have a SetDirectory function, also need the file.
-  TFile* fScatteringFile;
-
-  // Need three THnSparseFs to store the tables.
-  THnSparseF* fScatteringTableTop;
-  THnSparseF* fScatteringTableBottom;
-  THnSparseF* fScatteringTableBarrel;
+		// Need three THnSparseFs to store the tables.
+		THnSparseF* fScatteringTableTop;
+		THnSparseF* fScatteringTableBottom;
+		THnSparseF* fScatteringTableBarrel;
 
 };
 #endif

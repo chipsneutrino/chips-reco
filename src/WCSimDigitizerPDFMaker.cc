@@ -39,7 +39,9 @@ WCSimDigitizerPDFMaker::WCSimDigitizerPDFMaker() {
 }
 
 WCSimDigitizerPDFMaker::~WCSimDigitizerPDFMaker() {
-	if(fProbHisto != 0x0) { delete fProbHisto; }
+	if (fProbHisto != 0x0) {
+		delete fProbHisto;
+	}
 	delete fRandom;
 }
 
@@ -94,14 +96,14 @@ bool WCSimDigitizerPDFMaker::GetTotPoisson() const {
 }
 
 void WCSimDigitizerPDFMaker::Run() {
-	if(fType != 0 && fType != 1 && fType != 2){
+	if (fType != 0 && fType != 1 && fType != 2) {
 		std::cerr << "Type not recognised -> " << fType << std::endl;
 		return;
 	}
 	MakeHisto();
 	//std::cout << "WCSimDigitizerPDFMaker::Run() LoopDigitizing..." << std::endl;
 	LoopDigitize();
-  	FillEmptyBins();
+	FillEmptyBins();
 	//NormHistogram();
 	//lnHist();
 	SaveHistogram();
@@ -116,8 +118,7 @@ int WCSimDigitizerPDFMaker::ThrowPoisson() {
 }
 
 void WCSimDigitizerPDFMaker::LoopDigitize() {
-	for(int iThrow = 0; iThrow < fNumThrows; ++iThrow)
-	{
+	for (int iThrow = 0; iThrow < fNumThrows; ++iThrow) {
 		Digitize();
 	}
 }
@@ -128,45 +129,38 @@ void WCSimDigitizerPDFMaker::Digitize() {
 	int nPhotons;
 	double peSmeared = 0.0;
 
-	if(fType == 0){
+	if (fType == 0) {
 		nPhotons = this->ThrowPoisson();
 		peSmeared = fSK1pePMT->CalculateCharge(nPhotons);
-	}
-	else if (fType == 1){
+	} else if (fType == 1) {
 		nPhotons = this->ThrowPoisson();
 		peSmeared = fCHIPSPMT->CalculateCharge(nPhotons, 0, 0);
 	} // TIME SPREAD???
-	else if (fType == 2 && totPoisson){
+	else if (fType == 2 && totPoisson) {
 		nPhotons = this->ThrowPoisson();
 		std::string PMTName = "88mm";
 		//std::string PMTName = "R6091";
 		peSmeared = fTOTPMT->CalculateCharge(nPhotons, PMTName);
-	}
-	else if (fType == 2 && !totPoisson){
+	} else if (fType == 2 && !totPoisson) {
 		std::string PMTName = "88mm";
 		//std::string PMTName = "R6091";
 		peSmeared = fTOTPMT->CalculateCharge(fMu, PMTName);
-	}
-	else{
+	} else {
 		std::cerr << "Type not recognised -> " << fType << std::endl;
 		return;
 	}
 
-	if(peSmeared == 0.0){
-		fNumZero ++;
+	if (peSmeared == 0.0) {
+		fNumZero++;
 	}
 
 	fProbHisto->Fill(fMu, peSmeared);
 }
 
-void WCSimDigitizerPDFMaker::FillEmptyBins()
-{
-	for(int iBinX = 1; iBinX <= fProbHisto->GetNbinsX(); ++iBinX)
-	{
-		for(int iBinY = 1; iBinY <= fProbHisto->GetNbinsY(); ++iBinY)
-		{
-			if( fProbHisto->GetBinContent(iBinX, iBinY) == 0 )
-			{
+void WCSimDigitizerPDFMaker::FillEmptyBins() {
+	for (int iBinX = 1; iBinX <= fProbHisto->GetNbinsX(); ++iBinX) {
+		for (int iBinY = 1; iBinY <= fProbHisto->GetNbinsY(); ++iBinY) {
+			if (fProbHisto->GetBinContent(iBinX, iBinY) == 0) {
 				fProbHisto->SetBinContent(iBinX, iBinY, 1.0);
 			}
 		}
@@ -174,15 +168,13 @@ void WCSimDigitizerPDFMaker::FillEmptyBins()
 }
 
 void WCSimDigitizerPDFMaker::NormHistogram() {
-	fProbHisto->Scale(1.0/fNumThrows);
+	fProbHisto->Scale(1.0 / fNumThrows);
 	return;
 }
 
 void WCSimDigitizerPDFMaker::lnHist() {
-	for(int iBinX = 1; iBinX <= fProbHisto->GetNbinsX(); ++iBinX)
-	{
-		for(int iBinY = 1; iBinY <= fProbHisto->GetNbinsY(); ++iBinY)
-		{
+	for (int iBinX = 1; iBinX <= fProbHisto->GetNbinsX(); ++iBinX) {
+		for (int iBinY = 1; iBinY <= fProbHisto->GetNbinsY(); ++iBinY) {
 			double content = fProbHisto->GetBinContent(iBinX, iBinY);
 			content = -2 * TMath::Log(content);
 			fProbHisto->SetBinContent(iBinX, iBinY, content);
@@ -196,10 +188,14 @@ void WCSimDigitizerPDFMaker::SaveHistogram() {
 	fDebug->SetDirectory(0);
 
 	TString fileName;
-	if(fType == 0){ fileName = TString::Format("sk1pe/digitizerLikelihood_%f.root", fMu); }
-	else if (fType == 1){ fileName = TString::Format("pmtSim/digitizerLikelihood_%f.root", fMu); } // TIME SPREAD???
-	else if (fType == 2){ fileName = TString::Format("tot/digitizerLikelihood_%f.root", fMu); }
-	else{
+	if (fType == 0) {
+		fileName = TString::Format("sk1pe/digitizerLikelihood_%f.root", fMu);
+	} else if (fType == 1) {
+		fileName = TString::Format("pmtSim/digitizerLikelihood_%f.root", fMu);
+	} // TIME SPREAD???
+	else if (fType == 2) {
+		fileName = TString::Format("tot/digitizerLikelihood_%f.root", fMu);
+	} else {
 		std::cerr << "Type not recognised -> " << fType << std::endl;
 		return;
 	}
@@ -211,21 +207,20 @@ void WCSimDigitizerPDFMaker::SaveHistogram() {
 	delete f;
 }
 
-void WCSimDigitizerPDFMaker::MakeHisto()
-{
-	double binWidth = 0.5 * ( fChargeMax - fChargeMin ) / fNumChargeBins;
+void WCSimDigitizerPDFMaker::MakeHisto() {
+	double binWidth = 0.5 * (fChargeMax - fChargeMin) / fNumChargeBins;
 	//std::cout << "binWidth = " << binWidth << std::endl;
 
 	// Make the actual likelihood map histogram
-	fProbHisto = new TH2D("digiPDF","digiPDF",
-						   fNumChargeBins, fChargeMin-binWidth, fChargeMax-binWidth,
-						   fNumChargeBins, fChargeMin-binWidth, fChargeMax-binWidth);
+	fProbHisto = new TH2D("digiPDF", "digiPDF", fNumChargeBins, fChargeMin - binWidth, fChargeMax - binWidth,
+			fNumChargeBins, fChargeMin - binWidth, fChargeMax - binWidth);
 	fProbHisto->GetXaxis()->SetTitle("Predicted mean number of photons, #mu");
 	fProbHisto->GetYaxis()->SetTitle("Digitized charge in p.e.");
 	fProbHisto->GetZaxis()->SetTitle("P(digitized | mean photons)");
 
 	// Make the debig histogram
-	fDebug = new TH1D("fDebug","Poisson picks",(int)(ceil(fChargeMax) - floor(fChargeMin)), fChargeMin - binWidth, fChargeMax - binWidth);
+	fDebug = new TH1D("fDebug", "Poisson picks", (int) (ceil(fChargeMax) - floor(fChargeMin)), fChargeMin - binWidth,
+			fChargeMax - binWidth);
 	fDebug->GetXaxis()->SetTitle("Q");
 	fDebug->GetYaxis()->SetTitle("Events");
 

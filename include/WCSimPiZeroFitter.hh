@@ -14,7 +14,6 @@
 #include "WCSimLikelihoodFitter.hh"
 #include "WCSimLikelihoodTrackBase.hh"
 #include "WCSimPiZeroSeedGenerator.hh"
-#include "WCSimReco.hh"
 #include "WCSimRecoDigit.hh"
 #include "WCSimRootEvent.hh"
 #include "WCSimTotalLikelihood.hh"
@@ -26,47 +25,41 @@
 
 class WCSimFitterConfig;
 
-class WCSimPiZeroFitter : public WCSimLikelihoodFitter
-{
-public:
-	WCSimPiZeroFitter(WCSimFitterConfig * config);
-	virtual ~WCSimPiZeroFitter();
-	void RunFits();
+class WCSimPiZeroFitter: public WCSimLikelihoodFitter {
+	public:
+		WCSimPiZeroFitter(WCSimFitterConfig * config);
+		virtual ~WCSimPiZeroFitter();
+		void RunFits();
 
-protected:
-private:
+	protected:
+	private:
+		std::vector<WCSimPiZeroSeed*> GetSeeds();
 
-	std::vector<WCSimPiZeroSeed*> GetSeeds();
+		// For building seed track combinations
+		void SeedEvent();
+		void SeedWithHoughTransform();
+		void SeedWithSingleElectron();
+		void FitSingleElectronSeed();  // Hough transform only gives  the vertex and direction, so fit the energy
+		double WrapFuncSingleElectron(const double * x);
 
-	// For building seed track combinations
-	void SeedEvent();
-	void SeedWithHoughTransform();
-  	void SeedWithSingleElectron();
-	void FitSingleElectronSeed();  // Hough transform only gives  the vertex and direction, so fit the energy
-	double WrapFuncSingleElectron(const double * x);
+		// For fitting using each seed track combination
+		void FitAfterFixingDirectionAndEnergy(WCSimPiZeroSeed* seed);
+		void FitAfterFixingEnergy(WCSimPiZeroSeed* seed);
+		void SetStartingTracks(WCSimPiZeroSeed* seed);
 
+		bool CanSetParam(const unsigned int &iTrack, const FitterParameterType::Type &type);
+		void FitEventNumber(Int_t iEvent);
 
+		/**
+		 * Work out how many free parameters Minuit needs to run over
+		 * @return Number of parameters to use in Minuit
+		 */
+		UInt_t GetNPars();
 
-	// For fitting using each seed track combination
-	void FitAfterFixingDirectionAndEnergy(WCSimPiZeroSeed* seed);
-	void FitAfterFixingEnergy(WCSimPiZeroSeed* seed);
-	void SetStartingTracks(WCSimPiZeroSeed* seed);
+		std::vector<std::pair<WCSimLikelihoodTrackBase *, WCSimLikelihoodTrackBase*> > SeedCheat(); // Temporary function to save running the same grid search over and over
 
-	bool CanSetParam(const unsigned int &iTrack, const FitterParameterType::Type &type);
-	void FitEventNumber(Int_t iEvent);
-
-
-	/**
-	 * Work out how many free parameters Minuit needs to run over
-	 * @return Number of parameters to use in Minuit
-	 */
-	UInt_t GetNPars();
-
-	std::vector<std::pair<WCSimLikelihoodTrackBase *, WCSimLikelihoodTrackBase*> > SeedCheat(); // Temporary function to save running the same grid search over and over
-  
-	int fCalls;
-	WCSimPiZeroSeedGenerator fPiZeroSeedGenerator;
-	ClassDef(WCSimPiZeroFitter,0);
+		int fCalls;
+		WCSimPiZeroSeedGenerator fPiZeroSeedGenerator;ClassDef(WCSimPiZeroFitter,0);
 };
 
 #endif /* WCSIMPIZEROFITTER_HH_ */

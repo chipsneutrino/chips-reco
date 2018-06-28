@@ -1,8 +1,9 @@
 #ifndef WCSIMRECOSEED_HH
 #define WCSIMRECOSEED_HH
 
-#include "WCSimReco.hh"
 #include "TVector3.h"
+#include "TObject.h"
+#include "WCSimRecoEvent.hh"
 
 #include <vector>
 
@@ -11,40 +12,54 @@ class WCSimRecoVertex;
 class WCSimRecoRing;
 class WCSimCosmicSeed;
 
-class WCSimRecoSeed : public WCSimReco {
+class WCSimRecoSeed: public TObject {
+	public:
+		WCSimRecoSeed();
+		~WCSimRecoSeed();
 
- public:
-  WCSimRecoSeed();
-  ~WCSimRecoSeed();
+		// Reconstruction Methods
+		// ======================
+		void Run();
+		void Run(WCSimRecoEvent* evt);
+		std::vector<WCSimRecoEvent*> RunSeed(WCSimRecoEvent* evt);
+		void RunFilter(WCSimRecoEvent* evt);
+		std::vector<WCSimRecoEvent*> RunSlicer(WCSimRecoEvent* evt);
+		void RunRecoVertex(WCSimRecoEvent* evt);
+		void RunRecoRings(WCSimRecoEvent* evt);
 
-  // Reconstruction Methods
-  // ======================
-  void Run();
-  void Run(WCSimRecoEvent* evt);
-  std::vector<WCSimRecoEvent*> RunSeed(WCSimRecoEvent* evt);
-  void RunFilter(WCSimRecoEvent* evt);
-  std::vector<WCSimRecoEvent*> RunSlicer(WCSimRecoEvent* evt);
-  void RunRecoVertex(WCSimRecoEvent* evt);
-  void RunRecoRings(WCSimRecoEvent* evt);
+		void SetNumberOfTracks(unsigned int val) {
+			fNTracks = val;
+		}
 
-  void SetNumberOfTracks(unsigned int val){fNTracks = val;};
-  unsigned int GetNumberOfTracks(){return fNTracks;};
-  TVector3 GetDirBeforeRings() const{ return fDirBeforeRings; }
+		unsigned int GetNumberOfTracks() {
+			return fNTracks;
+		}
 
-  void SetCosmicFit(bool val){fCosmicFit = val;};
-  bool GetCosmicFit(){return fCosmicFit;};
+		TVector3 GetDirBeforeRings() const {
+			return fDirBeforeRings;
+		}
 
-  WCSimCosmicSeed* GetCosmicSeed() {return fCosmicSeed;};
+		void SetCosmicFit(bool val) {
+			fCosmicFit = val;
+		}
 
- private:
-  TVector3 fDirBeforeRings;
-  unsigned int fNTracks;
+		bool GetCosmicFit() {
+			return fCosmicFit;
+		}
 
-  WCSimCosmicSeed* fCosmicSeed;
+		WCSimCosmicSeed* GetCosmicSeed() {
+			return fCosmicSeed;
+		}
 
-  bool fCosmicFit;
+	private:
+		TVector3 fDirBeforeRings;
+		unsigned int fNTracks;
 
-  ClassDef(WCSimRecoSeed,0)
+		WCSimCosmicSeed* fCosmicSeed;
+
+		bool fCosmicFit;
+
+		ClassDef(WCSimRecoSeed,0)
 };
 
 #endif

@@ -13,15 +13,14 @@
 #ifndef WCSIMPID_HH_
 #define WCSIMPID_HH_
 
-class WCSimPID : public TObject
-{
-public:
-	WCSimPID();
-	~WCSimPID();
+class WCSimPID: public TObject {
+	public:
+		WCSimPID();
+		~WCSimPID();
 
-	void Echo();
+		void Echo();
 
-	ClassDef(WCSimPID,1);
+		ClassDef(WCSimPID,1);
 };
 
 #endif /* WCSIMPID_HH_ */

@@ -17,102 +17,101 @@ class WCSimOutputTree;
 class WCSimPiZeroFitter;
 class WCSimCosmicFitter;
 
-
 class WCSimFitterInterface {
-public:
-	virtual ~WCSimFitterInterface();
-	WCSimFitterInterface();
+	public:
+		virtual ~WCSimFitterInterface();
+		WCSimFitterInterface();
 
-    void InitOutputFiles(); 
-	void InitFitter();
+		void InitOutputFiles();
+		void InitFitter();
 
-	// void SetFile(const char * fileName);
-	void SetNumTracks( unsigned int numTracks );
-	unsigned int GetNumTracks() const;
+		// void SetFile(const char * fileName);
+		void SetNumTracks(unsigned int numTracks);
+		unsigned int GetNumTracks() const;
 
-	void SetTrackType( unsigned int numTrack, const char * typeName);
-  TrackType::Type GetTrackType(const unsigned int &numTrack);
+		void SetTrackType(unsigned int numTrack, const char * typeName);
+		TrackType::Type GetTrackType(const unsigned int &numTrack);
 
+		void FixParameter(unsigned int numTrack, const char * name, bool doIt = true);
+		void FreeParameter(unsigned int numTrack, const char * name, bool doIt = true);
+		void JoinParametersTogether(unsigned int numTrack1, unsigned int numTrack2, const char * name);
 
-	void FixParameter(  unsigned int numTrack, const char * name, bool doIt = true );
-	void FreeParameter( unsigned int numTrack, const char * name, bool doIt = true );
-	void JoinParametersTogether(unsigned int numTrack1, unsigned int numTrack2, const char * name);
+		void SetParMin(unsigned int numTrack, const char * name, double min);
+		void SetParMax(unsigned int numTrack, const char * name, double max);
+		void SetParStart(unsigned int numTrack, const char * name, double start);
+		void SetParStep(unsigned int numTrack, const char * name, double step);
+		void SetParRange(unsigned int numTrack, const char * name, double min, double max);
+		void SetParameter(unsigned int numTrack, const char * name, double min, double max, double start, bool fixed,
+				double step = 0);
 
-	void SetParMin(   unsigned int numTrack, const char * name, double min);
-	void SetParMax(   unsigned int numTrack, const char * name, double max);
-	void SetParStart( unsigned int numTrack, const char * name, double start);
-	void SetParStep( unsigned int numTrack, const char * name, double step);
-	void SetParRange( unsigned int numTrack, const char * name, double min, double max);
-	void SetParameter( unsigned int numTrack, const char * name, double min, double max, double start, bool fixed, double step = 0);
+		Double_t GetParMin(unsigned int numTrack, const char * name);
+		Double_t GetParMax(unsigned int numTrack, const char * name);
+		Double_t GetParStart(unsigned int numTrack, const char * name);
+		Double_t GetParStep(unsigned int numTrack, const char * name);
+		std::pair<Double_t, Double_t> GetParRange(unsigned int numTrack, const char * name);
 
-	Double_t GetParMin(   unsigned int numTrack, const char * name );
-	Double_t GetParMax(   unsigned int numTrack, const char * name );
-	Double_t GetParStart( unsigned int numTrack, const char * name );
-	Double_t GetParStep( unsigned int numTrack, const char * name );
-	std::pair<Double_t, Double_t> GetParRange( unsigned int numTrack, const char * name );
+		void SetMakeFits(bool doIt = true);
+		bool GetMakeFits();
 
-	void SetMakeFits( bool doIt = true);
-	bool GetMakeFits();
+		void SetNumEventsToFit(int nEvts);
+		int GetNumEventsToFit();
 
-	void SetNumEventsToFit(int nEvts);
-	int  GetNumEventsToFit();
+		void SetFirstEventToFit(int iEvt);
+		int GetFirstEventToFit() const;
 
-	void SetFirstEventToFit(int iEvt);
-	int GetFirstEventToFit() const;
+		void PlotForEachEvent(const char * name, bool doIt = true);
+		bool GetPlotForEachEvent(const char * name);
 
-	void PlotForEachEvent(const char * name, bool doIt = true);
-	bool GetPlotForEachEvent(const char * name);
+		void PlotRecoMinusTrue(const char * name, bool doIt = true);
+		bool GetPlotRecoMinusTrue(const char * name);
 
-	void PlotRecoMinusTrue(const char * name, bool doIt = true);
-	bool GetPlotRecoMinusTrue(const char * name);
+		void SetMakeSurfaces(bool doIt = true);
+		bool GetMakeSurfaces();
 
-	void SetMakeSurfaces(bool doIt = true);
-	bool GetMakeSurfaces();
+		void SetNumSurfaceBins(unsigned int nBins);
+		unsigned int GetNumSurfaceBins() const;
 
-	void SetNumSurfaceBins( unsigned int nBins );
-	unsigned int GetNumSurfaceBins() const;
+		void Make1DSurface(unsigned int nTrack, const char * name, bool doIt = true);
+		bool GetMake1DSurface(unsigned int nTrack, const char * name);
 
-	void Make1DSurface(unsigned int nTrack, const char * name, bool doIt = true );
-	bool GetMake1DSurface(unsigned int nTrack, const char * name );
+		void Make2DSurface(unsigned int nTrack, const char * name, unsigned int nTrack2, const char * name2, bool doIt =
+				true);
+		bool GetMake2DSurface(unsigned int nTrack, const char * name, unsigned int nTrack2, const char * name2);
 
-	void Make2DSurface(unsigned int nTrack, const char * name, unsigned int nTrack2, const char * name2, bool doIt = true );
-	bool GetMake2DSurface(unsigned int nTrack, const char * name, unsigned int nTrack2, const char * name2 );
+		void SetIsPiZeroFit(const bool &isPiZero);
+		bool GetIsPiZeroFit() const;
 
-	void SetIsPiZeroFit(const bool &isPiZero);
-	bool GetIsPiZeroFit() const;
+		void SetForcePiZeroMass(const bool &doIt = true);
+		bool GetForcePiZeroMass() const;
 
-	void SetForcePiZeroMass(const bool &doIt = true);
-	bool GetForcePiZeroMass() const;
+		void SetIsCosmicFit(const bool &val);
+		bool GetIsCosmicFit() const;
 
-    void SetIsCosmicFit(const bool &val);
-    bool GetIsCosmicFit() const;
+		void PrintFitConfiguration();
+		void PrintPlotsConfiguration();
+		void PrintSurfaceConfiguration();
+		void Print();
 
-	void PrintFitConfiguration();
-	void PrintPlotsConfiguration();
-	void PrintSurfaceConfiguration();
-  void Print();
+		void Run();
 
-	void Run();
+		void SaveResults();
+		void SaveProfiles();
+		void SetInputFileName(const char * inputfile);
 
-  void SaveResults();
-  void SaveProfiles();
-	void SetInputFileName(const char * inputfile);
+	private:
+		WCSimFitterConfig * fFitterConfig;
+		TString fFileName;
+		unsigned int fNumTracks;
+		WCSimLikelihoodFitter * fFitter;
+		WCSimPiZeroFitter * fPiZeroFitter;
+		WCSimCosmicFitter * fCosmicFitter;
+		WCSimFitterPlots * fFitterPlots;
+		WCSimOutputTree * fOutputTree;
 
-private:
+		Bool_t fMakeFits;
+		Bool_t fMakeSurfaces;
 
-	WCSimFitterConfig * fFitterConfig;
-	TString fFileName;
-	unsigned int fNumTracks;
-	WCSimLikelihoodFitter * fFitter;
-	WCSimPiZeroFitter * fPiZeroFitter;
-	WCSimCosmicFitter * fCosmicFitter;
-	WCSimFitterPlots * fFitterPlots;
-	WCSimOutputTree * fOutputTree;
-
-	Bool_t fMakeFits;
-	Bool_t fMakeSurfaces;
-
-  ClassDef(WCSimFitterInterface,0)
+		ClassDef(WCSimFitterInterface,0)
 };
 
 #endif /* WCSIMFITTERINTERFACE_HH_ */

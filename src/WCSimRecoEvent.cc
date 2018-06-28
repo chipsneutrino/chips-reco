@@ -9,314 +9,266 @@
 #include <iostream>
 #include <fstream>
 
-ClassImp(WCSimRecoEvent)
+ClassImp (WCSimRecoEvent)
 
-WCSimRecoEvent::WCSimRecoEvent()
-{
-  fVertex = new WCSimRecoVertex();
+WCSimRecoEvent::WCSimRecoEvent() {
+	fVertex = new WCSimRecoVertex();
 
-  fDigitList = new std::vector<WCSimRecoDigit*>;
-  fVetoDigitList = new std::vector<WCSimRecoDigit*>;
-  fFilterDigitList =  new std::vector<WCSimRecoDigit*>;
-  fRingList = new std::vector<WCSimRecoRing*>;
+	fDigitList = new std::vector<WCSimRecoDigit*>;
+	fVetoDigitList = new std::vector<WCSimRecoDigit*>;
+	fFilterDigitList = new std::vector<WCSimRecoDigit*>;
+	fRingList = new std::vector<WCSimRecoRing*>;
 
-  fRunNum = -1;
-  fEventNum = -1;
-  fTriggerNum = -1;
+	fRunNum = -1;
+	fEventNum = -1;
+	fTriggerNum = -1;
 
-  fIsFilterDone = 0;
-  fIsVertexFinderDone = 0;
-  fIsRingFinderDone = 0;
+	fIsFilterDone = 0;
+	fIsVertexFinderDone = 0;
+	fIsRingFinderDone = 0;
 
-  WCSimRecoObjectTable::Instance()->NewEvent();
+	WCSimRecoObjectTable::Instance()->NewEvent();
 }
 
-WCSimRecoEvent::~WCSimRecoEvent()
-{
-  this->Reset();
+WCSimRecoEvent::~WCSimRecoEvent() {
+	this->Reset();
 
-  delete fVertex;
+	delete fVertex;
 
-  delete fDigitList;
-  delete fVetoDigitList;
-  delete fFilterDigitList;
+	delete fDigitList;
+	delete fVetoDigitList;
+	delete fFilterDigitList;
 
-  for(unsigned int r = 0; r < fRingList->size(); ++r){
-    delete fRingList->at(r);
-  }
-  fRingList->clear();
-  delete fRingList;
+	for (unsigned int r = 0; r < fRingList->size(); ++r) {
+		delete fRingList->at(r);
+	}
+	fRingList->clear();
+	delete fRingList;
 
-  WCSimRecoObjectTable::Instance()->DeleteEvent();
-}
-
-void WCSimRecoEvent::Reset()
-{  
-  fVertex->Reset();
-
-  this->ClearDigits();
-  this->ClearVetoDigits();
-  this->ClearFilterDigits();
-  this->ClearRings();
-
-  fRunNum = -1;
-  fEventNum = -1;
-  fTriggerNum = -1;
-
-  fIsFilterDone = 0;
-  fIsVertexFinderDone = 0;
-  fIsRingFinderDone = 0;
+	WCSimRecoObjectTable::Instance()->DeleteEvent();
 }
 
-void WCSimRecoEvent::SetHeader(Int_t run, Int_t event, Int_t trigger)
-{
-  fRunNum = run;
-  fEventNum = event;
-  fTriggerNum = trigger;
+void WCSimRecoEvent::Reset() {
+	fVertex->Reset();
+
+	this->ClearDigits();
+	this->ClearVetoDigits();
+	this->ClearFilterDigits();
+	this->ClearRings();
+
+	fRunNum = -1;
+	fEventNum = -1;
+	fTriggerNum = -1;
+
+	fIsFilterDone = 0;
+	fIsVertexFinderDone = 0;
+	fIsRingFinderDone = 0;
 }
 
-void WCSimRecoEvent::AddDigit(WCSimRecoDigit* digit)
-{
-  fDigitList->push_back(digit);
+void WCSimRecoEvent::SetHeader(Int_t run, Int_t event, Int_t trigger) {
+	fRunNum = run;
+	fEventNum = event;
+	fTriggerNum = trigger;
 }
 
-void WCSimRecoEvent::AddVetoDigit(WCSimRecoDigit* digit)
-{
-  fVetoDigitList->push_back(digit);
+void WCSimRecoEvent::AddDigit(WCSimRecoDigit* digit) {
+	fDigitList->push_back(digit);
 }
 
-void WCSimRecoEvent::AddFilterDigit(WCSimRecoDigit* digit)
-{
-  fFilterDigitList->push_back(digit);
+void WCSimRecoEvent::AddVetoDigit(WCSimRecoDigit* digit) {
+	fVetoDigitList->push_back(digit);
 }
 
-void WCSimRecoEvent::AddRing(WCSimRecoRing* ring)
-{
-  fRingList->push_back(ring);
+void WCSimRecoEvent::AddFilterDigit(WCSimRecoDigit* digit) {
+	fFilterDigitList->push_back(digit);
 }
 
-void WCSimRecoEvent::ClearDigits()
-{
-  fDigitList->clear();
+void WCSimRecoEvent::AddRing(WCSimRecoRing* ring) {
+	fRingList->push_back(ring);
 }
 
-void WCSimRecoEvent::ClearVetoDigits()
-{
-  fVetoDigitList->clear();
+void WCSimRecoEvent::ClearDigits() {
+	fDigitList->clear();
 }
 
-void WCSimRecoEvent::ClearFilterDigits()
-{
-  fFilterDigitList->clear();
+void WCSimRecoEvent::ClearVetoDigits() {
+	fVetoDigitList->clear();
 }
 
-void WCSimRecoEvent::ClearRings()
-{
-  fRingList->clear();
+void WCSimRecoEvent::ClearFilterDigits() {
+	fFilterDigitList->clear();
 }
 
-WCSimRecoDigit* WCSimRecoEvent::GetDigit(Int_t n)
-{
-  return (WCSimRecoDigit*)(fDigitList->at(n));
-}
-  
-Int_t WCSimRecoEvent::GetNDigits()
-{
-  return fDigitList->size();
+void WCSimRecoEvent::ClearRings() {
+	fRingList->clear();
 }
 
-WCSimRecoDigit* WCSimRecoEvent::GetVetoDigit(Int_t n)
-{
-  return (WCSimRecoDigit*)(fVetoDigitList->at(n));
-}
-  
-Int_t WCSimRecoEvent::GetNVetoDigits()
-{
-  return fVetoDigitList->size();
+WCSimRecoDigit* WCSimRecoEvent::GetDigit(Int_t n) {
+	return (WCSimRecoDigit*) (fDigitList->at(n));
 }
 
-WCSimRecoDigit* WCSimRecoEvent::GetFilterDigit(Int_t n)
-{
-  return (WCSimRecoDigit*)(fFilterDigitList->at(n));
-}
-  
-Int_t WCSimRecoEvent::GetNFilterDigits()
-{
-  return fFilterDigitList->size();
+Int_t WCSimRecoEvent::GetNDigits() {
+	return fDigitList->size();
 }
 
-WCSimRecoRing* WCSimRecoEvent::GetRing(Int_t n)
-{
-  return (WCSimRecoRing*)(fRingList->at(n));
-}
-  
-Int_t WCSimRecoEvent::GetNRings()
-{
-  return fRingList->size();
+WCSimRecoDigit* WCSimRecoEvent::GetVetoDigit(Int_t n) {
+	return (WCSimRecoDigit*) (fVetoDigitList->at(n));
 }
 
-WCSimRecoRing* WCSimRecoEvent::GetPrimaryRing()
-{
-  if( fRingList->size()>0 ){
-    return (WCSimRecoRing*)(fRingList->at(0));
-  }
-  else{
-    return 0;
-  }
+Int_t WCSimRecoEvent::GetNVetoDigits() {
+	return fVetoDigitList->size();
 }
 
-void WCSimRecoEvent::SetVertex( Double_t x, Double_t y, Double_t z, Double_t t )
-{
-  fVertex->SetVertex(x,y,z,t);
+WCSimRecoDigit* WCSimRecoEvent::GetFilterDigit(Int_t n) {
+	return (WCSimRecoDigit*) (fFilterDigitList->at(n));
 }
 
-void WCSimRecoEvent::SetDirection( Double_t px, Double_t py, Double_t pz )
-{
-  fVertex->SetDirection(px,py,pz);  
-}  
-
-void WCSimRecoEvent::SetConeAngle( Double_t angle )
-{
-  fVertex->SetConeAngle(angle);
+Int_t WCSimRecoEvent::GetNFilterDigits() {
+	return fFilterDigitList->size();
 }
 
-void WCSimRecoEvent::SetTrackLength( Double_t length )
-{
-  fVertex->SetTrackLength(length);
+WCSimRecoRing* WCSimRecoEvent::GetRing(Int_t n) {
+	return (WCSimRecoRing*) (fRingList->at(n));
 }
 
-void WCSimRecoEvent::SetVtxFOM( Double_t fom, Int_t nsteps, Bool_t pass)
-{
-  fVertex->SetFOM(fom,nsteps,pass);
+Int_t WCSimRecoEvent::GetNRings() {
+	return fRingList->size();
 }
 
-void WCSimRecoEvent::SetVtxStatus( Int_t status )
-{
-  fVertex->SetStatus(status);
+WCSimRecoRing* WCSimRecoEvent::GetPrimaryRing() {
+	if (fRingList->size() > 0) {
+		return (WCSimRecoRing*) (fRingList->at(0));
+	} else {
+		return 0;
+	}
 }
 
-WCSimRecoVertex* WCSimRecoEvent::GetVertex()
-{ 
-  return fVertex; 
+void WCSimRecoEvent::SetVertex(Double_t x, Double_t y, Double_t z, Double_t t) {
+	fVertex->SetVertex(x, y, z, t);
 }
 
-Double_t WCSimRecoEvent::GetVtxX() 
-{ 
-  return fVertex->GetX(); 
-}
-  
-Double_t WCSimRecoEvent::GetVtxY() 
-{ 
-  return fVertex->GetY(); 
-}
-  
-Double_t WCSimRecoEvent::GetVtxZ() 
-{ 
-  return fVertex->GetZ(); 
-}
-  
-Double_t WCSimRecoEvent::GetVtxTime()
-{ 
-  return fVertex->GetTime(); 
-}
-  
-Double_t WCSimRecoEvent::GetDirX()
-{
-  return fVertex->GetDirX();
-}
-  
-Double_t WCSimRecoEvent::GetDirY()
-{
-  return fVertex->GetDirY();
-}
-  
-Double_t WCSimRecoEvent::GetDirZ()
-{
-  return fVertex->GetDirZ();
-}
-  
-Double_t WCSimRecoEvent::GetConeAngle()
-{
-  return fVertex->GetConeAngle();
-}
- 
-Double_t WCSimRecoEvent::GetTrackLength()
-{
-  return fVertex->GetTrackLength();
-}
- 
-Double_t WCSimRecoEvent::GetVtxFOM()
-{ 
-  return fVertex->GetFOM(); 
+void WCSimRecoEvent::SetDirection(Double_t px, Double_t py, Double_t pz) {
+	fVertex->SetDirection(px, py, pz);
 }
 
-Int_t WCSimRecoEvent::GetVtxIterations()
-{
-  return fVertex->GetIterations();
+void WCSimRecoEvent::SetConeAngle(Double_t angle) {
+	fVertex->SetConeAngle(angle);
 }
 
-Bool_t WCSimRecoEvent::GetVtxPass()
-{
-  return fVertex->GetPass();
+void WCSimRecoEvent::SetTrackLength(Double_t length) {
+	fVertex->SetTrackLength(length);
 }
 
-Int_t WCSimRecoEvent::GetVtxStatus()
-{
-  return fVertex->GetStatus();
-}
-  
-Bool_t WCSimRecoEvent::FoundVertex()
-{
-  return fVertex->FoundVertex();
-}
-  
-Bool_t WCSimRecoEvent::FoundDirection()
-{
-  return fVertex->FoundDirection();
+void WCSimRecoEvent::SetVtxFOM(Double_t fom, Int_t nsteps, Bool_t pass) {
+	fVertex->SetFOM(fom, nsteps, pass);
 }
 
-Bool_t WCSimRecoEvent::FoundRings()
-{
-  if( fRingList->size()>0 ) return 1;
-  else return 0;
+void WCSimRecoEvent::SetVtxStatus(Int_t status) {
+	fVertex->SetStatus(status);
 }
 
-void WCSimRecoEvent::PrintDigitList(const char* filename)
-{
-  std::ofstream output(filename);
-
-  for( Int_t i=0; i<this->GetNDigits(); i++ ){
-    WCSimRecoDigit* myDigit = (WCSimRecoDigit*)(this->GetDigit(i));
-    output << myDigit->GetX() << " " << myDigit->GetY() << " " << myDigit->GetZ() << " " << myDigit->GetTime() << " " << myDigit->GetQPEs() << std::endl; 
-  }
-
-  output.close();
+WCSimRecoVertex* WCSimRecoEvent::GetVertex() {
+	return fVertex;
 }
 
-void WCSimRecoEvent::PrintFilterDigitList(const char* filename)
-{
-  std::ofstream output(filename);
-
-  for( Int_t i=0; i<this->GetNFilterDigits(); i++ ){
-    WCSimRecoDigit* myDigit = (WCSimRecoDigit*)(this->GetFilterDigit(i));
-    output << myDigit->GetX() << " " << myDigit->GetY() << " " << myDigit->GetZ() << " " << myDigit->GetTime() << " " << myDigit->GetQPEs() << std::endl;
-  }
-
-  output.close();
+Double_t WCSimRecoEvent::GetVtxX() {
+	return fVertex->GetX();
 }
 
-void WCSimRecoEvent::PrintEvent()
-{
-  std::cout << " *** WCSimRecoEvent::PrintEvent() *** " << std::endl
-            << " * VtxX = " << fVertex->GetX() << std::endl
-	    << " * VtxY = " << fVertex->GetY() << std::endl
-            << " * VtxZ = " << fVertex->GetZ() << std::endl
-            << " * VtxTime = = " << fVertex->GetTime() << std::endl
-            << " * DirX = " << fVertex->GetDirX() << std::endl
-            << " * DirY = " << fVertex->GetDirY() << std::endl
-            << " * DirZ = " << fVertex->GetDirZ() << std::endl
-            << " * VtxFoM = " << fVertex->GetFOM() << std::endl
-            << " ************************************ " << std::endl;
+Double_t WCSimRecoEvent::GetVtxY() {
+	return fVertex->GetY();
+}
 
-  return;
+Double_t WCSimRecoEvent::GetVtxZ() {
+	return fVertex->GetZ();
+}
+
+Double_t WCSimRecoEvent::GetVtxTime() {
+	return fVertex->GetTime();
+}
+
+Double_t WCSimRecoEvent::GetDirX() {
+	return fVertex->GetDirX();
+}
+
+Double_t WCSimRecoEvent::GetDirY() {
+	return fVertex->GetDirY();
+}
+
+Double_t WCSimRecoEvent::GetDirZ() {
+	return fVertex->GetDirZ();
+}
+
+Double_t WCSimRecoEvent::GetConeAngle() {
+	return fVertex->GetConeAngle();
+}
+
+Double_t WCSimRecoEvent::GetTrackLength() {
+	return fVertex->GetTrackLength();
+}
+
+Double_t WCSimRecoEvent::GetVtxFOM() {
+	return fVertex->GetFOM();
+}
+
+Int_t WCSimRecoEvent::GetVtxIterations() {
+	return fVertex->GetIterations();
+}
+
+Bool_t WCSimRecoEvent::GetVtxPass() {
+	return fVertex->GetPass();
+}
+
+Int_t WCSimRecoEvent::GetVtxStatus() {
+	return fVertex->GetStatus();
+}
+
+Bool_t WCSimRecoEvent::FoundVertex() {
+	return fVertex->FoundVertex();
+}
+
+Bool_t WCSimRecoEvent::FoundDirection() {
+	return fVertex->FoundDirection();
+}
+
+Bool_t WCSimRecoEvent::FoundRings() {
+	if (fRingList->size() > 0)
+		return 1;
+	else
+		return 0;
+}
+
+void WCSimRecoEvent::PrintDigitList(const char* filename) {
+	std::ofstream output(filename);
+
+	for (Int_t i = 0; i < this->GetNDigits(); i++) {
+		WCSimRecoDigit* myDigit = (WCSimRecoDigit*) (this->GetDigit(i));
+		output << myDigit->GetX() << " " << myDigit->GetY() << " " << myDigit->GetZ() << " " << myDigit->GetTime()
+				<< " " << myDigit->GetQPEs() << std::endl;
+	}
+
+	output.close();
+}
+
+void WCSimRecoEvent::PrintFilterDigitList(const char* filename) {
+	std::ofstream output(filename);
+
+	for (Int_t i = 0; i < this->GetNFilterDigits(); i++) {
+		WCSimRecoDigit* myDigit = (WCSimRecoDigit*) (this->GetFilterDigit(i));
+		output << myDigit->GetX() << " " << myDigit->GetY() << " " << myDigit->GetZ() << " " << myDigit->GetTime()
+				<< " " << myDigit->GetQPEs() << std::endl;
+	}
+
+	output.close();
+}
+
+void WCSimRecoEvent::PrintEvent() {
+	std::cout << " *** WCSimRecoEvent::PrintEvent() *** " << std::endl << " * VtxX = " << fVertex->GetX() << std::endl
+			<< " * VtxY = " << fVertex->GetY() << std::endl << " * VtxZ = " << fVertex->GetZ() << std::endl
+			<< " * VtxTime = = " << fVertex->GetTime() << std::endl << " * DirX = " << fVertex->GetDirX() << std::endl
+			<< " * DirY = " << fVertex->GetDirY() << std::endl << " * DirZ = " << fVertex->GetDirZ() << std::endl
+			<< " * VtxFoM = " << fVertex->GetFOM() << std::endl << " ************************************ "
+			<< std::endl;
+
+	return;
 }

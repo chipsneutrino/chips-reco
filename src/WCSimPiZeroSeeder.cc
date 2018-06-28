@@ -11,47 +11,42 @@
 #include <cassert>
 
 #ifndef REFLEX_DICTIONARY
-ClassImp(WCSimPiZeroSeeder)
+ClassImp (WCSimPiZeroSeeder)
 #endif
 
-WCSimPiZeroSeeder::WCSimPiZeroSeeder(WCSimFitterConfig * config) : WCSimLikelihoodFitter(config)
-{
+WCSimPiZeroSeeder::WCSimPiZeroSeeder(WCSimFitterConfig * config) :
+		WCSimLikelihoodFitter(config) {
 	// TODO Auto-generated constructor stub
 	fMadeSeeds = false;
 }
 
-WCSimPiZeroSeeder::~WCSimPiZeroSeeder()
-{
+WCSimPiZeroSeeder::~WCSimPiZeroSeeder() {
 	// TODO Auto-generated destructor stub
 }
 
-std::vector<WCSimPiZeroSeed*> WCSimPiZeroSeeder::GetSeeds()
-{
-	if(!fMadeSeeds){
+std::vector<WCSimPiZeroSeed*> WCSimPiZeroSeeder::GetSeeds() {
+	if (!fMadeSeeds) {
 		MakeSeeds();
 	}
 	return fPiZeroSeeds;
 }
 
-WCSimPiZeroSeed* WCSimPiZeroSeeder::GetSeed(unsigned int i)
-{
-	if(!fMadeSeeds){
+WCSimPiZeroSeed* WCSimPiZeroSeeder::GetSeed(unsigned int i) {
+	if (!fMadeSeeds) {
 		MakeSeeds();
 	}
 	assert(i < fPiZeroSeeds.size());
 	return fPiZeroSeeds.at(i);
 }
 
-unsigned int WCSimPiZeroSeeder::GetNumSeeds()
-{
-	if(fMadeSeeds){
+unsigned int WCSimPiZeroSeeder::GetNumSeeds() {
+	if (fMadeSeeds) {
 		return fPiZeroSeeds.size();
 	}
 	return 0;
 }
 
-void WCSimPiZeroSeeder::SetEvent(const int& event)
-{
+void WCSimPiZeroSeeder::SetEvent(const int& event) {
 	std::cout << "Setting event" << event << std::endl;
 	WCSimLikelihoodFitter::SetEvent(event);
 	fPiZeroSeeds.clear();

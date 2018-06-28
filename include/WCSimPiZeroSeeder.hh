@@ -13,23 +13,22 @@
 class WCSimPiZeroSeed;
 class WCSimFitterConfig;
 
-class WCSimPiZeroSeeder: public WCSimLikelihoodFitter
-{
-public:
-	WCSimPiZeroSeeder(WCSimFitterConfig* config);
-	virtual ~WCSimPiZeroSeeder();
+class WCSimPiZeroSeeder: public WCSimLikelihoodFitter {
+	public:
+		WCSimPiZeroSeeder(WCSimFitterConfig* config);
+		virtual ~WCSimPiZeroSeeder();
 
-	std::vector<WCSimPiZeroSeed*> GetSeeds();
-	WCSimPiZeroSeed * GetSeed(unsigned int i);
-	unsigned int GetNumSeeds();
-	virtual void SetEvent(const int &event);
+		std::vector<WCSimPiZeroSeed*> GetSeeds();
+		WCSimPiZeroSeed * GetSeed(unsigned int i);
+		unsigned int GetNumSeeds();
+		virtual void SetEvent(const int &event);
 
-protected:
-	virtual void MakeSeeds() = 0;
-	std::vector<WCSimPiZeroSeed*> fPiZeroSeeds;
-	bool fMadeSeeds;
+	protected:
+		virtual void MakeSeeds() = 0;
+		std::vector<WCSimPiZeroSeed*> fPiZeroSeeds;
+		bool fMadeSeeds;
 
-	ClassDef(WCSimPiZeroSeeder,0);
+		ClassDef(WCSimPiZeroSeeder,0);
 
 };
 

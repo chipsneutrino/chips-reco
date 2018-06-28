@@ -11,20 +11,17 @@
 #include <cstdlib>
 
 #ifndef REFLEX_DICTIONARY
-ClassImp(WCSimPID)
+ClassImp (WCSimPID)
 #endif
 
-WCSimPID::WCSimPID()
-{
+WCSimPID::WCSimPID() {
 	// TODO Auto-generated constructor stub
 }
 
-WCSimPID::~WCSimPID()
-{
+WCSimPID::~WCSimPID() {
 	// TODO Auto-generated destructor stub
 }
 
-void WCSimPID::Echo()
-{
+void WCSimPID::Echo() {
 	std::cout << "Testing!!!" << std::endl;
 }

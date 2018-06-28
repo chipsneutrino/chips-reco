@@ -4,16 +4,6 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class WCSimDisplay+;
-#pragma link C++ class WCSimDisplayFactory+;
-#pragma link C++ class WCSimDisplayViewer+;
-
-#pragma link C++ class WCSimDisplayAB+;
-#pragma link C++ class WCSimEveDisplay+;
-#pragma link C++ class WCSimVertexViewer+;
-#pragma link C++ class WCSimRingViewer+;
-
-#pragma link C++ class WCSimEventWriter+;
 #pragma link C++ class WCSimGeometry+;
 #pragma link C++ class WCSimInterface+;
 #pragma link C++ class WCSimParameters+;
@@ -22,10 +12,7 @@
 #pragma link C++ class WCSimTrueTrack+;
 
 #pragma link C++ class WCSimRecoObjectTable+;
-#pragma link C++ class WCSimRecoFactory+;
 #pragma link C++ class WCSimRecoSlicer+;
-#pragma link C++ class WCSimReco+;
-#pragma link C++ class WCSimRecoAB+;
 #pragma link C++ class WCSimRecoSeed+;
 #pragma link C++ class WCSimRecoEvent+;
 #pragma link C++ class WCSimRecoDigit+;
@@ -46,14 +33,6 @@
 #pragma link C++ class WCSimHoughTransform+;
 #pragma link C++ class WCSimHoughTransformArray+;
 
-#pragma link C++ class WCSimNtupleFactory+;
-#pragma link C++ class WCSimNtupleWriter+;
-
-#pragma link C++ class WCSimNtuple+;
-#pragma link C++ class WCSimRecoNtuple+;
-#pragma link C++ class WCSimVertexNtuple+;
-#pragma link C++ class WCSimVertexSeedNtuple+;
-
 #pragma link C++ class WCSimMsg+;
 
 #pragma link C++ class WCSimTotalLikelihood+;
@@ -70,14 +49,12 @@
 #pragma link C++ enum TrackType::Type;
 #pragma link C++ class FitterParameterType+;
 #pragma link C++ enum FitterParameterType::Type;
-#pragma link C++ class WCSimTimeLikelihood+;
 #pragma link C++ class WCSimDigitizerLikelihood+;
 #pragma link C++ class vector<WCSimLikelihoodTrack>;
 #pragma link C++ class vector<vector<WCSimLikelihoodTrack> >;
 #pragma link C++ class vector<WCSimLikelihoodTrack*>;
 #pragma link C++ class vector<WCSimChargePredictor>;
 
-#pragma link C++ class WCSimAnalysisConfig+;
 #pragma link C++ class WCSimFitterConfig+;
 #pragma link C++ class WCSimFitterPlots+;
 #pragma link C++ class WCSimFitterInterface+;
@@ -90,8 +67,8 @@
 #pragma link C++ class WCSimEmissionProfileManager+;
 #pragma link C++ class WCSimRecoSummary+;
 #pragma link C++ class WCSimRecoEvDisplay+;
-#pragma link C++ class WCSimIntegralLookupMaker+;
 #pragma link C++ class WCSimIntegralLookupMaker3D+;
+#pragma link C++ class WCSimIntegralLookupHistArray+;
 #pragma link C++ class WCSimIntegralLookupReader+;
 #pragma link C++ class WCSimFitterTrackParMap+;
 #pragma link C++ class WCSimLikelihoodTrackBase+;
@@ -106,7 +83,6 @@
 #pragma link C++ class vector<WCSimLikelihoodUnknownTrack*>;
 #pragma link C++ class WCSimLikelihoodTrackFactory+;
 #pragma link C++ class WCSimTimePredictor+;
-#pragma link C++ class WCSimTimeLikelihood2+;
 #pragma link C++ class WCSimDetectorParameters+;
 #pragma link C++ class WCSimPiZeroFitter+;
 #pragma link C++ class WCSimPiZeroSeeder+;
@@ -120,7 +96,6 @@
 #pragma link C++ class WCSimTransmissionFunctionLookup+;
 #pragma link C++ class WCSimTimeLikelihood3+;
 #pragma link C++ class WCSimIntegralLookup3D+;
-#pragma link C++ class WCSimIntegralLookupHistArray+;
 
 #pragma link C++ class WCSimHitPrediction+;
 #pragma link C++ class vector<WCSimHitPrediction>+;
