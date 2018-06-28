@@ -41,7 +41,7 @@ void WCSimRecoSlicer::UpdateParameters() {
 	fMinSliceSize = pars->GetSlicerMinSize();
 	fChargeCut = pars->GetSlicerChargeCut();
 	fTimeCut = pars->GetSlicerTimeCut();
-	fIterateSlicing = pars->GetIterateSlicing();
+	fIterateSlicing = pars->IterateSlicing();
 }
 
 void WCSimRecoSlicer::ResetSlices() {

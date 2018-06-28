@@ -2,10 +2,18 @@
 #define WCSIMPARAMETERS_HH
 
 #include "TObject.h"
+#include <string>
+#include <map>
 
 class WCSimParameters: public TObject {
 	public:
 		static WCSimParameters* Instance();
+
+		/**
+		 * Set the path of the configuration file to be loaded
+		 * @param config Path of a text file containing all the configuration parameters
+		 */
+		void SetConfigFile(const char * config);
 
 		static Double_t SpeedOfLight();
 		static Double_t CherenkovAngle();
@@ -68,10 +76,10 @@ class WCSimParameters: public TObject {
 			return fSlicerTimeCut;
 		}
 
-		void SetIterateSlicing(Double_t val) {
+		void SetIterateSlicing(Bool_t val) {
 			fIterateSlicing = val;
 		}
-		Double_t GetIterateSlicing() {
+		Bool_t IterateSlicing() {
 			return fIterateSlicing;
 		}
 
@@ -288,12 +296,64 @@ class WCSimParameters: public TObject {
 		WCSimParameters();
 		~WCSimParameters();
 
+		/// Read the configuration text file specified in WCSimAnalysisConfig::fConfName
+		void LoadConfig();
+
+		/**
+		 * Strip out comments preceded by // or # from the text being parsed
+		 * @param str String to remove comments from
+		 */
+		void IgnoreComments(std::string &str);
+
+		/**
+		 * Check whether a line could be trying to set a value
+		 * @param str Line to check
+		 * @return True if str if of the form "TEXT1 = TEXT2" (i.e. an = sign and text either side)
+		 */
+		const Bool_t IsGoodLine(std::string str);
+
+		/**
+		 * Check for strings containing only whitespace
+		 * @param str String to check
+		 * @return True if string is blank or just whitespace
+		 */
+		const Bool_t IsBlankLine(std::string str);
+
+		/**
+		 * Extract key and value from configuration file line
+		 * @param lhs String to extract the key to
+		 * @param rhs String to extract the value to
+		 * @param str String in the format "key = value"
+		 */
+		void ExtractPair(std::string &lhs, std::string &rhs, std::string str);
+
+		/**
+		 * Check if a line is valid, then extract the key and value from it and add
+		 * them to WCSimAnalysisConfig::fMap
+		 * @param str String to parse
+		 * @param lineNum Line number in the file
+		 */
+		void ParseLine(std::string str, Int_t lineNum);
+
+		/**
+		 * Add a key and value to WCSimAnalysisConfig::fMap
+		 * @param lhs Key string
+		 * @param rhs Value string
+		 */
+		void AddToMap(std::string lhs, std::string rhs);
+
+		/// Iterate through the map and use it to set all the variables it specifies
+		void SetFromMap();
+
+		std::string fConfName;                   ///< Path of a text file containing all the configuration parameters
+		std::map<std::string, std::string> fMap;   ///< Map to store key names and their values to set
+
 		// Slicer parameters
 		Double_t fSlicerClusterDistance; 	///< Max distance in cm between hits in the slices
 		UInt_t fSlicerMinSize; 				///< Minimum number of hits for a slice to be formed
 		Double_t fSlicerChargeCut; 			///< Only consider digits above the charge threshold
 		Double_t fSlicerTimeCut; 			///< Maximum gap allowed between hits when ordered by time in order to be associated with the previous hit.
-		Double_t fIterateSlicing; 			///< Iterate the charge cut to make as many slices as we have tracks
+		Bool_t fIterateSlicing; 			///< Iterate the charge cut to make as many slices as we have tracks
 
 		// Veto slicing parameters
 		Double_t fVetoClusterDistance; 		///< Max distance in cm between hits in the slices
