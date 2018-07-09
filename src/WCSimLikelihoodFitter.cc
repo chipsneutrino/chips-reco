@@ -608,10 +608,6 @@ void WCSimLikelihoodFitter::RunFits() {
 		} else {
 			std::cout << "Failed for some reason: fMinimum = " << fMinimum << " and fFailed = " << fFailed << std::endl;
 		}
-
-		// Save the outputTree and plots to file...
-		fOutputTree->SaveTree();
-		fFitterPlots->SavePlots();
 	}
 }
 
@@ -692,7 +688,7 @@ void WCSimLikelihoodFitter::FillTree() {
 		if (WCSimParameters::Instance()->SaveHitComparison()) {
 			std::cout << "Building HitComparison..." << std::endl;
 			WCSimHitComparison hitComp = BuildHitComparison();
-			fOutputTree->SetHitComparison(hitComp);
+			fOutputTree->FillHitComparison(hitComp);
 		}
 
 		EventHeader eventHead = BuildEventHeader();
@@ -890,7 +886,7 @@ void WCSimLikelihoodFitter::SeedEvent() {
 	// Need to fill the SeedInfo in the outputTree...
 	if (fOutputTree != NULL && WCSimParameters::Instance()->SaveSeedInfo()) {
 		SeedInfo seedInfo = SeedInfo(fSeeds, slicedEvents.size(), ringVec, ringTime);
-		fOutputTree->SetSeedInfo(seedInfo);
+		fOutputTree->FillSeedInfo(seedInfo);
 	}
 
 	delete myReco;
@@ -2690,7 +2686,7 @@ void WCSimLikelihoodFitter::SetFitInfoStage() {
 		stageMinus2LnLs.push_back(fTotalLikelihood->GetLastTime2LnL());
 		stageMinus2LnLs.push_back(fTotalLikelihood->GetLastCharge2LnL());
 
-		fOutputTree->SetStageInfo(fCalls, hitPredictions, fBestFit);
+		fOutputTree->FillStageInfo(fCalls, hitPredictions, fBestFit);
 	}
 }
 

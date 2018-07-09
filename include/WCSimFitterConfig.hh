@@ -28,12 +28,14 @@ class WCSimFitterConfig {
 			return fFitterParameters;
 		}
 
-		void FixTrackParameter(int numTrack, const char * name, bool doIt = true);
-		void FreeTrackParameter(int numTrack, const char * name, bool doIt = true);
+		void FixTrackParameter(int numTrack, const char * name,
+				bool doIt = true);
+		void FreeTrackParameter(int numTrack, const char * name, bool doIt =
+				true);
 		bool GetIsFixedParameter(int numTrack, const char * name);
 
-		void SetParameter(unsigned int numTrack, const char * name, double min, double max, double start, double step,
-				bool fixIt);
+		void SetParameter(unsigned int numTrack, const char * name, double min,
+				double max, double start, double step, bool fixIt);
 
 		void SetParMin(int numTrack, const char * name, double min);
 		double GetParMin(unsigned int numTrack, const char * name);
@@ -47,8 +49,10 @@ class WCSimFitterConfig {
 		void SetParStep(int numTrack, const char * name, double step);
 		double GetParStep(unsigned int numTrack, const char * name);
 
-		void SetParRange(int numTrack, const char * name, double min, double max);
-		std::pair<double, double> GetParRange(unsigned int numTrack, const char * name);
+		void SetParRange(int numTrack, const char * name, double min,
+				double max);
+		std::pair<double, double> GetParRange(unsigned int numTrack,
+				const char * name);
 
 		void SetNumEventsToFit(int numEvents);
 		int GetNumEventsToFit();
@@ -56,12 +60,17 @@ class WCSimFitterConfig {
 		void SetFirstEventToFit(unsigned int iEvt);
 		int GetFirstEventToFit() const;
 
-		void SetJoinParametersTogether(unsigned int numTrack1, unsigned int numTrack2, const char * name);
-		bool GetJoinParametersTogether(unsigned int numTrack1, unsigned int numTrack2, const char * name);
+		void SetJoinParametersTogether(unsigned int numTrack1,
+				unsigned int numTrack2, const char * name);
+		bool GetJoinParametersTogether(unsigned int numTrack1,
+				unsigned int numTrack2, const char * name);
 		bool GetIsParameterJoined(unsigned int numTrack, const char * name);
-		unsigned int GetTrackIsJoinedWith(unsigned int numTrack, const char * name);
-		bool GetIsParameterJoined(unsigned int numTrack, FitterParameterType::Type type);
-		unsigned int GetTrackIsJoinedWith(unsigned int numTrack, FitterParameterType::Type type);
+		unsigned int GetTrackIsJoinedWith(unsigned int numTrack,
+				const char * name);
+		bool GetIsParameterJoined(unsigned int numTrack,
+				FitterParameterType::Type type);
+		unsigned int GetTrackIsJoinedWith(unsigned int numTrack,
+				FitterParameterType::Type type);
 
 		bool GetMakeFits() const;
 		void SetMakeFits(const bool &makeFits = true);
@@ -91,9 +100,6 @@ class WCSimFitterConfig {
 		bool fIsPiZeroFit;
 		bool fForcePiZeroMass;
 		bool fIsCosmicFit;
-		bool fSaveSeedInfo;
-		bool fSaveFitInfo;
-
 };
 
 #endif /* WCSIMFITTERCONFIG_HH_ */

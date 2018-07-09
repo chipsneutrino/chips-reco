@@ -13,8 +13,10 @@
 #include "WCSimHitComparison.hh"
 #include "WCSimLikelihoodTrackFactory.hh"
 #include "WCSimRecoRing.hh"
+#include "WCSimFitterConfig.hh"
 
 #include "TObject.h"
+#include "TBranch.h"
 
 #include <string>
 #include <vector>
@@ -761,35 +763,41 @@ class StageInfo: public TObject {
  */
 class WCSimOutputTree: public TObject {
 	public:
-		WCSimOutputTree(const TString &saveFileName);
+		WCSimOutputTree();
 		virtual ~WCSimOutputTree();
 
-		void InitOutputTree();
+		TString FormTime();
+		std::string FitType(WCSimFitterConfig * config);
+		TString InitOutputTree(TString fileName, bool modifyInput, WCSimFitterConfig * fitterConfig);
 
-		void MakeTree();
+		void GetExistingTree();
+		void MakeNewTree();
+		void MakeNewFit(std::string type);
+
 		void SaveTree();
+		void SaveFile();
+
+		void FillSeedInfo(SeedInfo& seedInfo);
+
+		void FillStageInfo(int stageNCalls, std::vector<WCSimHitPrediction> stagePreds,
+				std::vector<WCSimLikelihoodTrackBase*> stageTracks);
+
+		void FillHitComparison(WCSimHitComparison& hitComp);
+
+		void Fill(EventHeader& eventHead, TruthInfo& truthInfo, WCSimRecoSummary& summ, PidInfo& pidInfo);
 
 		void SetSaveFileName(TString saveName);
 		TString GetSaveFileName() const;
 
-		void SetSeedInfo(SeedInfo& seedInfo);
+		void SetModifyFile(bool modify);
 
-		void SetStageInfo(int stageNCalls, std::vector<WCSimHitPrediction> stagePreds,
-				std::vector<WCSimLikelihoodTrackBase*> stageTracks);
-
-		void SetHitComparison(WCSimHitComparison& hitComp);
-
-		void Fill(EventHeader& eventHead, TruthInfo& truthInfo, WCSimRecoSummary& summ, PidInfo& pidInfo);
-
-		void MakeSaveFile();
-		void SetInputFile(const TString &location);
-
+		void SetInputFile(TString inputFile);
 		TString GetInputFileName() const;
 
 	private:
 		void DeletePointersIfExist();
 
-		std::string fInputFile;	///< The input file name, included in eventHeader, but for ease of use store seperately
+		TString fInputFile;	///< The input file name, included in eventHeader, but for ease of use store seperately
 
 		TFile * fSaveFile;						///<
 		TString fSaveFileName;					///<
@@ -798,6 +806,7 @@ class WCSimOutputTree: public TObject {
 
 		WCSimRootGeom * fGeometry;				///< The WCSim geometry object that is then saved in the geometry tree
 
+		bool fModifyFile;
 		EventHeader * fEventHeader;				///< Holds info about the input event
 		TruthInfo * fTruthInfo;					///< Akin to WCSimTruthSummary, holds the truth information
 		WCSimRecoSummary * fRecoSummary;		///< Result of the fit, for comparison with the TruthInfo
@@ -805,6 +814,14 @@ class WCSimOutputTree: public TObject {
 		SeedInfo * fSeedInfo;					///< Holds info on the output from the Hough transform ring finder
 		StageInfo * fStageInfo;	///< Holds info on how the fit parameters and minus2LnL evolve over the stages of the fit
 		WCSimHitComparison * fHitComparison;	///< Holds the final HitComparison for all the PMTs
+
+		TBranch * fEventHeader_branch;
+		TBranch * fTruthInfo_branch;
+		TBranch * fRecoSummary_branch;
+		TBranch * fPidInfo_branch;
+		TBranch * fSeedInfo_branch;
+		TBranch * fStageInfo_branch;
+		TBranch * fHitComparison_branch;
 
 		ClassDef(WCSimOutputTree, 3)
 };

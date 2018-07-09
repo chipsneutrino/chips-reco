@@ -13,7 +13,7 @@ WCSimScatteringTableManager - Used to read information from the scattering table
 WCSimTransmissionFunctionLookup - Transmission function uses three exponentials, this lookup table speeds it up
 
 MAIN FITTER
-WCSimAnalysisConfig - Parses fitter option from config/default.cfg and lets the fitter access them
+WCSimParameters - Parses fitter option from config/default.cfg and lets the fitter access them
 WCSimFastMath - Has some fast approximations for various functions and does the splining needed for the time fit
 WCSimFitterConfig - Configures the main fitter object, interact with this via WCSimFitterInterface
 WCSimFitterInterface - Used to setup the main fittersetting event files and bounds for track parameters etc...
@@ -71,7 +71,6 @@ WCSimTrackParameterEnums - Holds enums relating to track types and track paramet
 OLD RECO
 WCSimHoughTransform - Stores a 2D (theta and phi) Hough transform
 WCSimHoughTransformArray - Stories and interacts with an array of 2D Hough transforms at different cone angles
-*WCSimParameters - Used to set parameters for the old reco, relavent to the seed for the new reconstruction
 WCSimRecoCluster - Sets of digits in charge and time
 WCSimRecoClusterDigit - Single clustered digit
 WCSimRecoDigit - Equivalent of the WCSimLikelihoodDigit in the old Hough reconstruction
@@ -117,6 +116,7 @@ OUTPUT
 *WCSimEventWriter - Writes out WCSimRootEvents to a flat ROOT file
 
 OLD RECO
+*WCSimAnalysisConfig - Old class used to do config, merged into WCSimParameters now
 *WCSimReco - Parent class for the old reconstruction methods
 *WCSimRecoAB - Main reconstruction class used for the old Hough reconstruction
 *WCSimRecoFactory - Factory to choose which reconstruction class is to be used

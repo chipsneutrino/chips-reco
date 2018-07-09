@@ -22,94 +22,33 @@ class WCSimFitterInterface {
 		virtual ~WCSimFitterInterface();
 		WCSimFitterInterface();
 
-		void InitOutputFiles();
-		void InitFitter();
+		void SetInputFileName(const char * inputfile, bool modifyFile);
 
-		// void SetFile(const char * fileName);
-		void SetNumTracks(unsigned int numTracks);
-		unsigned int GetNumTracks() const;
+		void SetMakeFits(bool makeFits);
 
-		void SetTrackType(unsigned int numTrack, const char * typeName);
-		TrackType::Type GetTrackType(const unsigned int &numTrack);
+		void AddFitterConfig(WCSimFitterConfig * config);
 
-		void FixParameter(unsigned int numTrack, const char * name, bool doIt = true);
-		void FreeParameter(unsigned int numTrack, const char * name, bool doIt = true);
-		void JoinParametersTogether(unsigned int numTrack1, unsigned int numTrack2, const char * name);
-
-		void SetParMin(unsigned int numTrack, const char * name, double min);
-		void SetParMax(unsigned int numTrack, const char * name, double max);
-		void SetParStart(unsigned int numTrack, const char * name, double start);
-		void SetParStep(unsigned int numTrack, const char * name, double step);
-		void SetParRange(unsigned int numTrack, const char * name, double min, double max);
-		void SetParameter(unsigned int numTrack, const char * name, double min, double max, double start, bool fixed,
-				double step = 0);
-
-		Double_t GetParMin(unsigned int numTrack, const char * name);
-		Double_t GetParMax(unsigned int numTrack, const char * name);
-		Double_t GetParStart(unsigned int numTrack, const char * name);
-		Double_t GetParStep(unsigned int numTrack, const char * name);
-		std::pair<Double_t, Double_t> GetParRange(unsigned int numTrack, const char * name);
-
-		void SetMakeFits(bool doIt = true);
-		bool GetMakeFits();
-
-		void SetNumEventsToFit(int nEvts);
-		int GetNumEventsToFit();
-
-		void SetFirstEventToFit(int iEvt);
-		int GetFirstEventToFit() const;
-
-		void PlotForEachEvent(const char * name, bool doIt = true);
-		bool GetPlotForEachEvent(const char * name);
-
-		void PlotRecoMinusTrue(const char * name, bool doIt = true);
-		bool GetPlotRecoMinusTrue(const char * name);
-
-		void SetMakeSurfaces(bool doIt = true);
-		bool GetMakeSurfaces();
-
-		void SetNumSurfaceBins(unsigned int nBins);
-		unsigned int GetNumSurfaceBins() const;
-
-		void Make1DSurface(unsigned int nTrack, const char * name, bool doIt = true);
-		bool GetMake1DSurface(unsigned int nTrack, const char * name);
-
-		void Make2DSurface(unsigned int nTrack, const char * name, unsigned int nTrack2, const char * name2, bool doIt =
-				true);
-		bool GetMake2DSurface(unsigned int nTrack, const char * name, unsigned int nTrack2, const char * name2);
-
-		void SetIsPiZeroFit(const bool &isPiZero);
-		bool GetIsPiZeroFit() const;
-
-		void SetForcePiZeroMass(const bool &doIt = true);
-		bool GetForcePiZeroMass() const;
-
-		void SetIsCosmicFit(const bool &val);
-		bool GetIsCosmicFit() const;
-
-		void PrintFitConfiguration();
-		void PrintPlotsConfiguration();
-		void PrintSurfaceConfiguration();
-		void Print();
+		void InitFitter(WCSimFitterConfig * config);
 
 		void Run();
 
-		void SaveResults();
-		void SaveProfiles();
-		void SetInputFileName(const char * inputfile);
-
 	private:
-		WCSimFitterConfig * fFitterConfig;
+		// Fit configuration parameters
+		int fNumFits;
+		std::vector<WCSimFitterConfig *> fFitterConfigs;
+
+		// Input file parameters
+		bool fModifyInputFile;
 		TString fFileName;
-		unsigned int fNumTracks;
+		TString fOutputName;
+
+		// Fitters, selections, particle identification, output etc...
 		WCSimLikelihoodFitter * fFitter;
 		WCSimPiZeroFitter * fPiZeroFitter;
 		WCSimCosmicFitter * fCosmicFitter;
-		WCSimFitterPlots * fFitterPlots;
 		WCSimOutputTree * fOutputTree;
 
-		Bool_t fMakeFits;
-		Bool_t fMakeSurfaces;
+		bool fMakeFits;
 
 		ClassDef(WCSimFitterInterface,0)
 };
