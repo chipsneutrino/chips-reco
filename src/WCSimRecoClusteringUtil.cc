@@ -108,8 +108,8 @@ void WCSimRecoClusteringUtil::SliceInSpace() {
 		return;
 
 	// LEIGH: Let's have a look at what we're making...
-	TDirectory* tmpd = gDirectory;
-	TFile *slicePlotFile = new TFile("slicePlotFile.root", "recreate");
+	//TDirectory* tmpd = gDirectory;
+	//TFile *slicePlotFile = new TFile("slicePlotFile.root", "recreate");
 
 	for (unsigned int t = 0; t < fTimeSlicedDigits.size(); ++t) {
 
@@ -174,21 +174,21 @@ void WCSimRecoClusteringUtil::SliceInSpace() {
 						<< std::endl;
 
 				// For each slice, make a TH3D we can look at.
-				std::stringstream plotName;
-				plotName << "slice_" << (t * 10) + v;
-				TH3D *hHist = new TH3D(plotName.str().c_str(), "", 150, -1500, 1500, 150, -1500, 1500, 150, -1500,
-						1500);
-				for (unsigned int z = 0; z < slicedDigits[v].size(); ++z) {
-					hHist->Fill(slicedDigits[v][z]->GetX(), slicedDigits[v][z]->GetY(), slicedDigits[v][z]->GetZ());
-				}
-				hHist->Write();
+				//std::stringstream plotName;
+				//plotName << "slice_" << (t * 10) + v;
+				//TH3D *hHist = new TH3D(plotName.str().c_str(), "", 150, -1500, 1500, 150, -1500, 1500, 150, -1500,
+				//		1500);
+				//for (unsigned int z = 0; z < slicedDigits[v].size(); ++z) {
+				//	hHist->Fill(slicedDigits[v][z]->GetX(), slicedDigits[v][z]->GetY(), slicedDigits[v][z]->GetZ());
+				//}
+				//hHist->Write();
 			}
 		}
 	}
 	// Close the file
-	slicePlotFile->Close();
-	delete slicePlotFile;
-	gDirectory = tmpd;
+	//slicePlotFile->Close();
+	//delete slicePlotFile;
+	//gDirectory = tmpd;
 
 }
 
