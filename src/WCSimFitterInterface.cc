@@ -57,6 +57,9 @@ void WCSimFitterInterface::SetInputFileName(const char * inputfile,
 	char * fullPath = realpath(inputfile, NULL);
 	fFileName = TString(fullPath);
 	free(fullPath);
+
+	// Load the data from the corresponding WCSim file
+	LoadWCSimData();
 }
 
 void WCSimFitterInterface::SetMakeFits(bool makeFits) {
@@ -98,6 +101,32 @@ void WCSimFitterInterface::InitFitter(WCSimFitterConfig * config) {
 		fFitter = new WCSimLikelihoodFitter(config);
 		fFitter->SetOutputTree(fOutputTree);
 	}
+}
+
+void WCSimFitterInterface::LoadWCSimData() {
+	std::cout << " *** WCSimFitterInterface::LoadWCSimData() *** " << std::endl;
+	TString wcsimFile = fFileName;
+	if (fModifyInputFile) {
+		TFile * lookupFile = new TFile(fFileName.Data(), "READ");
+
+		std::cout << "Checking the existing file..." << std::endl;
+		assert(lookupFile->GetListOfKeys()->Contains("fResultsTree"));
+
+		TTree * tree = (TTree*) (lookupFile->Get("fResultsTree"));
+
+		//Set up the EventInfo...
+		EventHeader *eventHeader = new EventHeader();
+		TBranch *b_eh = tree->GetBranch("EventHeader");
+		b_eh->SetAddress(&eventHeader);
+		b_eh->GetEntry(0);
+
+		wcsimFile = eventHeader->GetInputFile();
+
+		eventHeader->Clear();
+		lookupFile->Close();
+	}
+
+	WCSimInterface::LoadData(wcsimFile.Data());
 }
 
 void WCSimFitterInterface::Run() {
@@ -142,5 +171,5 @@ void WCSimFitterInterface::Run() {
 		}
 
 	}
-
 }
+

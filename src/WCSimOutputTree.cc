@@ -1078,7 +1078,7 @@ void WCSimOutputTree::Fill(EventHeader& eventHead, TruthInfo& truthInfo,
 }
 
 void WCSimOutputTree::SaveTree() {
-	std::cout << " *** WCSimFitter::SaveTree() *** " << std::endl;
+	std::cout << " *** WCSimOutputTree::SaveTree() *** " << std::endl;
 	fResultsTree->SetEntries(fRecoSummary_branch->GetEntries());
 
 	TDirectory* tmpd = 0;

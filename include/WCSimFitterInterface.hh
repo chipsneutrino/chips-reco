@@ -30,6 +30,8 @@ class WCSimFitterInterface {
 
 		void InitFitter(WCSimFitterConfig * config);
 
+		void LoadWCSimData();
+
 		void Run();
 
 	private:
