@@ -41,14 +41,20 @@ make evDisp
 Running of the code except for the event display is done via ROOT macros which load
 in the compiled libraries.
 
+For examples look in the "example" directory
+This directory also includes a sample WCSim .root file for testing
+
+# electron + muon fit 
+root -l -x -q wc_trackfitter_el_mu.C
+
 # electron fit 
-root -l wc_trackfitter_new_el.C
+root -l -x -q wc_trackfitter_el.C
 
 # muon fit 
-root -l wc_trackfitter_new_mu.C
+root -l -x -q wc_trackfitter_mu.C
 
 # pi-zero fit 
-root -l wc_trackfitter_piZero.C
+root -l -x -q wc_trackfitter_piZero.C
 
 # cosmic fit 
-root -l wc_trackfitter_cosmic.C
+root -l -x -q wc_trackfitter_cosmic.C
