@@ -28,9 +28,13 @@ class WCSimFitterInterface {
 
 		void AddFitterConfig(WCSimFitterConfig * config);
 
+		void AddFitterPlots(WCSimFitterPlots * plots);
+
 		void InitFitter(WCSimFitterConfig * config);
 
 		void LoadWCSimData();
+
+		void InitFitterPlots(TString outputName, WCSimFitterConfig * config);
 
 		void Run();
 
@@ -51,6 +55,10 @@ class WCSimFitterInterface {
 		WCSimOutputTree * fOutputTree;
 
 		bool fMakeFits;
+
+		bool fMakePlots;
+		TString fPlotsName;
+		WCSimFitterPlots * fFitterPlots;
 
 		ClassDef(WCSimFitterInterface,0)
 };

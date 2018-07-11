@@ -22,14 +22,8 @@ class WCSimRootEvent;
 class WCSimFitterPlots {
 
 	public:
-		WCSimFitterPlots(const TString &saveFileName);
+		WCSimFitterPlots();
 		virtual ~WCSimFitterPlots();
-
-		void SetSaveFileName(const char * filename);
-		TString GetSaveFileName() const;
-
-		void SetNumSurfaceBins(unsigned int numBins);
-		unsigned int GetNumSurfaceBins();
 
 		void SetPlotForEachEvent(const char * name, bool doIt = true);
 		bool GetPlotForEachEvent(const char * name) const;
@@ -49,14 +43,22 @@ class WCSimFitterPlots {
 				std::pair<std::pair<unsigned int, FitterParameterType::Type>,
 						std::pair<unsigned int, FitterParameterType::Type> > > GetAll2DSurfaceKeys() const;
 
+		void SetNumSurfaceBins(unsigned int numBins);
+		unsigned int GetNumSurfaceBins();
+
 		void MakeHistograms(WCSimFitterConfig * fitterConfig);
 		void MakePlotsForEachEvent(WCSimFitterConfig * fitterConfig);
 		void MakeRecoMinusTrue(WCSimFitterConfig * fitterConfig);
 		void Make1DSurfaces(WCSimFitterConfig * fitterConfig);
 		void Make2DSurface(WCSimFitterConfig * fitterConfig);
 
-		void CreateNtuple(WCSimFitterConfig * fitterConfig);
-		void FillNtuple(WCSimFitterConfig * fitterConfig, std::vector<WCSimLikelihoodTrackBase*> bestFits);
+		void Print();
+		void PrintVariables();
+		void PrintRecoMinusTrue();
+		void PrintSurfaces();
+		void Print1DSurfaces();
+		void Print2DSurfaces();
+
 		void FillPlots(std::vector<WCSimLikelihoodTrackBase*> bestFits);
 		void FillRecoMinusTrue(std::vector<WCSimLikelihoodTrackBase*> bestFits,
 				std::vector<WCSimLikelihoodTrackBase*> * trueTracks);
@@ -76,15 +78,12 @@ class WCSimFitterPlots {
 				std::pair<std::pair<unsigned int, FitterParameterType::Type>,
 						std::pair<unsigned int, FitterParameterType::Type> > theProfile, int binNumX, int binNumY,
 				double minus2LnL);
+
 		void SavePlots();
 		void SaveProfiles();
 
-		void Print();
-		void PrintVariables();
-		void PrintRecoMinusTrue();
-		void PrintSurfaces();
-		void Print1DSurfaces();
-		void Print2DSurfaces();
+		void SetSaveFileName(const char * filename);
+		TString GetSaveFileName() const;
 
 		void SetInputFileName(const char * inputfile);
 

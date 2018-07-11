@@ -22,12 +22,16 @@
 ClassImp (WCSimFitterInterface)
 
 WCSimFitterInterface::WCSimFitterInterface() :
-		fNumFits(0), fModifyInputFile(false), fFileName(""), fFitter(0x0), fPiZeroFitter(
-				0x0), fCosmicFitter(0x0), fOutputTree(0x0), fMakeFits(true) {
+		fNumFits(0), fModifyInputFile(false), fFileName(""), fFitter(0x0), fPiZeroFitter(0x0), fCosmicFitter(0x0), fOutputTree(
+				0x0), fMakeFits(true) {
 
 	// Clear the fitterConfig vector
 	fFitterConfigs.clear();
 	fOutputName = "";
+
+	fMakePlots = false;
+	fPlotsName = "";
+	fFitterPlots = 0x0;
 
 	// TODO Merge Fitter plots into a branch of the outputTree
 	fOutputTree = new WCSimOutputTree();
@@ -51,8 +55,7 @@ WCSimFitterInterface::~WCSimFitterInterface() {
 	fFitterConfigs.clear();
 }
 
-void WCSimFitterInterface::SetInputFileName(const char * inputfile,
-		bool modifyFile) {
+void WCSimFitterInterface::SetInputFileName(const char * inputfile, bool modifyFile) {
 	fModifyInputFile = modifyFile;
 	char * fullPath = realpath(inputfile, NULL);
 	fFileName = TString(fullPath);
@@ -72,6 +75,11 @@ void WCSimFitterInterface::AddFitterConfig(WCSimFitterConfig * config) {
 	fFitterConfigs.push_back(config);
 }
 
+void WCSimFitterInterface::AddFitterPlots(WCSimFitterPlots * plots) {
+	fMakePlots = true;
+	fFitterPlots = plots;
+}
+
 void WCSimFitterInterface::InitFitter(WCSimFitterConfig * config) {
 	// This should reset a fitter in case it has been used already
 	// It should then load the new configuration
@@ -86,6 +94,9 @@ void WCSimFitterInterface::InitFitter(WCSimFitterConfig * config) {
 		}
 		fCosmicFitter = new WCSimCosmicFitter(config);
 		fCosmicFitter->SetOutputTree(fOutputTree);
+		if (fMakePlots) {
+			fCosmicFitter->SetFitterPlots(fFitterPlots);
+		}
 	} else if (config->GetIsPiZeroFit()) {
 		if (fPiZeroFitter != 0x0) {
 			delete fPiZeroFitter;
@@ -93,6 +104,9 @@ void WCSimFitterInterface::InitFitter(WCSimFitterConfig * config) {
 		}
 		fPiZeroFitter = new WCSimPiZeroFitter(config);
 		fPiZeroFitter->SetOutputTree(fOutputTree);
+		if (fMakePlots) {
+			fPiZeroFitter->SetFitterPlots(fFitterPlots);
+		}
 	} else {
 		if (fFitter != 0x0) {
 			delete fFitter;
@@ -100,6 +114,9 @@ void WCSimFitterInterface::InitFitter(WCSimFitterConfig * config) {
 		}
 		fFitter = new WCSimLikelihoodFitter(config);
 		fFitter->SetOutputTree(fOutputTree);
+		if (fMakePlots) {
+			fFitter->SetFitterPlots(fFitterPlots);
+		}
 	}
 }
 
@@ -129,23 +146,32 @@ void WCSimFitterInterface::LoadWCSimData() {
 	WCSimInterface::LoadData(wcsimFile.Data());
 }
 
+void WCSimFitterInterface::InitFitterPlots(TString outputName, WCSimFitterConfig * config) {
+	std::cout << " *** WCSimFitterInterface::InitFitterPlots() *** " << std::endl;
+	fFitterPlots->SetSaveFileName(outputName.Data());
+	fFitterPlots->MakeSaveFile();
+	fFitterPlots->Print();
+	fFitterPlots->MakeHistograms(config);
+}
+
 void WCSimFitterInterface::Run() {
 	std::cout << " *** WCSimFitterInterface::Run() *** " << std::endl;
 	// I want to loop through the fitter configurations and run the fits
 	for (int fitNum = 0; fitNum < fNumFits; fitNum++) {
-		// 1) First we initialise the outputTree for this fit...
+		// 1) Initialise the outputTree and fitterPlots
 		if (fitNum == 0) {
-			fOutputName = fOutputTree->InitOutputTree(fFileName,
-					fModifyInputFile, fFitterConfigs[fitNum]);
+			fOutputName = fOutputTree->InitOutputTree(fFileName, fModifyInputFile, fFitterConfigs[fitNum]);
+			if (fMakePlots) {
+				InitFitterPlots(fOutputName.ReplaceAll("tree.root", "plots.root"), fFitterConfigs[fitNum]);
+			}
 		} else {
-			fOutputName = fOutputTree->InitOutputTree(fOutputName,
-					fModifyInputFile, fFitterConfigs[fitNum]);
+			fOutputName = fOutputTree->InitOutputTree(fOutputName, fModifyInputFile, fFitterConfigs[fitNum]);
 		}
 
-		// 2) Initialise the fitter...
+		// 2) Initialise the fitter
 		InitFitter (fFitterConfigs[fitNum]);
 
-		// 3) Run the fit and fill the outputTree...
+		// 3) Run the fit and fill the outputTree and fitterPlots
 		if (fMakeFits) {
 			if (fFitterConfigs[fitNum]->GetIsPiZeroFit()) {
 				std::cout << " *** Running PiZero Fit *** " << std::endl;
@@ -159,17 +185,24 @@ void WCSimFitterInterface::Run() {
 			}
 		}
 
-		// 4) Write the tree and save the file...
+		// 4) If making fitterPlots fill the surfaces and write/save the plots to file
+		if (fMakePlots) {
+			fFitter->RunSurfaces();
+			fFitterPlots->SaveProfiles();
+			fFitterPlots->SavePlots();
+		}
+
+		// 5) Write the tree and save the file...
 		fOutputTree->SaveTree();
 
-		// ?) Need to set the fModifyInputFile to true so the outputTree modifies the file for next fit
+		// 6) Need to set the fModifyInputFile to true so the outputTree modifies the file for next fit
 		fModifyInputFile = true;
 
+		// 7) Delete and get a new output tree
 		if (fOutputTree != NULL) {
 			delete fOutputTree;
 			fOutputTree = new WCSimOutputTree();
 		}
-
 	}
 }
 

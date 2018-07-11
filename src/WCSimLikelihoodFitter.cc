@@ -523,7 +523,7 @@ void WCSimLikelihoodFitter::Make1DSurface(TrackAndType trackPar) {
 }
 
 void WCSimLikelihoodFitter::Make2DSurface(std::pair<TrackAndType, TrackAndType> trackPar) {
-	std::cout << " *** WCSimLikelihoodFitter::Make1DSurface() *** " << std::endl;
+	std::cout << " *** WCSimLikelihoodFitter::Make2DSurface() *** " << std::endl;
 
 	unsigned int arrIndexX = fFitterTrackParMap.GetIndex(trackPar.first);
 	double minX = fFitterTrackParMap.GetMinValue(trackPar.first);
@@ -612,6 +612,7 @@ void WCSimLikelihoodFitter::RunFits() {
 }
 
 void WCSimLikelihoodFitter::RunSurfaces() {
+	std::cout << "WCSimLikelihoodFitter::RunSurfaces() " << std::endl;
 	fRootEvent = WCSimInterface::Instance()->GetWCSimEvent(fFitterConfig->GetFirstEventToFit());
 	fLikelihoodDigitArrayObj = WCSimInterface::Instance()->GetWCSimLikelihoodDigitArray(
 			fFitterConfig->GetFirstEventToFit());
@@ -1433,8 +1434,8 @@ void WCSimLikelihoodFitter::MetropolisHastingsAlongTrack(const int nTries) {
 		maxT = fFitterTrackParMap.GetMaxValue(0, FitterParameterType::kVtxT);
 		currT = fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxT);
 		stepT = 0.5; // ns
-		fixT = (fFitterTrackParMap.GetIsFixed(0, FitterParameterType::kVtxT)
-				|| !WCSimParameters::Instance()->UseTime());
+		fixT =
+				(fFitterTrackParMap.GetIsFixed(0, FitterParameterType::kVtxT) || !WCSimParameters::Instance()->UseTime());
 
 		// Get the allowed ranges for the vertex positions
 		TVector3 startVertex(fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxX),
@@ -1712,8 +1713,7 @@ void WCSimLikelihoodFitter::FitAlongTrack() {
 	maxT = fFitterTrackParMap.GetMaxValue(0, FitterParameterType::kVtxT);
 	currT = fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxT);
 	stepT = fFitterTrackParMap.GetStep(0, FitterParameterType::kVtxT);
-	fixT = (fFitterTrackParMap.GetIsFixed(0, FitterParameterType::kVtxT)
-			|| !WCSimParameters::Instance()->UseTime());
+	fixT = (fFitterTrackParMap.GetIsFixed(0, FitterParameterType::kVtxT) || !WCSimParameters::Instance()->UseTime());
 
 	// Get the bounds, step sizes and starting values of the vertex positions
 	TVector3 startVertex(fFitterTrackParMap.GetCurrentValue(0, FitterParameterType::kVtxX),
