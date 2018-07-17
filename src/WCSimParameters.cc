@@ -54,7 +54,7 @@ WCSimParameters::WCSimParameters() {
 	// Likelihood tuner parameters
 	fUseTransmission = true;
 	fUseAngularEfficiency = true;
-	fUseGlassCathodeReflection = false;
+	fUseGlassCathodeReflection = true;
 	fUseScatteringTable = true;
 
 	// Fitter parameters
