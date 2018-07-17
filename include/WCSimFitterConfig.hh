@@ -84,12 +84,6 @@ class WCSimFitterConfig {
 		bool GetIsCosmicFit() const;
 		void SetIsCosmicFit(bool val);
 
-		bool GetSaveSeedInfo() const;
-		void SetSaveSeedInfo(bool saveSeedInfo);
-
-		bool GetSaveFitInfo() const;
-		void SetSaveFitInfo(bool saveFitInfo);
-
 	private:
 		bool fMakeFits;
 		WCSimFitterParameters fFitterParameters;
