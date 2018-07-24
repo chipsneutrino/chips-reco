@@ -103,6 +103,7 @@
 #pragma link C++ class WCSimSingleHitComparison+;
 #pragma link C++ class vector<WCSimSingleHitComparison>+;
 #pragma link C++ class EventHeader+;
+#pragma link C++ class ParameterInfo+;
 #pragma link C++ class TruthInfo+;
 #pragma link C++ class PidInfo+;
 #pragma link C++ class SeedInfo+;

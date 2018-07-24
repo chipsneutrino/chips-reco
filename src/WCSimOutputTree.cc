@@ -29,6 +29,7 @@
 
 #ifndef REFLEX_DICTIONARY
 ClassImp (EventHeader);
+ClassImp (ParameterInfo);
 ClassImp (TruthInfo);
 ClassImp (PidInfo);
 ClassImp (SeedInfo);
@@ -105,6 +106,95 @@ void EventHeader::BuildUID() {
 	myMD5.Final(output);
 	fUID = myMD5.AsString();
 	std::cout << "Hash of " << input.c_str() << " is " << fUID << std::endl;
+}
+
+///////////////////////////////////////////////////////////////
+//  METHODS FOR PARAMETERINFO CLASS                          //
+///////////////////////////////////////////////////////////////
+
+ParameterInfo::ParameterInfo() {
+	// Need to set everything from the WCSimParameters instance...
+	WCSimParameters* params = WCSimParameters::Instance();
+
+	// Slicer parameters
+	fSlicerClusterDistance = params->GetSlicerClusterDistance();
+	fSlicerMinSize = params->GetSlicerMinSize();
+	fSlicerChargeCut = params->GetSlicerMinSize();
+	fSlicerTimeCut = params->GetSlicerTimeCut();
+	fIterateSlicing = params->IterateSlicing();
+
+	// Veto slicing parameters
+	fVetoClusterDistance = params->GetVetoClusterDistance();
+	fVetoMinSize = params->GetVetoMinSize();
+	fVetoMinChargeCut = params->GetVetoMinChargeCut();
+	fVetoMaxChargeCut = params->GetVetoMaxChargeCut();
+	fVetoTimeCut = params->GetVetoTimeCut();
+
+	// Integral parameters
+	fCalculateIntegrals = params->CalculateIntegrals();
+	fTruncateIntegrals = params->TruncateIntegrals();
+	fConstrainExtent = params->ConstrainExtent();
+
+	// Likelihood tuner parameters
+	fUseTransmission = params->UseTransmission();
+	fUseAngularEfficiency = params->UseAngularEfficiency();
+	fUseGlassCathodeReflection = params->UseGlassCathodeReflection();
+	fUseScatteringTable = params->UseScatteringTable();
+
+	// Fitter parameters
+	fUseTime = params->UseTime();
+	fUseCharge = params->UseCharge();
+	fEqualiseChargeAndTime = params->EqualiseChargeAndTime();
+	fSaveWCSimRootEvent = params->EqualiseChargeAndTime();
+	fDigiType = params->GetDigiType();
+	fSaveSeedInfo = params->SaveSeedInfo();
+	fSaveStageInfo = params->SaveStageInfo();
+	fSaveHitComparison = params->SaveHitComparison();
+	fSaveParameters = params->SaveParameterInfo();
+
+	// Speed of light parameters
+	fUseCustomParticleSpeed = params->UseCustomParticleSpeed();
+	fUseCustomSpeedOfLight = params->UseCustomSpeedOfLight();
+	fUseFittedSpeedOfLight = params->UseFittedSpeedOfLight();
+	fCustomParticleSpeed = params->GetCustomParticleSpeed();
+	fCustomSpeedOfLight = params->GetCustomSpeedOfLight();
+	fFittedSpeedOfLight = params->GetFittedSpeedOfLight();
+
+	// Not currently used parameters
+	fUseSimpleTimeResolution = params->GetUseSimpleTimeResolution();
+	fUseSimpleTimeSlew = params->GetUseSimpleTimeSlew();
+	fUseSimpleRefractiveIndex = params->GetUseSimpleRefractiveIndex();
+}
+
+ParameterInfo::~ParameterInfo() {
+	// Empty
+}
+
+void ParameterInfo::Print() {
+	std::cout << "ParameterInfo::Print()..." << std::endl << "SlicerClusterDistance -> " << fSlicerClusterDistance
+			<< std::endl << "SlicerMinSize -> " << fSlicerMinSize << std::endl << "SlicerChargeCut -> "
+			<< fSlicerChargeCut << std::endl << "SlicerTimeCut -> " << fSlicerTimeCut << std::endl
+			<< "IterateSlicing -> " << fIterateSlicing << std::endl << "VetoClusterDistance -> " << fVetoClusterDistance
+			<< std::endl << "VetoMinSize -> " << fVetoMinSize << std::endl << "VetoMinChargeCut -> "
+			<< fVetoMinChargeCut << std::endl << "VetoMaxChargeCut -> " << fVetoMaxChargeCut << std::endl
+			<< "VetoTimeCut -> " << fVetoTimeCut << std::endl << "CalculateIntegrals -> " << fCalculateIntegrals
+			<< std::endl << "TruncateIntegrals -> " << fTruncateIntegrals << std::endl << "ConstrainExtent -> "
+			<< fConstrainExtent << std::endl << "UseTransmission -> " << fUseTransmission << std::endl
+			<< "UseAngularEfficiency -> " << fUseAngularEfficiency << std::endl << "UseGlassCathodeReflection -> "
+			<< fUseGlassCathodeReflection << std::endl << "UseScatteringTable -> " << fUseScatteringTable << std::endl
+			<< "UseTime -> " << fUseTime << std::endl << "UseCharge -> " << fUseCharge << std::endl
+			<< "EqualiseChargeAndTime -> " << fEqualiseChargeAndTime << std::endl << "SaveWCSimRootEvent -> "
+			<< fSaveWCSimRootEvent << std::endl << "DigiType -> " << fDigiType << std::endl << "SaveSeedInfo -> "
+			<< fSaveSeedInfo << std::endl << "SaveStageInfo -> " << fSaveStageInfo << std::endl
+			<< "SaveHitComparison -> " << fSaveHitComparison << "SaveParameters -> " << fSaveParameters << std::endl
+			<< "UseCustomParticleSpeed -> " << fUseCustomParticleSpeed << std::endl << "UseCustomSpeedOfLight -> "
+			<< fUseCustomSpeedOfLight << std::endl << "UseFittedSpeedOfLight -> " << fUseFittedSpeedOfLight << std::endl
+			<< "CustomParticleSpeed -> " << fCustomParticleSpeed << std::endl << "CustomSpeedOfLight -> "
+			<< fCustomSpeedOfLight << std::endl << "FittedSpeedOfLight -> " << fFittedSpeedOfLight << std::endl
+			<< "UseSimpleTimeResolution -> " << fUseSimpleTimeResolution << std::endl << "UseSimpleTimeSlew -> "
+			<< fUseSimpleTimeSlew << std::endl << "UseSimpleRefractiveIndex -> " << fUseSimpleRefractiveIndex
+			<< std::endl;
+	return;
 }
 
 ///////////////////////////////////////////////////////////////
@@ -801,9 +891,9 @@ void StageInfo::SetStageInfo(int stageNCalls,
 ///////////////////////////////////////////////////////////////
 
 WCSimOutputTree::WCSimOutputTree() :
-		fSaveFile(0x0), fResultsTree(0x0), fGeoTree(0x0), fGeometry(0x0), fEventHeader(
-				0x0), fTruthInfo(0x0), fRecoSummary(0x0), fPidInfo(0x0), fSeedInfo(
-				0x0), fStageInfo(0x0), fHitComparison(0x0) {
+		fSaveFile(0x0), fResultsTree(0x0), fGeoTree(0x0), fGeometry(0x0), fParameterTree(0x0),
+		fParameterInfo(0x0), fEventHeader(0x0), fTruthInfo(0x0), fRecoSummary(0x0), fPidInfo(0x0),
+		fSeedInfo(0x0), fStageInfo(0x0), fHitComparison(0x0) {
 	//fSaveFileName.Form("%s_tree.root", saveFileName.Data());
 	fSaveFileName = "";
 	fInputFile = "";
@@ -957,6 +1047,13 @@ void WCSimOutputTree::MakeNewTree() {
 	fGeometry = new WCSimRootGeom();
 	fGeoTree->Branch("wcsimrootgeom", "WCSimRootGeom", &fGeometry, 64000, 0);
 
+	// Set up the Parameter tree
+	if (WCSimParameters::Instance()->SaveParameterInfo()) {
+		fParameterTree = new TTree("fParameterTree", "ParameterTree");
+		fParameterInfo = new ParameterInfo();
+		fParameterTree->Branch("parameterTree", "ParameterInfo", &fParameterInfo, 64000, 0);
+	}
+
 	// Set up the results tree
 	fResultsTree = new TTree("fResultsTree", "ResultsTree");
 
@@ -1066,6 +1163,15 @@ void WCSimOutputTree::Fill(EventHeader& eventHead, TruthInfo& truthInfo,
 			WCSimGeometry::Instance()->PrintGeometry();
 			fGeoTree->Fill();
 		}
+
+		// Fill the parameter tree
+		if (fParameterTree->GetEntries() == 0 && WCSimParameters::Instance()->SaveParameterInfo()) {
+			if (fParameterInfo == 0x0) {
+				fParameterInfo = new ParameterInfo();
+			}
+			fParameterInfo->Print();
+			fParameterTree->Fill();
+		}
 	}
 
 	delete fRecoSummary;
@@ -1091,6 +1197,9 @@ void WCSimOutputTree::SaveTree() {
 
 	if (!fModifyFile) {
 		fGeoTree->Write("", TObject::kOverwrite);
+		if (WCSimParameters::Instance()->SaveParameterInfo()) {
+			fParameterTree->Write("", TObject::kOverwrite);
+		}
 	}
 
 	fSaveFile->Close();
@@ -1142,6 +1251,11 @@ void WCSimOutputTree::DeletePointersIfExist() {
 	if (fGeoTree != 0x0) {
 		delete fGeoTree;
 		fGeoTree = 0x0;
+	}
+
+	if (fParameterTree != 0x0) {
+		delete fParameterTree;
+		fParameterTree = 0x0;
 	}
 
 	if (fEventHeader != 0x0) {

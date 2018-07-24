@@ -66,6 +66,7 @@ WCSimParameters::WCSimParameters() {
 	fSaveSeedInfo = false;
 	fSaveStageInfo = false;
 	fSaveHitComparison = false;
+	fSaveParameters = true;
 
 	// Speed of light parameters
 	fUseCustomParticleSpeed = false;
@@ -74,6 +75,15 @@ WCSimParameters::WCSimParameters() {
 	fCustomParticleSpeed = 1.0;
 	fCustomSpeedOfLight = 1.0;
 	fFittedSpeedOfLight = 0.7219;
+
+	// Fitter plots parameters
+	fPlotVtxXMax = 200.0;
+	fPlotVtxYMax = 200.0;
+	fPlotVtxZMax = 200.0;
+	fPlotVtxTMax = 10.0;
+	fPlotThetaMax = 1.0;
+	fPlotPhiMax = 1.0;
+	fPlotEnergyMax = 2500.0;
 
 	// Not currently used parameters
 	fUseSimpleTimeResolution = false;
@@ -148,12 +158,20 @@ void WCSimParameters::RunPrintParameters() {
 	std::cout << "SaveSeedInfo = " << fSaveSeedInfo << std::endl;
 	std::cout << "SaveStageInfo = " << fSaveStageInfo << std::endl;
 	std::cout << "SaveHitComparison = " << fSaveHitComparison << std::endl;
+	std::cout << "SaveParameters = " << fSaveParameters << std::endl;
 	std::cout << "UseCustomParticleSpeed = " << fUseCustomParticleSpeed << std::endl;
 	std::cout << "UseCustomSpeedOfLight = " << fUseCustomSpeedOfLight << std::endl;
 	std::cout << "UseFittedSpeedOfLight = " << fUseFittedSpeedOfLight << std::endl;
 	std::cout << "CustomParticleSpeed = " << fCustomParticleSpeed << std::endl;
 	std::cout << "CustomSpeedOfLight = " << fCustomSpeedOfLight << std::endl;
 	std::cout << "FittedSpeedOfLight = " << fFittedSpeedOfLight << std::endl;
+	std::cout << "PlotVtxXMax = " << fPlotVtxXMax << std::endl;
+	std::cout << "PlotVtxYMax = " << fPlotVtxYMax << std::endl;
+	std::cout << "PlotVtxZMax = " << fPlotVtxZMax << std::endl;
+	std::cout << "PlotVtxTMax = " << fPlotVtxTMax << std::endl;
+	std::cout << "PlotThetaMax = " << fPlotThetaMax << std::endl;
+	std::cout << "PlotPhiMax = " << fPlotPhiMax << std::endl;
+	std::cout << "PlotEnergyMax = " << fPlotEnergyMax << std::endl;
 	std::cout << "UseSimpleTimeResolution = " << fUseSimpleTimeResolution << std::endl;
 	std::cout << "UseSimpleTimeSlew = " << fUseSimpleTimeSlew << std::endl;
 	std::cout << "UseSimpleRefractiveIndex = " << fUseSimpleRefractiveIndex << std::endl;
@@ -161,6 +179,26 @@ void WCSimParameters::RunPrintParameters() {
 	std::cout << " ******************************************* " << std::endl << std::endl;
 
 	return;
+}
+
+Double_t WCSimParameters::GetPlotMax(std::string param){
+	if (param == "kVtxX") {
+		return fPlotVtxXMax;
+	} else if (param == "kVtxY") {
+		return fPlotVtxYMax;
+	} else if (param == "kVtxZ") {
+		return fPlotVtxZMax;
+	} else if (param == "kVtxT") {
+		return fPlotVtxTMax;
+	} else if (param == "kDirTh") {
+		return fPlotThetaMax;
+	} else if (param == "kDirPhi") {
+		return fPlotPhiMax;
+	} else if (param == "kEnergy") {
+		return fPlotEnergyMax;
+	} else {
+		return -999;
+	}
 }
 
 void WCSimParameters::SetUseTimeOnly(Bool_t doIt) {
@@ -680,6 +718,16 @@ void WCSimParameters::SetFromMap() {
 						<< std::endl;
 				exit (EXIT_FAILURE);
 			}
+		} else if ((*itr).first.compare("SaveParameters") == 0) {
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+				fSaveParameters = true;
+			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
+				fSaveParameters = false;
+			} else {
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						<< std::endl;
+				exit (EXIT_FAILURE);
+			}
 		} else if ((*itr).first.compare("UseCustomParticleSpeed") == 0) {
 			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
 				fUseCustomParticleSpeed = true;
@@ -734,6 +782,62 @@ void WCSimParameters::SetFromMap() {
 				exit (EXIT_FAILURE);
 			}
 			fFittedSpeedOfLight = val;
+		} else if ((*itr).first.compare("PlotVtxXMax") == 0) {
+			std::stringstream ss(itr->second);
+			float val = 0;
+			if (!(ss >> val)) {
+				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
+				exit (EXIT_FAILURE);
+			}
+			fPlotVtxXMax = val;
+		} else if ((*itr).first.compare("PlotVtxYMax") == 0) {
+			std::stringstream ss(itr->second);
+			float val = 0;
+			if (!(ss >> val)) {
+				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
+				exit (EXIT_FAILURE);
+			}
+			fPlotVtxYMax = val;
+		} else if ((*itr).first.compare("PlotVtxZMax") == 0) {
+			std::stringstream ss(itr->second);
+			float val = 0;
+			if (!(ss >> val)) {
+				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
+				exit (EXIT_FAILURE);
+			}
+			fPlotVtxZMax = val;
+		} else if ((*itr).first.compare("PlotVtxTMax") == 0) {
+			std::stringstream ss(itr->second);
+			float val = 0;
+			if (!(ss >> val)) {
+				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
+				exit (EXIT_FAILURE);
+			}
+			fPlotVtxTMax = val;
+		} else if ((*itr).first.compare("PlotThetaMax") == 0) {
+			std::stringstream ss(itr->second);
+			float val = 0;
+			if (!(ss >> val)) {
+				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
+				exit (EXIT_FAILURE);
+			}
+			fPlotThetaMax = val;
+		} else if ((*itr).first.compare("PlotPhiMax") == 0) {
+			std::stringstream ss(itr->second);
+			float val = 0;
+			if (!(ss >> val)) {
+				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
+				exit (EXIT_FAILURE);
+			}
+			fPlotPhiMax = val;
+		} else if ((*itr).first.compare("PlotEnergyMax") == 0) {
+			std::stringstream ss(itr->second);
+			float val = 0;
+			if (!(ss >> val)) {
+				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
+				exit (EXIT_FAILURE);
+			}
+			fPlotEnergyMax = val;
 		} else if ((*itr).first.compare("UseSimpleTimeResolution") == 0) {
 			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
 				fUseSimpleTimeResolution = true;

@@ -8,6 +8,7 @@
 
 #include "WCSimFitterConfig.hh"
 #include "WCSimFitterPlots.hh"
+#include "WCSimParameters.hh"
 #include <algorithm>
 #include <functional>
 #include <iostream>
@@ -186,7 +187,11 @@ void WCSimFitterPlots::MakeRecoMinusTrue(WCSimFitterConfig* fitterConfig) {
 			title.Form("Reco - true value of %s for track %d, for each of %d fitted events", parName.c_str(), iTrack,
 					fitterConfig->GetNumTracks());
 
-			int numBins = 200;
+			int numBins = 100;
+			double paramMax = WCSimParameters::Instance()->GetPlotMax(parName);
+
+
+			/*
 			if (fitterConfig->GetNumEventsToFit() > 400) {
 				numBins = fitterConfig->GetNumEventsToFit() / 20;
 				numBins += (10 - (numBins % 10));
@@ -196,8 +201,11 @@ void WCSimFitterPlots::MakeRecoMinusTrue(WCSimFitterConfig* fitterConfig) {
 					- 2
 							* (fitterConfig->GetParMax(iTrack, parName.c_str())
 									- fitterConfig->GetParMin(iTrack, parName.c_str()));
+
 			hist = new TH1D(name.Data(), title.Data(), numBins, lowBin,
 					2.0 * fitterConfig->GetParMax(iTrack, parName.c_str()));
+			*/
+			hist = new TH1D(name.Data(), title.Data(), numBins, -paramMax,	paramMax);
 			std::cout << hist->GetName() << " hist has " << numBins << " from " << hist->GetXaxis()->GetXmin() << " to "
 					<< hist->GetXaxis()->GetXmax() << std::endl;
 

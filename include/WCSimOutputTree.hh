@@ -77,6 +77,217 @@ class EventHeader: public TObject {
 };
 
 /*
+ * \class ParameterInfo
+ * Holds the WCSimParameters used in the reconstruction
+ */
+class ParameterInfo: public TObject {
+	public:
+		ParameterInfo();
+		~ParameterInfo();
+
+		void Print();
+
+		// Slicer parameters
+		Double_t GetSlicerClusterDistance() {
+			return fSlicerClusterDistance;
+		}
+
+		UInt_t GetSlicerMinSize() {
+			return fSlicerMinSize;
+		}
+
+		Double_t GetSlicerChargeCut() {
+			return fSlicerChargeCut;
+		}
+
+		Double_t GetSlicerTimeCut() {
+			return fSlicerTimeCut;
+		}
+
+		Bool_t IterateSlicing() {
+			return fIterateSlicing;
+		}
+
+		// Veto slicing parameters
+		Double_t GetVetoClusterDistance() {
+			return fVetoClusterDistance;
+		}
+
+		UInt_t GetVetoMinSize() {
+			return fVetoMinSize;
+		}
+
+		Double_t GetVetoMinChargeCut() {
+			return fVetoMinChargeCut;
+		}
+
+		Double_t GetVetoMaxChargeCut() {
+			return fVetoMaxChargeCut;
+		}
+
+		Double_t GetVetoTimeCut() {
+			return fVetoTimeCut;
+		}
+
+		// Integral parameters
+		Bool_t CalculateIntegrals() {
+			return fCalculateIntegrals;
+		}
+
+		Bool_t TruncateIntegrals() {
+			return fTruncateIntegrals;
+		}
+
+		Bool_t ConstrainExtent() {
+			return fConstrainExtent;
+		}
+
+		// Likelihood tuner parameters
+		Bool_t UseTransmission() {
+			return fUseTransmission;
+		}
+
+		Bool_t UseAngularEfficiency() {
+			return fUseAngularEfficiency;
+		}
+
+		Bool_t UseGlassCathodeReflection() {
+			return fUseGlassCathodeReflection;
+		}
+
+		Bool_t UseScatteringTable() {
+			return fUseScatteringTable;
+		}
+
+		// Fitter parameters
+		Bool_t UseTime() {
+			return fUseTime;
+		}
+
+		Bool_t UseCharge() {
+			return fUseCharge;
+		}
+
+		Bool_t EqualiseChargeAndTime() {
+			return fEqualiseChargeAndTime;
+		}
+
+		Bool_t SaveWCSimRootEvent() {
+			return fSaveWCSimRootEvent;
+		}
+
+		std::string GetDigiType() {
+			return fDigiType;
+		}
+
+		Bool_t SaveSeedInfo() {
+			return fSaveSeedInfo;
+		}
+
+		Bool_t SaveStageInfo() {
+			return fSaveStageInfo;
+		}
+
+		Bool_t SaveHitComparison() {
+			return fSaveHitComparison;
+		}
+
+		Bool_t SaveParameterInfo() {
+			return fSaveParameters;
+		}
+
+		// Speed of light parameters
+		Bool_t UseCustomParticleSpeed() {
+			return fUseCustomParticleSpeed;
+		}
+
+		Bool_t UseCustomSpeedOfLight() {
+			return fUseCustomSpeedOfLight;
+		}
+
+		Bool_t UseFittedSpeedOfLight() {
+			return fUseFittedSpeedOfLight;
+		}
+
+		Double_t GetCustomParticleSpeed() {
+			return fCustomParticleSpeed;
+		}
+
+		Double_t GetCustomSpeedOfLight() {
+			return fCustomSpeedOfLight;
+		}
+
+		Double_t GetFittedSpeedOfLight() {
+			return fFittedSpeedOfLight;
+		}
+
+		// Not currently used parameters
+		Bool_t GetUseSimpleTimeResolution() {
+			return fUseSimpleTimeResolution;
+		}
+
+		Bool_t GetUseSimpleTimeSlew() {
+			return fUseSimpleTimeSlew;
+		}
+
+		Bool_t GetUseSimpleRefractiveIndex() {
+			return fUseSimpleRefractiveIndex;
+		}
+
+	private:
+		// Slicer parameters
+		Double_t fSlicerClusterDistance; 	///< Max distance in cm between hits in the slices
+		UInt_t fSlicerMinSize; 				///< Minimum number of hits for a slice to be formed
+		Double_t fSlicerChargeCut; 			///< Only consider digits above the charge threshold
+		Double_t fSlicerTimeCut; 			///< Maximum gap allowed between hits when ordered by time in order to be associated with the previous hit.
+		Bool_t fIterateSlicing; 			///< Iterate the charge cut to make as many slices as we have tracks
+
+		// Veto slicing parameters
+		Double_t fVetoClusterDistance; 		///< Max distance in cm between hits in the slices
+		UInt_t fVetoMinSize; 				///< Minimum number of hits for a slice to be formed
+		Double_t fVetoMinChargeCut; 		///< Only consider digits above the charge threshold, set initially
+		Double_t fVetoMaxChargeCut; 		///< at the min value, and iterates up to the max value.
+		Double_t fVetoTimeCut; 				///< Maximum gap allowed between hits when ordered by time in order to be associated with the previous hit.
+
+		// Integral parameters
+		Bool_t fCalculateIntegrals;     	///< True if charge likelihood should calculate integrals, false to look them up
+		Bool_t fTruncateIntegrals; 			///< True if charge likelihood should use full lookup tables for integrals, false to use one that doesn't cut off
+		Bool_t fConstrainExtent;            ///< True if integrals should cut off when the particle leaves the detector
+
+		// Likelihood tuner parameters
+		Bool_t fUseTransmission;            ///< True if we should account for absorption of photons in the water
+		Bool_t fUseAngularEfficiency;       ///< True if we should account for the PMT efficiency as a function of angle
+		Bool_t fUseGlassCathodeReflection;  ///< True if we should account for photons being reflected off the PMT glass
+		Bool_t fUseScatteringTable;         ///< True if we should use the scattering table, false for flat 1% chance
+
+		// Fitter parameters
+		Bool_t fUseTime;                    ///< True if we should include timing information in the likelihood
+		Bool_t fUseCharge;                  ///< True if we should include charge information in the likelihood
+		Bool_t fEqualiseChargeAndTime; 		///< After we've seeded the vertex, energy and time, we can scale the time likelihood to weight it the same as the charge
+		Bool_t fSaveWCSimRootEvent; 		///< Whether to save a full copy of the WCSimRootEvent fitted, or just a link to the original file
+		std::string fDigiType;            	///< Name of digitiser type to use in WCSimDigitizerLikelihood::DigiType_t
+		Bool_t fSaveSeedInfo;			   	///< True if we should save the SeedInfo in the output file
+		Bool_t fSaveStageInfo;			   	///< True if we should save the StageInfo in the output file
+		Bool_t fSaveHitComparison;		   	///< True if we should save the HitComparison in the output file
+		Bool_t fSaveParameters;				///< True if we should save the ParameterInfo in the output file
+
+		// Speed of light parameters
+		Bool_t fUseCustomParticleSpeed; 	///< Normally we assume particles travel at c - this allows us to switch and set it manually
+		Bool_t fUseCustomSpeedOfLight; 		///< Normally we assume light travels at c/(average n) - this allows us to switch and set it manually
+		Bool_t fUseFittedSpeedOfLight; 		///< Normally we assume light travels at c/(average n) - this uses a fitted speed instead
+		Double_t fCustomParticleSpeed;      ///< The speed of the propagating particle as a fraction of c
+		Double_t fCustomSpeedOfLight;       ///< The speed of the propagating particle as a fraction of c
+		Double_t fFittedSpeedOfLight;       ///< The effective speed of light from our fit as a fraction of c
+
+		// Not currently used parameters
+		Bool_t fUseSimpleTimeResolution;	///<
+		Bool_t fUseSimpleTimeSlew;			///<
+		Bool_t fUseSimpleRefractiveIndex;	///<
+
+		ClassDef(ParameterInfo,1)
+};
+
+/*
  * \class TruthInfo
  * Very similar to WCSimTruthSummary for WCSim, used for comparison with WCSimRecoSummary
  */
@@ -802,9 +1013,12 @@ class WCSimOutputTree: public TObject {
 		TFile * fSaveFile;						///<
 		TString fSaveFileName;					///<
 		TTree * fResultsTree;					///< The main results tree
-		TTree * fGeoTree;						///< The geometry tree, holds geometry and PMT info
 
+		TTree * fGeoTree;						///< The geometry tree, holds geometry and PMT info
 		WCSimRootGeom * fGeometry;				///< The WCSim geometry object that is then saved in the geometry tree
+
+		TTree * fParameterTree;					///< The parameter tree, holds ParameterInfo
+		ParameterInfo * fParameterInfo;			///< Holds the WCSimParameters for the reconstruction used
 
 		bool fModifyFile;
 		EventHeader * fEventHeader;				///< Holds info about the input event
