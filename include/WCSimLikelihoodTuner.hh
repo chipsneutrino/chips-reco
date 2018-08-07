@@ -35,8 +35,7 @@ class WCSimLikelihoodTunerCache {
 
 		TVector3 GetEmissionPos();
 		TVector3 GetToPMT();
-		double GetAngleToPMT();
-		double GetCosAngleToPMT();
+		double GetTheta();
 		double GetDistanceToPMT();
 		WCSimLikelihoodDigit const * GetDigit();
 		double GetS();
@@ -48,8 +47,7 @@ class WCSimLikelihoodTunerCache {
 		double fS;
 		TVector3 fEmissionPos;
 		TVector3 fToPMT;
-		double fAngleToPMT;
-		double fCosAngleToPMT;
+		double fTheta;
 		double fDistanceToPMT;
 
 };

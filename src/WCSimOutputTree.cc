@@ -140,6 +140,8 @@ ParameterInfo::ParameterInfo() {
 	fUseAngularEfficiency = params->UseAngularEfficiency();
 	fUseGlassCathodeReflection = params->UseGlassCathodeReflection();
 	fUseScatteringTable = params->UseScatteringTable();
+	fUseNewAngularEfficiency = params->UseNewAngularEfficiency();
+	fUseTrackFit = params->UseTrackFit();
 
 	// Fitter parameters
 	fUseTime = params->UseTime();
@@ -182,11 +184,12 @@ void ParameterInfo::Print() {
 			<< fConstrainExtent << std::endl << "UseTransmission -> " << fUseTransmission << std::endl
 			<< "UseAngularEfficiency -> " << fUseAngularEfficiency << std::endl << "UseGlassCathodeReflection -> "
 			<< fUseGlassCathodeReflection << std::endl << "UseScatteringTable -> " << fUseScatteringTable << std::endl
+			<< "UseNewAngularEfficiency -> " << fUseNewAngularEfficiency << std::endl << "UseTrackFit -> " << fUseTrackFit << std::endl
 			<< "UseTime -> " << fUseTime << std::endl << "UseCharge -> " << fUseCharge << std::endl
 			<< "EqualiseChargeAndTime -> " << fEqualiseChargeAndTime << std::endl << "SaveWCSimRootEvent -> "
 			<< fSaveWCSimRootEvent << std::endl << "DigiType -> " << fDigiType << std::endl << "SaveSeedInfo -> "
 			<< fSaveSeedInfo << std::endl << "SaveStageInfo -> " << fSaveStageInfo << std::endl
-			<< "SaveHitComparison -> " << fSaveHitComparison << "SaveParameters -> " << fSaveParameters << std::endl
+			<< "SaveHitComparison -> " << fSaveHitComparison << std::endl << "SaveParameters -> " << fSaveParameters << std::endl
 			<< "UseCustomParticleSpeed -> " << fUseCustomParticleSpeed << std::endl << "UseCustomSpeedOfLight -> "
 			<< fUseCustomSpeedOfLight << std::endl << "UseFittedSpeedOfLight -> " << fUseFittedSpeedOfLight << std::endl
 			<< "CustomParticleSpeed -> " << fCustomParticleSpeed << std::endl << "CustomSpeedOfLight -> "

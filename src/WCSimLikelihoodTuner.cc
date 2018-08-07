@@ -119,6 +119,7 @@ void WCSimLikelihoodTuner::UpdateDigitArray(WCSimLikelihoodDigitArray * myDigitA
 // Work out the probability of light surviving to the PMT as it travels through the water
 /////////////////////////////////////////////////////////////////////////////////////////
 Double_t WCSimLikelihoodTuner::TransmissionFunction() {
+	//std::cout << " *** WCSimLikelihoodTuner::TransmissionFunction() *** " << std::endl;
 	if (fCache.GetS() == 0) {
 		return 1.0;
 	}
@@ -171,37 +172,108 @@ Double_t WCSimLikelihoodTuner::TransmissionFunction() {
 // Efficiency of digitization is handled elsewhere
 ///////////////////////////////////////////////////////////////////////////////////////
 Double_t WCSimLikelihoodTuner::Efficiency() {
+	//std::cout << " *** WCSimLikelihoodTuner::Efficiency() *** " << std::endl;
 	// Whether the reflectivity of the PMT glass has been included in the WCSim simulation
 	// It's usually switched on there by default
 	Double_t glassReflect = 0.0;
 	if (WCSimParameters::Instance()->UseGlassCathodeReflection()) {
+
 		glassReflect = 0.24;
 	}
 
 	Double_t efficiency = 1.0;
 	if (WCSimParameters::Instance()->UseAngularEfficiency()) {
+		// This ends up dealing with three things at once in a combined efficiency...
+		// 1) The collection efficiency of the PMT, this is where it falls of just on the edge of the PMT surface
+		// 2) The angular dependence effect due to the light cone
+		// 3) The reduction in effective collection area for photons arriving from an angle due to tilt and light cone
 
 		// We need the angle of incidence at the PMT
-		TVector3 pmtToEm = -fCache.GetToPMT();	// Vector from PMT to photon emission point
-		TVector3 pmtFace = fCache.GetDigit()->GetFace();	// Direction PMT is facing (unit vector)
-		Double_t cosTheta = pmtFace.Dot(pmtToEm) / fCache.GetDistanceToPMT(); // Quicker dot product because |pmtFace| = 1
-		Double_t theta = TMath::ACos(cosTheta) * TMath::RadToDeg();
+		Double_t theta = fCache.GetTheta();
 		if (theta > 90.0) {
 			theta = 180.0 - theta;
 		}
 
-		// The PMT angular efficiency taken directly from WCSim
 		const int num_elements = 10;
+		Double_t collection_angle[num_elements] = { 0., 10., 20., 30., 40., 50., 60., 70., 80., 90 };
+		Double_t collection_eff[num_elements];
+
+		if (WCSimParameters::Instance()->UseNewAngularEfficiency()) {
+			// TODO Tidy this up and have them in a configuration file somewhere
+			// Get the correct angular efficiency from the PMT name...
+			TString pmtName = fCache.GetDigit()->GetPMTName();
+			//std::cout << "PMTNAME -> " << pmtName << std::endl;
+			if (pmtName.CompareTo("88mm") == 0) {
+				//std::cout << "88mm selected" << std::endl;
+				collection_eff[0] = 0.908; // 0  degrees
+				collection_eff[1] = 0.900; // 10 degrees
+				collection_eff[2] = 0.858; // 20 degrees
+				collection_eff[3] = 0.780; // 30 degrees
+				collection_eff[4] = 0.690; // 40 degrees
+				collection_eff[5] = 0.601; // 50 degrees
+				collection_eff[6] = 0.498; // 60 degrees
+				collection_eff[7] = 0.404; // 70 degrees
+				collection_eff[8] = 0.303; // 80 degrees
+				collection_eff[9] = 0.217; // 90 degrees
+			} else if (pmtName.CompareTo("88mm_LC_v2") == 0) {
+				//std::cout << "88mm_LC_v2 selected" << std::endl;
+				collection_eff[0] = 0.696; // 0  degrees
+				collection_eff[1] = 0.589; // 10 degrees
+				collection_eff[2] = 0.460; // 20 degrees
+				collection_eff[3] = 0.326; // 30 degrees
+				collection_eff[4] = 0.221; // 40 degrees
+				collection_eff[5] = 0.173; // 50 degrees
+				collection_eff[6] = 0.140; // 60 degrees
+				collection_eff[7] = 0.088; // 70 degrees
+				collection_eff[8] = 0.032; // 80 degrees
+				collection_eff[9] = 0.000; // 90 degrees
+			} else if (pmtName.CompareTo("R6091") == 0) {
+				//std::cout << "R6091 selected" << std::endl;
+				collection_eff[0] = 0.908; // 0  degrees
+				collection_eff[1] = 0.900; // 10 degrees
+				collection_eff[2] = 0.858; // 20 degrees
+				collection_eff[3] = 0.780; // 30 degrees
+				collection_eff[4] = 0.690; // 40 degrees
+				collection_eff[5] = 0.601; // 50 degrees
+				collection_eff[6] = 0.498; // 60 degrees
+				collection_eff[7] = 0.404; // 70 degrees
+				collection_eff[8] = 0.303; // 80 degrees
+				collection_eff[9] = 0.217; // 90 degrees
+			} else {
+				//std::cout << "Error: PMT name not recognised!" << std::endl;
+				// Use the old implementation for now
+				collection_eff[0] = 1.0; // 0  degrees
+				collection_eff[1] = 1.0; // 10 degrees
+				collection_eff[2] = 0.99; // 20 degrees
+				collection_eff[3] = 0.95; // 30 degrees
+				collection_eff[4] = 0.90; // 40 degrees
+				collection_eff[5] = 0.85; // 50 degrees
+				collection_eff[6] = 0.80; // 60 degrees
+				collection_eff[7] = 0.69; // 70 degrees
+				collection_eff[8] = 0.35; // 80 degrees
+				collection_eff[9] = 0.13; // 90 degrees
+			}
+		} else {
+			// Just use the old implementation...
+			collection_eff[0] = 1.0; // 0  degrees
+			collection_eff[1] = 1.0; // 10 degrees
+			collection_eff[2] = 0.99; // 20 degrees
+			collection_eff[3] = 0.95; // 30 degrees
+			collection_eff[4] = 0.90; // 40 degrees
+			collection_eff[5] = 0.85; // 50 degrees
+			collection_eff[6] = 0.80; // 60 degrees
+			collection_eff[7] = 0.69; // 70 degrees
+			collection_eff[8] = 0.35; // 80 degrees
+			collection_eff[9] = 0.13; // 90 degrees
+		}
+
 		// 100% angular collection efficiency everywhere, for testing
-		//Double_t collection_angle[num_elements]={0.,10.,20.,30.,40.,50.,60.,70.,80.,90 };
 		//Double_t collection_eff[num_elements]={1,0.99,0.95,0.86,0.76,0.67,0.56,0.46,0.36,0.26};
 
 		// Collection efficiency as suggested by Paul
-		Double_t collection_angle[num_elements] = { 0., 10., 20., 30., 40., 50., 60., 70., 80., 90 };
-		Double_t collection_eff[num_elements] = { 0.91, 0.90, 0.86, 0.78, 0.69, 0.60, 0.50, 0.40, 0.30, 0.22 };
+		//Double_t collection_eff[num_elements] = { 0.91, 0.90, 0.86, 0.78, 0.69, 0.60, 0.50, 0.40, 0.30, 0.22 };
 
 		// The old one we used
-		//Double_t collection_angle[num_elements]={0.,10.,20.,30.,40.,50.,60.,70.,80.,90.};
 		//Double_t collection_eff[num_elements]={1.,1.,0.99,0.95,0.90,0.85,0.80,0.69,0.35,0.13};
 
 		// Interpolate between the efficiencies for the closes two angles
@@ -212,6 +284,7 @@ Double_t WCSimLikelihoodTuner::Efficiency() {
 								* (collection_eff[iEntry + 1] - collection_eff[iEntry]);
 			}
 		}
+		//std::cout << "theta -> " << theta << ", efficiency -> " << efficiency << std::endl;
 	}
 	return (efficiency) * (1.0 - glassReflect);
 }
@@ -220,27 +293,42 @@ Double_t WCSimLikelihoodTuner::Efficiency() {
 // Work out the effect of solid angle on the probability of photon incidenc; pure geometry
 //////////////////////////////////////////////////////////////////////////////////////////
 Double_t WCSimLikelihoodTuner::SolidAngleFraction() {
-	// Some physical parameters of the phototube
+	//std::cout << " *** WCSimLikelihoodTuner::SolidAngleFraction() *** " << std::endl;
 	WCSimRootPMT myPMT = ((WCSimRootGeom*) (WCSimGeometry::Instance())->GetWCSimGeometry())->GetPMTFromTubeID(
 			fCache.GetDigit()->GetTubeId());
 	const Double_t mm_to_cm = 0.1;
-	const Double_t WCSimPMTRadius = myPMT.GetRadius() * mm_to_cm;  // Radius of the PMT sphere
-	const Double_t exposeHeight = fCache.GetDigit()->GetExposeHeight() * mm_to_cm; // Height of the PMT sphere poking through the blacksheet
 
-	// We need the distance from emission to the PMT
+	const Double_t WCSimPMTRadius = myPMT.GetRadius() * mm_to_cm;  // Radius of the PMT sphere
+	const Double_t WCSimMaxRadius = myPMT.GetMaxRadius() * mm_to_cm;  // Radius of the PMT sphere and LC
+
+	// We need the distance from emission to top of the PMT dome
 	// These are from WCSim so they're in cm
 	TVector3 pmtDomePos = fCache.GetDigit()->GetPos() + WCSimPMTRadius * fCache.GetDigit()->GetFace();
 	TVector3 emissionPos = fCache.GetEmissionPos();
 	const Double_t r = (pmtDomePos - emissionPos).Mag();
-	const Double_t rPlusExpHeight = r + exposeHeight;
-	// Purely geometry: we need the solid angle of a cone whose bottom is a circle of the same radius as the circle of PMT poking
-	// through the blacksheet.  This is 2pi( 1 - cos(coneAngle) ) where coneAngle can be deduced from trig and the PMT geometry
 
-	// So the fraction of total solid angle is this/4pi = 0.5(1 - cos(coneAngle))
-	const Double_t solidAngleFrac = 0.5
-			* (1.0 - ((rPlusExpHeight) / sqrt((rPlusExpHeight * rPlusExpHeight) + WCSimPMTRadius * WCSimPMTRadius)));
+	//emissionPos.Print();
+	//pmtDomePos.Print();
 
-	// std::cout << "Solid angle = " << solidAngle << "   c.f. " << 2.0 * TMath::Pi()*(1.0 - (r/sqrt(r*r + WCSimPMTRadius * WCSimPMTRadius))) << std::endl;
+	Double_t solidAngleFrac = 0.0;
+
+	if (WCSimPMTRadius != WCSimMaxRadius && WCSimParameters::Instance()->UseNewAngularEfficiency()) {
+		// In this case we have a light cone
+		solidAngleFrac = 0.5 * (1.0 - ((r) / sqrt((r * r) + WCSimMaxRadius * WCSimMaxRadius)));
+	} else {
+		// In this case we don't have a light cone or don't want to use new changes
+		const Double_t exposeHeight = fCache.GetDigit()->GetExposeHeight() * mm_to_cm; // Height of the PMT sphere poking through the blacksheet
+		const Double_t rPlusExpHeight = r + exposeHeight;
+
+		// Purely geometry: we need the solid angle of a cone whose bottom is a circle of the same radius as the circle of PMT poking
+		// through the blacksheet.  This is 2pi( 1 - cos(coneAngle) ) where coneAngle can be deduced from trig and the PMT geometry
+
+		// So the fraction of total solid angle is this/4pi = 0.5(1 - cos(coneAngle))
+		solidAngleFrac = 0.5 * (1.0 - ((rPlusExpHeight) / sqrt((rPlusExpHeight * rPlusExpHeight) + WCSimPMTRadius * WCSimPMTRadius)));	
+	}
+
+	//std::cout << "WCSimPMTRadius = " << WCSimPMTRadius << ", WCSimMaxRadius = " << WCSimMaxRadius << std::endl;
+	//std::cout << "r = " << r << ", solid angle fraction =  " << solidAngleFrac << std::endl;
 	return solidAngleFrac;
 }
 
@@ -251,6 +339,7 @@ Double_t WCSimLikelihoodTuner::SolidAngleFraction() {
 // It's small and computationally intensive to tabulate, so we're taking a constant initially
 /////////////////////////////////////////////////////////////////////////////////////////////
 Double_t WCSimLikelihoodTuner::ScatteringTable() {
+	//std::cout << " *** WCSimLikelihoodTuner::ScatteringTable() *** " << std::endl;
 	// If we are not using the scattering table, just use a value of 1%
 	if (WCSimParameters::Instance()->UseScatteringTable() == false) {
 		return 0.01;
@@ -305,25 +394,11 @@ Double_t WCSimLikelihoodTuner::ScatteringTable() {
 /////////////////////////////////////////////////////////////////////////////////////////////
 std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ(Double_t s, WCSimLikelihoodTrackBase * myTrack,
 		WCSimLikelihoodDigit * myDigit) {
+	//std::cout << " *** WCSimLikelihoodTuner::CalculateJ() *** " << std::endl;
 	std::vector < Double_t > J(2, 0.0);
 
 	// Load in this combination of s, digit and track so we don't keep recalculating distances and angles
 	MakeCache(s, myTrack, myDigit);
-
-	//  std::vector<int> digits(5);
-	//  if( std::find(digits.begin(), digits.end(), myDigit->GetTubeId()) != digits.end())
-	//  {
-	// Work out the direct and indirect contributions to J
-	// J[0] = J_dir, J[1] = J_ind
-	// if( myDigit->GetQ() > 10 && myDigit->GetTubeId() > 4000 && myDigit->GetTubeId() < 4100)
-	// {
-	// 	std::cout << "Eval J at s  = " << s << " is outside? " << IsOutsideDetector(fCache.GetEmissionPos()) << std::endl
-	//            << "Transmission = " << this->TransmissionFunction() << std::endl
-	// 			  << "Efficiency   = " << this->Efficiency() << std::endl
-	// 			  << "SolidAngle   = " << this->SolidAngleFraction() << std::endl
-	// 			  << "QE           = " << this->QuantumEfficiency() << std::endl
-	//            << "Scatter      = " << this->ScatteringTable() << std::endl;
-	//}
 
 	// Check make sure the particle is still inside the detector
 	if (fConstrainExtent) {
@@ -333,6 +408,32 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ(Double_t s, WCSimLikeliho
 			return J; // It already contains zeros
 		}
 	}
+
+	////////////////////////////////////////////////////////////////////////////////
+	// For Debugging, just look at a couple of PMTs every iteration...
+	/*
+	if (myDigit->GetTubeId() == 1000 || myDigit->GetTubeId() == 2000) {
+		double tranRet = this->TransmissionFunction();
+		double effRet  = this->Efficiency();
+		double quanRet = this->QuantumEfficiency();
+		double solRet  = this->SolidAngleFraction();
+		double scatRet = this->ScatteringTable();
+
+		double ret0 = tranRet * effRet * quanRet * solRet;
+		double ret1 = ret0 * scatRet;
+
+		std::cout << "For PMT = " << myDigit->GetTubeId() << std::endl;
+		std::cout << "For S = " << s << std::endl;
+		std::cout << "Transmission Function -> " << tranRet << std::endl;
+		std::cout << "Efficiency   Function -> " << effRet << std::endl;
+		std::cout << "Quantum Eff  Function -> " << quanRet << std::endl;
+		std::cout << "Solid Angle  Function -> " << solRet << std::endl;
+		std::cout << "Scattering   Function -> " << scatRet << std::endl;
+		std::cout << "J[0] = " << ret0 << std::endl;
+		std::cout << "J[1] = " << ret1 << std::endl;
+	}
+	*/
+	////////////////////////////////////////////////////////////////////////////////
 
 	J[0] = (this->TransmissionFunction() * this->Efficiency() * this->QuantumEfficiency() * this->SolidAngleFraction());
 	J[1] = (J.at(0) * this->ScatteringTable());
@@ -346,30 +447,46 @@ std::vector<Double_t> WCSimLikelihoodTuner::CalculateJ(Double_t s, WCSimLikeliho
 // the coefficients of these quadratics
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 void WCSimLikelihoodTuner::CalculateCoefficients(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit) {
-
-	// std::cout << "*** WCSimLikelihoodTuner::CalculateCoefficients() *** Calculating the coefficients for the integrals from tuning info" << std::endl;
+	//std::cout << "*** WCSimLikelihoodTuner::CalculateCoefficients() *** Calculating the coefficients for the integrals from tuning info" << std::endl;
 	for (int i = 0; i < 3; ++i) {
 		fDirCoeffs[i] = 0.0;    // Coefficients for direct (Cherenkov) light
 		fIndCoeffs[i] = 0.0;    // And for indirect light
 	}
 	// Calculate the 3 s values we care about: s=0, s where integral(rho(s') ds')_0^{s} = 0.75, and double that
+	
+	// Updated: Calculate the 3 s values along the track that we care about...
+	// OLD: 1) 10cm 2) Track length of 75% of photons emitted according to quadratic fit 3) Double this
+	// NEW: 1) 10cm 2) Track length of 90% of photons emitted according to emission profiles 3) Half this
+
 	Double_t s[3];
-	s[0] = 10.0;
-	s[1] = GetTrackLengthForPercentile(myTrack, 0.70);
-	s[2] = 2 * s[1];
+	if (WCSimParameters::Instance()->UseTrackFit()) {
+		s[0] = 10.0;
+		s[1] = GetTrackLengthForPercentile(myTrack, 0.75);
+		s[2] = s[1] * 2;	
+	} else {
+		s[0] = 10.0;
+		s[2] = GetTrackLengthForPercentile(myTrack, 0.90);
+		s[1] = s[2] / 2;
+	}
+
+	//std::cout << "s[0] = " << s[0] << ", s[1] = " << s[1] << ", s[2] = " << s[2] << std::endl;
 
 	// Check these s values are inside the detector and adjust them if not:
 	this->CalculateCutoff(myTrack);
+	//std::cout << "fCutoffIntegral -> " << fCutoffIntegral << std::endl;
 	if (fCutoffIntegral > 0.0 && s[2] > fCutoffIntegral) {
 		//std::cout << "Outside the detector!" << std::endl;
 		s[2] = 0.8 * fCutoffIntegral;
 		s[1] = 0.5 * s[2];
 	}
 
+	//std::cout << "s[0] = " << s[0] << ", s[1] = " << s[1] << ", s[2] = " << s[2] << std::endl;
+
 	// Evaluate J at each point
 	Double_t JDir[3] = { 0., 0., 0. };
 	Double_t JInd[3] = { 0., 0., 0. };
 	for (int k = 0; k < 3; ++k) {
+		//std::cout << "Calculating J at -> " << s[k] << std::endl;
 		std::vector < Double_t > J = this->CalculateJ(s[k], myTrack, myDigit);
 		JDir[k] = J.at(0);
 		JInd[k] = J.at(1);
@@ -475,7 +592,7 @@ void WCSimLikelihoodTuner::CalculateCutoff(WCSimLikelihoodTrackBase * myTrack) {
 			assert(false);
 
 	}
-	//  std::cout << "Energy = " << myTrack->GetE() << "   Cutoff = " << cutoff << ".... returning" << std::endl;
+	//std::cout << "Energy = " << myTrack->GetE() << "   Cutoff = " << cutoff << ".... returning" << std::endl;
 	fCutoffIntegral = cutoff;
 	fLastCutoff = myTrack;
 	return;
@@ -591,10 +708,10 @@ Double_t WCSimLikelihoodTuner::CalculateMailBoxCutoff(WCSimLikelihoodTrackBase *
 double WCSimLikelihoodTuner::GetChIntegrals(WCSimLikelihoodTrackBase * myTrack, WCSimLikelihoodDigit * myDigit,
 		Int_t sPower) {
 	if (fCalculateIntegrals == true) {
-		std::cout << "Calculating the Cherenkov integrals" << std::endl;
+		//std::cout << "Calculating the Cherenkov integrals" << std::endl;
 		return this->CalculateChIntegrals(myTrack, myDigit, sPower);
 	} else {
-		std::cout << "Looking up the Cherenkov integrals" << std::endl;
+		//std::cout << "Looking up the Cherenkov integrals" << std::endl;
 		return this->LookupChIntegrals(myTrack, myDigit, sPower);
 	}
 }
@@ -824,7 +941,7 @@ Double_t WCSimLikelihoodTuner::GetTrackLengthForPercentile(WCSimLikelihoodTrackB
 }
 
 Double_t WCSimLikelihoodTuner::QuantumEfficiency() {
-
+	//std::cout << " *** WCSimLikelihoodTuner::QuantumEfficiency() *** " << std::endl;
 	double distToPMT = fCache.GetDistanceToPMT();
 	return (fCache.GetDigit()->GetAverageQE(distToPMT));
 }
@@ -860,8 +977,10 @@ WCSimLikelihoodTunerCache::WCSimLikelihoodTunerCache(double const &s, WCSimLikel
 	fEmissionPos = fTrack->GetPropagatedPos(s);
 	fToPMT = digit->GetPos() - fEmissionPos;
 	fDistanceToPMT = fToPMT.Mag();
-	fCosAngleToPMT = fToPMT.Dot(fTrack->GetDir()) / fDistanceToPMT;
-	fAngleToPMT = TMath::ACos(fCosAngleToPMT);
+	fTheta = TMath::ACos(digit->GetFace().Dot(-fToPMT) / fDistanceToPMT) * TMath::RadToDeg();
+
+	//fCosAngleToPMT = fToPMT.Dot(fTrack->GetDir()) / fDistanceToPMT;
+	//fAngleToPMT = TMath::ACos(fCosAngleToPMT);
 }
 
 WCSimLikelihoodTunerCache::WCSimLikelihoodTunerCache() {
@@ -871,8 +990,7 @@ WCSimLikelihoodTunerCache::WCSimLikelihoodTunerCache() {
 	fEmissionPos = TVector3();
 	fToPMT = TVector3();
 	fDistanceToPMT = -999.9;
-	fCosAngleToPMT = -999.9;
-	fAngleToPMT = -999.9;
+	fTheta = -999.9;
 }
 
 bool WCSimLikelihoodTunerCache::Contains(double const &s, WCSimLikelihoodDigit const * digit,
@@ -889,13 +1007,10 @@ TVector3 WCSimLikelihoodTunerCache::GetToPMT() {
 	return fToPMT;
 }
 
-double WCSimLikelihoodTunerCache::GetAngleToPMT() {
-	return fAngleToPMT;
+double WCSimLikelihoodTunerCache::GetTheta() {
+	return fTheta;
 }
 
-double WCSimLikelihoodTunerCache::GetCosAngleToPMT() {
-	return fCosAngleToPMT;
-}
 
 double WCSimLikelihoodTunerCache::GetDistanceToPMT() {
 	return fDistanceToPMT;

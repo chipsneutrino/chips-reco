@@ -54,8 +54,10 @@ WCSimParameters::WCSimParameters() {
 	// Likelihood tuner parameters
 	fUseTransmission = true;
 	fUseAngularEfficiency = true;
-	fUseGlassCathodeReflection = true;
+	fUseGlassCathodeReflection = false;
 	fUseScatteringTable = true;
+	fUseNewAngularEfficiency = true;
+	fUseTrackFit = true;
 
 	// Fitter parameters
 	fUseTime = true;
@@ -150,6 +152,8 @@ void WCSimParameters::RunPrintParameters() {
 	std::cout << "UseAngularEfficiency = " << fUseAngularEfficiency << std::endl;
 	std::cout << "UseGlassCathodeReflection = " << fUseGlassCathodeReflection << std::endl;
 	std::cout << "UseScatteringTable = " << fUseScatteringTable << std::endl;
+	std::cout << "UseNewAngularEfficiency = " << fUseNewAngularEfficiency << std::endl;
+	std::cout << "UseTrackFit = " << fUseTrackFit << std::endl;
 	std::cout << "UseTime = " << fUseTime << std::endl;
 	std::cout << "UseCharge = " << fUseCharge << std::endl;
 	std::cout << "EqualiseChargeAndTime = " << fEqualiseChargeAndTime << std::endl;
@@ -640,6 +644,26 @@ void WCSimParameters::SetFromMap() {
 				fUseScatteringTable = true;
 			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
 				fUseScatteringTable = false;
+			} else {
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						<< std::endl;
+				exit (EXIT_FAILURE);
+			}
+		} else if ((*itr).first.compare("UseNewAngularEfficiency") == 0) {
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+				fUseNewAngularEfficiency = true;
+			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
+				fUseNewAngularEfficiency = false;
+			} else {
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						<< std::endl;
+				exit (EXIT_FAILURE);
+			}
+		} else if ((*itr).first.compare("UseTrackFit") == 0) {
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+				fUseTrackFit = true;
+			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
+				fUseTrackFit = false;
 			} else {
 				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
 						<< std::endl;

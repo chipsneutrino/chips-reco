@@ -395,14 +395,13 @@ Double_t WCSimEmissionProfiles::GetTrackLengthForPercentile(Double_t percentile)
 	}
 	Double_t runningTotal = 0.0;
 	Int_t iBin = 0;
-	while (iBin < fRho->GetNbinsX() && runningTotal < 0.75) {
+	while (iBin < fRho->GetNbinsX() && runningTotal < percentile) {
 		iBin++;
 		runningTotal += fRho->GetBinContent(iBin) * fRho->GetXaxis()->GetBinWidth(iBin);
 	}
 	fLastPercentile = percentile;
 	fPercentileTrackLength = fRho->GetXaxis()->GetBinCenter(iBin);
 	return fPercentileTrackLength;
-
 }
 
 void WCSimEmissionProfiles::SaveProfiles(const TrackType::Type &type, const double &energy) {

@@ -6,6 +6,7 @@
 #include "WCSimTrackParameterEnums.hh"
 #include "WCSimEmissionProfiles.hh"
 #include "WCSimFastMath.hh"
+#include "WCSimParameters.hh"
 #include <cassert>
 #include <map>
 #include <vector>
@@ -307,12 +308,17 @@ unsigned int WCSimEmissionProfileManager::GetNumCached(const TrackType::Type &ty
 }
 
 double WCSimEmissionProfileManager::GetStoppingDistance(WCSimLikelihoodTrackBase * myTrack) {
-	double dist = (4.24226 + 0.516017 * myTrack->GetE() - 5.08037e-6 * myTrack->GetE() * myTrack->GetE());
-	if (dist < 50) {
-		dist = 50;
+	double dist;
+	if (WCSimParameters::Instance()->UseTrackFit()) {
+		dist = (4.24226 + 0.516017 * myTrack->GetE() - 5.08037e-6 * myTrack->GetE() * myTrack->GetE());
+		if (dist < 50) {
+			dist = 50;
+		}
+	} else {
+		dist = GetEmissionProfile(myTrack)->GetStoppingDistance();
 	}
+
 	return dist;
-	//return GetEmissionProfile(myTrack)->GetStoppingDistance();
 }
 
 TH1F * WCSimEmissionProfileManager::GetEnergyHist(const TrackType::Type &type) {
@@ -339,13 +345,17 @@ double WCSimEmissionProfileManager::GetLightFlux(WCSimLikelihoodTrackBase * myTr
 }
 
 double WCSimEmissionProfileManager::GetTrackLengthForPercentile(WCSimLikelihoodTrackBase * myTrack, double percentile) {
-	double dist = (-26.0305 + 0.326113 * myTrack->GetE() - 3.86161e-6 * myTrack->GetE() * myTrack->GetE()) * percentile
-			/ 0.70;
-	if (dist < 50) {
-		dist = 50;
+	double dist;
+	if (WCSimParameters::Instance()->UseTrackFit()) {
+		dist = (-26.0305 + 0.326113 * myTrack->GetE() - 3.86161e-6 * myTrack->GetE() * myTrack->GetE()) * percentile / 0.75;
+		if (dist < 50) {
+			dist = 50;
+		}	
+	} else {
+		dist = GetEmissionProfile(myTrack)->GetTrackLengthForPercentile(percentile);
 	}
+
 	return dist;
-	return GetEmissionProfile(myTrack)->GetTrackLengthForPercentile(percentile);
 }
 
 std::vector<Double_t> WCSimEmissionProfileManager::GetRhoIntegrals(std::vector<Int_t> sPowers,

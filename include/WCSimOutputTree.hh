@@ -159,6 +159,14 @@ class ParameterInfo: public TObject {
 			return fUseScatteringTable;
 		}
 
+		Bool_t UseNewAngularEfficiency() {
+			return fUseNewAngularEfficiency;
+		}
+
+		Bool_t UseTrackFit() {
+			return fUseTrackFit;
+		}
+
 		// Fitter parameters
 		Bool_t UseTime() {
 			return fUseTime;
@@ -259,6 +267,8 @@ class ParameterInfo: public TObject {
 		Bool_t fUseAngularEfficiency;       ///< True if we should account for the PMT efficiency as a function of angle
 		Bool_t fUseGlassCathodeReflection;  ///< True if we should account for photons being reflected off the PMT glass
 		Bool_t fUseScatteringTable;         ///< True if we should use the scattering table, false for flat 1% chance
+		Bool_t fUseNewAngularEfficiency;         	///< True if we should use the new solid angle and angular efficiency
+		Bool_t fUseTrackFit;         				///< True if we should use the muon track photon emission fit instead of the emission profiles
 
 		// Fitter parameters
 		Bool_t fUseTime;                    ///< True if we should include timing information in the likelihood
