@@ -58,6 +58,7 @@ WCSimParameters::WCSimParameters() {
 	fUseScatteringTable = true;
 	fUseNewAngularEfficiency = true;
 	fUseTrackFit = true;
+	fQScaling = 1.0;
 
 	// Fitter parameters
 	fUseTime = true;
@@ -86,6 +87,9 @@ WCSimParameters::WCSimParameters() {
 	fPlotThetaMax = 1.0;
 	fPlotPhiMax = 1.0;
 	fPlotEnergyMax = 2500.0;
+
+	fIgnoreLowCut = 0.0;
+	fIgnoreHighCut = 0.0;
 
 	// Not currently used parameters
 	fUseSimpleTimeResolution = false;
@@ -154,6 +158,7 @@ void WCSimParameters::RunPrintParameters() {
 	std::cout << "UseScatteringTable = " << fUseScatteringTable << std::endl;
 	std::cout << "UseNewAngularEfficiency = " << fUseNewAngularEfficiency << std::endl;
 	std::cout << "UseTrackFit = " << fUseTrackFit << std::endl;
+	std::cout << "QScaling = " << fQScaling << std::endl;
 	std::cout << "UseTime = " << fUseTime << std::endl;
 	std::cout << "UseCharge = " << fUseCharge << std::endl;
 	std::cout << "EqualiseChargeAndTime = " << fEqualiseChargeAndTime << std::endl;
@@ -176,6 +181,8 @@ void WCSimParameters::RunPrintParameters() {
 	std::cout << "PlotThetaMax = " << fPlotThetaMax << std::endl;
 	std::cout << "PlotPhiMax = " << fPlotPhiMax << std::endl;
 	std::cout << "PlotEnergyMax = " << fPlotEnergyMax << std::endl;
+	std::cout << "IgnoreLowCut" << fIgnoreLowCut << std::endl;	
+	std::cout << "IgnorehighCut" << fIgnoreHighCut << std::endl;	
 	std::cout << "UseSimpleTimeResolution = " << fUseSimpleTimeResolution << std::endl;
 	std::cout << "UseSimpleTimeSlew = " << fUseSimpleTimeSlew << std::endl;
 	std::cout << "UseSimpleRefractiveIndex = " << fUseSimpleRefractiveIndex << std::endl;
@@ -669,6 +676,14 @@ void WCSimParameters::SetFromMap() {
 						<< std::endl;
 				exit (EXIT_FAILURE);
 			}
+		} else if ((*itr).first.compare("QScaling") == 0) {
+			std::stringstream ss(itr->second);
+			float val = 0;
+			if (!(ss >> val)) {
+				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
+				exit (EXIT_FAILURE);
+			}
+			fQScaling = val;
 		} else if ((*itr).first.compare("UseTime") == 0) {
 			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
 				fUseTime = true;
@@ -862,6 +877,22 @@ void WCSimParameters::SetFromMap() {
 				exit (EXIT_FAILURE);
 			}
 			fPlotEnergyMax = val;
+		} else if ((*itr).first.compare("IgnoreLowCut") == 0) {
+			std::stringstream ss(itr->second);
+			float val = 0;
+			if (!(ss >> val)) {
+				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
+				exit (EXIT_FAILURE);
+			}
+			fIgnoreLowCut = val;
+		} else if ((*itr).first.compare("IgnoreHighCut") == 0) {
+			std::stringstream ss(itr->second);
+			float val = 0;
+			if (!(ss >> val)) {
+				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
+				exit (EXIT_FAILURE);
+			}
+			fIgnoreHighCut = val;
 		} else if ((*itr).first.compare("UseSimpleTimeResolution") == 0) {
 			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
 				fUseSimpleTimeResolution = true;

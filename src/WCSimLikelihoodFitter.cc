@@ -194,10 +194,10 @@ double WCSimLikelihoodFitter::WrapFuncAlongTrack(const Double_t * x) {
 	direction *= 1.0 / directions.size();
 
 	TVector3 newVertex = vertex + direction * x[0];
-	std::cout << "x = " << x[0] << " So vertex goes from (" << vertex.X() << ", " << vertex.Y() << ", " << vertex.Z()
-			<< ") to (" << newVertex.X() << ", " << newVertex.Y() << ", " << newVertex.Z() << ")" << std::endl;
-	std::cout << "Time is now " << time << " and energy is ";
-	std::cout << energies.at(0) << std::endl;
+	//std::cout << "x = " << x[0] << " So vertex goes from (" << vertex.X() << ", " << vertex.Y() << ", " << vertex.Z()
+	//		<< ") to (" << newVertex.X() << ", " << newVertex.Y() << ", " << newVertex.Z() << ")" << std::endl;
+	//std::cout << "Time is now " << time << " and energy is ";
+	//std::cout << energies.at(0) << std::endl;
 
 	for (unsigned int i = 0; i < nTracks; ++i) {
 		WCSimLikelihoodTrackBase * track = WCSimLikelihoodTrackFactory::MakeTrack(fFitterTrackParMap.GetTrackType(i),
@@ -214,7 +214,7 @@ double WCSimLikelihoodFitter::WrapFuncAlongTrack(const Double_t * x) {
 
 	// std::cout << "deleting tracks" << std::endl;
 	for (size_t iTrack = 0; iTrack < tracksToFit.size(); ++iTrack) {
-		std::cout << iTrack << "/" << tracksToFit.size() << std::endl;
+		//std::cout << iTrack << "/" << tracksToFit.size() << std::endl;
 		delete (tracksToFit.at(iTrack));
 	}
 	// std::cout << "Clearing" << std::endl;
@@ -613,19 +613,21 @@ void WCSimLikelihoodFitter::RunFits() {
 
 void WCSimLikelihoodFitter::RunSurfaces() {
 	std::cout << "WCSimLikelihoodFitter::RunSurfaces() " << std::endl;
-	fRootEvent = WCSimInterface::Instance()->GetWCSimEvent(fFitterConfig->GetFirstEventToFit());
-	fLikelihoodDigitArrayObj = WCSimInterface::Instance()->GetWCSimLikelihoodDigitArray(
-			fFitterConfig->GetFirstEventToFit());
-	fLikelihoodDigitArray = &fLikelihoodDigitArrayObj;
-	fFitterTrackParMap.Set();
-	std::cout << "There are " << fLikelihoodDigitArray->GetNDigits() << " digits" << std::endl;
-	if (fTotalLikelihood != NULL) {
-		delete fTotalLikelihood;
-		fTotalLikelihood = NULL;
-		fTotalLikelihood = new WCSimTotalLikelihood(fLikelihoodDigitArray);
-	} else {
-		fTotalLikelihood = new WCSimTotalLikelihood(fLikelihoodDigitArray);
-	}
+
+	// Want the current best fit surfaces so ignore this for now!!!
+	//fRootEvent = WCSimInterface::Instance()->GetWCSimEvent(fFitterConfig->GetFirstEventToFit());
+	//fLikelihoodDigitArrayObj = WCSimInterface::Instance()->GetWCSimLikelihoodDigitArray(
+	//		fFitterConfig->GetFirstEventToFit());
+	//fLikelihoodDigitArray = &fLikelihoodDigitArrayObj;
+	//fFitterTrackParMap.Set();
+	//std::cout << "There are " << fLikelihoodDigitArray->GetNDigits() << " digits" << std::endl;
+	//if (fTotalLikelihood != NULL) {
+	//	delete fTotalLikelihood;
+	//	fTotalLikelihood = NULL;
+	//	fTotalLikelihood = new WCSimTotalLikelihood(fLikelihoodDigitArray);
+	//} else {
+	//	fTotalLikelihood = new WCSimTotalLikelihood(fLikelihoodDigitArray);
+	//}
 
 	std::vector < std::pair<unsigned int, FitterParameterType::Type> > all1DProfile =
 			fFitterPlots->GetAll1DSurfaceKeys();
@@ -648,6 +650,44 @@ void WCSimLikelihoodFitter::RunSurfaces() {
 
 	fFitterPlots->SaveProfiles();
 	return;
+}
+
+void WCSimLikelihoodFitter::RunLikelihoodPlots() {
+	std::cout << "WCSimLikelihoodFitter::RunLikelihoodPlots() " << std::endl;	
+	// Get all the predicted values and likelihoods for the best-fit tracks:
+	// Doing this second means that if fTotalLikelihood is called after this, it uses the fBestFit as required.
+	fTotalLikelihood->SetTracks(fBestFit);
+	fTotalLikelihood->Calc2LnL();
+	std::vector<double> predictedCharges = fTotalLikelihood->GetPredictedChargeVector();
+	std::vector<double> measuredCharges = fTotalLikelihood->GetMeasuredChargeVector();
+	std::vector<double> best2LnLs = fTotalLikelihood->GetTotal2LnLVector();
+	std::vector<double> charge2LnLs = fTotalLikelihood->GetCharge2LnLVector();
+	std::vector<double> time2LnLs = fTotalLikelihood->GetTime2LnLVector();
+	std::vector<double> predictedTimes = fTotalLikelihood->GetPredictedTimeVector();
+
+	assert(measuredCharges.size()==predictedCharges.size());
+
+	TH1D * predictedChargeHist = new TH1D("predictedHist", "predictedHist", 100, 0, 10);
+	TH1D * measuredHist = new TH1D("measuredHist", "measuredHist", 100, 0, 10);
+	TH1D * pred_measured_Hist = new TH1D("pred_measured_Hist", "pred_measured_Hist", 100, -10, 10);
+	TH1D * best2LnLsHist = new TH1D("best2LnLsHist", "best2LnLsHist", 100, 0, 25);
+	TH1D * charge2LnLsHist = new TH1D("charge2LnLsHist", "charge2LnLsHist", 100, 0, 25);
+	TH1D * time2LnLsHist = new TH1D("time2LnLsHist", "time2LnLsHist", 100, 0, 25);
+	TH1D * predictedTimesHist = new TH1D("predictedTimesHist", "predictedTimesHist", 100, 0, 10000);
+
+	for (unsigned int digit = 0; digit < predictedCharges.size(); digit++) {
+		predictedChargeHist->Fill(predictedCharges[digit]);
+		measuredHist->Fill(measuredCharges[digit]);
+		if (measuredCharges[digit] > 0) { pred_measured_Hist->Fill(predictedCharges[digit]-measuredCharges[digit]); }
+		best2LnLsHist->Fill(best2LnLs[digit]);
+		charge2LnLsHist->Fill(charge2LnLs[digit]);
+		time2LnLsHist->Fill(time2LnLs[digit]);
+		predictedTimesHist->Fill(predictedTimes[digit]);
+	}
+
+	fFitterPlots->SaveLikelihoodPlots(predictedChargeHist, measuredHist, pred_measured_Hist, best2LnLsHist, 
+									  charge2LnLsHist, time2LnLsHist, predictedTimesHist);
+
 }
 
 void WCSimLikelihoodFitter::ResetEvent() {

@@ -587,6 +587,34 @@ void WCSimFitterPlots::SaveProfiles() {
 	tmpd->cd();
 }
 
+void WCSimFitterPlots::SaveLikelihoodPlots(TH1D * predictedChargeHist, TH1D * measuredHist, TH1D * pred_measured_Hist, TH1D * best2LnLsHist,
+								 TH1D * charge2LnLsHist, TH1D * time2LnLsHist, TH1D * predictedTimesHist) {
+	std::cout << " *** WCSimFitterPlots::SaveLikelihoodPlots() *** " << std::endl;
+	TDirectory* tmpd = 0;
+	tmpd = gDirectory;
+	if (fSaveFile == NULL) {
+		fSaveFile = new TFile(fSaveFileName.Data(), "UPDATE");
+	}
+	std::cout << "Saving plots to " << fSaveFileName << std::endl;
+	fSaveFile->cd();
+
+	if (fSaveFile->GetDirectory("Likelihood") == 0) {
+		fSaveFile->mkdir("Likelihood");
+	}
+	fSaveFile->cd("Likelihood");
+
+	predictedChargeHist->Write();
+	measuredHist->Write();
+	pred_measured_Hist->Write();
+	best2LnLsHist->Write();
+	charge2LnLsHist->Write();
+	time2LnLsHist->Write();
+	predictedTimesHist->Write();
+
+	fSaveFile->cd();
+	tmpd->cd();
+}
+
 void WCSimFitterPlots::SavePlots() {
 	std::cout << " *** WCSimFitterPlots::SavePlots() *** " << std::endl;
 	TDirectory* tmpd = 0;

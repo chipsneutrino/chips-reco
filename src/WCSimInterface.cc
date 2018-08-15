@@ -713,6 +713,15 @@ void WCSimInterface::BuildRecoEvent(WCSimRootTrigger* myTrigger) {
 	// ===========================
 	TClonesArray* fDigiHitArray = (TClonesArray*) (myTrigger->GetCherenkovDigiHits());
 
+	////////////////////
+	double lowCut = WCSimParameters::Instance()->GetIgnoreLowCut();
+	double highCut = WCSimParameters::Instance()->GetIgnoreHighCut();
+	double length = WCSimGeometry::Instance()->GetCylLength();
+	std::cout << "lowCut -> " << lowCut << ", highCut -> " << highCut << ", length -> " << length << std::endl;
+	double capCut = (length/2) - 20;
+	std::cout << "capCut -> " << capCut << std::endl; 
+	////////////////////
+
 	// loop over digits
 	// ================
 	for (Int_t nDigit = 0; nDigit < 1 + fDigiHitArray->GetLast(); nDigit++) {
@@ -730,6 +739,28 @@ void WCSimInterface::BuildRecoEvent(WCSimRootTrigger* myTrigger) {
 		Double_t y = WCSimGeometry::Instance()->GetY(tube);
 		Double_t z = WCSimGeometry::Instance()->GetZ(tube);
 
+		std::cout << z << std::endl;
+
+		////////////////////
+		if (lowCut != 0.0 && z < lowCut && z > -capCut) {
+			std::cout << "cutPMT -> " << z << std::endl;
+			continue;
+		} else if (highCut != 0.0 && z > highCut && z < capCut) {
+			std::cout << "cutPMT -> " << z << std::endl;
+			continue;
+		} else {
+			WCSimRecoDigit* recoDigit = new WCSimRecoDigit(region, tube, x, y, z, rawT, rawQ, calT, calQ);
+			if (region != WCSimGeometry::kVeto) {
+				fRecoEvent->AddDigit(recoDigit);
+				fDigitList->push_back(recoDigit);
+			} else {
+				fRecoEvent->AddVetoDigit(recoDigit);
+				fVetoDigitList->push_back(recoDigit);
+			}				
+		}
+		////////////////////
+
+		/*
 		WCSimRecoDigit* recoDigit = new WCSimRecoDigit(region, tube, x, y, z, rawT, rawQ, calT, calQ);
 		if (region != WCSimGeometry::kVeto) {
 			fRecoEvent->AddDigit(recoDigit);
@@ -738,6 +769,7 @@ void WCSimInterface::BuildRecoEvent(WCSimRootTrigger* myTrigger) {
 			fRecoEvent->AddVetoDigit(recoDigit);
 			fVetoDigitList->push_back(recoDigit);
 		}
+		*/
 	}
 
 	std::cout << "   Number of Digits = " << fRecoEvent->GetNDigits() << std::endl;

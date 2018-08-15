@@ -4,6 +4,7 @@
 #include "WCSimTimeLikelihood3.hh"
 #include "WCSimTotalLikelihood.hh"
 #include "WCSimParameters.hh"
+#include "WCSimGeometry.hh"
 #include "TMath.h"
 
 #include <algorithm>
@@ -53,8 +54,8 @@ void WCSimTotalLikelihood::SetTracks(std::vector<WCSimLikelihoodTrackBase*> &myT
 	//  of one Charge Likelihood object for one track...
 	int i = 0;
 	for (trackIter = fTracks.begin(); trackIter != fTracks.end(); ++trackIter) {
-		std::cout << "Setting track " << std::endl;
-		(*trackIter)->Print();
+		//std::cout << "Setting track " << std::endl;
+		//(*trackIter)->Print();
 		fChargeLikelihoodVector.push_back(WCSimChargePredictor(fLikelihoodDigitArray, fEmissionProfileManager));
 		fChargeLikelihoodVector[i].AddTrack(*trackIter);
 		i++;
@@ -88,7 +89,7 @@ Double_t WCSimTotalLikelihood::Calc2LnL() {
 	ClearVectors();
 
 	std::vector < std::vector<double> > chargePredictions = CalcPredictedCharges();
-	CalcChargeLikelihoods (chargePredictions);
+	CalcChargeLikelihoods(chargePredictions);
 	CalcTimeLikelihoods(chargePredictions);
 
 	double minus2LnL = 0.0;  // Total -2LnL
@@ -99,6 +100,7 @@ Double_t WCSimTotalLikelihood::Calc2LnL() {
 								 // so we make make sure everything adds up
 
 	for (int iDigit = 0; iDigit < fLikelihoodDigitArray->GetNDigits(); ++iDigit) {
+		
 		// Likelihood components for this PMT
 		double charge2LnL = fCharge2LnL[iDigit];
 		double time2LnL = fTime2LnL[iDigit];
@@ -126,9 +128,9 @@ Double_t WCSimTotalLikelihood::Calc2LnL() {
 		}
 	} //for iDigit
 
-	std::cout << "Time component = " << timeComponent << " and charge component = " << chargeComponent << " so total = "
-			<< minus2LnL << "  (cap of " << WCSimTimeLikelihood3::fMaximum2LnL << " meant " << capSubtracted
-			<< " overflow was subtracted)" << std::endl;
+	//std::cout << "Time component = " << timeComponent << " and charge component = " << chargeComponent << " so total = "
+	//		<< minus2LnL << "  (cap of " << WCSimTimeLikelihood3::fMaximum2LnL << " meant " << capSubtracted
+	//		<< " overflow was subtracted)" << std::endl;
 	fSetVectors = true;
 	return minus2LnL;
 }

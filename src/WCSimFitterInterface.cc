@@ -187,6 +187,7 @@ void WCSimFitterInterface::Run() {
 
 		// 4) If making fitterPlots fill the surfaces and write/save the plots to file
 		if (fMakePlots) {
+			fFitter->RunLikelihoodPlots();
 			fFitter->RunSurfaces();
 			fFitterPlots->SaveProfiles();
 			fFitterPlots->SavePlots();

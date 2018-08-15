@@ -174,8 +174,8 @@ double WCSimChargePredictor::ChargeExpectation(Int_t trackIndex) {
 	double muDir = 0, muIndir = 0;
 
 	if (fGotTrackParameters == trackIndex) {
-		muDir = this->GetMuDirect(trackIndex);
-		muIndir = this->GetMuIndirect(trackIndex);
+		muDir = this->GetMuDirect(trackIndex) * WCSimParameters::Instance()->GetQScaling();
+		muIndir = this->GetMuIndirect(trackIndex) * WCSimParameters::Instance()->GetQScaling();
 		// if(muDir) { std::cout << " Direct charge expectation = " << muDir
 		//                       << " and indirect expectation = "  << muIndir
 		//                       << "    total = " << muDir+muIndir << std::endl; }

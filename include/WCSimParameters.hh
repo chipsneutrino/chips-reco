@@ -184,6 +184,13 @@ class WCSimParameters: public TObject {
 			return fUseTrackFit;
 		}
 
+		void SetQScaling(Double_t val) {
+			fQScaling = val;
+		}
+		Double_t GetQScaling() {
+			return fQScaling;
+		}
+
 		// Fitter parameters
 		void SetUseTime(Bool_t val) {
 			fUseTime = val;
@@ -343,6 +350,22 @@ class WCSimParameters: public TObject {
 
 		Double_t GetPlotMax(std::string param);
 
+		// Ignore paramters
+
+		void SetIgnoreLowCut(Double_t val) {
+			fIgnoreLowCut = val;
+		}
+		Double_t GetIgnoreLowCut() {
+			return fIgnoreLowCut;
+		}
+
+		void SetIgnoreHighCut(Double_t val) {
+			fIgnoreHighCut = val;
+		}
+		Double_t GetIgnoreHighCut() {
+			return fIgnoreHighCut;
+		}
+
 		// Not currently used parameters
 		void SetUseSimpleTimeResolution(Bool_t val) {
 			fUseSimpleTimeResolution = val;
@@ -447,6 +470,7 @@ class WCSimParameters: public TObject {
 		Bool_t fUseScatteringTable;         		///< True if we should use the scattering table, false for flat 1% chance
 		Bool_t fUseNewAngularEfficiency;         	///< True if we should use the new solid angle and angular efficiency
 		Bool_t fUseTrackFit;         				///< True if we should use the muon track photon emission fit instead of the emission profiles
+		Double_t fQScaling;							///< Scaling for the predicted charge
 
 		// Fitter parameters
 		Bool_t fUseTime;                    		///< True if we should include timing information in the likelihood
@@ -475,6 +499,10 @@ class WCSimParameters: public TObject {
 		Double_t fPlotThetaMax;						///< Used to set the extent of the theta reco-true range in the fitter plots
 		Double_t fPlotPhiMax;						///< Used to set the extent of the phi reco-true range in the fitter plots
 		Double_t fPlotEnergyMax;					///< Used to set the extent of the energy reco-true range in the fitter plots
+
+		// Ignore parameters
+		Double_t fIgnoreLowCut; 
+		Double_t fIgnoreHighCut; 
 
 		// Not currently used parameters
 		Bool_t fUseSimpleTimeResolution;			///<

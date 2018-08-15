@@ -47,6 +47,7 @@ class WCSimLikelihoodFitter {
 		void SetOutputTree(WCSimOutputTree * fitterTree);
 		void RunFits();
 		void RunSurfaces();
+		void RunLikelihoodPlots();
 
 		static bool RingSort(const std::pair<WCSimRecoRing*, double> &a, const std::pair<WCSimRecoRing*, double> &b);
 

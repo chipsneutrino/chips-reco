@@ -81,6 +81,8 @@ class WCSimFitterPlots {
 
 		void SavePlots();
 		void SaveProfiles();
+		void SaveLikelihoodPlots(TH1D * predictedChargeHist, TH1D * measuredHist, TH1D * pred_measured_Hist, TH1D * best2LnLsHist,
+								 TH1D * charge2LnLsHist, TH1D * time2LnLsHist, TH1D * predictedTimesHist);
 
 		void SetSaveFileName(const char * filename);
 		TString GetSaveFileName() const;

@@ -16,6 +16,7 @@
 #include "WCSimLikelihoodTrackBase.hh"
 #include "WCSimLikelihoodTuner.hh"
 #include "WCSimRecoEvent.hh"
+#include "WCSimParameters.hh"
 
 #include "TFile.h"
 #include "TH2D.h"
