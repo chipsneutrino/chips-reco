@@ -12,67 +12,98 @@ class WCSimRecoClusteringUtil;
 // basic reconstruction for seeding. The output events are basically
 // transient and will not exist beyond the end of the seeding.
 class WCSimRecoSlicer {
+	public:
+		WCSimRecoSlicer();
+		~WCSimRecoSlicer();
 
-  public:
+		// Function to perform the slicing
+		void Run();
 
-  WCSimRecoSlicer();
-  ~WCSimRecoSlicer();
+		void SetInputEvent(WCSimRecoEvent* evt);
+		std::vector<WCSimRecoEvent*> GetSlicedEvents() {
+			return fSlicedEvents;
+		}
 
-  // Function to perform the slicing
-  void Run();
+		void SetDistanceCut(double val) {
+			fDistanceCut = val;
+		}
+		;
+		double GetDistanceCut() const {
+			return fDistanceCut;
+		}
 
-  void SetInputEvent(WCSimRecoEvent* evt);
-  std::vector<WCSimRecoEvent*> GetSlicedEvents(){return fSlicedEvents;};
+		void SetTimeCut(double val) {
+			fTimeCut = val;
+		}
 
-  void SetDistanceCut(double val){fDistanceCut = val;};
-  double GetDistanceCut() const {return fDistanceCut;};
+		double GetTimeCut() const {
+			return fTimeCut;
+		}
 
-  void SetTimeCut(double val){fTimeCut = val;};
-  double GetTimeCut() const {return fTimeCut;};
+		void SetMinSliceSize(unsigned int val) {
+			fMinSliceSize = val;
+		}
 
-  void SetMinSliceSize(unsigned int val){fMinSliceSize = val;};
-  unsigned int GetMinSliceSize(unsigned int val) const {return fMinSliceSize;};
+		unsigned int GetMinSliceSize(unsigned int val) const {
+			return fMinSliceSize;
+		}
 
-  void SetChargeCut(double val){fChargeCut = val;};
-  double GetChargeCut() const {return fChargeCut;};
+		void SetChargeCut(double val) {
+			fChargeCut = val;
+		}
 
-  void SetIterateSlicing(bool val){fIterateSlicing = val;};
-  bool GetIterateSlicing() const{return fIterateSlicing;};
+		double GetChargeCut() const {
+			return fChargeCut;
+		}
 
-  void SetNumberOfTracks(unsigned int val){fNTracks = val;};
-  unsigned int GetNumberOfTracks() const {return fNTracks;};
+		void SetIterateSlicing(bool val) {
+			fIterateSlicing = val;
+		}
 
-  void SetCosmicSeed(WCSimCosmicSeed* seed){fCosmicSeed = seed;};
+		bool GetIterateSlicing() const {
+			return fIterateSlicing;
+		}
 
-  private:
+		void SetNumberOfTracks(unsigned int val) {
+			fNTracks = val;
+		}
 
-  // Actually do the slicing
-  void SliceTheEvent();
-  
-  void UpdateParameters();
-  void ResetSlices();
+		unsigned int GetNumberOfTracks() const {
+			return fNTracks;
+		}
 
-  // Build events from the filtered digits.
-  void BuildEvents();
+		void SetCosmicSeed(WCSimCosmicSeed* seed) {
+			fCosmicSeed = seed;
+		}
 
-  WCSimRecoEvent* fInputEvent;
-  std::vector<WCSimRecoEvent*> fSlicedEvents;
+	private:
+		// Actually do the slicing
+		void SliceTheEvent();
 
-  std::vector< std::vector<WCSimRecoDigit*> > fSlicedDigits;
+		void UpdateParameters();
+		void ResetSlices();
 
-  double fDistanceCut;
-  double fTimeCut;
-  unsigned int fMinSliceSize;
-  double fChargeCut;
+		// Build events from the filtered digits.
+		void BuildEvents();
 
-  bool fIterateSlicing; ///< Keep trying to slice, increasing the charge cut, in order to get the number of slices
-                        ///< to match the number of tracks.
+		WCSimRecoEvent* fInputEvent;
+		std::vector<WCSimRecoEvent*> fSlicedEvents;
 
-  unsigned int fNTracks;
+		std::vector<std::vector<WCSimRecoDigit*> > fSlicedDigits;
 
-  WCSimCosmicSeed* fCosmicSeed;
+		double fDistanceCut;
+		double fTimeCut;
+		unsigned int fMinSliceSize;
+		double fChargeCut;
 
-  WCSimRecoClusteringUtil* fClusteringUtil;
+		bool fIterateSlicing; ///< Keep trying to slice, increasing the charge cut, in order to get the number of slices
+							  ///< to match the number of tracks.
+
+		unsigned int fNTracks;
+
+		WCSimCosmicSeed* fCosmicSeed;
+
+		WCSimRecoClusteringUtil* fClusteringUtil;
 
 };
 

@@ -1,0 +1,19 @@
+A set of scripts etc... to make the DigitiserPDFs for use in the reconstruction.
+These "likelihood maps" describe the probability of measuring a charge given a prediction.
+
+Modify "MakeDigitizerPDFs.sh" to run what you need,
+type=0 sk1pe
+type=1 pmtSim
+type=2 tot
+
+You want them to be reasonably big, so that when the poisson takes over it is uncommon for this to happen
+
+As I have not decided yet which method of normalisation is best. It spits out files that when hadded need
+to be normalised using either normHorizontal.C or normVertical.C which need to be modifed to run correctly.
+
+You can then put these files into the /config folder in the WCSimAnalysis directory
+
+normHorizontal.C and normVertical.C are used to normalise the histograms either one of two ways,
+they need modifying to run.
+
+Combine.C and combine.py and used to collect all the files together and for the TOT put the two hists in the same file!

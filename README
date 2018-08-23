@@ -1,64 +1,26 @@
 ##### WCSimAnalysis #####
 
-Contains code for studying WC events.
-Includes various tools, event displays, 
-and some basic reconstruction routines.
+Contains code for displaying, analysing, reconstructing, and classifying WC events.
+Please see the github wiki for the complete description.
 
-(1) Event Displays
-A 'roll-out' event display is available along
-with a 3D display based on TEve ROOT classes.
-Both the displays are controlled by a simple
-'TButton' interface.
+##### Input/Output #####
 
-(2) Rvent Reconstruction Routines
-The basic routines are:
-  Digit Clustering [run by WCSimDataCleaner]
-  Vertex Fitter    [run by WCSimVertexFinder]
-  Hough Transform  [run by WCSimRingFinder]
-They are all just experimental...
-The reconstruction code is housed in a basic
-framework - WCSimReco runs all the routines.
-
-(3) Event Ntuples
-There are modules to write out various ntuples
-e.g. all digits, all geometry, all MC truth.
-
-
-##### WCSim Dependencies #####
-
-Input to code is WCSim ROOT Classes, using the
-following interfaces:
-
- o For quick analysis, WCSimEventWriter reads 
-   in both WCSimRootGeom and WCSimRootEvent, 
-   and writes the raw data to a set of ntuples.
- o For reconstruction, WCSimInterface reads 
-   in both WCSimRootGeom and WCSimRootEvent.
-   It uses WCSimRootEvent to build instances
-   of WCSimTrueEvent and WCSimRecoEvent, 
-   and passes WCSimRootGeom to WCSimGeometry 
- o WCSimGeometry reads WCSimRootGeom and
-   provides a handle to the geometry.
-
+Input to code is WCSim ROOT classes, using WCSimRootGeom and WCSimRootEvent to build
+instances of WCSimOutputTree.
 
 ##### Building the code #####
 
-Need to edit Makefile to set correct path for 
-WCSim .hh and .o files. These paths are stored 
-in the variables WCSIM_INCDIR and WCSIM_LIBDIR 
-respectively in the Makefile.
+(1) Source the WCSim setup script e.g "setupWCSimUCL.sh" which sets up paths and ROOT
 
-(1) To build everything
+(2) Source the WCSimAnalysis setup script "setupWCSimAnalysis.sh"
 
-# make all
-# (currently calls: clean, rootcint, shared)
-# force a make clean each time, for now...
+(3) To build everything
 
-make all  
- OR  
-make
+make all
+# (currently calls: rootcint, shared)
+# does not force a make clean...
 
-(2) To build in stages
+(4) To build in stages
 
 # clean
 make clean
@@ -70,26 +32,29 @@ make rootcint
 # (note: need to run make rootcint first)
 make shared 
 
+(5) To build the event display executable
+
+make evDisp
 
 ###### Running the code #####
 
-Note: need to set path to WCSim ROOT file.
+Running of the code except for the event display is done via ROOT macros which load
+in the compiled libraries.
 
-# event displays
-root -l wc_eventdisplay.C
-root -l wc_eventdisplay_3D.C
+For examples look in the "example" directory
+This directory also includes a sample WCSim .root file for testing
 
-# write out some ntuples
-# (e.g. digits, geometry, truth)
-root -l wc_eventwriter.C  [raw data, before reconstruction]
-root -l wc_geometry.C     [write geometry to file]
-root -l wc_eventntuple.C  [reco data, after reconstruction]
+# electron + muon fit 
+root -l -x -q wc_trackfitter_el_mu.C
 
-# for reconstruction 
-root -l wc_eventreco.C
+# electron fit 
+root -l -x -q wc_trackfitter_el.C
 
-# test individual components
-root -l 'wc_vertexdisplay.C(0)'  [displays event 0]
-root -l 'wc_houghdisplay.C(0)'  [displays event 0]
+# muon fit 
+root -l -x -q wc_trackfitter_mu.C
 
+# pi-zero fit 
+root -l -x -q wc_trackfitter_piZero.C
 
+# cosmic fit 
+root -l -x -q wc_trackfitter_cosmic.C

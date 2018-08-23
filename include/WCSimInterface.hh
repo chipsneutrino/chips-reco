@@ -15,108 +15,125 @@
 class WCSimRecoDigit;
 class WCSimRecoEvent;
 
-
 class WCSimTrueTrack;
 class WCSimTrueEvent;
 class TClonesArray;
 
-class WCSimInterface : public TObject {
+class WCSimInterface: public TObject {
 
- public: 
-  static WCSimInterface* Instance();
+	public:
+		static WCSimInterface* Instance();
 
-  static Bool_t TouchData();
-  static Bool_t TouchEvent();
+		static Bool_t TouchData();
+		static Bool_t TouchEvent();
 
-  static void LoadData(const char* file);
-  static void LoadEvent(Int_t ievent);
-  static Int_t GetNumEvents();
+		static void LoadData(const char* file);
+		static void LoadEvent(Int_t ievent);
+		static Int_t GetNumEvents();
 
-  static WCSimRootTrigger* FilterTrigger(WCSimRootEvent* event);
+		static WCSimRootTrigger* FilterTrigger(WCSimRootEvent* event);
 
-  static WCSimTrueEvent* TrueEvent();
-  static WCSimRecoEvent* RecoEvent();
-  
-  static WCSimRootEvent* WCSimEvent();
-  static WCSimRootTrigger* WCSimTrigger();
+		static WCSimTrueEvent* TrueEvent();
+		static WCSimRecoEvent* RecoEvent();
 
-  static Int_t GetRunNumber();
-  static Int_t GetEventNumber();
-  static Int_t GetTriggerNumber();
+		static WCSimRootEvent* WCSimEvent();
+		static WCSimRootTrigger* WCSimTrigger();
 
-  static void Reset();
+		static Int_t GetRunNumber();
+		static Int_t GetEventNumber();
+		static Int_t GetTriggerNumber();
 
-  static void SetEnergyThreshold(Double_t input_mev);
-  static void SetRangeThreshold(Double_t input_cm);
+		static void Reset();
 
-  void SetTrueEnergyThreshold(Double_t ke) { fEnergyThreshold = ke; }
-  void SetTrueRangeThreshold(Double_t ds) { fRangeThreshold = ds; }
-  
-  WCSimLikelihoodDigitArray GetWCSimLikelihoodDigitArray(int ievent);
-  WCSimLikelihoodDigitArray GetWCSimLikelihoodDigitArray() { return fLikelihoodDigitArray;};
+		static void SetEnergyThreshold(Double_t input_mev);
+		static void SetRangeThreshold(Double_t input_cm);
 
-  std::vector<WCSimLikelihoodTrackBase*> * GetTrueLikelihoodTracks(){ return fTrueLikelihoodTracks; }
+		void SetTrueEnergyThreshold(Double_t ke) {
+			fEnergyThreshold = ke;
+		}
+		void SetTrueRangeThreshold(Double_t ds) {
+			fRangeThreshold = ds;
+		}
 
-  WCSimTrueEvent* GetTrueEvent(){ return fTrueEvent; }
-  WCSimRecoEvent* GetRecoEvent(){ return fRecoEvent; }
-  WCSimTruthSummary GetTruthSummary(){ return fEvent->GetTruthSummary(); }
+		WCSimLikelihoodDigitArray GetWCSimLikelihoodDigitArray(int ievent);
+		WCSimLikelihoodDigitArray GetWCSimLikelihoodDigitArray() {
+			return fLikelihoodDigitArray;
+		}
+		;
 
-  WCSimRootEvent* GetWCSimEvent(){ return fEvent; }
-  WCSimRootTrigger* GetWCSimTrigger(){ return fTrigger; }
+		std::vector<WCSimLikelihoodTrackBase*> * GetTrueLikelihoodTracks() {
+			return fTrueLikelihoodTracks;
+		}
 
-  WCSimRootEvent* GetWCSimEvent(Int_t ievent);
-  WCSimRootTrigger* GetWCSimTrigger(Int_t ievent);
+		WCSimTrueEvent* GetTrueEvent() {
+			return fTrueEvent;
+		}
+		WCSimRecoEvent* GetRecoEvent() {
+			return fRecoEvent;
+		}
+		WCSimTruthSummary GetTruthSummary() {
+			return fEvent->GetTruthSummary();
+		}
 
+		WCSimRootEvent* GetWCSimEvent() {
+			return fEvent;
+		}
+		WCSimRootTrigger* GetWCSimTrigger() {
+			return fTrigger;
+		}
 
-  void AddFile(const char* file);
-  void BuildEvent(Int_t ievent);
-  Bool_t CheckEvent();
-  Int_t GetEntries();
-  bool EventIsVetoed();
+		WCSimRootEvent* GetWCSimEvent(Int_t ievent);
+		WCSimRootTrigger* GetWCSimTrigger(Int_t ievent);
 
-  void ResetForNewSample();
+		void AddFile(const char* file);
+		void BuildEvent(Int_t ievent);
+		Bool_t CheckEvent();
+		Int_t GetEntries();
+		bool EventIsVetoed();
 
- protected:
-  WCSimInterface();
-  ~WCSimInterface();
+		void ResetForNewSample();
 
-  void ResetTrueEvent();
-  void ResetRecoEvent();
+	protected:
+		WCSimInterface();
+		~WCSimInterface();
 
- private:
+		void ResetTrueEvent();
+		void ResetRecoEvent();
 
-  void BuildEvent(WCSimRootTrigger* trigger);
+	private:
+		void BuildEvent(WCSimRootTrigger* trigger);
 
-  void BuildTrueEvent(WCSimRootTrigger* trigger);
-  void BuildRecoEvent(WCSimRootTrigger* trigger);
-  bool AnyTrueLeptonEscaped();
+		void BuildTrueEvent(WCSimRootTrigger* trigger);
+		void BuildRecoEvent(WCSimRootTrigger* trigger);
+		bool AnyTrueLeptonEscaped();
 
-  // These should only get called by BuildTrueEvent and ResetTrueEvent
-  void BuildTrueLikelihoodTracks();
-  void ResetTrueLikelihoodTracks();
-  std::vector<WCSimLikelihoodTrackBase*> GetPi0PhotonTracks(const WCSimTruthSummary &sum, double energy, TClonesArray* trajCont);
+		// These should only get called by BuildTrueEvent and ResetTrueEvent
+		void BuildTrueLikelihoodTracks();
+		void ResetTrueLikelihoodTracks();
+		std::vector<WCSimLikelihoodTrackBase*> GetPi0PhotonTracks(const WCSimTruthSummary &sum, double energy,
+				TClonesArray* trajCont);
 
-  WCSimTrueEvent* fTrueEvent;
-  WCSimRecoEvent* fRecoEvent;
+		WCSimTrueEvent* fTrueEvent;
+		WCSimRecoEvent* fRecoEvent;
 
-  std::vector<WCSimRecoDigit*>* fDigitList;
-  std::vector<WCSimRecoDigit*>* fVetoDigitList;
+		std::vector<WCSimRecoDigit*>* fDigitList;
+		std::vector<WCSimRecoDigit*>* fVetoDigitList;
 
-  std::vector<WCSimTrueTrack*>* fTrackList;
+		std::vector<WCSimTrueTrack*>* fTrackList;
 
-  TChain* fChain;
-  TChain* fChainGeom;
+		TChain* fChain;
+		TChain* fChainGeom;
 
-  WCSimRootTrigger* fTrigger;
-  WCSimRootEvent* fEvent;
-  WCSimRootGeom* fGeometry;
-  WCSimLikelihoodDigitArray fLikelihoodDigitArray;
-  std::vector<WCSimLikelihoodTrackBase*> * fTrueLikelihoodTracks;
+		WCSimRootTrigger* fTrigger;
+		WCSimRootEvent* fEvent;
+		WCSimRootGeom* fGeometry;
+		WCSimLikelihoodDigitArray fLikelihoodDigitArray;
+		std::vector<WCSimLikelihoodTrackBase*> * fTrueLikelihoodTracks;
 
-  Double_t fEnergyThreshold;
-  Double_t fRangeThreshold;
+		Double_t fEnergyThreshold;
+		Double_t fRangeThreshold;
 
-  ClassDef(WCSimInterface,0)
+		ClassDef(WCSimInterface,0)
 
 };
 

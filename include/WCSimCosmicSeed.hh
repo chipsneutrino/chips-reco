@@ -8,63 +8,78 @@
 class WCSimRecoDigit;
 class WCSimRecoClusteringUtil;
 
-class WCSimCosmicSeed{
+class WCSimCosmicSeed {
 
-public:
+	public:
 
-  WCSimCosmicSeed();
-  WCSimCosmicSeed(std::vector<WCSimRecoDigit*>* fVetoDigitArray);
-  ~WCSimCosmicSeed();
+		WCSimCosmicSeed();
+		WCSimCosmicSeed(std::vector<WCSimRecoDigit*>* fVetoDigitArray);
+		~WCSimCosmicSeed();
 
-  void SetVetoDigits(std::vector<WCSimRecoDigit*>* digits){fVetoDigits = digits;};
-  void SetInnerDigits(std::vector<WCSimRecoDigit*>* digits){fInnerDigits = digits;};
+		void SetVetoDigits(std::vector<WCSimRecoDigit*>* digits) {
+			fVetoDigits = digits;
+		}
 
-  TVector3 GetFittedVtx() const {return fFittedVtx;};
-  TVector3 GetFittedDir() const {return fFittedDir;};
-  double GetFittedVtxT() const {return fFittedVtxT;};
-  bool GetSuccess() const {return fSuccess;};
+		void SetInnerDigits(std::vector<WCSimRecoDigit*>* digits) {
+			fInnerDigits = digits;
+		}
 
-  void CalcSeedVtxAndDir();
+		TVector3 GetFittedVtx() const {
+			return fFittedVtx;
+		}
 
-  bool HasVetoDigits();
+		TVector3 GetFittedDir() const {
+			return fFittedDir;
+		}
 
-  // If we have a seed, check to see if a given position is inside so that we can 
-  // use the seed to shadow a region of the detector.
-  bool IsHitShadowed(double hx, double hy, double hz);
+		double GetFittedVtxT() const {
+			return fFittedVtxT;
+		}
 
+		bool GetSuccess() const {
+			return fSuccess;
+		}
 
-private:
+		void CalcSeedVtxAndDir();
 
-  void RunSimpleEntrySeed();
-  void RunSimpleCrossingSeed();
-  void GetSimpleDirectionFromInner();
+		bool HasVetoDigits();
 
-  void RunClusteringSeed();
+		// If we have a seed, check to see if a given position is inside so that we can
+		// use the seed to shadow a region of the detector.
+		bool IsHitShadowed(double hx, double hy, double hz);
 
-  // Generate the ring points
-  void GenerateRingPoints();
+	private:
 
-  WCSimRecoDigit* GetBiggestClusterHit(std::vector<WCSimRecoDigit*> clust);
+		void RunSimpleEntrySeed();
+		void RunSimpleCrossingSeed();
+		void GetSimpleDirectionFromInner();
 
-  std::vector<WCSimRecoDigit*>* fVetoDigits;
-  std::vector<WCSimRecoDigit*>* fInnerDigits;
+		void RunClusteringSeed();
 
-  TVector3 fFittedVtx;
-  TVector3 fFittedDir;
-  double fFittedVtxT;
+		// Generate the ring points
+		void GenerateRingPoints();
 
-  bool fSuccess;
+		WCSimRecoDigit* GetBiggestClusterHit(std::vector<WCSimRecoDigit*> clust);
 
-  // Store the 360 points that form the ring outline
-  std::vector<double> fRingPosX;
-  std::vector<double> fRingPosY;
-  std::vector<double> fRingPosZ;
+		std::vector<WCSimRecoDigit*>* fVetoDigits;
+		std::vector<WCSimRecoDigit*>* fInnerDigits;
 
-  double fMaxDistBetweenRingPoints;
+		TVector3 fFittedVtx;
+		TVector3 fFittedDir;
+		double fFittedVtxT;
 
-  WCSimRecoClusteringUtil *fClusteringUtil;
+		bool fSuccess;
 
-  ClassDef(WCSimCosmicSeed,0)
+		// Store the 360 points that form the ring outline
+		std::vector<double> fRingPosX;
+		std::vector<double> fRingPosY;
+		std::vector<double> fRingPosZ;
+
+		double fMaxDistBetweenRingPoints;
+
+		WCSimRecoClusteringUtil *fClusteringUtil;
+
+		ClassDef(WCSimCosmicSeed,0)
 
 };
 

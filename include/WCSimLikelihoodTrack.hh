@@ -17,25 +17,23 @@
 #include <cstdlib>
 class WCSimTrueTrack;
 
-class WCSimLikelihoodTrack : public WCSimLikelihoodTrackBase
-{
-    public:
+class WCSimLikelihoodTrack: public WCSimLikelihoodTrackBase {
+	public:
 		WCSimLikelihoodTrack();
-		WCSimLikelihoodTrack(double x, double y, double z, double t, double theta, double phi, double E, TrackType::Type myType);
+		WCSimLikelihoodTrack(double x, double y, double z, double t, double theta, double phi, double E,
+				TrackType::Type myType);
 		virtual ~WCSimLikelihoodTrack();
 		double GetTrackParameter(const FitterParameterType::Type &type) const;
 		TVector3 GetPropagatedPos(const Double_t &s) const;
 		void SetType(const TrackType::Type &type);
-    TVector3 GetFirstEmissionVtx() const;
-		ClassDef(WCSimLikelihoodTrack,1)
+		TVector3 GetFirstEmissionVtx() const;ClassDef(WCSimLikelihoodTrack,1)
 };
 
 class WCSimLikelihoodPhotonTrack: public WCSimLikelihoodTrackBase {
 	public:
 		WCSimLikelihoodPhotonTrack();
-		WCSimLikelihoodPhotonTrack( double x, double y, double z, double t,
-                          	    	double theta, double phi, double E,
-									double convDistance);
+		WCSimLikelihoodPhotonTrack(double x, double y, double z, double t, double theta, double phi, double E,
+				double convDistance);
 		virtual ~WCSimLikelihoodPhotonTrack();
 		void SetConversionDistance(const double &convDist);
 		double GetTrackParameter(const FitterParameterType::Type &type) const;
@@ -43,16 +41,14 @@ class WCSimLikelihoodPhotonTrack: public WCSimLikelihoodTrackBase {
 		void SetType(const TrackType::Type &type);
 		TVector3 GetFirstEmissionVtx() const;
 	private:
-		TVector3 fFirstEmissionVtx;
-		ClassDef(WCSimLikelihoodPhotonTrack,1)
+		TVector3 fFirstEmissionVtx;ClassDef(WCSimLikelihoodPhotonTrack,1)
 };
 
 class WCSimLikelihoodUnknownTrack: public WCSimLikelihoodTrackBase {
 	public:
 		WCSimLikelihoodUnknownTrack();
-		WCSimLikelihoodUnknownTrack( double x, double y, double z, double t,
-                          	    	double theta, double phi, double E,
-									double convDistance);
+		WCSimLikelihoodUnknownTrack(double x, double y, double z, double t, double theta, double phi, double E,
+				double convDistance);
 		virtual ~WCSimLikelihoodUnknownTrack();
 		void SetConversionDistance(const double &convDist);
 		double GetTrackParameter(const FitterParameterType::Type &type) const;
@@ -60,8 +56,7 @@ class WCSimLikelihoodUnknownTrack: public WCSimLikelihoodTrackBase {
 		void SetType(const TrackType::Type &type);
 		TVector3 GetFirstEmissionVtx() const;
 	private:
-		TVector3 fFirstEmissionVtx;
-		ClassDef(WCSimLikelihoodUnknownTrack,1)
+		TVector3 fFirstEmissionVtx;ClassDef(WCSimLikelihoodUnknownTrack,1)
 };
 
 #endif /* WCSIMLIKELIHOODTRACK_HH */
