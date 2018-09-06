@@ -29,13 +29,15 @@ WCSimIntegralLookup3D::WCSimIntegralLookup3D(TString fileName) {
 	fHistFile = 0x0;
 	fHistFile = new TFile(fileName.Data(), "READ");
 	if (!fHistFile) {
-
 		throw std::runtime_error("Could not open file");
 	}
 	if (fHistFile->IsZombie()) {
 		throw std::runtime_error("Integral lookup TFile is a zombie");
 	}
 
+	// This line sometimes fails. When it tries to load the VERY LARGE WCSimIntegralLookupHistArray from
+	// the file it ends up quiting the execution of the whole program with no error. Some wierd ROOT thing.
+	// TODO: Figure this out!!!
 	fHistFile->GetObject("WCSimIntegralLookupHistArray", fIntegrals);
 
 	if (fIntegrals == NULL) {
