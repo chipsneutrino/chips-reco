@@ -218,7 +218,6 @@ void WCSimInterface::ResetTrueLikelihoodTracks() {
 
 void WCSimInterface::BuildTrueLikelihoodTracks() {
 	std::cout << " *** WCSimInterface::BuildTrueLikelihoodTracks() *** " << std::endl;
-	this->ResetTrueLikelihoodTracks();
 
 	TDatabasePDG myDatabase;
 
@@ -282,10 +281,8 @@ void WCSimInterface::BuildTrueLikelihoodTracks() {
 				fTrueLikelihoodTracks->push_back(track);
 			}
 		}
-
 	}
 	return;
-
 }
 
 void WCSimInterface::ResetRecoEvent() {
@@ -367,12 +364,27 @@ WCSimRootTrigger* WCSimInterface::FilterTrigger(WCSimRootEvent* myEvent) {
 
 	// for now, pick the largest trigger
 	// =================================
+
+	// Change this so we require there to be atleast 1 CherenkovDigiHit for there to be a trigger...
+	/*
 	Int_t triggerDigits = -1;
 	Int_t triggerNumber = -1;
-
 	for (Int_t nTrigger = 0; nTrigger < myEvent->GetNumberOfEvents(); nTrigger++) {
 		WCSimRootTrigger* tempTrigger = (WCSimRootTrigger*) (myEvent->GetTrigger(nTrigger));
 		Int_t nDigits = 1 + tempTrigger->GetCherenkovDigiHits()->GetLast();
+
+		if (nDigits > triggerDigits) {
+			triggerDigits = nDigits;
+			triggerNumber = nTrigger;
+		}
+	}
+	*/
+
+	Int_t triggerDigits = 0;
+	Int_t triggerNumber = -1;
+	for (Int_t nTrigger = 0; nTrigger < myEvent->GetNumberOfEvents(); nTrigger++) {
+		WCSimRootTrigger* tempTrigger = (WCSimRootTrigger*) (myEvent->GetTrigger(nTrigger));
+		Int_t nDigits = tempTrigger->GetCherenkovDigiHits()->GetLast();
 
 		if (nDigits > triggerDigits) {
 			triggerDigits = nDigits;
@@ -387,7 +399,8 @@ WCSimRootTrigger* WCSimInterface::FilterTrigger(WCSimRootEvent* myEvent) {
 	if (myTrigger) {
 		std::cout << " *** WCSimInterface::FilterTrigger(...) *** " << std::endl << "  Run = "
 				<< myTrigger->GetHeader()->GetRun() << std::endl << "  Event = " << myTrigger->GetHeader()->GetEvtNum()
-				<< std::endl << "  Trigger = " << myTrigger->GetHeader()->GetSubEvtNumber() << std::endl;
+				<< std::endl << "  Trigger = " << myTrigger->GetHeader()->GetSubEvtNumber()
+				<< std::endl << "  Ncherenkovhits = " << myTrigger->GetNcherenkovhits() << std::endl;
 	} else {
 		std::cout << " <warning>: failed to find trigger for this event " << std::endl;
 	}
@@ -396,6 +409,20 @@ WCSimRootTrigger* WCSimInterface::FilterTrigger(WCSimRootEvent* myEvent) {
 }
 
 void WCSimInterface::BuildEvent(WCSimRootTrigger* myTrigger) {
+	// Reset everything
+	// =====
+	this->ResetTrueEvent();
+
+	this->ResetRecoEvent();
+
+	this->ResetTrueLikelihoodTracks();
+
+	// check for trigger
+	// =================
+	if (myTrigger == 0) {
+		return;
+	}
+
 	// Build True Event
 	// ================
 	BuildTrueEvent(myTrigger);
@@ -428,16 +455,6 @@ WCSimRootTrigger* WCSimInterface::WCSimTrigger() {
 }
 
 void WCSimInterface::BuildTrueEvent(WCSimRootTrigger* myTrigger) {
-	// Reset
-	// =====
-	this->ResetTrueEvent();
-
-	// Check for Trigger
-	// =================
-	if (myTrigger == 0) {
-		return;
-	}
-
 	// Build True Event
 	// ================
 	std::cout << " *** WCSimInterface::BuildTrueEvent(...) *** " << std::endl;
@@ -509,6 +526,7 @@ void WCSimInterface::BuildTrueEvent(WCSimRootTrigger* myTrigger) {
 	Bool_t new_track = 0;
 
 	std::cout << "  looping over tracks: " << std::endl;
+	std::cout << " TRACKS -> " << fTrackArray->GetLast() << std::endl;
 
 	// loop over tracks
 	// =================
@@ -687,16 +705,6 @@ void WCSimInterface::BuildTrueEvent(WCSimRootTrigger* myTrigger) {
 }
 
 void WCSimInterface::BuildRecoEvent(WCSimRootTrigger* myTrigger) {
-	// Reset
-	// =====
-	this->ResetRecoEvent();
-
-	// check for trigger
-	// =================
-	if (myTrigger == 0) {
-		return;
-	}
-
 	// Build Reco Event
 	// ================
 	std::cout << " *** WCSimInterface::BuildRecoEvent(...) *** " << std::endl;
@@ -739,14 +747,10 @@ void WCSimInterface::BuildRecoEvent(WCSimRootTrigger* myTrigger) {
 		Double_t y = WCSimGeometry::Instance()->GetY(tube);
 		Double_t z = WCSimGeometry::Instance()->GetZ(tube);
 
-		std::cout << z << std::endl;
-
 		////////////////////
 		if (lowCut != 0.0 && z < lowCut && z > -capCut) {
-			std::cout << "cutPMT -> " << z << std::endl;
 			continue;
 		} else if (highCut != 0.0 && z > highCut && z < capCut) {
-			std::cout << "cutPMT -> " << z << std::endl;
 			continue;
 		} else {
 			WCSimRecoDigit* recoDigit = new WCSimRecoDigit(region, tube, x, y, z, rawT, rawQ, calT, calQ);
