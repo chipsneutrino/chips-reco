@@ -9,6 +9,7 @@
 #include "TList.h"
 #include "TFile.h"
 #include <TSystem.h>
+#include "TH2D.h"
 
 #include "TMVA/Factory.h"
 #include "TMVA/Tools.h"
@@ -81,7 +82,7 @@ void WCSimPID::Read() {
 	ReadToFile(fMuAllDir, muAllFile);
 
 	// Find the optimal cuts to maximise eff*pur
-	ScanCuts(elAllFile, muAllFile);
+	ScanCuts(elAllFile, muAllFile, true);
 }
 
 // Private Methods
@@ -371,7 +372,7 @@ void WCSimPID::TrainTMVA_electronMuonCCQE(const char * sigFileName, const char *
     TCut mycut = "preselected == 1";
 
     // Use half of the events for training, half for testing
-    factory->PrepareTrainingAndTestTree(mycut, mycut, "nTrain_Signal=0:nTrain_Background=0:SplitMode=Random:NormMode=NumEvents:!V");
+    factory->PrepareTrainingAndTestTree(mycut, mycut, "nTrain_Signal=12000:nTrain_Background=12000:SplitMode=Random:NormMode=NumEvents:!V");
 
     // Book MVA method (see TMVA manual) for more methods...  
     factory->BookMethod(TMVA::Types::kMLP, "MLP","H:!V:NeuronType=tanh:VarTransform=N:NCycles=600:HiddenLayers=N+5:TestRate=5" );
@@ -472,11 +473,11 @@ void WCSimPID::TrainTMVA_electronCCQEvsNC(const char * sigFileName, const char *
     
     // We apply the preselection...
 	//TCut mycut = "preselected == 1 && annNueCCQEvsNumuCCQE>0.8 && !veto";
-    TCut mycut = "preselected == 1 && annNueCCQEvsNumuCCQE>0.8";
-	//TCut mycut = "preselected == 1";
+    //TCut mycut = "preselected == 1 && annNueCCQEvsNumuCCQE>0.8";
+	TCut mycut = "preselected == 1";
 
     // Use half of the events for training, half for testing
-    factory->PrepareTrainingAndTestTree(mycut, mycut, "nTrain_Signal=0:nTrain_Background=0:SplitMode=Random:NormMode=NumEvents:!V");
+    factory->PrepareTrainingAndTestTree(mycut, mycut, "nTrain_Signal=12000:nTrain_Background=6000:SplitMode=Random:NormMode=NumEvents:!V");
 
     // Book MVA method (see TMVA manual) for more methods...  
     factory->BookMethod(TMVA::Types::kMLP, "MLP","H:!V:NeuronType=tanh:VarTransform=N:NCycles=600:HiddenLayers=N+5:TestRate=5" );
@@ -709,8 +710,10 @@ void WCSimPID::ReadToFile(std::string readDir, const char * readFileName) {
 	delete readingFile;	
 }
 
-void WCSimPID::ScanCuts(const char * elAllFile, const char * muAllFile) {
+void WCSimPID::ScanCuts(const char * elAllFile, const char * muAllFile, bool makePlots) {
 	std::cout << " *** WCSimPID::ScanCuts() *** " << std::endl;
+
+	std::cout << "Making Plots -> " << makePlots << std::endl;
 
 	// Settings...
 	double normNumEvents = 1000;
@@ -751,6 +754,45 @@ void WCSimPID::ScanCuts(const char * elAllFile, const char * muAllFile) {
 	double maxCCValue = 0.0;
 	double xCutCCOpt = 0.0;
 	double yCutCCOpt = 0.0;
+
+	// Make some histogram to fill and save
+	// Efficiency plots...
+	TH2D * nueCCQEEffHist = new TH2D("nueCCQEEff","nueCCQEEff", nBins, min, max, nBins, min, max);
+	nueCCQEEffHist->SetMaximum(1); nueCCQEEffHist->SetMinimum(0);
+	nueCCQEEffHist->GetXaxis()->SetTitle("Nue vs Numu Cut");
+	nueCCQEEffHist->GetYaxis()->SetTitle("Nue vs NC Cut");
+	TH2D * nueCCEffHist = new TH2D("nueCCEff","nueCCEff", nBins, min, max, nBins, min, max);
+	nueCCEffHist->SetMaximum(1); nueCCEffHist->SetMinimum(0);
+	nueCCEffHist->GetXaxis()->SetTitle("Nue vs Numu Cut");
+	nueCCEffHist->GetYaxis()->SetTitle("Nue vs NC Cut");
+	TH2D * numuCCEffHist = new TH2D("numuCCEff","numuCCEff", nBins, min, max, nBins, min, max);
+	numuCCEffHist->SetMaximum(0.15); numuCCEffHist->SetMinimum(0);
+	numuCCEffHist->GetXaxis()->SetTitle("Nue vs Numu Cut");
+	numuCCEffHist->GetYaxis()->SetTitle("Nue vs NC Cut");
+	TH2D * NCEffHist = new TH2D("NCEff","NCEff", nBins, min, max, nBins, min, max);
+	NCEffHist->SetMaximum(0.15); NCEffHist->SetMinimum(0);
+	NCEffHist->GetXaxis()->SetTitle("Nue vs Numu Cut");
+	NCEffHist->GetYaxis()->SetTitle("Nue vs NC Cut");
+
+	// Purity Plots...
+	TH2D * nueCCQEPurHist = new TH2D("nueCCQEPur","nueCCQEPur", nBins, min, max, nBins, min, max);
+	nueCCQEPurHist->SetMaximum(1); nueCCQEPurHist->SetMinimum(0);
+	nueCCQEPurHist->GetXaxis()->SetTitle("Nue vs Numu Cut");
+	nueCCQEPurHist->GetYaxis()->SetTitle("Nue vs NC Cut");
+	TH2D * nueCCPurHist = new TH2D("nueCCPur","nueCCPur", nBins, min, max, nBins, min, max);
+	nueCCPurHist->SetMaximum(1); nueCCPurHist->SetMinimum(0);	
+	nueCCPurHist->GetXaxis()->SetTitle("Nue vs Numu Cut");
+	nueCCPurHist->GetYaxis()->SetTitle("Nue vs NC Cut");
+
+	// Eff * Put PLots...
+	TH2D * nueCCQEEffPurHist = new TH2D("nueCCQEEffPur","nueCCQEEffPur", nBins, min, max, nBins, min, max);
+	nueCCQEEffPurHist->SetMaximum(0.15); nueCCQEEffPurHist->SetMinimum(0);
+	nueCCQEEffPurHist->GetXaxis()->SetTitle("Nue vs Numu Cut");
+	nueCCQEEffPurHist->GetYaxis()->SetTitle("Nue vs NC Cut");	
+	TH2D * nueCCEffPurHist = new TH2D("nueCCEffPur","nueCCEffPur", nBins, min, max, nBins, min, max);
+	nueCCEffPurHist->SetMaximum(0.15); nueCCEffPurHist->SetMinimum(0);
+	nueCCEffPurHist->GetXaxis()->SetTitle("Nue vs Numu Cut");
+	nueCCEffPurHist->GetYaxis()->SetTitle("Nue vs NC Cut");
 
 	for(int xBin=1; xBin<=nBins; xBin++) {
 		double xCut = min + ((double)xBin*width);
@@ -807,6 +849,10 @@ void WCSimPID::ScanCuts(const char * elAllFile, const char * muAllFile) {
 			double nueCCEff = nueCCAll/((numNueCCQEEvents*weightNueCCQEEvents) + (numNueCCnonQEEvents*weightNueCCnonQEEvents));
 			double nueCCPur = nueCCAll/(nueCCAll+numuCCAll+nuNCAll);
 
+			// Work out the numu and NC efficiency...
+			double numuCCEff = numuCCAll/((numNumuCCQEEvents*weightNumuCCQEEvents) + (numNumuCCnonQEEvents*weightNumuCCnonQEEvents));
+			double nuNCEff = nuNCAll/((numNueNCEvents*weightNueNCEvents) + (numNumuNCEvents*weightNumuNCEvents));
+
             // Work out eff*pur
 			double fomCCQE = nueCCQEEff * nueCCQEPur;
 			double fomCC = nueCCEff * nueCCPur;
@@ -824,10 +870,38 @@ void WCSimPID::ScanCuts(const char * elAllFile, const char * muAllFile) {
 				yCutCCOpt = yCut;
 			}
 
+			// Fill all the plots...
+			if(makePlots) {
+				nueCCQEEffHist->SetBinContent(xBin, yBin, nueCCQEEff);
+				nueCCEffHist->SetBinContent(xBin, yBin, nueCCEff);
+				numuCCEffHist->SetBinContent(xBin, yBin, numuCCEff);
+				NCEffHist->SetBinContent(xBin, yBin, nuNCEff);
+				nueCCQEPurHist->SetBinContent(xBin, yBin, nueCCQEPur);
+				nueCCPurHist->SetBinContent(xBin, yBin, nueCCPur);
+				nueCCQEEffPurHist->SetBinContent(xBin, yBin, fomCCQE);
+				nueCCEffPurHist->SetBinContent(xBin, yBin, fomCC);
+			}
+
+			//std::cout << xBin << "-" << yBin << " nueCCEff=" << nueCCEff << " nueCCPur=" << nueCCPur << " fomCC=" << fomCC << std::endl;
+
+
             //double fom_cc = nueCCAll/sqrt(nueCCAll+numuCCAll+nuNCAll);
             //double fom_ccqe = nueCCQEAll/sqrt(nueCCAll+numuCCAll+nuNCAll);		
 		}
 	}
+
+	if(makePlots) {
+		TFile * plotFile = new TFile("cutPlots.root","RECREATE");
+		nueCCQEEffHist->Write();
+		nueCCEffHist->Write();
+		numuCCEffHist->Write();
+		NCEffHist->Write();
+		nueCCQEPurHist->Write();
+		nueCCPurHist->Write();
+		nueCCQEEffPurHist->Write();
+		nueCCEffPurHist->Write();
+		plotFile->Close();
+	}	
 
 	std::cout << "CCQE Opt (" << maxCCQEValue << ") at x=" << xCutCCQEOpt << " y=" << yCutCCQEOpt << std::endl;
 	std::cout << "CC Opt (" << maxCCValue << ") at x=" << xCutCCOpt << " y=" << yCutCCOpt << std::endl;

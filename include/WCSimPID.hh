@@ -59,7 +59,7 @@ class WCSimPID: public TObject {
 
 		// Reading Methods
 		void ReadToFile(std::string readDir, const char * readFileName);
-		void ScanCuts(const char * elAllFile, const char * muAllFile);
+		void ScanCuts(const char * elAllFile, const char * muAllFile, bool makePlots);
 
 		std::string fElTrainDir;
 		std::string fMuTrainDir;
