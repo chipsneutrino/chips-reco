@@ -115,4 +115,6 @@
 
 #pragma link C++ class WCSimDigitizerPDFMaker+;
 
+#pragma link C++ class WCSimImageMaker+;
+
 #endif
