@@ -372,7 +372,7 @@ void WCSimPID::TrainTMVA_electronMuonCCQE(const char * sigFileName, const char *
     TCut mycut = "preselected == 1";
 
     // Use half of the events for training, half for testing
-    factory->PrepareTrainingAndTestTree(mycut, mycut, "nTrain_Signal=12000:nTrain_Background=12000:SplitMode=Random:NormMode=NumEvents:!V");
+    factory->PrepareTrainingAndTestTree(mycut, mycut, "nTrain_Signal=25000:nTrain_Background=25000:SplitMode=Random:NormMode=NumEvents:!V");
 
     // Book MVA method (see TMVA manual) for more methods...  
     factory->BookMethod(TMVA::Types::kMLP, "MLP","H:!V:NeuronType=tanh:VarTransform=N:NCycles=600:HiddenLayers=N+5:TestRate=5" );
@@ -477,7 +477,7 @@ void WCSimPID::TrainTMVA_electronCCQEvsNC(const char * sigFileName, const char *
 	TCut mycut = "preselected == 1";
 
     // Use half of the events for training, half for testing
-    factory->PrepareTrainingAndTestTree(mycut, mycut, "nTrain_Signal=12000:nTrain_Background=6000:SplitMode=Random:NormMode=NumEvents:!V");
+    factory->PrepareTrainingAndTestTree(mycut, mycut, "nTrain_Signal=25000:nTrain_Background=25000:SplitMode=Random:NormMode=NumEvents:!V");
 
     // Book MVA method (see TMVA manual) for more methods...  
     factory->BookMethod(TMVA::Types::kMLP, "MLP","H:!V:NeuronType=tanh:VarTransform=N:NCycles=600:HiddenLayers=N+5:TestRate=5" );

@@ -42,7 +42,6 @@ ClassImp (WCSimRecoEvDisplay)
 
 WCSimRecoEvDisplay::WCSimRecoEvDisplay() {
 	// TODO Auto-generated constructor stub
-
 }
 
 WCSimRecoEvDisplay::WCSimRecoEvDisplay(const TGWindow* p, UInt_t w, UInt_t h) {
@@ -898,8 +897,8 @@ void WCSimRecoEvDisplay::FillPlotsFromRecoFile() {
 	// Get the fit information
 	fRecoSummary = new WCSimRecoSummary();
 	fRecoSummaryChain->ResetBranchAddresses();
-	fRecoSummaryChain->SetBranchAddress("RecoSummary", &fRecoSummary);
-	fRecoSummaryChain->GetBranch("RecoSummary")->SetAutoDelete(kTRUE);
+	fRecoSummaryChain->SetBranchAddress("RecoSummary_ElectronLike", &fRecoSummary);
+	fRecoSummaryChain->GetBranch("RecoSummary_ElectronLike")->SetAutoDelete(kTRUE);
 	fRecoSummaryChain->GetEntry(fCurrentEvent);
 
 	// Get the current event;

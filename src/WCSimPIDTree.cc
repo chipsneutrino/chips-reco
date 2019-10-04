@@ -92,6 +92,7 @@ bool WCSimPIDTree::GetEntry(int entry) {
 	trueCohEvent = fTruthInfo->IsCoherent();
 	trueNueElectronElasticEvent = fTruthInfo->IsNueElectronElastic();
 	trueInverseMuonDecayEvent = fTruthInfo->IsInverseMuonDecay();
+	trueBeamE = fTruthInfo->GetBeamE();
 
 	// PID Combined Variables
 	deltaCharge2LnL = fPidInfo_el->GetCharge2LnL() - fPidInfo_mu->GetCharge2LnL();
@@ -241,7 +242,8 @@ void WCSimPIDTree::MakeOutputTree() {
 	PIDOutputTree->Branch("trueCohEvent", &trueCohEvent);
 	PIDOutputTree->Branch("trueNueElectronElasticEvent", &trueNueElectronElasticEvent);
 	PIDOutputTree->Branch("trueInverseMuonDecayEvent", &trueInverseMuonDecayEvent);
-
+	PIDOutputTree->Branch("trueBeamE", &trueBeamE);
+	
 	// Combined variables
 	PIDOutputTree->Branch("veto", &veto);
 	PIDOutputTree->Branch("nHits", &nHits);

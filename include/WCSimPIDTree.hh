@@ -310,6 +310,9 @@ class WCSimPIDTree: public TObject {
 		int GetTrueInverseMuonDecayEvent() {
 			return trueInverseMuonDecayEvent;
 		}
+		float GetTrueBeamE() {
+			return trueBeamE;
+		}
 
 	private:
 		//Truth Variables
@@ -323,6 +326,7 @@ class WCSimPIDTree: public TObject {
 		Bool_t trueCohEvent;
 		Bool_t trueNueElectronElasticEvent;
 		Bool_t trueInverseMuonDecayEvent;
+		Float_t trueBeamE;
 
 		//Combined Variables
 		Float_t deltaCharge2LnL;
