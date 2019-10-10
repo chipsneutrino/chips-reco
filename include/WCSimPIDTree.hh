@@ -25,41 +25,32 @@
 class TTree;
 class TruthInfo;
 class PidInfo;
-class SeedInfo;
 
 class WCSimPIDTree: public TObject {
 	public:
-		WCSimPIDTree(TTree * tree_mu, TTree * tree_el);
+		WCSimPIDTree(TTree * resultsTree);
 		~WCSimPIDTree();
 
-		// NEED TO ADD ALL THE STUFF HERE!!!SS
-		bool GetVeto() {
-			return veto;
+		void MakeOutputTree();
+
+		bool GetEntry(int entry);
+		void FillTree();
+
+		void Clear();
+
+		TTree * GetOutputTree() {
+			return PIDOutputTree;
 		}
-		int GetNHits() {
-			return nHits;
+		
+		void SetNueVsNumu(float NueCCQEvsNumuCCQE);
+		void SetNueVsNC(float NueCCQEvsNC);
+
+		bool IsPreselected() {
+			return preselected;
 		}
 
-		int GetNHitsUpstream() {
-			return nHitsUpstream;
-		}
-		int GetNHitsDownstream() {
-			return nHitsDownstream;
-		}
-		int GetNHitsInBottom() {
-			return nHitsInBottom;
-		}
-		int GetNHitsInTop() {
-			return nHitsInTop;
-		}
-
-		float GetTotalQ() {
-			return totalQ;
-		}
-		float GetFracHitsDownstream() {
-			return fracHitsDownstream;
-		}
-
+		// Get methods
+		//Combined Variables
 		float GetDeltaCharge2LnL() {
 			return deltaCharge2LnL;
 		}
@@ -68,6 +59,153 @@ class WCSimPIDTree: public TObject {
 		}
 		float GetDeltaCharge2LnLOverNHits() {
 			return deltaCharge2LnLOverNHits;
+		}
+
+		bool GetVeto() {
+			return veto;
+		}
+		int GetNHits() {
+			return nHits;
+		}
+		float GetTotalQ() {
+			return totalQ;
+		}
+
+		float GetFracHitsUpstream() {
+			return fracHitsUpstream;
+		}
+		float GetFracHitsDownstream() {
+			return fracHitsDownstream;
+		}
+		float GetFracHitsInBottom() {
+			return fracHitsInBottom;
+		}
+		float GetFracHitsInTop() {
+			return fracHitsInTop;
+		}
+		float GetFracHitsAboveMid() {
+			return fracHitsAboveMid;
+		}
+		float GetFracHitsBelowMid() {
+			return fracHitsBelowMid;
+		}
+
+		float GetFracQUpstream() {
+			return fracQUpstream;
+		}
+		float GetFracQDownstream() {
+			return fracQDownstream;
+		}
+		float GetFracQInBottom() {
+			return fracQInBottom;
+		}
+		float GetFracQInTop() {
+			return fracQInTop;
+		}
+		float GetFracQAboveMid() {
+			return fracQAboveMid;
+		}
+		float GetFracQBelowMid() {
+			return fracQBelowMid;
+		}
+
+		//Electron Fit Variables
+		float GetCharge2LnL_el() {
+			return charge2LnL_el;
+		}
+		float GetTime2LnL_el() {
+			return time2LnL_el;
+		}
+		float GetRecoE_el() {
+			return recoE_el;
+		}
+		float GetRecoEOverQ_el() {
+			return recoEOverQ_el;
+		}
+
+		float GetFracHitsOutsideRing_el() {
+			return fracHitsOutsideRing_el;
+		}
+		float GetFracHitsInRing_el() {
+			return fracHitsInRing_el;
+		}
+		float GetFracHitsInRingHole_el() {
+			return fracHitsInRingHole_el;
+		}
+
+		float GetFracQOutsideRing_el() {
+			return fracQOutsideRing_el;
+		}
+		float GetFracQInRing_el() {
+			return fracQInRing_el;
+		}
+		float GetFracQInRingHole_el() {
+			return fracQInRingHole_el;
+		}
+
+		float GetFracPredQOutsideRing_el() {
+			return fracPredQOutsideRing_el;
+		}
+		float GetFracPredQInRing_el() {
+			return fracPredQInRing_el;
+		}
+		float GetFracPredQInRingHole_el() {
+			return fracPredQInRingHole_el;
+		}
+		float GetPredictedChargeOverTotalCharge_el() {
+			return predictedChargeOverTotalCharge_el;
+		}
+
+		float GetVtxRho_el() {
+			return vtxRho_el;
+		}
+		float GetEndRho_el() {
+			return endRho_el;
+		}
+		float GetVtxX_el() {
+			return vtxX_el;
+		}
+		float GetVtxY_el() {
+			return vtxY_el;
+		}
+		float GetVtxZ_el() {
+			return vtxZ_el;
+		}
+		float GetEndX_el() {
+			return endX_el;
+		}
+		float GetEndY_el() {
+			return endY_el;
+		}
+		float GetEndZ_el() {
+			return endZ_el;
+		}
+		float GetDirX_el() {
+			return dirX_el;
+		}
+		float GetDirY_el() {
+			return dirY_el;
+		}
+		float GetDirZ_el() {
+			return dirZ_el;
+		}
+
+		bool GetEscapes_el() {
+			return escapes_el;
+		}
+
+		//Muon Fit Variables
+		float GetCharge2LnL_mu() {
+			return charge2LnL_mu;
+		}
+		float GetTime2LnL_mu() {
+			return time2LnL_mu;
+		}
+		float GetRecoE_mu() {
+			return recoE_mu;
+		}
+		float GetRecoEOverQ_mu() {
+			return recoEOverQ_mu;
 		}
 
 		float GetFracHitsOutsideRing_mu() {
@@ -79,15 +217,6 @@ class WCSimPIDTree: public TObject {
 		float GetFracHitsInRingHole_mu() {
 			return fracHitsInRingHole_mu;
 		}
-		float GetFracHitsOutsideRing_el() {
-			return fracHitsOutsideRing_el;
-		}
-		float GetFracHitsInRing_el() {
-			return fracHitsInRing_el;
-		}
-		float GetFracHitsInRingHole_el() {
-			return fracHitsInRingHole_el;
-		}
 
 		float GetFracQOutsideRing_mu() {
 			return fracQOutsideRing_mu;
@@ -98,58 +227,59 @@ class WCSimPIDTree: public TObject {
 		float GetFracQInRingHole_mu() {
 			return fracQInRingHole_mu;
 		}
-		float GetFracQOutsideRing_el() {
-			return fracQOutsideRing_el;
-		}
-		float GetFracQInRing_el() {
-			return fracQInRing_el;
-		}
-		float GetFracQInRingHole_el() {
-			return fracQInRingHole_el;
-		}
 
 		float GetFracPredQOutsideRing_mu() {
 			return fracPredQOutsideRing_mu;
 		}
-		float GetFracPredQOutsideRing_el() {
-			return fracPredQOutsideRing_el;
+		float GetFracPredQInRing_mu() {
+			return fracPredQInRing_mu;
 		}
-
+		float GetFracPredQInRingHole_mu() {
+			return fracPredQInRingHole_mu;
+		}
 		float GetPredictedChargeOverTotalCharge_mu() {
 			return predictedChargeOverTotalCharge_mu;
 		}
-		float GetPredictedChargeOverTotalCharge_el() {
-			return predictedChargeOverTotalCharge_el;
+
+		float GetVtxRho_mu() {
+			return vtxRho_mu;
+		}
+		float GetEndRho_mu() {
+			return endRho_mu;
+		}
+		float GetVtxX_mu() {
+			return vtxX_mu;
+		}
+		float GetVtxY_mu() {
+			return vtxY_mu;
+		}
+		float GetVtxZ_mu() {
+			return vtxZ_mu;
+		}
+		float GetEndX_mu() {
+			return endX_mu;
+		}
+		float GetEndY_mu() {
+			return endY_mu;
+		}
+		float GetEndZ_mu() {
+			return endZ_mu;
+		}
+		float GetDirX_mu() {
+			return dirX_mu;
+		}
+		float GetDirY_mu() {
+			return dirY_mu;
+		}
+		float GetDirZ_mu() {
+			return dirZ_mu;
 		}
 
-		float GetRecoEOverQ_mu() {
-			return recoEOverQ_mu;
-		}
-		float GetRecoEOverQ_el() {
-			return recoEOverQ_el;
+		bool GetEscapes_mu() {
+			return escapes_mu;
 		}
 
-		float GetDirX_el() {
-			return dirX_el;
-		}
-
-		float GetNRings() {
-			return nRings;
-		}
-		float GetFirstRingHeight() {
-			return firstRingHeight;
-		}
-		float GetLastRingHeight() {
-			return lastRingHeight;
-		}
-
-		void SetNueVsNumu(float NueCCQEvsNumuCCQE);
-		void SetNueVsNC(float NueCCQEvsNC);
-
-		bool IsPreselected() {
-			return preselected;
-		}
-
+		// What type of event is it...
 		int GetTrueType() {
 			return trueType;
 		}
@@ -180,16 +310,8 @@ class WCSimPIDTree: public TObject {
 		int GetTrueInverseMuonDecayEvent() {
 			return trueInverseMuonDecayEvent;
 		}
-
-		void GetEntry(int entry);
-		void FillTree();
-
-		void SetTreeBranches(TTree * tree_mu, TTree * tree_el);
-		void Clear();
-		void MakeOutputTree();
-
-		TTree * GetOutputTree() {
-			return PIDOutputTree;
+		float GetTrueBeamE() {
+			return trueBeamE;
 		}
 
 	private:
@@ -204,6 +326,7 @@ class WCSimPIDTree: public TObject {
 		Bool_t trueCohEvent;
 		Bool_t trueNueElectronElasticEvent;
 		Bool_t trueInverseMuonDecayEvent;
+		Float_t trueBeamE;
 
 		//Combined Variables
 		Float_t deltaCharge2LnL;
@@ -216,23 +339,27 @@ class WCSimPIDTree: public TObject {
 		Int_t nHitsDownstream;
 		Int_t nHitsInBottom;
 		Int_t nHitsInTop;
+		Int_t nHitsAboveMid;
+		Int_t nHitsBelowMid;
 		Float_t fracHitsUpstream;
 		Float_t fracHitsDownstream;
 		Float_t fracHitsInBottom;
 		Float_t fracHitsInTop;
+		Float_t fracHitsAboveMid;
+		Float_t fracHitsBelowMid;		
 		Float_t totalQ;
 		Float_t totalQUpstream;
 		Float_t totalQDownstream;
 		Float_t totalQInBottom;
 		Float_t totalQInTop;
+		Float_t totalQAboveMid;
+		Float_t totalQBelowMid;
 		Float_t fracQUpstream;
 		Float_t fracQDownstream;
 		Float_t fracQInBottom;
 		Float_t fracQInTop;
-
-		Int_t nRings;
-		Float_t firstRingHeight;
-		Float_t lastRingHeight;
+		Float_t fracQAboveMid;
+		Float_t fracQBelowMid;
 
 		//Muon Fit Variables
 		Float_t charge2LnL_mu;
@@ -324,22 +451,15 @@ class WCSimPIDTree: public TObject {
 		Bool_t preselected;
 
 		//Declaration of leaves types
-		PidInfo *pidInfo_el;
-		TruthInfo *truthInfo_el;
-		SeedInfo *seedInfo_el;
-
-		PidInfo *pidInfo_mu;
-		TruthInfo *truthInfo_mu;
-		SeedInfo *seedInfo_mu;
+		TruthInfo *fTruthInfo;
+		PidInfo *fPidInfo_el;
+		PidInfo *fPidInfo_mu;
 
 		// Branches
-		TBranch *bpi_el;
-		TBranch *bti_el;
-		TBranch *bsi_el;
-		TBranch *bpi_mu;
-		TBranch *bti_mu;
-		TBranch *bsi_mu;
-
+		TBranch *fBti;
+		TBranch *fBpi_el;
+		TBranch *fBpi_mu;
+		
 		//The output tree
 		TTree * PIDOutputTree;
 

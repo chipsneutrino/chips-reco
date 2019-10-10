@@ -16,7 +16,7 @@ ClassImp (WCSimEmissionProfileManager)
 #endif
 
 WCSimEmissionProfileManager::WCSimEmissionProfileManager() {
-	fNumTracksToCache = 10;
+	fNumTracksToCache = 4;
 	fLastNearbyEnergyBin = -999;
 	fLastNearbyType = TrackType::Unknown;
 

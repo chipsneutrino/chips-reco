@@ -131,7 +131,9 @@ class WCSimEmissionProfiles {
 		double fStoppingDistance;
 
 		TrackType::Type fType;
-		double fEnergy;ClassDef(WCSimEmissionProfiles,1)
+		double fEnergy;
+		
+		ClassDef(WCSimEmissionProfiles,1)
 
 };
 

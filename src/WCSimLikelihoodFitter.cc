@@ -767,7 +767,9 @@ Bool_t WCSimLikelihoodFitter::GetTrackEscapes(WCSimLikelihoodTrackBase * track) 
 	std::cout << "Distance to edge = " << distanceToEdge << std::endl;
 	Double_t stoppingDistance = 0.0;
 	if (track->GetType() != TrackType::Unknown) {
-		stoppingDistance = fTotalLikelihood->GetEmissionProfileManager()->GetStoppingDistance(track);
+		// We shall use when 90% of the tracks photons have been emitted instead of 100%...
+		stoppingDistance = fTotalLikelihood->GetEmissionProfileManager()->GetTrackLengthForPercentile(track, 0.90);
+		//stoppingDistance = fTotalLikelihood->GetEmissionProfileManager()->GetStoppingDistance(track);
 	} else {
 		std::cerr << "Warning, track was of unknown type" << std::endl;
 		std::cerr << "Will assume it was contained" << std::endl;
