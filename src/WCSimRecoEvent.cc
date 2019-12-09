@@ -2,6 +2,7 @@
 #include "WCSimRecoRing.hh"
 #include "WCSimRecoVertex.hh"
 #include "WCSimRecoDigit.hh"
+#include "WCSimHoughTransformArray.hh"
 
 #include "WCSimRecoObjectTable.hh"
 #include "WCSimRootEvent.hh"
@@ -38,6 +39,8 @@ WCSimRecoEvent::~WCSimRecoEvent() {
 	delete fDigitList;
 	delete fVetoDigitList;
 	delete fFilterDigitList;
+
+	delete fHoughArray;
 
 	for (unsigned int r = 0; r < fRingList->size(); ++r) {
 		delete fRingList->at(r);
@@ -141,6 +144,14 @@ WCSimRecoRing* WCSimRecoEvent::GetPrimaryRing() {
 	} else {
 		return 0;
 	}
+}
+
+void WCSimRecoEvent::SetHoughArray(WCSimHoughTransformArray* array) {
+	fHoughArray = array;
+}
+
+WCSimHoughTransformArray* WCSimRecoEvent::GetHoughArray() {
+	return (WCSimHoughTransformArray*) fHoughArray;
 }
 
 void WCSimRecoEvent::SetVertex(Double_t x, Double_t y, Double_t z, Double_t t) {

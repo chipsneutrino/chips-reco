@@ -8,6 +8,7 @@
 class WCSimRecoDigit;
 class WCSimRecoVertex;
 class WCSimRecoRing;
+class WCSimHoughTransformArray;
 
 class WCSimRecoEvent: public TObject {
 	public:
@@ -46,6 +47,9 @@ class WCSimRecoEvent: public TObject {
 		Int_t GetNVetoDigits();
 
 		WCSimRecoRing* GetPrimaryRing();
+
+		void SetHoughArray(WCSimHoughTransformArray* array);
+		WCSimHoughTransformArray* GetHoughArray();
 
 		void SetVertex(Double_t x, Double_t y, Double_t z, Double_t t);
 		void SetDirection(Double_t px, Double_t py, Double_t pz);
@@ -130,6 +134,7 @@ class WCSimRecoEvent: public TObject {
 		std::vector<WCSimRecoDigit*>* fVetoDigitList;
 		std::vector<WCSimRecoDigit*>* fFilterDigitList;
 		std::vector<WCSimRecoRing*>* fRingList;
+		WCSimHoughTransformArray* fHoughArray;
 
 		WCSimRecoVertex* fVertex;
 

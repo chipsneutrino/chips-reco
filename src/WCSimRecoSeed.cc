@@ -54,6 +54,7 @@ void WCSimRecoSeed::Run(WCSimRecoEvent* myEvent) {
 	// reconstruct vertex
 	// ==================
 	this->RunRecoVertex(myEvent);
+	
 	// reconstruct rings
 	// =================
 	this->RunRecoRings(myEvent);
@@ -211,6 +212,12 @@ void WCSimRecoSeed::RunRecoRings(WCSimRecoEvent* myEvent) {
 		this->RunRecoVertex(myEvent);
 	}
 
+	// Check Filter Digits (bail out if necessary)
+	// ===========================================
+	if (myEvent->GetNFilterDigits() == 0) {
+		return;
+	}
+
 	// Check Vertex (bail out if necessary)
 	// ====================================
 	if (myEvent->FoundVertex() == 0) {
@@ -230,6 +237,9 @@ void WCSimRecoSeed::RunRecoRings(WCSimRecoEvent* myEvent) {
 	// Run Ring Finder
 	// ===============
 	std::vector<WCSimRecoRing*>* myRingList = (std::vector<WCSimRecoRing*>*) (myRingFinder->Run(myEvent, myVertex));
+
+	// Add Hough Maps
+	myEvent->SetHoughArray(myRingFinder->GetHoughTransformArray());
 
 	// Add Rings
 	// =========

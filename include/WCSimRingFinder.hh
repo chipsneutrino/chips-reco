@@ -71,6 +71,10 @@ class WCSimRingFinder: public TObject {
 		WCSimHoughTransformArray* HoughTransformArray(WCSimRecoEvent* evt, WCSimRecoVertex* vtx);
 		WCSimHoughTransformArray* HoughTransformArray(std::vector<WCSimRecoDigit*>* digitlist, WCSimRecoVertex* vtx);
 
+		WCSimHoughTransformArray* GetHoughTransformArray() {
+			return fHoughTransformArray;
+		}
+
 	private:
 		WCSimRingFinder();
 		~WCSimRingFinder();

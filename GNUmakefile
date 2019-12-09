@@ -1,13 +1,9 @@
-## Makefile ##
+# --------------------------------------------------------------
+# GNUmakefile for WCSimAnalysis
+# --------------------------------------------------------------
 
-#
-# notes:
-#  WCSIM_INCDIR  points to WCSim .hh files
-#  WCSIM_LIBDIR  points to WCSim .o files
-#  Have added -lSpectrum to LIBS so this differs from the version WCSimAnalysis ships with -AJP 21/03/13
-#
 
-CXX						= g++
+CXX			  = g++
 CXXDEPEND     = -MM
 CXXFLAGS      = -g -Wall -fPIC -O3
 LD            = g++ 
@@ -15,9 +11,8 @@ LDFLAGS       = -g -O3
 
 ROOTCFLAGS   := $(shell root-config --cflags)
 ROOTLDFLAGS  := $(shell root-config --ldflags)
-ROOTLIBS     := $(shell root-config --libs)
+ROOTLIBS     := $(shell root-config --libs) -lSpectrum
 ROOTGLIBS    := $(shell root-config --glibs)
-ROOTLIBS		 += -lSpectrum
 
 CXXFLAGS     += $(ROOTCFLAGS)
 LDFLAGS      += $(ROOTLDFLAGS)
@@ -27,7 +22,6 @@ GLIBS         = $(ROOTGLIBS) $(SYSLIBS)
 INCDIR = ./include
 SRCDIR = ./src
 TMPDIR = ./tmp
-LIBDIR = ./lib
 BINDIR = ./bin
 
 INCLUDES = -I$(INCDIR)
@@ -42,16 +36,15 @@ WCSIM_LIBS += -lWCSim
 .PHONY: 
 	all
 
-#all: rootcint shared
 all: rootcint shared libWCSimAnalysis.a
 
-ROOTSO := $(LIBDIR)/libWCSimAnalysis.so
+ROOTSO := libWCSimAnalysis.so
 
 ROOTDICT := $(SRCDIR)/WCSimAnalysisRootDict.cc
 
 # This is the list of all the ROOT-based classes we need to worry about.
 # Assumes that each class has src/*.cc, include/*.hh and tmp/*.o files.
-ROOTCLASS := WCSimDigitizerPDFMaker WCSimImageMaker WCSimPID WCSimPIDTree WCSimOutputTree WCSimHitComparison WCSimTrackParameterEnums WCSimTimeLikelihood3 WCSimFastMath WCSimTransmissionFunctionLookup WCSimPiZeroSeed WCSimPiZeroSeedGenerator WCSimPiZeroSeeder WCSimPiZeroHoughSeeder WCSimPiZeroSingleElectronSeeder WCSimPiZeroElectronAdjuster WCSimPiZeroFitter WCSimDetectorParameters WCSimTimePredictor WCSimLikelihoodTrackFactory WCSimLikelihoodTrackBase WCSimFitterTrackParMap WCSimIntegralLookupMaker3D WCSimIntegralLookup3D WCSimIntegralLookupReader WCSimRecoEvDisplay WCSimRecoSummary WCSimEmissionProfileManager WCSimEmissionProfiles WCSimFitterConfig WCSimFitterInterface WCSimFitterParameters WCSimFitterPlots WCSimDigitizerLikelihood WCSimTotalLikelihood WCSimLikelihoodTrack WCSimLikelihoodDigit WCSimLikelihoodDigitArray WCSimLikelihoodTuner WCSimLikelihoodFitter WCSimGeometry WCSimInterface WCSimParameters WCSimRecoObjectTable WCSimRecoDigit WCSimRecoCluster WCSimRecoClusterDigit WCSimRecoRing WCSimRecoVertex WCSimRecoEvent WCSimTrueEvent WCSimTrueTrack WCSimHoughTransform WCSimHoughTransformArray WCSimDataCleaner WCSimVertexFinder WCSimVertexGeometry WCSimRingFinder WCSimMsg WCSimChargePredictor WCSimRecoSeed WCSimRecoSlicer WCSimScatteringTableManager WCSimCosmicSeed WCSimCosmicFitter WCSimRecoClusteringUtil
+ROOTCLASS := WCSimDigitizerPDFMaker WCSimPID WCSimPIDTree WCSimOutputTree WCSimHitComparison WCSimTrackParameterEnums WCSimTimeLikelihood3 WCSimFastMath WCSimTransmissionFunctionLookup WCSimPiZeroSeed WCSimPiZeroSeedGenerator WCSimPiZeroSeeder WCSimPiZeroHoughSeeder WCSimPiZeroSingleElectronSeeder WCSimPiZeroElectronAdjuster WCSimPiZeroFitter WCSimDetectorParameters WCSimTimePredictor WCSimLikelihoodTrackFactory WCSimLikelihoodTrackBase WCSimFitterTrackParMap WCSimIntegralLookupMaker3D WCSimIntegralLookup3D WCSimIntegralLookupReader WCSimRecoEvDisplay WCSimRecoSummary WCSimEmissionProfileManager WCSimEmissionProfiles WCSimFitterConfig WCSimFitterInterface WCSimMapper WCSimFitterParameters WCSimFitterPlots WCSimDigitizerLikelihood WCSimTotalLikelihood WCSimLikelihoodTrack WCSimLikelihoodDigit WCSimLikelihoodDigitArray WCSimLikelihoodTuner WCSimLikelihoodFitter WCSimGeometry WCSimInterface WCSimParameters WCSimRecoObjectTable WCSimRecoDigit WCSimRecoCluster WCSimRecoClusterDigit WCSimRecoRing WCSimRecoVertex WCSimRecoEvent WCSimTrueEvent WCSimTrueTrack WCSimHoughTransform WCSimHoughTransformArray WCSimDataCleaner WCSimVertexFinder WCSimVertexGeometry WCSimRingFinder WCSimMsg WCSimChargePredictor WCSimRecoSeed WCSimRecoSlicer WCSimScatteringTableManager WCSimCosmicSeed WCSimCosmicFitter WCSimRecoClusteringUtil
 
 # Create the ROOTINC list from the class list, remembering to also add the LinkDef file
 ROOTINC = $(ROOTCLASS:%=$(INCDIR)/%.hh)
@@ -98,7 +91,7 @@ evDisp:
 
 clean :
 	@echo "<**Clean**>"
-	rm -f $(SRCDIR)/*~ $(INCDIR)/*~ $(TMPDIR)/*.o $(TMPDIR)/*.d $(TMPDIR)/*.a $(LIBDIR)/*.so $(SRCDIR)/WCSimAnalysisRootDict.*
+	rm -f $(SRCDIR)/*~ $(INCDIR)/*~ $(TMPDIR)/*.o $(TMPDIR)/*.d $(TMPDIR)/*.a $(SRCDIR)/WCSimAnalysisRootDict.*
 
 DEPS = $(ROOTOBJS:$(TMPDIR)/%.o=$(TMPDIR)/%.d)
 

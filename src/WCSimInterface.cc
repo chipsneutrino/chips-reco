@@ -681,13 +681,13 @@ void WCSimInterface::BuildTrueEvent(WCSimRootTrigger* myTrigger) {
 //    std::cout << std::endl; // PRINT: NEW LINE
 
 		// print warning messages
-		if (vtxReg < 0) {
-			std::cout << "      <warning> couldn't find detector entry point! " << std::endl;
-		}
+		//if (vtxReg < 0) {
+		//	std::cout << "      <warning> couldn't find detector entry point! " << std::endl;
+		//}
 
-		if (endReg < 0) {
-			std::cout << "      <warning> couldn't find detector exit point! " << std::endl;
-		}
+		//if (endReg < 0) {
+		//	std::cout << "      <warning> couldn't find detector exit point! " << std::endl;
+		//}
 	}
 
 	// set true event header
