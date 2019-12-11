@@ -24,8 +24,7 @@ class WCSimHoughTransformArray;
 class WCSimMapper 
 {
 	public:
-		WCSimMapper(const char* in_dir, int max_files, int phi_bins, 
-					int theta_bins, int category, int pdg_code);
+		WCSimMapper(const char* in_dir, int max_files, int category, int pdg_code);
 		virtual ~WCSimMapper() {};
 		
         void run();
@@ -42,8 +41,6 @@ class WCSimMapper
 		// General variables
         const char* input_dir_;		///< Input directory to process files from
         int max_files_;				///< Max number of files to process
-		int phi_bins_;				///< Number of image bins in phi
-		int theta_bins_;			///< Number of image bins in theta
 		int pdg_code_;				///< PDG code to select correct primary track
 
 		TFile *map_f_;				///< Output File
@@ -54,7 +51,6 @@ class WCSimMapper
 
 		// True TTree variables (Used as labels in the CVN)
 		int true_n_hits_;			///< Number Cherenkov hits
-		TH1F* true_primary_pdgs_;	///< Primary particles PDGs
 		int true_category_;			///< PID category (truth)
 		float true_vtx_x_;			///< Vertex x-position (truth)
 		float true_vtx_y_;			///< Vertex y-position (truth)
@@ -78,11 +74,11 @@ class WCSimMapper
 		float vtx_t_;				///< Vertex time
 		float dir_costheta_;		///< Lepton track costheta-direction
 		float dir_phi_;				///< Lepton track phi-direction
-		TH2F* hit_map_raw_;			///< Hit map for the event
-		TH2F* time_map_raw_;		///< Hit time map for the event
-		TH2F* hit_map_vtx_;			///< Hit map for the event
-		TH2F* time_map_vtx_;		///< Hit time map for the event
-		TH2D* hough_map_vtx_;		///< Hough map for the event 
+		float hit_map_raw_[64][64];		///< Hit map for the event
+		float time_map_raw_[64][64];	///< Hit time map for the event
+		float hit_map_vtx_[64][64];		///< Hit map for the event
+		float time_map_vtx_[64][64];	///< Hit time map for the event
+		float hough_map_vtx_[64][64];	///< Hough map for the event 
 
 		ClassDef(WCSimMapper,0)
 };

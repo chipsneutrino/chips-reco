@@ -21,20 +21,16 @@
 
 ClassImp (WCSimMapper)
 
-WCSimMapper::WCSimMapper(const char* in_dir, int max_files, int phi_bins,
-						 int theta_bins, int category, int pdg_code) 
+WCSimMapper::WCSimMapper(const char* in_dir, int max_files, int category, int pdg_code) 
     :input_dir_(in_dir)
     ,max_files_(max_files)
-	,phi_bins_(phi_bins)
-	,theta_bins_(theta_bins)
 	,pdg_code_(pdg_code)
 	,true_category_(category)
-	,true_primary_pdgs_(NULL)
-	,hit_map_raw_(NULL)
-	,time_map_raw_(NULL)
-	,hit_map_vtx_(NULL)
-	,time_map_vtx_(NULL)
-	,hough_map_vtx_(NULL)
+	,hit_map_raw_{0}
+	,time_map_raw_{0}
+	,hit_map_vtx_{0}
+	,time_map_vtx_{0}
+	,hough_map_vtx_{0}
 {
 	resetVariables(); // Reset all TTree variables
 
@@ -44,7 +40,6 @@ WCSimMapper::WCSimMapper(const char* in_dir, int max_files, int phi_bins,
 	// Truth info tree
 	true_t_ = new TTree("true","true");
 	true_t_->Branch("true_n_hits",&true_n_hits_,"true_n_hits_/I");
-	true_t_->Branch("true_primary_pdgs", "TH1F", &true_primary_pdgs_, 32000, 0);
 	true_t_->Branch("true_category",&true_category_,"true_category_/I");
 	true_t_->Branch("true_vtx_x",&true_vtx_x_,"true_vtx_x_/F");
 	true_t_->Branch("true_vtx_y",&true_vtx_y_,"true_vtx_y_/F");
@@ -68,11 +63,11 @@ WCSimMapper::WCSimMapper(const char* in_dir, int max_files, int phi_bins,
 	reco_t_->Branch("vtx_t",&vtx_t_,"vtx_t_/F");
 	reco_t_->Branch("dir_theta",&dir_costheta_,"dir_theta_/F");
 	reco_t_->Branch("dir_phi",&dir_phi_,"dir_phi_/F");
-	reco_t_->Branch("hit_map_raw", "TH2F", &hit_map_raw_, 32000, 0);
-	reco_t_->Branch("time_map_raw", "TH2F", &time_map_raw_, 32000, 0);
-	reco_t_->Branch("hit_map_vtx", "TH2F", &hit_map_vtx_, 32000, 0);
-	reco_t_->Branch("time_map_vtx", "TH2F", &time_map_vtx_, 32000, 0);
-	reco_t_->Branch("hough_map_vtx", "TH2D", &hough_map_vtx_, 32000, 0);
+	reco_t_->Branch("hit_map_raw",&hit_map_raw_,"hit_map_raw_[64][64]/F");
+	reco_t_->Branch("time_map_raw",&time_map_raw_,"hit_map_raw_[64][64]/F");
+	reco_t_->Branch("hit_map_vtx",&hit_map_vtx_,"hit_map_raw_[64][64]/F");
+	reco_t_->Branch("time_map_vtx",&time_map_vtx_,"hit_map_raw_[64][64]/F");
+	reco_t_->Branch("hough_map_vtx",&hough_map_vtx_,"hit_map_raw_[64][64]/F");
 }
 
 void WCSimMapper::run()
@@ -87,7 +82,7 @@ void WCSimMapper::run()
 	int valid_events = 0;
 	for(ev; ev<WCSimInterface::GetNumEvents(); ev++)
 	{
-		if(ev==100) break; // For now just test on two events
+		if(ev==10) break; // For now just test on two events
 		
 		WCSimInterface::Instance()->BuildEvent(ev);
 		if(WCSimInterface::Instance()->CheckEvent())
@@ -117,31 +112,6 @@ void WCSimMapper::run()
 
 void WCSimMapper::resetVariables()
 {
-	if(true_primary_pdgs_ != NULL) {
-		delete true_primary_pdgs_;
-		true_primary_pdgs_ = NULL;
-	}
-	if(hit_map_raw_ != NULL) {
-		delete hit_map_raw_;
-		hit_map_raw_ = NULL;
-	}
-	if(time_map_raw_ != NULL) {
-		delete time_map_raw_;
-		time_map_raw_ = NULL;
-	}
-	if(hit_map_vtx_ != NULL) {
-		delete hit_map_vtx_;
-		hit_map_vtx_ = NULL;
-	}
-	if(time_map_vtx_ != NULL) {
-		delete time_map_vtx_;
-		time_map_vtx_ = NULL;
-	}
-	if(hough_map_vtx_ != NULL) {
-		delete hough_map_vtx_;
-		hough_map_vtx_ = NULL;
-	}
-
 	// True TTree variables (Used as labels in the CVN)
 	true_n_hits_ = -999;
 	true_vtx_x_ = -999;
@@ -166,6 +136,11 @@ void WCSimMapper::resetVariables()
 	vtx_t_ = -999;
 	dir_costheta_ = -999;
 	dir_phi_ = -999;
+	memset(hit_map_raw_, 0, sizeof(hit_map_raw_));
+	memset(time_map_raw_, 0, sizeof(time_map_raw_));
+	memset(hit_map_vtx_, 0, sizeof(hit_map_vtx_));
+	memset(time_map_vtx_, 0, sizeof(time_map_vtx_));
+	memset(hough_map_vtx_, 0, sizeof(hough_map_vtx_));
 }
 
 void WCSimMapper::loadFiles()
@@ -196,10 +171,8 @@ void WCSimMapper::fillTrueTree()
 	true_nu_energy_ = truth_sum.GetBeamEnergy();
 	
 	// Find the leading lepton
-	true_primary_pdgs_ = new TH1F("true_primary_pdgs_", "true_primary_pdgs_", 10100, 0, 10100);
 	for (int p=0; p<(int)truth_sum.GetNPrimaries(); p++) {
 		int code = truth_sum.GetPrimaryPDG(p);
-		true_primary_pdgs_->Fill(code);
 		if (code == pdg_code_) {
 			TVector3 dir = truth_sum.GetPrimaryDir(p);
 			float dirX = dir.X();
@@ -243,21 +216,13 @@ void WCSimMapper::fillRecoTree()
 
 	WCSimHoughTransformArray* hough_array = reco_event_->GetHoughArray();
 	WCSimHoughTransform* hough = hough_array->GetHoughTransform(0);
-	hough_map_vtx_ = hough->GetTH2D("hough_map_vtx");
+	TH2D* hough_map_vtx = hough->GetTH2D("hough_map_vtx");
 
 	// We can then generate the hit and time maps in both raw and "vertex view" forms
-	hit_map_raw_ = new TH2F("hit_map_raw", "hit_map_raw", phi_bins_, -180, 180, theta_bins_, -1, 1);
-	hit_map_raw_->GetXaxis()->SetTitle("#phi / degrees");
-	hit_map_raw_->GetYaxis()->SetTitle("cos(#theta)");
-	time_map_raw_ = new TH2F("time_map_raw", "time_map_raw", phi_bins_, -180, 180, theta_bins_, -1, 1); 
-	time_map_raw_->GetXaxis()->SetTitle("#phi / degrees");
-	time_map_raw_->GetYaxis()->SetTitle("cos(#theta)");
-	hit_map_vtx_ = new TH2F("hit_map_vtx", "hit_map_vtx", phi_bins_, -180, 180, theta_bins_, -1, 1);
-	hit_map_vtx_->GetXaxis()->SetTitle("#phi / degrees");
-	hit_map_vtx_->GetYaxis()->SetTitle("cos(#theta)");
-	time_map_vtx_ = new TH2F("time_map_vtx", "time_map_vtx", phi_bins_, -180, 180, theta_bins_, -1, 1); 
-	time_map_vtx_->GetXaxis()->SetTitle("#phi / degrees");
-	time_map_vtx_->GetYaxis()->SetTitle("cos(#theta)");  
+	TH2F* hit_map_raw = new TH2F("hit_map_raw", "hit_map_raw", 64, -180, 180, 64, -1, 1);
+	TH2F* time_map_raw = new TH2F("time_map_raw", "time_map_raw", 64, -180, 180, 64, -1, 1); 
+	TH2F* hit_map_vtx = new TH2F("hit_map_vtx", "hit_map_vtx", 64, -180, 180, 64, -1, 1);
+	TH2F* time_map_vtx = new TH2F("time_map_vtx", "time_map_vtx", 64, -180, 180, 64, -1, 1); 
 
 	float first_hit_time = 1000000;
 
@@ -286,46 +251,64 @@ void WCSimMapper::fillRecoTree()
 		float hit_phi_raw = TMath::ATan2(hit_y, hit_x) * (180.0/TMath::Pi());
 		float hit_theta_raw = GetCosTheta(hit_x, hit_y, hit_z);
 
-		hit_map_raw_->Fill(hit_phi_raw, hit_theta_raw, hit_q);
-		int bin_num = time_map_raw_->FindBin(hit_phi_raw, hit_theta_raw);
-		float currentBinTime = time_map_raw_->GetBinContent(bin_num);
+		hit_map_raw->Fill(hit_phi_raw, hit_theta_raw, hit_q);
+		int bin_num = time_map_raw->FindBin(hit_phi_raw, hit_theta_raw);
+		float currentBinTime = time_map_raw->GetBinContent(bin_num);
 		if ((currentBinTime == 0) || (currentBinTime != 0 && digi_hit_time<currentBinTime)) 
 		{
-			time_map_raw_->SetBinContent(bin_num, digi_hit_time);
+			time_map_raw->SetBinContent(bin_num, digi_hit_time);
 		}
 
 		// Calculate the "vertex view" phi and theta and fill hists 
 		float hit_phi_vtx = TMath::ATan2((hit_y-vtx_y_), (hit_x-vtx_x_)) * (180.0/TMath::Pi());
 		float hit_theta_vtx = GetCosTheta((hit_x-vtx_x_), (hit_y-vtx_y_), (hit_z-vtx_z_));
 
-		hit_map_vtx_->Fill(hit_phi_vtx, hit_theta_vtx, hit_q);
-		bin_num = time_map_vtx_->FindBin(hit_phi_vtx, hit_theta_vtx);
-		currentBinTime = time_map_vtx_->GetBinContent(bin_num);
+		hit_map_vtx->Fill(hit_phi_vtx, hit_theta_vtx, hit_q);
+		bin_num = time_map_vtx->FindBin(hit_phi_vtx, hit_theta_vtx);
+		currentBinTime = time_map_vtx->GetBinContent(bin_num);
 		if ((currentBinTime == 0) || (currentBinTime != 0 && digi_hit_time<currentBinTime)) 
 		{
-			time_map_vtx_->SetBinContent(bin_num, digi_hit_time);
+			time_map_vtx->SetBinContent(bin_num, digi_hit_time);
 		}
 	}  
 
 	// We now need to move all timestamps to be from zero
-	for(int i=0; i<(time_map_raw_->GetNbinsX()+1); i++)
+	for(int i=0; i<(time_map_raw->GetNbinsX()+1); i++)
 	{
-		for(int j=0; j<(time_map_raw_->GetNbinsY()+1); j++)
+		for(int j=0; j<(time_map_raw->GetNbinsY()+1); j++)
 		{
-			float raw_content = time_map_raw_->GetBinContent(i,j);
+			float raw_content = time_map_raw->GetBinContent(i,j);
 			if(raw_content != 0.0)
 			{
-				time_map_raw_->SetBinContent(i, j, (raw_content-first_hit_time));
+				time_map_raw->SetBinContent(i, j, (raw_content-first_hit_time));
 			}
-			raw_content = time_map_vtx_->GetBinContent(i,j);
+			raw_content = time_map_vtx->GetBinContent(i,j);
 			if(raw_content != 0.0)
 			{
-				time_map_vtx_->SetBinContent(i, j, (raw_content-first_hit_time));
+				time_map_vtx->SetBinContent(i, j, (raw_content-first_hit_time));
 			}
 		}	
 	}
 
+	// We now fill the arrays we save to the reco tree
+	for(int i=0; i<64; i++)
+	{
+		for(int j=0; j<64; j++)
+		{
+			hit_map_raw_[j][i] = hit_map_raw->GetBinContent(i,j);
+			time_map_raw_[j][i] = time_map_raw->GetBinContent(i,j);
+			hit_map_vtx_[j][i] = hit_map_vtx->GetBinContent(i,j);
+			time_map_vtx_[j][i] = time_map_vtx->GetBinContent(i,j);
+			hough_map_vtx_[j][i] = hough_map_vtx->GetBinContent(i,j);
+		}	
+	}
+
 	reco_t_->Fill();
+
+	delete hit_map_raw;
+	delete time_map_raw;
+	delete hit_map_vtx;
+	delete time_map_vtx;
 }
 
 void WCSimMapper::writeFile()
