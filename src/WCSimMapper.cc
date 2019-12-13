@@ -21,9 +21,9 @@
 
 ClassImp (WCSimMapper)
 
-WCSimMapper::WCSimMapper(const char* in_dir, int max_files, int category, int pdg_code) 
-    :input_dir_(in_dir)
-    ,max_files_(max_files)
+WCSimMapper::WCSimMapper(const char* in_file, const char* out_file, int max_events, int category, int pdg_code)
+    :input_file_(in_file)
+    ,max_events_(max_events)
 	,pdg_code_(pdg_code)
 	,true_category_(category)
 	,hit_map_raw_{0}
@@ -35,7 +35,7 @@ WCSimMapper::WCSimMapper(const char* in_dir, int max_files, int category, int pd
 	resetVariables(); // Reset all TTree variables
 
 	// Open the output file with a TTree
-	map_f_ = new TFile("maps.root", "RECREATE", "HitMapFile");
+	map_f_ = new TFile(out_file, "RECREATE", "HitMapFile");
 
 	// Truth info tree
 	true_t_ = new TTree("true","true");
@@ -72,7 +72,7 @@ WCSimMapper::WCSimMapper(const char* in_dir, int max_files, int category, int pd
 
 void WCSimMapper::run()
 {
-	loadFiles(); // Load all files in the directory
+	WCSimInterface::LoadData(input_file_); // Load the input file
 
 	WCSimRecoSeed* reco = new WCSimRecoSeed(); // Create the reconstruction seeder
 	reco->SetNumberOfTracks(1); 
@@ -81,9 +81,9 @@ void WCSimMapper::run()
 	int ev = 0;
 	int valid_events = 0;
 	for(ev; ev<WCSimInterface::GetNumEvents(); ev++)
-	{
-		if(ev==10) break; // For now just test on two events
-		
+	{	
+		if(valid_events==max_events_) break;
+
 		WCSimInterface::Instance()->BuildEvent(ev);
 		if(WCSimInterface::Instance()->CheckEvent())
 		{
@@ -98,14 +98,13 @@ void WCSimMapper::run()
 
 			resetVariables();
 		}
-
 	}
 
 	// Write the output trees to file
 	writeFile(); 
 	map_f_->Close();
 
-	std::cout << "Total = " << ev << ", Valid = " << valid_events << std::endl;
+	std::cout << "Total = " << (ev-1) << ", Valid = " << valid_events << std::endl;
 
     delete reco;
 }
@@ -141,24 +140,6 @@ void WCSimMapper::resetVariables()
 	memset(hit_map_vtx_, 0, sizeof(hit_map_vtx_));
 	memset(time_map_vtx_, 0, sizeof(time_map_vtx_));
 	memset(hough_map_vtx_, 0, sizeof(hough_map_vtx_));
-}
-
-void WCSimMapper::loadFiles()
-{
-    char* dir = gSystem->ExpandPathName(input_dir_);
-    void* dirp = gSystem->OpenDirectory(dir);
-    TString str;
-	int n = 0;
-    while((str=gSystem->GetDirEntry(dirp)))
-	{
-		if(n>=max_files_) break;
-        if(str.EndsWith(".root"))
-		{
-			n++;
-			TString filename = gSystem->ConcatFileName(dir, str);
-			WCSimInterface::LoadData(filename.Data());
-		}
-	}	
 }
 
 void WCSimMapper::fillTrueTree()

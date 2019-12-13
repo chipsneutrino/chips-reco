@@ -24,14 +24,13 @@ class WCSimHoughTransformArray;
 class WCSimMapper 
 {
 	public:
-		WCSimMapper(const char* in_dir, int max_files, int category, int pdg_code);
+		WCSimMapper(const char* in_file, const char* out_file, int max_files, int category, int pdg_code);
 		virtual ~WCSimMapper() {};
 		
         void run();
 
 	private:
 		void resetVariables();
-		void loadFiles();
 		void fillTrueTree();
 		void fillRecoTree();
 		void writeFile();
@@ -39,10 +38,9 @@ class WCSimMapper
 		float GetCosTheta(float x, float y, float z);
 
 		// General variables
-        const char* input_dir_;		///< Input directory to process files from
-        int max_files_;				///< Max number of files to process
+        const char* input_file_;	///< Input file to process
+        int max_events_;			///< Max number of events to process
 		int pdg_code_;				///< PDG code to select correct primary track
-
 		TFile *map_f_;				///< Output File
 		TTree *true_t_;				///< Truth TTree for CVN labelling
 		TTree *reco_t_;				///< Reco TTree for CVN input
