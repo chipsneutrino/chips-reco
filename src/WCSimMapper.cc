@@ -44,7 +44,7 @@ WCSimMapper::WCSimMapper(const char* in_file, const char* out_file, int max_even
 	true_t_->Branch("true_vtx_x",&true_vtx_x_,"true_vtx_x_/F");
 	true_t_->Branch("true_vtx_y",&true_vtx_y_,"true_vtx_y_/F");
 	true_t_->Branch("true_vtx_z",&true_vtx_z_,"true_vtx_z_/F");
-	true_t_->Branch("true_dir_theta",&true_dir_costheta_,"true_dir_theta_/F");
+	true_t_->Branch("true_dir_costheta",&true_dir_costheta_,"true_dir_costheta_/F");
 	true_t_->Branch("true_dir_phi",&true_dir_phi_,"true_dir_phi_/F");
 	true_t_->Branch("true_nu_energy",&true_nu_energy_,"true_nu_energy_/F");
 	true_t_->Branch("true_lep_energy",&true_lep_energy_,"true_lep_energy_/F");
