@@ -22,12 +22,12 @@ GLIBS         = $(ROOTGLIBS) $(SYSLIBS)
 INCDIR = ./include
 SRCDIR = ./src
 TMPDIR = ./tmp
-BINDIR = ./bin
+LIBDIR = ./lib
 
 INCLUDES = -I$(INCDIR)
 
 WCSIM_INCDIR = ${WCSIMHOME}/include
-WCSIM_LIBDIR = ${HOME}/geant4/tmp/Linux-g++/WCSim
+WCSIM_LIBDIR = ${WCSIMHOME}/geant4/tmp/Linux-g++/WCSim
 
 WCSIM_INCLUDES = -I$(WCSIM_INCDIR)
 WCSIM_LDFLAGS += -L$(WCSIM_LIBDIR)
@@ -78,13 +78,13 @@ $(ROOTDICT) : $(ROOTSRC) $(ROOTINC)
 rootcint: $(ROOTDICT)
 
 shared: $(ROOTDICT) $(ROOTSRC) $(ROOTINC) $(ROOTOBJS)
-	@echo "<**Shared**>"
 	@mkdir -p lib
-	$(CXX) -shared $(ROOTLIBS) $(ROOTGLIBS) -O $(ROOTOBJS) -o $(ROOTSO)
+	$(CXX) -shared $(ROOTLIBS) $(ROOTGLIBS) -O $(ROOTOBJS) -o $(LIBDIR)/$(ROOTSO)
 
 libWCSimAnalysis.a : $(ROOTOBJS)
 	$(RM) $@
 	ar clq $@ $(ROOTOBJS)
+	mv $@ $(LIBDIR)
 	
 evDisp:	
 	$(CXX) `root-config --cflags --glibs --libs --evelibs` -I./include ${WCSIM_INCLUDES} -L${WCSIMANAHOME} -L${WCSIMHOME} -o evDisplay evDisplay.cc ${WCSIMHOME}/src/WCSimRootDict.cc ${WCSIMANAHOME}/src/WCSimAnalysisRootDict.cc -lWCSim -lWCSimAnalysis -lEG -lSpectrum -lMinuit -lTMVA -lMLP -lXMLIO
