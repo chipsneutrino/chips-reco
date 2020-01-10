@@ -24,7 +24,7 @@ class WCSimHoughTransformArray;
 class WCSimMapper 
 {
 	public:
-		WCSimMapper(const char* in_file, const char* out_file, int max_files, int category, int pdg_code);
+		WCSimMapper(const char* in_file, const char* out_file, int max_files, int pdg_code);
 		virtual ~WCSimMapper() {};
 		
         void run();
@@ -48,7 +48,7 @@ class WCSimMapper
 		WCSimRecoEvent* reco_event_;	///< Current reco event
 
 		// True TTree variables (Used as labels in the CVN)
-		int true_category_;				///< PID category (truth)
+		int true_type_;					///< Interaction type (truth)
 		float true_vtx_x_;				///< Vertex x-position (truth)
 		float true_vtx_y_;				///< Vertex y-position (truth)
 		float true_vtx_z_;				///< Vertex z-position (truth)

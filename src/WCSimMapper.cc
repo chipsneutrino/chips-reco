@@ -21,11 +21,10 @@
 
 ClassImp (WCSimMapper)
 
-WCSimMapper::WCSimMapper(const char* in_file, const char* out_file, int max_events, int category, int pdg_code)
+WCSimMapper::WCSimMapper(const char* in_file, const char* out_file, int max_events, int pdg_code)
     :input_file_(in_file)
     ,max_events_(max_events)
 	,pdg_code_(pdg_code)
-	,true_category_(category)
 {
 	resetVariables(); // Reset all TTree variables
 
@@ -34,7 +33,7 @@ WCSimMapper::WCSimMapper(const char* in_file, const char* out_file, int max_even
 
 	// Truth info tree
 	true_t_ = new TTree("true","true");
-	true_t_->Branch("true_category",&true_category_,"true_category_/I");
+	true_t_->Branch("true_type_",&true_type_,"true_type_/I");
 	true_t_->Branch("true_vtx_x",&true_vtx_x_,"true_vtx_x_/F");
 	true_t_->Branch("true_vtx_y",&true_vtx_y_,"true_vtx_y_/F");
 	true_t_->Branch("true_vtx_z",&true_vtx_z_,"true_vtx_z_/F");
@@ -118,6 +117,7 @@ void WCSimMapper::run()
 void WCSimMapper::resetVariables()
 {
 	// True TTree variables (Used as labels in the CVN)
+	true_type_ = -999;
 	true_vtx_x_ = -999;
 	true_vtx_y_ = -999;
 	true_vtx_z_ = -999;
@@ -163,6 +163,7 @@ void WCSimMapper::resetVariables()
 void WCSimMapper::fillTrueTree()
 {
 	WCSimTruthSummary truth_sum = WCSimInterface::Instance()->GetTruthSummary();
+	true_type_ = truth_sum.GetInteractionMode();
 	true_vtx_x_ = truth_sum.GetVertexX()/10;
 	true_vtx_y_ = truth_sum.GetVertexY()/10;
 	true_vtx_z_ = truth_sum.GetVertexZ()/10;
