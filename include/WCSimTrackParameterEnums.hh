@@ -95,8 +95,8 @@ class TrackType: public TObject {
 			} else if (abs(pdg) == 22) {
 				return PhotonLike;
 			} else {
-				std::cerr << "Error: unknown track type for PDG code " << pdg
-						<< " (only 11, 13, 22 currently implemented)" << std::endl;
+				//std::cerr << "Error: unknown track type for PDG code " << pdg
+				//		<< " (only 11, 13, 22 currently implemented)" << std::endl;
 				return Unknown;
 				//assert(0);
 			}
@@ -112,8 +112,8 @@ class TrackType: public TObject {
 			if (type == PhotonLike) {
 				return 22;
 			} else {
-				std::cerr << "Error: Did not recognise track type " << TrackType(type).AsString()
-						<< " (only ElectronLike, MuonLike, PhotonLike currently implemented)" << std::endl;
+				//std::cerr << "Error: Did not recognise track type " << TrackType(type).AsString()
+				//		<< " (only ElectronLike, MuonLike, PhotonLike currently implemented)" << std::endl;
 				assert(0);
 			}
 			return 0;
