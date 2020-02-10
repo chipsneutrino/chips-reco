@@ -21,10 +21,11 @@
 
 ClassImp (WCSimMapper)
 
-WCSimMapper::WCSimMapper(const char* in_file, const char* out_file, int max_events, int pdg_code)
+WCSimMapper::WCSimMapper(const char* in_file, const char* out_file, int max_events, int pdg_code, bool save_extra)
     :input_file_(in_file)
     ,max_events_(max_events)
 	,pdg_code_(pdg_code)
+	,save_extra_(save_extra)
 {
 	resetVariables(); // Reset all TTree variables
 
@@ -33,7 +34,8 @@ WCSimMapper::WCSimMapper(const char* in_file, const char* out_file, int max_even
 
 	// Truth info tree
 	true_t_ = new TTree("true","true");
-	true_t_->Branch("true_type_",&true_type_,"true_type_/I");
+	true_t_->Branch("true_pdg",&true_pdg_,"true_pdg_/I");
+	true_t_->Branch("true_type",&true_type_,"true_type_/I");
 	true_t_->Branch("true_vtx_x",&true_vtx_x_,"true_vtx_x_/F");
 	true_t_->Branch("true_vtx_y",&true_vtx_y_,"true_vtx_y_/F");
 	true_t_->Branch("true_vtx_z",&true_vtx_z_,"true_vtx_z_/F");
@@ -57,22 +59,22 @@ WCSimMapper::WCSimMapper(const char* in_file, const char* out_file, int max_even
 	reco_t_->Branch("vtx_t",&vtx_t_,"vtx_t_/F");
 	reco_t_->Branch("dir_theta",&dir_costheta_,"dir_theta_/F");
 	reco_t_->Branch("dir_phi",&dir_phi_,"dir_phi_/F");
-	reco_t_->Branch("raw_hit_map_origin",&raw_hit_map_origin_,"raw_hit_map_origin_[64][64]/F");
-	reco_t_->Branch("raw_charge_map_origin",&raw_charge_map_origin_,"raw_charge_map_origin_[64][64]/F");
-	reco_t_->Branch("raw_time_map_origin",&raw_time_map_origin_,"raw_time_map_origin_[64][64]/F");
-	reco_t_->Branch("filtered_hit_map_origin",&filtered_hit_map_origin_,"filtered_hit_map_origin_[64][64]/F");
-	reco_t_->Branch("filtered_charge_map_origin",&filtered_charge_map_origin_,"filtered_charge_map_origin_[64][64]/F");
-	reco_t_->Branch("filtered_time_map_origin",&filtered_time_map_origin_,"filtered_time_map_origin_[64][64]/F");
-	reco_t_->Branch("raw_hit_map_vtx",&raw_hit_map_vtx_,"raw_hit_map_vtx_[64][64]/F");
-	reco_t_->Branch("raw_charge_map_vtx",&raw_charge_map_vtx_,"raw_charge_map_vtx_[64][64]/F");
-	reco_t_->Branch("raw_time_map_vtx",&raw_time_map_vtx_,"raw_time_map_vtx_[64][64]/F");
+	if(save_extra_)
+	{
+		reco_t_->Branch("raw_hit_map_origin",&raw_hit_map_origin_,"raw_hit_map_origin_[64][64]/F");
+		reco_t_->Branch("raw_charge_map_origin",&raw_charge_map_origin_,"raw_charge_map_origin_[64][64]/F");
+		reco_t_->Branch("raw_time_map_origin",&raw_time_map_origin_,"raw_time_map_origin_[64][64]/F");
+		reco_t_->Branch("filtered_hit_map_origin",&filtered_hit_map_origin_,"filtered_hit_map_origin_[64][64]/F");
+		reco_t_->Branch("filtered_charge_map_origin",&filtered_charge_map_origin_,"filtered_charge_map_origin_[64][64]/F");
+		reco_t_->Branch("filtered_time_map_origin",&filtered_time_map_origin_,"filtered_time_map_origin_[64][64]/F");
+		reco_t_->Branch("raw_hit_map_vtx",&raw_hit_map_vtx_,"raw_hit_map_vtx_[64][64]/F");
+		reco_t_->Branch("raw_charge_map_vtx",&raw_charge_map_vtx_,"raw_charge_map_vtx_[64][64]/F");
+		reco_t_->Branch("raw_time_map_vtx",&raw_time_map_vtx_,"raw_time_map_vtx_[64][64]/F");
+	}
 	reco_t_->Branch("filtered_hit_map_vtx",&filtered_hit_map_vtx_,"filtered_hit_map_vtx_[64][64]/F");
 	reco_t_->Branch("filtered_charge_map_vtx",&filtered_charge_map_vtx_,"filtered_charge_map_vtx_[64][64]/F");
 	reco_t_->Branch("filtered_time_map_vtx",&filtered_time_map_vtx_,"filtered_time_map_vtx_[64][64]/F");
-	//reco_t_->Branch("raw_hit_hough_map_vtx",&raw_hit_hough_map_vtx_,"raw_hit_hough_map_vtx_[64][64]/F");
 	reco_t_->Branch("filtered_hit_hough_map_vtx",&filtered_hit_hough_map_vtx_,"filtered_hit_hough_map_vtx_[64][64]/F");
-	//reco_t_->Branch("raw_charge_hough_map_vtx",&raw_charge_hough_map_vtx_,"raw_charge_hough_map_vtx_[64][64]/F");
-	//reco_t_->Branch("filtered_charge_hough_map_vtx",&filtered_charge_hough_map_vtx_,"filtered_charge_hough_map_vtx_[64][64]/F");
 }
 
 void WCSimMapper::run()
@@ -117,6 +119,7 @@ void WCSimMapper::run()
 void WCSimMapper::resetVariables()
 {
 	// True TTree variables (Used as labels in the CVN)
+	true_pdg_ = -999;
 	true_type_ = -999;
 	true_vtx_x_ = -999;
 	true_vtx_y_ = -999;
@@ -154,15 +157,13 @@ void WCSimMapper::resetVariables()
 	memset(filtered_hit_map_vtx_, 0, sizeof(filtered_hit_map_vtx_));
 	memset(filtered_charge_map_vtx_, 0, sizeof(filtered_charge_map_vtx_));
 	memset(filtered_time_map_vtx_, 0, sizeof(filtered_time_map_vtx_));
-	//memset(raw_hit_hough_map_vtx_, 0, sizeof(raw_hit_hough_map_vtx_));
 	memset(filtered_hit_hough_map_vtx_, 0, sizeof(filtered_hit_hough_map_vtx_));
-	//memset(raw_charge_hough_map_vtx_, 0, sizeof(raw_charge_hough_map_vtx_));
-	//memset(filtered_charge_hough_map_vtx_, 0, sizeof(filtered_charge_hough_map_vtx_));
 }
 
 void WCSimMapper::fillTrueTree()
 {
 	WCSimTruthSummary truth_sum = WCSimInterface::Instance()->GetTruthSummary();
+	true_pdg_ = truth_sum.GetBeamPDG();
 	true_type_ = truth_sum.GetInteractionMode();
 	true_vtx_x_ = truth_sum.GetVertexX()/10;
 	true_vtx_y_ = truth_sum.GetVertexY()/10;
@@ -217,18 +218,18 @@ void WCSimMapper::fillRecoTree()
 	TH2D* filtered_hit_hough_map_vtx_h = hough->GetTH2D("h");
 
 	// We can then generate the hit and time maps in both raw and "vertex view" forms
-	TH2F* raw_hit_map_origin_h = new TH2F("h", "h", 64, -180, 180, 64, -1, 1);
-	TH2F* raw_charge_map_origin_h = new TH2F("h", "h", 64, -180, 180, 64, -1, 1);
-	TH2F* raw_time_map_origin_h = new TH2F("h", "h", 64, -180, 180, 64, -1, 1);
-	TH2F* filtered_hit_map_origin_h = new TH2F("h", "h", 64, -180, 180, 64, -1, 1);
-	TH2F* filtered_charge_map_origin_h = new TH2F("h", "h", 64, -180, 180, 64, -1, 1);
-	TH2F* filtered_time_map_origin_h = new TH2F("h", "h", 64, -180, 180, 64, -1, 1);
-	TH2F* raw_hit_map_vtx_h = new TH2F("h", "h", 64, -180, 180, 64, -1, 1);
-	TH2F* raw_charge_map_vtx_h = new TH2F("h", "h", 64, -180, 180, 64, -1, 1);
-	TH2F* raw_time_map_vtx_h = new TH2F("h", "h", 64, -180, 180, 64, -1, 1);
-	TH2F* filtered_hit_map_vtx_h = new TH2F("h", "h", 64, -180, 180, 64, -1, 1);
-	TH2F* filtered_charge_map_vtx_h = new TH2F("h", "h", 64, -180, 180, 64, -1, 1);
-	TH2F* filtered_time_map_vtx_h = new TH2F("h", "h", 64, -180, 180, 64, -1, 1);
+	TH2F* raw_hit_map_origin_h = new TH2F("raw_hit_map_origin_h", "raw_hit_map_origin_h", 64, -180, 180, 64, -1, 1);
+	TH2F* raw_charge_map_origin_h = new TH2F("raw_charge_map_origin_h", "raw_charge_map_origin_h", 64, -180, 180, 64, -1, 1);
+	TH2F* raw_time_map_origin_h = new TH2F("raw_time_map_origin_h", "raw_time_map_origin_h", 64, -180, 180, 64, -1, 1);
+	TH2F* filtered_hit_map_origin_h = new TH2F("filtered_hit_map_origin_h", "filtered_hit_map_origin_h", 64, -180, 180, 64, -1, 1);
+	TH2F* filtered_charge_map_origin_h = new TH2F("filtered_charge_map_origin_h", "filtered_charge_map_origin_h", 64, -180, 180, 64, -1, 1);
+	TH2F* filtered_time_map_origin_h = new TH2F("filtered_time_map_origin_h", "filtered_time_map_origin_h", 64, -180, 180, 64, -1, 1);
+	TH2F* raw_hit_map_vtx_h = new TH2F("raw_hit_map_vtx_h", "raw_hit_map_vtx_h", 64, -180, 180, 64, -1, 1);
+	TH2F* raw_charge_map_vtx_h = new TH2F("raw_charge_map_vtx_h", "raw_charge_map_vtx_h", 64, -180, 180, 64, -1, 1);
+	TH2F* raw_time_map_vtx_h = new TH2F("raw_time_map_vtx_h", "raw_time_map_vtx_h", 64, -180, 180, 64, -1, 1);
+	TH2F* filtered_hit_map_vtx_h = new TH2F("filtered_hit_map_vtx_h", "filtered_hit_map_vtx_h", 64, -180, 180, 64, -1, 1);
+	TH2F* filtered_charge_map_vtx_h = new TH2F("filtered_charge_map_vtx_h", "filtered_charge_map_vtx_h", 64, -180, 180, 64, -1, 1);
+	TH2F* filtered_time_map_vtx_h = new TH2F("filtered_time_map_vtx_h", "filtered_time_map_vtx_h", 64, -180, 180, 64, -1, 1);
 
 	// Loop through the digi hits
 	raw_num_hits_ = reco_event_->GetNDigits();

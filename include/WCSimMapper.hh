@@ -24,7 +24,7 @@ class WCSimHoughTransformArray;
 class WCSimMapper 
 {
 	public:
-		WCSimMapper(const char* in_file, const char* out_file, int max_files, int pdg_code);
+		WCSimMapper(const char* in_file, const char* out_file, int max_files, int pdg_code, bool save_extra);
 		virtual ~WCSimMapper() {};
 		
         void run();
@@ -41,6 +41,7 @@ class WCSimMapper
         const char* input_file_;		///< Input file to process
         int max_events_;				///< Max number of events to process
 		int pdg_code_;					///< PDG code to select correct primary track
+		bool save_extra_;				///< Should we save all the extra maps that we don't need?
 		TFile *map_f_;					///< Output File
 		TTree *true_t_;					///< Truth TTree for CVN labelling
 		TTree *reco_t_;					///< Reco TTree for CVN input
@@ -48,6 +49,7 @@ class WCSimMapper
 		WCSimRecoEvent* reco_event_;	///< Current reco event
 
 		// True TTree variables (Used as labels in the CVN)
+		int true_pdg_;					///< Beam PDG (truth)
 		int true_type_;					///< Interaction type (truth)
 		float true_vtx_x_;				///< Vertex x-position (truth)
 		float true_vtx_y_;				///< Vertex y-position (truth)
@@ -87,10 +89,7 @@ class WCSimMapper
 		float filtered_charge_map_vtx_[64][64];			///< Filtered charge map from reco vertex 
 		float filtered_time_map_vtx_[64][64];			///< Filtered time map from reco vertex
 
-		//float raw_hit_hough_map_vtx_[64][64];			///< Raw hit Hough map from reco vertex 
 		float filtered_hit_hough_map_vtx_[64][64];		///< Filtered hit Hough map from reco vertex 
-		//float raw_charge_hough_map_vtx_[64][64];		///< Raw charge Hough map from reco vertex 
-		//float filtered_charge_hough_map_vtx_[64][64];	///< Filtered charge Hough map from reco vertex 
 
 		ClassDef(WCSimMapper,0)
 };
