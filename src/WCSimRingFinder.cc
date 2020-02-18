@@ -314,7 +314,9 @@ WCSimHoughTransformArray* WCSimRingFinder::HoughTransformArray(std::vector<WCSim
 		Double_t nz = 0.0;
 		Double_t r = 0.0;
 
-		Double_t weight = 1.0;
+		// We fill the hough space for this hit with the weight of the collected charge
+		Double_t weight = myDigit->GetRawQPEs();
+		//Double_t weight = 1.0;
 
 		// Loops over omega to step round the rim of cones, and over nAngle to repeat over cone angles
 		for (Int_t n = 0; n < fHoughPoints; n++) {
