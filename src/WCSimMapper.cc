@@ -68,12 +68,12 @@ WCSimMapper::WCSimMapper(const char* in_file, const char* out_file, int max_even
 		reco_t_->Branch("filtered_charge_map_origin",&filtered_charge_map_origin_,"filtered_charge_map_origin_[64][64]/F");
 		reco_t_->Branch("filtered_time_map_origin",&filtered_time_map_origin_,"filtered_time_map_origin_[64][64]/F");
 		reco_t_->Branch("raw_hit_map_vtx",&raw_hit_map_vtx_,"raw_hit_map_vtx_[64][64]/F");
-		reco_t_->Branch("raw_charge_map_vtx",&raw_charge_map_vtx_,"raw_charge_map_vtx_[64][64]/F");
-		reco_t_->Branch("raw_time_map_vtx",&raw_time_map_vtx_,"raw_time_map_vtx_[64][64]/F");
+		reco_t_->Branch("filtered_hit_map_vtx",&filtered_hit_map_vtx_,"filtered_hit_map_vtx_[64][64]/F");
+		reco_t_->Branch("filtered_charge_map_vtx",&filtered_charge_map_vtx_,"filtered_charge_map_vtx_[64][64]/F");
+		reco_t_->Branch("filtered_time_map_vtx",&filtered_time_map_vtx_,"filtered_time_map_vtx_[64][64]/F");
 	}
-	reco_t_->Branch("filtered_hit_map_vtx",&filtered_hit_map_vtx_,"filtered_hit_map_vtx_[64][64]/F");
-	reco_t_->Branch("filtered_charge_map_vtx",&filtered_charge_map_vtx_,"filtered_charge_map_vtx_[64][64]/F");
-	reco_t_->Branch("filtered_time_map_vtx",&filtered_time_map_vtx_,"filtered_time_map_vtx_[64][64]/F");
+	reco_t_->Branch("raw_charge_map_vtx",&raw_charge_map_vtx_,"raw_charge_map_vtx_[64][64]/F");
+	reco_t_->Branch("raw_time_map_vtx",&raw_time_map_vtx_,"raw_time_map_vtx_[64][64]/F");
 	reco_t_->Branch("filtered_hit_hough_map_vtx",&filtered_hit_hough_map_vtx_,"filtered_hit_hough_map_vtx_[64][64]/F");
 }
 
