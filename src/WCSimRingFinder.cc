@@ -283,14 +283,13 @@ WCSimHoughTransformArray* WCSimRingFinder::HoughTransformArray(std::vector<WCSim
 
 	// make new Hough Transform array (if necessary)
 	// =============================================
-	if (fHoughTransformArray == 0) {
-		fHoughTransformArray = new WCSimHoughTransformArray(fConeAngleBins, fConeAngleMin, fConeAngleMax, fHoughX,
-				fHoughY);
-	}
+	//if (fHoughTransformArray == 0) {
+	fHoughTransformArray = new WCSimHoughTransformArray(fConeAngleBins, fConeAngleMin, fConeAngleMax, fHoughX, fHoughY);
+	//}
 
 	// reset Hough Transform array
 	// ===========================
-	fHoughTransformArray->Reset();
+	//fHoughTransformArray->Reset();
 
 	// perform Hough Transform
 	// =======================

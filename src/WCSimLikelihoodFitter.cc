@@ -1870,10 +1870,18 @@ void WCSimLikelihoodFitter::FitAlongTrack() {
 
 	double finalDistance = 0;
 	double finalDeltaE = 0;
+	int status = 0;
 	try {
 		min->Minimize();
-		finalDistance = min->X()[0];
-		finalDeltaE = min->X()[1];
+		status = min->Status();
+		if (status != 0) {
+			finalDistance = 0.0;
+			finalDeltaE = 0.0;
+		} else {
+			finalDistance = min->X()[0];
+			finalDeltaE = min->X()[1];
+		}
+
 	} catch (FitterArgIsNaN &e) {
 		std::cerr << "Error: Fitter encountered an exception when minimising along track, due to NaN argument"
 				<< std::endl;
@@ -1892,10 +1900,12 @@ void WCSimLikelihoodFitter::FitAlongTrack() {
 	ftpm.SetCurrentValue(ftpm.GetIndex(0, FitterParameterType::kVtxX), newVertex.X());
 	ftpm.SetCurrentValue(ftpm.GetIndex(0, FitterParameterType::kVtxY), newVertex.Y());
 	ftpm.SetCurrentValue(ftpm.GetIndex(0, FitterParameterType::kVtxZ), newVertex.Z());
-	ftpm.SetCurrentValue(ftpm.GetIndex(0, FitterParameterType::kVtxT),
-			ftpm.GetCurrentValue(0, FitterParameterType::kVtxT) + finalDistance / speed + min->X()[minE.size() + 1]);
-	for (unsigned int iTrack = 0; iTrack < minE.size(); ++iTrack) {
-		ftpm.SetCurrentValue(ftpm.GetIndex(iTrack, FitterParameterType::kEnergy), min->X()[iTrack + 1]);
+	if (status == 0) {
+		ftpm.SetCurrentValue(ftpm.GetIndex(0, FitterParameterType::kVtxT),
+				ftpm.GetCurrentValue(0, FitterParameterType::kVtxT) + finalDistance / speed + min->X()[minE.size() + 1]);
+		for (unsigned int iTrack = 0; iTrack < minE.size(); ++iTrack) {
+			ftpm.SetCurrentValue(ftpm.GetIndex(iTrack, FitterParameterType::kEnergy), min->X()[iTrack + 1]);
+		}
 	}
 
 	UpdateBestFits();

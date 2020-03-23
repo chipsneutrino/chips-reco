@@ -1,5 +1,7 @@
 #include "WCSimHoughTransform.hh"
 
+#include <iostream>
+
 #include "TH2.h"
 #include "TMath.h"
 #include "TSpectrum2.h"
@@ -20,15 +22,13 @@ WCSimHoughTransform::WCSimHoughTransform(Int_t phiBins, Int_t costhetaBins) {
 
 // Destructor
 WCSimHoughTransform::~WCSimHoughTransform() {
-	delete[] fHoughArray;
+	delete fHoughArray;
 }
 
 // Set every entry in fHoughArray to 0
 void WCSimHoughTransform::Reset() {
-	for (Int_t xbin = 0; xbin < fXbins; xbin++) {
-		for (Int_t ybin = 0; ybin < fYbins; ybin++) {
-			fHoughArray[xbin * fYbins + ybin] = 0.0;
-		}
+	for (Int_t bin = 0; bin < (fXbins*fYbins); bin++) {
+		fHoughArray[bin] = 0.0;
 	}
 
 	fEntries = 0;
