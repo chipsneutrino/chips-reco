@@ -555,7 +555,7 @@ void WCSimRecoEvDisplay::MatchRecoToTrue() {
 		}
 
 		// Fill the match vector (999 means no match found).
-		fDisplayTrackPairs.push_back(std::make_pair<unsigned int, unsigned int>(r, bestMatch));
+		fDisplayTrackPairs.push_back(std::make_pair(r, bestMatch));
 	}
 
 }
