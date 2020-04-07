@@ -98,7 +98,7 @@ WCSimParameters::WCSimParameters() {
 
 	// Load the file with the default configuration
 	// and update the member variables above as necessary
-	fConfName = getenv("WCSIMANAHOME");
+	fConfName = getenv("CHIPSRECO");
 	fConfName.append("/config/default.cfg");
 	this->SetConfigFile(fConfName.c_str());
 	return;

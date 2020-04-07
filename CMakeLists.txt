@@ -177,7 +177,7 @@ add_library(WCSimAnalysisRoot SHARED
             ./src/base/WCSimRecoClusteringUtil.cc 
             ./src/base/WCSimChargePredictor.cc
             WCSimAnalysisRootDict.cxx)
-target_link_libraries(WCSimAnalysisRoot ${ROOT_LIBRARIES})
+target_link_libraries(WCSimAnalysisRoot ${ROOT_LIBRARIES} Spectrum)
 
 #---Add the geometryHelper executable and link to all the required libraries
 add_executable(evDisplay ./src/apps/evDisplay.cc ${sources} ${headers})

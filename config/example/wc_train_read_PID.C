@@ -1,16 +1,12 @@
-void wc_train_read_PID(){
-	std::cout << "#### START ####" << std::endl;
+R__LOAD_LIBRARY(libWCSimRoot.so)
+R__LOAD_LIBRARY(libWCSimAnalysisRoot.so)
+R__LOAD_LIBRARY(libGeom.so)
+R__LOAD_LIBRARY(libEve.so)
+R__LOAD_LIBRARY(libMinuit.so)
 
-	// Load the libraries we need...
-	std::cout << "Loading libraries..." << std::endl;
-    gSystem->Load("libGeom");
-    gSystem->Load("libEve");
-    gSystem->Load("libMinuit");
-    gSystem->Load("libTMVA");
-    TString libWCSimRoot = TString::Format("%s%s",gSystem->Getenv("WCSIMHOME"), "/libWCSimRoot.so");
-    TString libWCSimAnalysis = TString::Format("%s%s",gSystem->Getenv("WCSIMANAHOME"), "/lib/libWCSimAnalysis.so");
-    gSystem->Load(libWCSimRoot.Data());
-    gSystem->Load(libWCSimAnalysis.Data());
+void wc_train_read_PID()
+{
+    std::cout << "#### START ####" << std::endl;
 
     // Define the training input directories to use full of WCSimAnalysis output files...
     std::string elTrainDir = "/unix/chips/jtingey/CHIPS/data/testing/CHIPS_1200_veto_LC/sk1pe/nue_cc_flux/NuMI/wc_Chips_1200_el_mu/";
@@ -32,5 +28,5 @@ void wc_train_read_PID(){
     // Test the two ANNs with the sample
     pid->Read();
 
-	std::cout << "#### END ####" << std::endl;
+    std::cout << "#### END ####" << std::endl;
 }

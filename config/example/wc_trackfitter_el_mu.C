@@ -1,33 +1,26 @@
-void wc_trackfitter_el_mu(const char * infile = "", int start = 0, int fit = 1) {
+R__LOAD_LIBRARY(libWCSimRoot.so)
+R__LOAD_LIBRARY(libWCSimAnalysisRoot.so)
+R__LOAD_LIBRARY(libGeom.so)
+R__LOAD_LIBRARY(libEve.so)
+R__LOAD_LIBRARY(libMinuit.so)
 
-	// Path to WCSim ROOT file
-	// =======================
+void wc_trackfitter_el_mu(const char *infile = "", int start = 0, int fit = 1)
+{
+	// Setup the path to the input file
 	TString filename(infile);
-	if (filename.CompareTo("") == 0) {
-		filename = TString("/unix/chips/jtingey/CHIPS/code/SimAndReco/WCSimAnalysis/example/sampleWCSimEvent.root");
+	if (filename.CompareTo("") == 0)
+	{
+		filename = getenv("CHIPSRECO");
+		filename += "/config/example/example_sim_output.root";
 	}
-	gApplication->ProcessLine(".except");
 
-	// Load libraries
-	// ==============
-	gSystem->Load("libGeom");
-	gSystem->Load("libEve");
-	gSystem->Load("libMinuit");
+	WCSimFitterInterface myFitter; // Create a fitter interface
 
-	TString libWCSimRoot = TString::Format("%s%s", gSystem->Getenv("WCSIMHOME"), "/libWCSimRoot.so");
-	TString libWCSimAnalysis = TString::Format("%s%s", gSystem->Getenv("WCSIMANAHOME"), "/lib/libWCSimAnalysis.so");
-	gSystem->Load(libWCSimRoot.Data());
-	gSystem->Load(libWCSimAnalysis.Data());
-
-	// Get a fitter interface...
-	WCSimFitterInterface myFitter;
-
-	// Set the input file, and say if you are modifying a WCSimAnalysis output file
-	// This loads the data from the corresponding WCSim file appropriately
+	// Set the input file, and set if you are modifying a current file
 	myFitter.SetInputFileName(filename.Data(), false);
 
 	// Set up the fit configurations you want to run...
-	WCSimFitterConfig * config_el = new WCSimFitterConfig();
+	WCSimFitterConfig *config_el = new WCSimFitterConfig();
 	config_el->SetNumTracks(1);
 	config_el->SetTrackType(0, "ElectronLike");
 
@@ -42,7 +35,7 @@ void wc_trackfitter_el_mu(const char * infile = "", int start = 0, int fit = 1) 
 	config_el->SetNumEventsToFit(fit);
 	config_el->SetFirstEventToFit(start);
 
-	WCSimFitterConfig * config_mu = new WCSimFitterConfig();
+	WCSimFitterConfig *config_mu = new WCSimFitterConfig();
 	config_mu->SetNumTracks(1);
 	config_mu->SetTrackType(0, "MuonLike");
 
@@ -67,5 +60,4 @@ void wc_trackfitter_el_mu(const char * infile = "", int start = 0, int fit = 1) 
 	delete config_mu;
 
 	std::cout << "Done!" << std::endl;
-
 }

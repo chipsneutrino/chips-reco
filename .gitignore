@@ -7,7 +7,6 @@
 *.d
 *___*
 .*
-./*.root
 *_.cxx
 /nbproject/private/
 *~
@@ -19,7 +18,6 @@ src/WCSimAnalysisRootDict.h
 libWCSimAnalysis.a
 *.sh.o*
 *.sh.e*
-*.root
 *.so
 *.sh.o*
 *.sh.e*

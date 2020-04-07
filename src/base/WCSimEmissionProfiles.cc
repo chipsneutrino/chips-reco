@@ -287,7 +287,7 @@ Double_t WCSimEmissionProfiles::GetFractionThroughBin(Double_t energy) const
 void WCSimEmissionProfiles::LoadFile(const TrackType::Type &type, const double &energy)
 {
 	std::cout << " *** WCSimEmissionProfiles::LoadFile - Loading profile" << std::endl;
-	fProfileFileName = TString(getenv("WCSIMANAHOME"));
+	fProfileFileName = TString(getenv("CHIPSRECO"));
 	switch (type)
 	{
 	case TrackType::PhotonLike:

@@ -1,23 +1,18 @@
-void wc_trackfitter_piZero(const char * infile = "", int start = 0, int fit = 100) {
+R__LOAD_LIBRARY(libWCSimRoot.so)
+R__LOAD_LIBRARY(libWCSimAnalysisRoot.so)
+R__LOAD_LIBRARY(libGeom.so)
+R__LOAD_LIBRARY(libEve.so)
+R__LOAD_LIBRARY(libMinuit.so)
 
-	// Path to WCSim ROOT file
-	// =======================
+void wc_trackfitter_piZero(const char *infile = "", int start = 0, int fit = 100)
+{
+	// Setup the path to the input file
 	TString filename(infile);
-	if (filename.CompareTo("") == 0) {
-		filename = TString("/unix/chips/jtingey/CHIPS/code/SimAndReco/WCSimAnalysis/example/sampleWCSimEvent.root");
+	if (filename.CompareTo("") == 0)
+	{
+		filename = getenv("CHIPSRECO");
+		filename += "/config/example/example_sim_output.root";
 	}
-	gApplication->ProcessLine(".except");
-
-	// Load libraries
-	// ==============
-	gSystem->Load("libGeom");
-	gSystem->Load("libEve");
-	gSystem->Load("libMinuit");
-
-	TString libWCSimRoot = TString::Format("%s%s", gSystem->Getenv("WCSIMHOME"), "/libWCSimRoot.so");
-	TString libWCSimAnalysis = TString::Format("%s%s", gSystem->Getenv("WCSIMANAHOME"), "/lib/libWCSimAnalysis.so");
-	gSystem->Load(libWCSimRoot.Data());
-	gSystem->Load(libWCSimAnalysis.Data());
 
 	// Get a fitter interface...
 	WCSimFitterInterface myFitter;
@@ -27,7 +22,7 @@ void wc_trackfitter_piZero(const char * infile = "", int start = 0, int fit = 10
 	myFitter.SetInputFileName(filename.Data(), false);
 
 	// Set up the fit configuration you want to run...
-	WCSimFitterConfig * config_piZero = new WCSimFitterConfig();
+	WCSimFitterConfig *config_piZero = new WCSimFitterConfig();
 	config_piZero->SetNumTracks(2);
 	config_piZero->SetTrackType(0, "PhotonLike");
 	config_piZero->SetTrackType(1, "PhotonLike");
@@ -68,5 +63,4 @@ void wc_trackfitter_piZero(const char * infile = "", int start = 0, int fit = 10
 	delete config_piZero;
 
 	std::cout << "Done!" << std::endl;
-
 }

@@ -1,23 +1,18 @@
-void wc_trackfitter_cosmic(const char * infile = "", int start = 0, int fit = 1) {
+R__LOAD_LIBRARY(libWCSimRoot.so)
+R__LOAD_LIBRARY(libWCSimAnalysisRoot.so)
+R__LOAD_LIBRARY(libGeom.so)
+R__LOAD_LIBRARY(libEve.so)
+R__LOAD_LIBRARY(libMinuit.so)
 
-	// Path to WCSim ROOT file
-	// =======================
+void wc_trackfitter_cosmic(const char *infile = "", int start = 0, int fit = 1)
+{
+	// Setup the path to the input file
 	TString filename(infile);
-	if (filename.CompareTo("") == 0) {
-		filename = TString("/unix/chips/jtingey/CHIPS/code/SimAndReco/WCSimAnalysis/example/sampleWCSimEvent.root");
+	if (filename.CompareTo("") == 0)
+	{
+		filename = getenv("CHIPSRECO");
+		filename += "/config/example/example_sim_output.root";
 	}
-	gApplication->ProcessLine(".except");
-
-	// Load libraries
-	// ==============
-	gSystem->Load("libGeom");
-	gSystem->Load("libEve");
-	gSystem->Load("libMinuit");
-
-	TString libWCSimRoot = TString::Format("%s%s", gSystem->Getenv("WCSIMHOME"), "/libWCSimRoot.so");
-	TString libWCSimAnalysis = TString::Format("%s%s", gSystem->Getenv("WCSIMANAHOME"), "/lib/libWCSimAnalysis.so");
-	gSystem->Load(libWCSimRoot.Data());
-	gSystem->Load(libWCSimAnalysis.Data());
 
 	// Get a fitter interface...
 	WCSimFitterInterface myFitter;
@@ -27,7 +22,7 @@ void wc_trackfitter_cosmic(const char * infile = "", int start = 0, int fit = 1)
 	myFitter.SetInputFileName(filename.Data(), false);
 
 	// Set up the fit configuration you want to run...
-	WCSimFitterConfig * config_cosmic = new WCSimFitterConfig();
+	WCSimFitterConfig *config_cosmic = new WCSimFitterConfig();
 	config_cosmic->SetNumTracks(2);
 	config_cosmic->SetTrackType(0, "ElectronLike");
 	config_cosmic->SetTrackType(1, "MuonLike");
@@ -73,5 +68,4 @@ void wc_trackfitter_cosmic(const char * infile = "", int start = 0, int fit = 1)
 	delete config_cosmic;
 
 	std::cout << "Done!" << std::endl;
-
 }

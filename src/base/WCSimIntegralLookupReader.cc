@@ -163,7 +163,7 @@ double WCSimIntegralLookupReader::GetRhoGSSIntegral(const TrackType::Type& type,
 }
 
 TString WCSimIntegralLookupReader::GetLookupFilename(const TrackType::Type& type) {
-	TString str(getenv("WCSIMANAHOME"));
+	TString str(getenv("CHIPSRECO"));
 	if (type == TrackType::MuonLike) {
 		if (WCSimParameters::Instance()->TruncateIntegrals()) {
 			str += "/config/muonIntegrals.root";

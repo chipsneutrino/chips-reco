@@ -86,7 +86,7 @@ void WCSimScatteringTableManager::LoadScatteringTables() {
 		delete fScatteringFile;
 		fScatteringFile = 0x0;
 	}
-	TString profileFileName = TString(getenv("WCSIMANAHOME"));
+	TString profileFileName = TString(getenv("CHIPSRECO"));
 	profileFileName.Append("/config/scatteringTable.root");
 	fScatteringFile = new TFile(profileFileName.Data());
 	if (!fScatteringFile) {

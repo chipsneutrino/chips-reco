@@ -160,12 +160,12 @@ void WCSimDetectorParameters::OpenFile()
 {
 	if (fSpectrumVsDistanceFile == 0x0)
 	{
-		TString filename = TString(getenv("WCSIMANAHOME")) + "/config/spectraVsDistance.root";
+		TString filename = TString(getenv("CHIPSRECO")) + "/config/spectraVsDistance.root";
 		fSpectrumVsDistanceFile = new TFile(filename.Data(), "READ");
 	}
 	if (fSpectrumFile == 0x0)
 	{
-		TString filename = TString(getenv("WCSIMANAHOME")) + "/config/spectra.root";
+		TString filename = TString(getenv("CHIPSRECO")) + "/config/spectra.root";
 		fSpectrumFile = new TFile(filename.Data(), "READ");
 	}
 	return;

@@ -130,7 +130,7 @@ void WCSimDigitizerLikelihood::OpenSKPDFs()
 	{
 		delete fSK1peFile;
 	}
-	std::string pdfFile = getenv("WCSIMANAHOME");
+	std::string pdfFile = getenv("CHIPSRECO");
 	pdfFile.append("/config/SK1pePDFs.root");
 	fSK1peFile = new TFile(pdfFile.c_str(), "READ");
 	fSK1peHist = (TH2D *)(fSK1peFile->Get("digiPDF"));
@@ -147,7 +147,7 @@ void WCSimDigitizerLikelihood::OpenPMTSimPDFs()
 		delete fPMTSimFile;
 		fPMTSimHist = NULL;
 	}
-	std::string pmtSimFile = getenv("WCSIMANAHOME");
+	std::string pmtSimFile = getenv("CHIPSRECO");
 	pmtSimFile.append("/config/pmtSimPDFs.root");
 	fPMTSimFile = new TFile(pmtSimFile.c_str(), "READ");
 	fPMTSimHist = (TH2D *)(fPMTSimFile->Get("digiPDF"));
@@ -166,7 +166,7 @@ void WCSimDigitizerLikelihood::OpenTOTPDFs()
 		fTOTNikhefHist = NULL;
 		fTOTMadisonHist = NULL;
 	}
-	std::string TOTFile = getenv("WCSIMANAHOME");
+	std::string TOTFile = getenv("CHIPSRECO");
 	TOTFile.append("/config/TOTPDFs.root");
 	fTOTFile = new TFile(TOTFile.c_str(), "READ");
 	fTOTNikhefHist = (TH2D *)(fTOTFile->Get("digiPDF_nikef"));
