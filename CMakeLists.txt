@@ -182,3 +182,34 @@ target_link_libraries(WCSimAnalysisRoot ${ROOT_LIBRARIES} Spectrum)
 #---Add the geometryHelper executable and link to all the required libraries
 add_executable(evDisplay ./src/apps/evDisplay.cc ${sources} ${headers})
 target_link_libraries(evDisplay ${ROOT_LIBRARIES} ${CHIPSSIM_LIBRARY} Gui EG Spectrum WCSimAnalysisRoot Tree)
+
+#---Download large data files to the config directory
+message([<mode>] "message text" ...)
+
+if(EXISTS "./config/electronIntegralsSmall.root")
+  message(STATUS "Already have electronIntegralsSmall.root")
+else()
+  message(STATUS "Downloading electronIntegralsSmall.root")
+  file(DOWNLOAD http://www.hep.ucl.ac.uk/~jtingey/chips-reco/electronIntegralsSmall.root ./config/electronIntegralsSmall.root)
+endif()
+
+if(EXISTS "./config/emissionProfilesElectrons.root")
+  message(STATUS "Already have emissionProfilesElectrons.root")
+else()
+  message(STATUS "Downloading emissionProfilesElectrons.root")
+  file(DOWNLOAD http://www.hep.ucl.ac.uk/~jtingey/chips-reco/emissionProfilesElectrons.root ./config/emissionProfilesElectrons.root)
+endif()
+
+if(EXISTS "./config/emissionProfilesMuons.root")
+  message(STATUS "Already have emissionProfilesMuons.root")
+else()
+  message(STATUS "Downloading emissionProfilesMuons.root")
+  file(DOWNLOAD http://www.hep.ucl.ac.uk/~jtingey/chips-reco/emissionProfilesMuons.root ./config/emissionProfilesMuons.root)
+endif()
+
+if(EXISTS "./config/muonIntegralsSmall.root")
+  message(STATUS "Already have muonIntegralsSmall.root")
+else()
+  message(STATUS "Downloading muonIntegralsSmall.root")
+  file(DOWNLOAD http://www.hep.ucl.ac.uk/~jtingey/chips-reco/muonIntegralsSmall.root ./config/muonIntegralsSmall.root)
+endif()

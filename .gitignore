@@ -13,15 +13,11 @@
 lib/
 tmp/
 evDisplay
-src/WCSimAnalysisRootDict.cc
-src/WCSimAnalysisRootDict.h
-libWCSimAnalysis.a
 *.sh.o*
 *.sh.e*
 *.so
 *.sh.o*
 *.sh.e*
-config/pePDFs
 
 CMakeCache.txt
 CMakeFiles/
@@ -30,3 +26,8 @@ WCSimAnalysisRootDict.cxx
 cmake_install.cmake
 libWCSimAnalysisRootDict.rootmap
 libWCSimAnalysisRootDict_rdict.pcm
+
+config/electronIntegralsSmall.root
+config/emissionProfilesElectrons.root
+config/emissionProfilesMuons.root
+config/muonIntegralsSmall.root
