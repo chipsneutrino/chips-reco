@@ -13,7 +13,7 @@
 *~
 lib/
 tmp/
-evDisplay
+recoDisplay
 src/WCSimAnalysisRootDict.cc
 src/WCSimAnalysisRootDict.h
 libWCSimAnalysis.a

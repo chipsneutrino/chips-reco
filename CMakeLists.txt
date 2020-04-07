@@ -180,5 +180,5 @@ add_library(WCSimAnalysisRoot SHARED
 target_link_libraries(WCSimAnalysisRoot ${ROOT_LIBRARIES})
 
 #---Add the geometryHelper executable and link to all the required libraries
-add_executable(evDisplay ./src/apps/evDisplay.cc ${sources} ${headers})
-target_link_libraries(evDisplay ${ROOT_LIBRARIES} ${CHIPSSIM_LIBRARY} Gui EG Spectrum WCSimAnalysisRoot Tree)
+add_executable(recoDisplay ./src/apps/recoDisplay.cc ${sources} ${headers})
+target_link_libraries(recoDisplay ${ROOT_LIBRARIES} ${CHIPSSIM_LIBRARY} Gui EG Spectrum WCSimAnalysisRoot Tree)
