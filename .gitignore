@@ -12,7 +12,8 @@
 *~
 lib/
 tmp/
-evDisplay
+
+recoDisplay
 *.sh.o*
 *.sh.e*
 *.so
