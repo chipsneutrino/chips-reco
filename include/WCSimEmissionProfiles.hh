@@ -5,8 +5,7 @@
  *      Author: andy
  */
 
-#ifndef WCSIMEMISSIONPROFILES_H_
-#define WCSIMEMISSIONPROFILES_H_
+#pragma once
 
 #include "WCSimLikelihoodTrackBase.hh"
 #include "WCSimTrackParameterEnums.hh"
@@ -141,5 +140,3 @@ private:
 
 	ClassDef(WCSimEmissionProfiles, 1)
 };
-
-#endif /* WCSIMEMISSIONPROFILES_H_ */

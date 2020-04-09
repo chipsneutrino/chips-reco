@@ -1,5 +1,4 @@
-#ifndef WCSIMRECOCLUSTER_HH
-#define WCSIMRECOCLUSTER_HH
+#pragma once
 
 #include "TObject.h"
 
@@ -26,5 +25,3 @@ private:
 
 	ClassDef(WCSimRecoCluster, 0)
 };
-
-#endif

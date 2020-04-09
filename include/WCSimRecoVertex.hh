@@ -1,5 +1,4 @@
-#ifndef WCSIMRECOVERTEX_HH
-#define WCSIMRECOVERTEX_HH
+#pragma once
 
 #include "TObject.h"
 
@@ -123,5 +122,3 @@ private:
 
 	ClassDef(WCSimRecoVertex, 0)
 };
-
-#endif

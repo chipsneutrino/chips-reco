@@ -5,8 +5,8 @@
  *      Author: ajperch
  */
 
-#ifndef WCSIMINTEGRALLOOKUPMAKER3D_HH_
-#define WCSIMINTEGRALLOOKUPMAKER3D_HH_
+#pragma once
+
 #include "WCSimEmissionProfileManager.hh"
 #include "WCSimIntegralLookup3D.hh"
 #include "WCSimTrackParameterEnums.hh"
@@ -94,5 +94,3 @@ private:
 
 	ClassDef(WCSimIntegralLookupMaker3D, 1)
 };
-
-#endif /* WCSIMINTEGRALLOOKUPMAKER3D_HH_ */

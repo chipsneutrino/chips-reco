@@ -5,8 +5,7 @@
  *      Author: andy
  */
 
-#ifndef INCLUDE_WCSIMTIMELIKELIHOOD3_HH_
-#define INCLUDE_WCSIMTIMELIKELIHOOD3_HH_
+#pragma once
 
 #include "TF1.h"
 #include "TRandom3.h"
@@ -502,5 +501,3 @@ private:
 private:
 	ClassDef(WCSimTimeLikelihood3, 0)
 };
-
-#endif /* INCLUDE_WCSIMTIMELIKELIHOOD3_HH_ */

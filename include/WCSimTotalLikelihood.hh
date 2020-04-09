@@ -5,8 +5,8 @@
  * likelihood to measure the recorded PMT signals given
  * a set of hypothesised tracks.
  */
-#ifndef WCSIMTOTALLIKELIHOOD_H
-#define WCSIMTOTALLIKELIHOOD_H
+
+#pragma once
 
 #include "WCSimChargePredictor.hh"
 #include "WCSimTimeLikelihood3.hh"
@@ -133,5 +133,3 @@ private:
 
 	ClassDef(WCSimTotalLikelihood, 1)
 };
-
-#endif

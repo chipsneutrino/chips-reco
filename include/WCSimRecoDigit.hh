@@ -1,5 +1,4 @@
-#ifndef WCSIMRECODIGIT_HH
-#define WCSIMRECODIGIT_HH
+#pragma once
 
 #include "TObject.h"
 
@@ -86,5 +85,3 @@ private:
 
 	ClassDef(WCSimRecoDigit, 0)
 };
-
-#endif

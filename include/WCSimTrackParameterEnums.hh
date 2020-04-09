@@ -5,8 +5,8 @@
  *      Author: ajperch
  */
 
-#ifndef WCSIMTRACKPARAMETERENUMS_HH_
-#define WCSIMTRACKPARAMETERENUMS_HH_
+#pragma once
+
 #include <cstdlib>
 #include <cassert>
 #include <string>
@@ -293,5 +293,3 @@ public:
 	}
 	ClassDef(FitterParameterType, 1);
 };
-
-#endif /* WCSIMTRACKPARAMETERENUMS_HH_ */

@@ -5,8 +5,7 @@
  * log likelihood to reconstruct the event.
  */
 
-#ifndef WCSIMLIKELIHOODFITTER_H
-#define WCSIMLIKELIHOODFITTER_H
+#pragma once
 
 #include "WCSimFitterParameters.hh"
 #include "WCSimFitterPlots.hh"
@@ -414,5 +413,3 @@ protected:
 	int fCalls; ///< How many times the likelihood has been calculated for this event
 	ClassDef(WCSimLikelihoodFitter, 1);
 };
-
-#endif // WCSIMLIKELIHOODFITTER_H

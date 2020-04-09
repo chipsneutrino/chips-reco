@@ -5,8 +5,8 @@
  *      Author: ajperch
  */
 
-#ifndef WCSIMINTEGRALLOOKUP3D_HH_
-#define WCSIMINTEGRALLOOKUP3D_HH_
+#pragma once
+
 #include "TH1F.h"
 #include <vector>
 #include "TSpline.h"
@@ -135,5 +135,3 @@ private:
 
 	ClassDef(WCSimIntegralLookup3D, 1);
 };
-
-#endif /* WCSIMINTEGRALLOOKUP3D_HH_ */

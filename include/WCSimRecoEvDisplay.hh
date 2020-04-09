@@ -5,8 +5,7 @@
  *      Author: ajperch
  */
 
-#ifndef WCSIMRECOEVDISPLAY_HH_
-#define WCSIMRECOEVDISPLAY_HH_
+#pragma once
 
 #include "WCSimEvDisplay.hh"
 #include <vector>
@@ -165,5 +164,3 @@ protected:
 
 	ClassDef(WCSimRecoEvDisplay, 0)
 };
-
-#endif /* WCSIMRECOEVDISPLAY_HH_ */

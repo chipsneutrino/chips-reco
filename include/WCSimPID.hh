@@ -12,8 +12,7 @@
 #include <iostream>
 #include <cstdlib>
 
-#ifndef WCSIMPID_HH_
-#define WCSIMPID_HH_
+#pragma once
 
 class WCSimPID : public TObject
 {
@@ -74,5 +73,3 @@ private:
 
 	ClassDef(WCSimPID, 1);
 };
-
-#endif /* WCSIMPID_HH_ */

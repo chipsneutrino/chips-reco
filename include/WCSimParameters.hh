@@ -1,5 +1,4 @@
-#ifndef WCSIMPARAMETERS_HH
-#define WCSIMPARAMETERS_HH
+#pragma once
 
 #include "TObject.h"
 #include <string>
@@ -608,5 +607,3 @@ private:
 
 	ClassDef(WCSimParameters, 0)
 };
-
-#endif

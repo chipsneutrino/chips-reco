@@ -5,8 +5,8 @@
  * and hit time.  WCSimAnalysis interfaces with hits
  * from WCSim using this class.
  */
-#ifndef WCSIMLIKELIHOODDIGIT_H
-#define WCSIMLIKELIHOODDIGIT_H
+
+#pragma once
 
 #include <vector>
 #include "WCSimDetectorParameters.hh"
@@ -89,5 +89,3 @@ private:
 
 	ClassDef(WCSimLikelihoodDigit, 1)
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef WCSIMRECOOBJECTTABLE_HH
-#define WCSIMRECOOBJECTTABLE_HH
+#pragma once
 
 #include "TObject.h"
 
@@ -102,5 +101,3 @@ private:
 
 	ClassDef(WCSimRecoObjectTable, 0)
 };
-
-#endif

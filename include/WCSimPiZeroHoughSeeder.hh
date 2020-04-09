@@ -5,8 +5,7 @@
  *      Author: ajperch
  */
 
-#ifndef WCSIMPIZEROHOUGHSEEDER_HH_
-#define WCSIMPIZEROHOUGHSEEDER_HH_
+#pragma once
 
 #include "WCSimPiZeroSeeder.hh"
 
@@ -38,5 +37,3 @@ private:
 	std::vector<std::pair<WCSimLikelihoodTrackBase *, WCSimLikelihoodTrackBase *>> fHoughResults;
 	ClassDef(WCSimPiZeroHoughSeeder, 0);
 };
-
-#endif /* WCSIMPIZEROHOUGHSEEDER_HH_ */

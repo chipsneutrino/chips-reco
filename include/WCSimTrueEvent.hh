@@ -1,5 +1,4 @@
-#ifndef WCSIMTRUEEVENT_HH
-#define WCSIMTRUEEVENT_HH
+#pragma once
 
 #include "TObject.h"
 
@@ -143,5 +142,3 @@ private:
 
 	ClassDef(WCSimTrueEvent, 0)
 };
-
-#endif

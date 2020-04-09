@@ -5,8 +5,7 @@
  *      Author: ajperch
  */
 
-#ifndef WCSIMPIZEROFITTER_HH_
-#define WCSIMPIZEROFITTER_HH_
+#pragma once
 
 #include "WCSimFitterParameters.hh"
 #include "WCSimFitterPlots.hh"
@@ -63,5 +62,3 @@ private:
 	WCSimPiZeroSeedGenerator fPiZeroSeedGenerator;
 	ClassDef(WCSimPiZeroFitter, 0);
 };
-
-#endif /* WCSIMPIZEROFITTER_HH_ */

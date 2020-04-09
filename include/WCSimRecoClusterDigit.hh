@@ -1,5 +1,4 @@
-#ifndef WCSIMRECOCLUSTERDIGIT_HH
-#define WCSIMRECOCLUSTERDIGIT_HH
+#pragma once
 
 #include "TObject.h"
 
@@ -62,5 +61,3 @@ private:
 
 	ClassDef(WCSimRecoClusterDigit, 0)
 };
-
-#endif

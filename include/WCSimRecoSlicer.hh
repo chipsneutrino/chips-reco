@@ -1,5 +1,4 @@
-#ifndef WCSIM_RECOSLICER_HH
-#define WCSIM_RECOSLICER_HH
+#pragma once
 
 #include <vector>
 
@@ -119,5 +118,3 @@ private:
 
 	WCSimRecoClusteringUtil *fClusteringUtil;
 };
-
-#endif

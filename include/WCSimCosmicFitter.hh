@@ -5,8 +5,7 @@
  * log likelihood to reconstruct the event.
  */
 
-#ifndef WCSIMCOSMICFITTER_H
-#define WCSIMCOSMICFITTER_H
+#pragma once
 
 #include "WCSimFitterParameters.hh"
 #include "WCSimFitterPlots.hh"
@@ -89,5 +88,3 @@ protected:
 
 	ClassDef(WCSimCosmicFitter, 1);
 };
-
-#endif // WCSIMCOSMICFITTER_H

@@ -1,5 +1,4 @@
-#ifndef WCSIMSCATTERINGTABLEMANAGER_HH
-#define WCSIMSCATTERINGTABLEMANAGER_HH
+#pragma once
 
 #include <vector>
 #include "THnSparse.h"
@@ -33,4 +32,3 @@ private:
 	THnSparseF *fScatteringTableBottom;
 	THnSparseF *fScatteringTableBarrel;
 };
-#endif

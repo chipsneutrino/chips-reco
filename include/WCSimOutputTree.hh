@@ -1,5 +1,4 @@
-#ifndef WCSIMOUTPUTTREE_HH
-#define WCSIMOUTPUTTREE_HH
+#pragma once
 
 /*
  * WCSimOutputTree.hh
@@ -1250,5 +1249,3 @@ private:
 
 	ClassDef(WCSimOutputTree, 3)
 };
-
-#endif /* WCSIMOUTPUTTREE_HH */

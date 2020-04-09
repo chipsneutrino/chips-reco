@@ -1,5 +1,4 @@
-#ifndef WCSIMHOUGHTRANSFORMARRAY_HH
-#define WCSIMHOUGHTRANSFORMARRAY_HH
+#pragma once
 
 #include "TObject.h"
 
@@ -81,5 +80,3 @@ private:
 
 	ClassDef(WCSimHoughTransformArray, 0)
 };
-
-#endif

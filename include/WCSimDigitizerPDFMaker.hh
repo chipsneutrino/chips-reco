@@ -5,8 +5,7 @@
  *      Author: andy
  */
 
-#ifndef WCSIMDIGITIZERPDFMAKER_H_
-#define WCSIMDIGITIZERPDFMAKER_H_
+#pragma once
 
 #include "WCSimCHIPSPMT.hh"
 #include "WCSimSK1pePMT.hh"
@@ -74,5 +73,3 @@ private:
 	WCSimCHIPSPMT *fCHIPSPMT;
 	WCSimTOTPMT *fTOTPMT;
 };
-
-#endif /* WCSIMDIGITIZERPDFMAKER_H_ */

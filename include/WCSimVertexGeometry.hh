@@ -1,5 +1,4 @@
-#ifndef WCSIMVERTEXGEOMETRY_HH
-#define WCSIMVERTEXGEOMETRY_HH
+#pragma once
 
 #include "TObject.h"
 
@@ -447,5 +446,3 @@ private:
 
 	ClassDef(WCSimVertexGeometry, 0)
 };
-
-#endif

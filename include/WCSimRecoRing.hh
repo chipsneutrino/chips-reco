@@ -1,5 +1,4 @@
-#ifndef WCSIMRECORING_HH
-#define WCSIMRECORING_HH
+#pragma once
 
 #include "TObject.h"
 
@@ -59,5 +58,3 @@ private:
 
 	ClassDef(WCSimRecoRing, 0)
 };
-
-#endif

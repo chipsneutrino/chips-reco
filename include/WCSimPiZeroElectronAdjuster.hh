@@ -5,8 +5,7 @@
  *      Author: ajperch
  */
 
-#ifndef WCSIMPIZEROELECTRONADJUSTER_HH_
-#define WCSIMPIZEROELECTRONADJUSTER_HH_
+#pragma once
 
 #include "WCSimPiZeroSeeder.hh"
 
@@ -46,5 +45,3 @@ private:
 
 	ClassDef(WCSimPiZeroElectronAdjuster, 0);
 };
-
-#endif /* WCSIMPIZEROELECTRONADJUSTER_HH_ */

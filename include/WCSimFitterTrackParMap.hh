@@ -5,8 +5,8 @@
  *      Author: andy
  */
 
-#ifndef WCSIMFITTERTRACKPARMAP_HH_
-#define WCSIMFITTERTRACKPARMAP_HH_
+#pragma once
+
 #include <map>
 #include <string>
 #include <vector>
@@ -86,5 +86,3 @@ private:
 
 	ClassDef(WCSimFitterTrackParMap, 1)
 };
-
-#endif /* WCSIMFITTERTRACKPARMAP_HH_ */

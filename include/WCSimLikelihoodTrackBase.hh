@@ -5,8 +5,8 @@
  *      Author: andy
  */
 
-#ifndef WCSIMLIKELIHOODTRACKBASE_HH_
-#define WCSIMLIKELIHOODTRACKBASE_HH_
+#pragma once
+
 #include "WCSimTrackParameterEnums.hh"
 class WCSimTrueTrack;
 #include "TVector3.h"
@@ -85,5 +85,3 @@ protected:
 	TrackType::Type fType; ///< Particle type (e, mu, pi...)
 	WCSimLikelihoodTrackBase();
 };
-
-#endif /* WCSIMLIKELIHOODTRACKBASE_HH_ */

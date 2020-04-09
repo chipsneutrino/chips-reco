@@ -1,5 +1,4 @@
-#ifndef WCSIMRINGFINDER_HH
-#define WCSIMRINGFINDER_HH
+#pragma once
 
 #include "TObject.h"
 
@@ -113,5 +112,3 @@ private:
 
 	ClassDef(WCSimRingFinder, 0)
 };
-
-#endif

@@ -4,8 +4,8 @@
  *  Created on: 7 Jul 2015
  *      Author: andy
  */
-#ifndef INCLUDE_WCSIMTIMEPREDICTOR_HH_
-#define INCLUDE_WCSIMTIMEPREDICTOR_HH_
+
+#pragma once
 
 #include <vector>
 #include <TObject.h>
@@ -61,5 +61,3 @@ private:
 	WCSimLikelihoodTuner *fTuner;
 	ClassDef(WCSimTimePredictor, 0)
 };
-
-#endif /* INCLUDE_WCSIMTIMEPREDICTOR_HH_ */

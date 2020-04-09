@@ -1,5 +1,4 @@
-#ifndef WCSIMMSG_HH
-#define WCSIMMSG_HH
+#pragma once
 
 #include "TObject.h"
 
@@ -44,5 +43,3 @@ private:
 
 	ClassDef(WCSimMsg, 0)
 };
-
-#endif

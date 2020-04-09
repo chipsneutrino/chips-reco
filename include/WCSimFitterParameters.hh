@@ -5,8 +5,8 @@
  *      Author: andy
  */
 
-#ifndef WCSIMFITTERPARAMETERS_HH_
-#define WCSIMFITTERPARAMETERS_HH_
+#pragma once
+
 #include "WCSimLikelihoodTrack.hh"
 #include "WCSimTrackParameterEnums.hh"
 #include <string>
@@ -155,5 +155,3 @@ private:
 	std::map<std::pair<unsigned int, unsigned int>, std::vector<FitterParameterType::Type>> fJoinedParams;
 	std::vector<TrackType::Type> fTrackTypes;
 };
-
-#endif /* WCSIMFITTERPARAMETERS_HH_ */

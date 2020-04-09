@@ -1,5 +1,4 @@
-#ifndef WCSIMINTERFACE_HH
-#define WCSIMINTERFACE_HH
+#pragma once
 
 #include "TObjArray.h"
 #include "TObject.h"
@@ -144,5 +143,3 @@ private:
 
 	ClassDef(WCSimInterface, 0)
 };
-
-#endif

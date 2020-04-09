@@ -5,8 +5,7 @@
  *      Author: andy
  */
 
-#ifndef WCSIMFITTERINTERFACE_HH_
-#define WCSIMFITTERINTERFACE_HH_
+#pragma once
 
 #include <TString.h>
 #include "WCSimTrackParameterEnums.hh"
@@ -63,5 +62,3 @@ private:
 
 	ClassDef(WCSimFitterInterface, 0)
 };
-
-#endif /* WCSIMFITTERINTERFACE_HH_ */

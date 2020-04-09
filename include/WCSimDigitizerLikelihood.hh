@@ -7,8 +7,8 @@
  * digitized P.E. recorded by the PMT
  */
 
-#ifndef WCSIMDIGITIZERLIKELIHOOD_H
-#define WCSIMDIGITIZERLIKELIHOOD_H
+#pragma once
+
 #include "Rtypes.h"
 #include <string>
 #include <map>
@@ -238,5 +238,3 @@ private:
 
 	Double_t fMinimum; ///< Minimum nonzero likelihood from histogram
 };
-
-#endif // WCSIMDIGITIZERLIKELIHOOD_H

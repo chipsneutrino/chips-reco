@@ -1,5 +1,4 @@
-#ifndef WCSIMDATACLEANER_HH
-#define WCSIMDATACLEANER_HH
+#pragma once
 
 #include "TObject.h"
 
@@ -108,5 +107,3 @@ private:
 
 	ClassDef(WCSimDataCleaner, 0)
 };
-
-#endif

@@ -5,8 +5,8 @@
  *      Author: ajperch
  */
 
-#ifndef WCSIMINTEGRALLOOKUPREADER_HH_
-#define WCSIMINTEGRALLOOKUPREADER_HH_
+#pragma once
+
 #include "WCSimLikelihoodTrackBase.hh"
 #include "WCSimTrackParameterEnums.hh"
 #include "WCSimIntegralLookup3D.hh"
@@ -44,5 +44,3 @@ private:
 
 	ClassDef(WCSimIntegralLookupReader, 1)
 };
-
-#endif /* WCSIMINTEGRALLOOKUPREADER_HH_ */

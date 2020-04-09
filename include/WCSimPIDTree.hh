@@ -1,5 +1,4 @@
-#ifndef WCSIMPIDTREE_HH
-#define WCSIMPIDTREE_HH
+#pragma once
 
 /*
  * WCSimPIDTree.hh
@@ -549,5 +548,3 @@ private:
 
 	ClassDef(WCSimPIDTree, 2)
 };
-
-#endif /* WCSIMPIDTREE_HH */

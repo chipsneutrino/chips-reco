@@ -5,8 +5,7 @@
  *      Author: ajperch
  */
 
-#ifndef WCSIMPIZEROSEEDER_HH_
-#define WCSIMPIZEROSEEDER_HH_
+#pragma once
 
 #include "WCSimLikelihoodFitter.hh"
 #include <vector>
@@ -31,5 +30,3 @@ protected:
 
 	ClassDef(WCSimPiZeroSeeder, 0);
 };
-
-#endif /* WCSIMPIZEROSEEDER_HH_ */

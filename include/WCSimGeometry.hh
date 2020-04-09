@@ -1,5 +1,4 @@
-#ifndef WCSIMGEOMETRY_HH
-#define WCSIMGEOMETRY_HH
+#pragma once
 
 #include "TObject.h"
 #include "TVector3.h"
@@ -345,5 +344,3 @@ private:
 
 	ClassDef(WCSimGeometry, 0)
 };
-
-#endif

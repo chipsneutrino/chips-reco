@@ -6,8 +6,7 @@
  * type.
  */
 
-#ifndef WCSIMLIKELIHOODTRACK_HH
-#define WCSIMLIKELIHOODTRACK_HH
+#pragma once
 
 #include "TObject.h"
 #include "TVector3.h"
@@ -66,5 +65,3 @@ private:
 	TVector3 fFirstEmissionVtx;
 	ClassDef(WCSimLikelihoodUnknownTrack, 1)
 };
-
-#endif /* WCSIMLIKELIHOODTRACK_HH */

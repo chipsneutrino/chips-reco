@@ -5,8 +5,7 @@
  *      Author: ajperch
  */
 
-#ifndef WCSIMPIZEROSINGLEELECTRONSEEDER_HH_
-#define WCSIMPIZEROSINGLEELECTRONSEEDER_HH_
+#pragma once
 
 #include "WCSimPiZeroSeeder.hh"
 
@@ -29,5 +28,3 @@ private:
 	double fMinus2LnL;
 	ClassDef(WCSimPiZeroSingleElectronSeeder, 0);
 };
-
-#endif /* WCSIMPIZEROSINGLEELECTRONSEEDER_HH_ */

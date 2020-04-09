@@ -5,8 +5,8 @@
  * It contains all the detector information used to fit
  * a single event
  */
-#ifndef WCSIMLIKELIHOODDIGITARRAY_H
-#define WCSIMLIKELIHOODDIGITARRAY_H
+
+#pragma once
 
 #include <vector>
 #include "WCSimLikelihoodDigit.hh"
@@ -99,5 +99,3 @@ private:
 	Double_t fLastTime;	 ///< Time of latest filtered PMT hit
 	ClassDef(WCSimLikelihoodDigitArray, 1)
 };
-
-#endif // WCSIMCHARGELIKELIHOOD_H

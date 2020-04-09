@@ -1,5 +1,4 @@
-#ifndef WCSIM_RECOCLUSTERINGUTIL_HH
-#define WCSIM_RECOCLUSTERINGUTIL_HH
+#pragma once
 
 #include <vector>
 
@@ -77,5 +76,3 @@ private:
 	std::vector<std::vector<WCSimRecoDigit *>> fTimeSlicedDigits;
 	std::vector<std::vector<WCSimRecoDigit *>> fFullSlicedDigits;
 };
-
-#endif

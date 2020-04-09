@@ -5,8 +5,7 @@
  *      Author: andy
  */
 
-#ifndef WCSIMLIKELIHOODTRACKFACTORY_HH_
-#define WCSIMLIKELIHOODTRACKFACTORY_HH_
+#pragma once
 
 #include "WCSimLikelihoodTrackBase.hh"
 #include "WCSimTrackParameterEnums.hh"
@@ -31,5 +30,3 @@ public:
 											   const double &z, const double &t, const double &theta, const double &phi, const double &energy,
 											   const double &conv);
 };
-
-#endif /* WCSIMLIKELIHOODTRACKFACTORY_HH_ */

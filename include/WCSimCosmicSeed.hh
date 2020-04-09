@@ -1,5 +1,4 @@
-#ifndef WCSIMCOSMICSEED_HH
-#define WCSIMCOSMICSEED_HH
+#pragma once
 
 #include <vector>
 
@@ -86,5 +85,3 @@ private:
 
 	ClassDef(WCSimCosmicSeed, 0)
 };
-
-#endif

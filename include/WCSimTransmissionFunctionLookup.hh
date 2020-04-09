@@ -5,8 +5,8 @@
  *      Author: ajperch
  */
 
-#ifndef WCSIMTRANSMISSIONFUNCTIONLOOKUP_HH_
-#define WCSIMTRANSMISSIONFUNCTIONLOOKUP_HH_
+#pragma once
+
 #include <vector>
 #include <iostream>
 //
@@ -64,5 +64,3 @@ private:
 	int GetTableNum(double xMin, double xMax, double norm, double nu);
 	std::vector<WCSimTransmissionFunctionLookupTable> fTables;
 };
-
-#endif /* WCSIMTRANSMISSIONFUNCTIONLOOKUP_HH_ */

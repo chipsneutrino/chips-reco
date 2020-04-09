@@ -1,5 +1,4 @@
-#ifndef WCSIMHOUGHTRANSFORM_HH
-#define WCSIMHOUGHTRANSFORM_HH
+#pragma once
 
 #include "TObject.h"
 
@@ -75,5 +74,3 @@ private:
 
 	ClassDef(WCSimHoughTransform, 0)
 };
-
-#endif

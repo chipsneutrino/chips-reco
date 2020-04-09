@@ -1,5 +1,4 @@
-#ifndef WCSIMRECOSEED_HH
-#define WCSIMRECOSEED_HH
+#pragma once
 
 #include "TVector3.h"
 #include "TObject.h"
@@ -68,5 +67,3 @@ private:
 
 	ClassDef(WCSimRecoSeed, 0)
 };
-
-#endif

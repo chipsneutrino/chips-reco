@@ -5,8 +5,7 @@
  *      Author: Josh
  */
 
-#ifndef WCSIMMAPPER_HH_
-#define WCSIMMAPPER_HH_
+#pragma once
 
 #include <math.h>
 
@@ -95,5 +94,3 @@ private:
 
 	ClassDef(WCSimMapper, 0)
 };
-
-#endif /* WCSIMMAPPER_HH_ */

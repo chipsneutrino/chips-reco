@@ -5,8 +5,8 @@
  *      Author: andy
  */
 
-#ifndef WCSIMFITTERCONFIG_HH_
-#define WCSIMFITTERCONFIG_HH_
+#pragma once
+
 #include "WCSimFitterParameters.hh"
 #include "WCSimLikelihoodTrack.hh"
 #include "WCSimTrackParameterEnums.hh"
@@ -96,5 +96,3 @@ private:
 	bool fForcePiZeroMass;
 	bool fIsCosmicFit;
 };
-
-#endif /* WCSIMFITTERCONFIG_HH_ */

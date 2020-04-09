@@ -5,8 +5,7 @@
  *      Author: andy
  */
 
-#ifndef INCLUDE_WCSIMDETECTORPARAMETERS_HH_
-#define INCLUDE_WCSIMDETECTORPARAMETERS_HH_
+#pragma once
 
 #include <string>
 #include <map>
@@ -56,5 +55,3 @@ private:
 
 	ClassDef(WCSimDetectorParameters, 1)
 };
-
-#endif /* INCLUDE_WCSIMDETECTORPARAMETERS_HH_ */

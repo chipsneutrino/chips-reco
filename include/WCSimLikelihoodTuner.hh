@@ -8,8 +8,7 @@
  * uses to predict the mean number of photons at a PMT.
  */
 
-#ifndef WCSIMLIKELIHOODTUNER_H
-#define WCSIMLIKELIHOODTUNER_H
+#pragma once
 
 #include <vector>
 
@@ -275,5 +274,3 @@ private:
 	void MakeCache(const double &s, WCSimLikelihoodTrackBase *myTrack, WCSimLikelihoodDigit *myDigit);
 	WCSimLikelihoodTunerCache fCache;
 };
-
-#endif // WCSIMLIKELIHOODTUNER_H

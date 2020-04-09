@@ -1,5 +1,4 @@
-#ifndef WCSIMHITCOMPARISON_HH
-#define WCSIMHITCOMPARISON_HH
+#pragma once
 
 #include <vector>
 #include "TObject.h"
@@ -181,4 +180,3 @@ private:
 };
 
 typedef std::vector<WCSimSingleHitComparison> WCSimHitComparison;
-#endif

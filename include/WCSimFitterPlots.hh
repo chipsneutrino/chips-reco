@@ -5,8 +5,8 @@
  *      Author: andy
  */
 
-#ifndef WCSIMFITTERPLOTS_HH_
-#define WCSIMFITTERPLOTS_HH_
+#pragma once
+
 #include "WCSimFitterParameters.hh"
 #include "WCSimLikelihoodTrackBase.hh"
 #include <map>
@@ -113,5 +113,3 @@ private:
 	std::map<FitterParameterType::Type, std::vector<TH1D *>> fRecoMinusTrue;
 	int fNumSurfaceBins;
 };
-
-#endif /* WCSIMFITTERPLOTS_HH_ */

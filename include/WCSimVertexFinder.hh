@@ -1,5 +1,4 @@
-#ifndef WCSIMVERTEXFINDER_HH
-#define WCSIMVERTEXFINDER_HH
+#pragma once
 
 #include "TObject.h"
 #include "TMinuit.h"
@@ -433,5 +432,3 @@ public:
 
 	ClassDef(WCSimVertexFinder, 0)
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef WCSIMFASTMATH_HH
-#define WCSIMFASTMATH_HH
+#pragma once
 
 #include <cmath>
 #include <cassert>
@@ -216,5 +215,3 @@ inline double CatmullRomSpline(double *x, double *y, double xInterp)
 }
 
 }; // namespace WCSimFastMath
-
-#endif

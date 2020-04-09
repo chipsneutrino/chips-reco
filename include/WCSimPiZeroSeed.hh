@@ -5,8 +5,8 @@
  *      Author: ajperch
  */
 
-#ifndef WCSIMPIZEROSEED_HH_
-#define WCSIMPIZEROSEED_HH_
+#pragma once
+
 class WCSimLikelihoodTrackBase;
 #include "TObject.h"
 
@@ -35,5 +35,3 @@ private:
 	double fMinus2LnL;
 	ClassDef(WCSimPiZeroSeed, 0);
 };
-
-#endif /* WCSIMPIZEROSEED_HH_ */

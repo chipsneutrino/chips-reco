@@ -5,8 +5,8 @@
  *      Author: ajperch
  */
 
-#ifndef WCSIMPIZEROSEEDGENERATOR_HH_
-#define WCSIMPIZEROSEEDGENERATOR_HH_
+#pragma once
+
 #include <vector>
 #include "WCSimPiZeroHoughSeeder.hh"
 #include "WCSimPiZeroSingleElectronSeeder.hh"
@@ -38,5 +38,3 @@ private:
 	int fEvent;
 	ClassDef(WCSimPiZeroSeedGenerator, 0);
 };
-
-#endif /* WCSIMPIZEROSEEDGENERATOR_HH_ */

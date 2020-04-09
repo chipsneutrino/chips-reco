@@ -5,8 +5,7 @@
  *      Author: ajperch
  */
 
-#ifndef WCSIMRECOSUMMARY_HH_
-#define WCSIMRECOSUMMARY_HH_
+#pragma once
 
 #include "TVector3.h"
 #include "TObject.h"
@@ -75,5 +74,3 @@ private:
 
 	ClassDef(WCSimRecoSummary, 2);
 };
-
-#endif /* WCSIMRECOSUMMARY_HH_ */

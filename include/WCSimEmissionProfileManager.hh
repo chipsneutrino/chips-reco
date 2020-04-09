@@ -1,5 +1,4 @@
-#ifndef WCSIMEMISSIONPROFILEMANAGER_HH
-#define WCSIMEMISSIONPROFILEMANAGER_HH
+#pragma once
 
 #include "WCSimTrackParameterEnums.hh"
 #include "WCSimEmissionProfiles.hh"
@@ -70,5 +69,3 @@ private:
 
 	ClassDef(WCSimEmissionProfileManager, 1)
 };
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef WCSIMTRUETRACK_HH
-#define WCSIMTRUETRACK_HH
+#pragma once
 
 #include "TObject.h"
 
@@ -125,5 +124,3 @@ private:
 
 	ClassDef(WCSimTrueTrack, 0)
 };
-
-#endif

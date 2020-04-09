@@ -4,8 +4,8 @@
  * This class is used to calculate the predicted
  * mean charge at a PMT due to a given track hypothesis
  */
-#ifndef WCSIMCHARGEPREDICTOR_HH
-#define WCSIMCHARGEPREDICTOR_HH
+
+#pragma once
 
 #include <vector>
 
@@ -191,5 +191,3 @@ private:
 	Int_t fGotTrackParameters;
 	Int_t fNumCalculations;
 };
-
-#endif // WCSIMCHARGEPREDICTOR_HH
