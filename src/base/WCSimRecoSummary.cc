@@ -15,17 +15,17 @@
 
 #include "WCSimRecoSummary.hh"
 
-ClassImp (WCSimRecoSummary)
+ClassImp(WCSimRecoSummary)
 
 // Standard constructor
-WCSimRecoSummary::WCSimRecoSummary() :
-		TObject() {
+WCSimRecoSummary::WCSimRecoSummary() : TObject()
+{
 	this->ResetValues();
 }
 
 // Copy constructor
-WCSimRecoSummary::WCSimRecoSummary(const WCSimRecoSummary &ts) :
-		TObject(ts) {
+WCSimRecoSummary::WCSimRecoSummary(const WCSimRecoSummary &ts) : TObject(ts)
+{
 	fVertices = ts.GetVertices();
 	fVerticesT = ts.GetVerticesT();
 	fPrimaryPDGs = ts.GetPrimaryPDGs();
@@ -37,11 +37,12 @@ WCSimRecoSummary::WCSimRecoSummary(const WCSimRecoSummary &ts) :
 }
 
 // Destructor
-WCSimRecoSummary::~WCSimRecoSummary() {
-
+WCSimRecoSummary::~WCSimRecoSummary()
+{
 }
 
-void WCSimRecoSummary::ResetValues() {
+void WCSimRecoSummary::ResetValues()
+{
 	fVertices.clear();
 	fVerticesT.clear();
 
@@ -54,137 +55,181 @@ void WCSimRecoSummary::ResetValues() {
 }
 
 // Get and set the vertex information
-void WCSimRecoSummary::AddVertex(TVector3 vtx, double t) {
+void WCSimRecoSummary::AddVertex(TVector3 vtx, double t)
+{
 	fVertices.push_back(vtx);
 	fVerticesT.push_back(t);
 }
 
-void WCSimRecoSummary::AddVertex(double x, double y, double z, double t) {
+void WCSimRecoSummary::AddVertex(double x, double y, double z, double t)
+{
 	fVertices.push_back(TVector3(x, y, z));
 	fVerticesT.push_back(t);
 }
 
-TVector3 WCSimRecoSummary::GetVertex(unsigned int p) const {
-	if (p < this->GetNPrimaries()) {
+TVector3 WCSimRecoSummary::GetVertex(unsigned int p) const
+{
+	if (p < this->GetNPrimaries())
+	{
 		return fVertices[p];
-	} else {
+	}
+	else
+	{
 		std::cerr << "== Request for vertex " << p << " of [0..." << this->GetNPrimaries() - 1 << "]" << std::endl;
 		return TVector3(-9999, -9999, -9999);
 	}
 }
 
-std::vector<TVector3> WCSimRecoSummary::GetVertices() const {
+std::vector<TVector3> WCSimRecoSummary::GetVertices() const
+{
 	return fVertices;
 }
 
-double WCSimRecoSummary::GetVertexX(unsigned int p) const {
-	if (p < this->GetNPrimaries()) {
+double WCSimRecoSummary::GetVertexX(unsigned int p) const
+{
+	if (p < this->GetNPrimaries())
+	{
 		return fVertices[p].X();
-	} else {
+	}
+	else
+	{
 		std::cerr << "== Request for vertex x " << p << " of [0..." << this->GetNPrimaries() - 1 << "]" << std::endl;
 		return -999;
 	}
 }
 
-double WCSimRecoSummary::GetVertexY(unsigned int p) const {
-	if (p < this->GetNPrimaries()) {
+double WCSimRecoSummary::GetVertexY(unsigned int p) const
+{
+	if (p < this->GetNPrimaries())
+	{
 		return fVertices[p].Y();
-	} else {
+	}
+	else
+	{
 		std::cerr << "== Request for vertex y " << p << " of [0..." << this->GetNPrimaries() - 1 << "]" << std::endl;
 		return -999;
 	}
 }
 
-double WCSimRecoSummary::GetVertexZ(unsigned int p) const {
-	if (p < this->GetNPrimaries()) {
+double WCSimRecoSummary::GetVertexZ(unsigned int p) const
+{
+	if (p < this->GetNPrimaries())
+	{
 		return fVertices[p].Z();
-	} else {
+	}
+	else
+	{
 		std::cerr << "== Request for vertex z " << p << " of [0..." << this->GetNPrimaries() - 1 << "]" << std::endl;
 		return -999;
 	}
 }
 
-double WCSimRecoSummary::GetVertexT(unsigned int p) const {
-	if (p < this->GetNPrimaries()) {
+double WCSimRecoSummary::GetVertexT(unsigned int p) const
+{
+	if (p < this->GetNPrimaries())
+	{
 		return fVerticesT[p];
-	} else {
+	}
+	else
+	{
 		std::cerr << "== Request for vertex t " << p << " of [0..." << this->GetNPrimaries() - 1 << "]" << std::endl;
 		return -999;
 	}
 }
 
-std::vector<double> WCSimRecoSummary::GetVerticesT() const {
+std::vector<double> WCSimRecoSummary::GetVerticesT() const
+{
 	return fVerticesT;
 }
 
 // Primary particle functions
-void WCSimRecoSummary::AddPrimary(int pdg, double en, TVector3 dir) {
+void WCSimRecoSummary::AddPrimary(int pdg, double en, TVector3 dir)
+{
 	fPrimaryPDGs.push_back(pdg);
 	fPrimaryEnergies.push_back(en);
 	fPrimaryDirs.push_back(dir);
 }
 
-void WCSimRecoSummary::AddPrimary(int pdg, double en, double dx, double dy, double dz) {
+void WCSimRecoSummary::AddPrimary(int pdg, double en, double dx, double dy, double dz)
+{
 	fPrimaryPDGs.push_back(pdg);
 	fPrimaryEnergies.push_back(en);
 	TVector3 tmpDir(dx, dy, dz);
 	fPrimaryDirs.push_back(tmpDir);
 }
 
-int WCSimRecoSummary::GetPrimaryPDG(unsigned int p) const {
-	if (p < this->GetNPrimaries()) {
+int WCSimRecoSummary::GetPrimaryPDG(unsigned int p) const
+{
+	if (p < this->GetNPrimaries())
+	{
 		return fPrimaryPDGs[p];
-	} else {
+	}
+	else
+	{
 		std::cerr << "== Request for primary particle " << p << " of [0..." << this->GetNPrimaries() - 1 << "]"
-				<< std::endl;
+				  << std::endl;
 		return -999;
 	}
 }
 
-double WCSimRecoSummary::GetPrimaryEnergy(unsigned int p) const {
-	if (p < this->GetNPrimaries()) {
+double WCSimRecoSummary::GetPrimaryEnergy(unsigned int p) const
+{
+	if (p < this->GetNPrimaries())
+	{
 		return fPrimaryEnergies[p];
-	} else {
+	}
+	else
+	{
 		std::cerr << "== Request for primary particle " << p << " of [0..." << this->GetNPrimaries() - 1 << "]"
-				<< std::endl;
+				  << std::endl;
 		return -999.;
 	}
-
 }
 
-TVector3 WCSimRecoSummary::GetPrimaryDir(unsigned int p) const {
-	if (p < this->GetNPrimaries()) {
+TVector3 WCSimRecoSummary::GetPrimaryDir(unsigned int p) const
+{
+	if (p < this->GetNPrimaries())
+	{
 		return fPrimaryDirs[p];
-	} else {
+	}
+	else
+	{
 		std::cerr << "== Request for primary particle " << p << " of [0..." << this->GetNPrimaries() - 1 << "]"
-				<< std::endl;
+				  << std::endl;
 		return TVector3(-999., -999., -999.);
 	}
-
 }
 
-std::vector<int> WCSimRecoSummary::GetPrimaryPDGs() const {
+std::vector<int> WCSimRecoSummary::GetPrimaryPDGs() const
+{
 	return fPrimaryPDGs;
 }
 
-std::vector<double> WCSimRecoSummary::GetPrimaryEnergies() const {
+std::vector<double> WCSimRecoSummary::GetPrimaryEnergies() const
+{
 	return fPrimaryEnergies;
 }
 
-std::vector<TVector3> WCSimRecoSummary::GetPrimaryDirs() const {
+std::vector<TVector3> WCSimRecoSummary::GetPrimaryDirs() const
+{
 	return fPrimaryDirs;
 }
 
-unsigned int WCSimRecoSummary::GetNPrimaries() const {
+unsigned int WCSimRecoSummary::GetNPrimaries() const
+{
 	return fPrimaryPDGs.size();
 }
 
-bool WCSimRecoSummary::HasCommonVertex() const {
+bool WCSimRecoSummary::HasCommonVertex() const
+{
 	bool commonVertex = true;
 	// Always true for one track. For more, let's find out.
-	if (this->GetNPrimaries() > 1) {
-		for (unsigned int p = 1; p < this->GetNPrimaries(); ++p) {
-			if (!(fVertices[p] == fVertices[p - 1])) {
+	if (this->GetNPrimaries() > 1)
+	{
+		for (unsigned int p = 1; p < this->GetNPrimaries(); ++p)
+		{
+			if (!(fVertices[p] == fVertices[p - 1]))
+			{
 				commonVertex = false;
 				break;
 			}
@@ -193,31 +238,38 @@ bool WCSimRecoSummary::HasCommonVertex() const {
 	return commonVertex;
 }
 
-void WCSimRecoSummary::SetTimeMinus2LnL(double minus2LnL) {
+void WCSimRecoSummary::SetTimeMinus2LnL(double minus2LnL)
+{
 	fTimeMinus2LnL = minus2LnL;
 }
 
-void WCSimRecoSummary::SetChargeMinus2LnL(double minus2LnL) {
+void WCSimRecoSummary::SetChargeMinus2LnL(double minus2LnL)
+{
 	fChargeMinus2LnL = minus2LnL;
 }
 
-double WCSimRecoSummary::GetTimeMinus2LnL() const {
+double WCSimRecoSummary::GetTimeMinus2LnL() const
+{
 	return fTimeMinus2LnL;
 }
 
-double WCSimRecoSummary::GetChargeMinus2LnL() const {
+double WCSimRecoSummary::GetChargeMinus2LnL() const
+{
 	return fChargeMinus2LnL;
 }
 
-double WCSimRecoSummary::GetMinus2LnL() const {
+double WCSimRecoSummary::GetMinus2LnL() const
+{
 	return fTimeMinus2LnL + fChargeMinus2LnL;
 }
 
-void WCSimRecoSummary::SetEventNumber(int event) {
+void WCSimRecoSummary::SetEventNumber(int event)
+{
 	std::cout << "WCRS: Setting event number to " << event << std::endl;
 	fEventNumber = event;
 }
 
-int WCSimRecoSummary::GetEventNumber() const {
+int WCSimRecoSummary::GetEventNumber() const
+{
 	return fEventNumber;
 }

@@ -10,28 +10,30 @@
 class WCSimLikelihoodTrackBase;
 #include "TObject.h"
 
-class WCSimPiZeroSeed: public TObject {
-	public:
-		WCSimPiZeroSeed(WCSimLikelihoodTrackBase * track1, WCSimLikelihoodTrackBase* track2, double minus2LnL);
-		WCSimPiZeroSeed(const WCSimPiZeroSeed &other);
-		WCSimPiZeroSeed& operator =(const WCSimPiZeroSeed &rhs);
-		virtual ~WCSimPiZeroSeed();
+class WCSimPiZeroSeed : public TObject
+{
+public:
+	WCSimPiZeroSeed(WCSimLikelihoodTrackBase *track1, WCSimLikelihoodTrackBase *track2, double minus2LnL);
+	WCSimPiZeroSeed(const WCSimPiZeroSeed &other);
+	WCSimPiZeroSeed &operator=(const WCSimPiZeroSeed &rhs);
+	virtual ~WCSimPiZeroSeed();
 
-		WCSimLikelihoodTrackBase* GetTrack1() const;
-		WCSimLikelihoodTrackBase* GetTrack2() const;
-		double GetMinus2LnL() const;
+	WCSimLikelihoodTrackBase *GetTrack1() const;
+	WCSimLikelihoodTrackBase *GetTrack2() const;
+	double GetMinus2LnL() const;
 
-		void Print();
-		friend bool operator <(const WCSimPiZeroSeed &lhs, const WCSimPiZeroSeed &rhs);
-		friend bool operator >(const WCSimPiZeroSeed &lhs, const WCSimPiZeroSeed &rhs);
-		friend bool operator <=(const WCSimPiZeroSeed &lhs, const WCSimPiZeroSeed &rhs);
-		friend bool operator >=(const WCSimPiZeroSeed &lhs, const WCSimPiZeroSeed &rhs);
+	void Print();
+	friend bool operator<(const WCSimPiZeroSeed &lhs, const WCSimPiZeroSeed &rhs);
+	friend bool operator>(const WCSimPiZeroSeed &lhs, const WCSimPiZeroSeed &rhs);
+	friend bool operator<=(const WCSimPiZeroSeed &lhs, const WCSimPiZeroSeed &rhs);
+	friend bool operator>=(const WCSimPiZeroSeed &lhs, const WCSimPiZeroSeed &rhs);
 
-	private:
-		WCSimLikelihoodTrackBase * fTrack1;
-		WCSimLikelihoodTrackBase * fTrack2;
+private:
+	WCSimLikelihoodTrackBase *fTrack1;
+	WCSimLikelihoodTrackBase *fTrack2;
 
-		double fMinus2LnL;ClassDef(WCSimPiZeroSeed,0);
+	double fMinus2LnL;
+	ClassDef(WCSimPiZeroSeed, 0);
 };
 
 #endif /* WCSIMPIZEROSEED_HH_ */

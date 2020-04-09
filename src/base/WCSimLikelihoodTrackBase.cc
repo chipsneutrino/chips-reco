@@ -8,7 +8,8 @@
 #include "WCSimLikelihoodTrackBase.hh"
 #include "WCSimTrackParameterEnums.hh"
 
-WCSimLikelihoodTrackBase::WCSimLikelihoodTrackBase() {
+WCSimLikelihoodTrackBase::WCSimLikelihoodTrackBase()
+{
 	fVtx[0] = 0;
 	fVtx[1] = 0;
 	fVtx[2] = 0;
@@ -24,137 +25,164 @@ WCSimLikelihoodTrackBase::WCSimLikelihoodTrackBase() {
 	return;
 }
 
-bool WCSimLikelihoodTrackBase::operator ==(const WCSimLikelihoodTrackBase &b) const {
-	return (fVtx[0] == b.fVtx[0] && fVtx[1] == b.fVtx[1] && fVtx[2] == b.fVtx[2] && fDir[0] == b.fDir[0]
-			&& fDir[1] == b.fDir[1] && fDir[2] == b.fDir[2] && fT0 == b.fT0 && fTheta0 == b.fTheta0 && fPhi0 == b.fPhi0
-			&& fE0 == b.fE0 && fType == b.fType && fConversionDistance == b.fConversionDistance);
+bool WCSimLikelihoodTrackBase::operator==(const WCSimLikelihoodTrackBase &b) const
+{
+	return (fVtx[0] == b.fVtx[0] && fVtx[1] == b.fVtx[1] && fVtx[2] == b.fVtx[2] && fDir[0] == b.fDir[0] && fDir[1] == b.fDir[1] && fDir[2] == b.fDir[2] && fT0 == b.fT0 && fTheta0 == b.fTheta0 && fPhi0 == b.fPhi0 && fE0 == b.fE0 && fType == b.fType && fConversionDistance == b.fConversionDistance);
 }
 
 ///////////////////////////////////////////////////////////////////////////
 // Setters
 ///////////////////////////////////////////////////////////////////////////
-void WCSimLikelihoodTrackBase::SetX(double x) {
+void WCSimLikelihoodTrackBase::SetX(double x)
+{
 	fVtx[0] = x;
 }
-void WCSimLikelihoodTrackBase::SetY(double y) {
+void WCSimLikelihoodTrackBase::SetY(double y)
+{
 	fVtx[1] = y;
 }
-void WCSimLikelihoodTrackBase::SetZ(double z) {
+void WCSimLikelihoodTrackBase::SetZ(double z)
+{
 	fVtx[2] = z;
 }
-void WCSimLikelihoodTrackBase::SetT(double t) {
+void WCSimLikelihoodTrackBase::SetT(double t)
+{
 	fT0 = t;
 }
-void WCSimLikelihoodTrackBase::SetTheta(double th) {
+void WCSimLikelihoodTrackBase::SetTheta(double th)
+{
 	fTheta0 = th;
 	fDir[0] = (TMath::Sin(fTheta0) * TMath::Cos(fPhi0));
 	fDir[1] = (TMath::Sin(fTheta0) * TMath::Sin(fPhi0));
 	fDir[2] = (TMath::Cos(fTheta0));
 }
-void WCSimLikelihoodTrackBase::SetPhi(double phi) {
+void WCSimLikelihoodTrackBase::SetPhi(double phi)
+{
 	fPhi0 = phi;
 	fDir[0] = (TMath::Sin(fTheta0) * TMath::Cos(fPhi0));
 	fDir[1] = (TMath::Sin(fTheta0) * TMath::Sin(fPhi0));
 	fDir[2] = (TMath::Cos(fTheta0));
 }
 
-void WCSimLikelihoodTrackBase::SetE(double E) {
+void WCSimLikelihoodTrackBase::SetE(double E)
+{
 	fE0 = E;
 }
 
 ///////////////////////////////////////////////////////////////////////////
 // Getters
 ///////////////////////////////////////////////////////////////////////////
-double WCSimLikelihoodTrackBase::GetX() const {
+double WCSimLikelihoodTrackBase::GetX() const
+{
 	return fVtx[0];
 }
-double WCSimLikelihoodTrackBase::GetY() const {
+double WCSimLikelihoodTrackBase::GetY() const
+{
 	return fVtx[1];
 }
-double WCSimLikelihoodTrackBase::GetZ() const {
+double WCSimLikelihoodTrackBase::GetZ() const
+{
 	return fVtx[2];
 }
-TVector3 WCSimLikelihoodTrackBase::GetVtx() const {
+TVector3 WCSimLikelihoodTrackBase::GetVtx() const
+{
 	return TVector3(fVtx[0], fVtx[1], fVtx[2]);
 }
 
-double WCSimLikelihoodTrackBase::GetT() const {
+double WCSimLikelihoodTrackBase::GetT() const
+{
 	return fT0;
 }
-double WCSimLikelihoodTrackBase::GetTheta() const {
+double WCSimLikelihoodTrackBase::GetTheta() const
+{
 	return fTheta0;
 }
-double WCSimLikelihoodTrackBase::GetPhi() const {
+double WCSimLikelihoodTrackBase::GetPhi() const
+{
 	return fPhi0;
 }
-double WCSimLikelihoodTrackBase::GetE() const {
+double WCSimLikelihoodTrackBase::GetE() const
+{
 	return fE0;
 }
-double WCSimLikelihoodTrackBase::GetConversionDistance() const {
+double WCSimLikelihoodTrackBase::GetConversionDistance() const
+{
 	return fConversionDistance;
 }
 
-double WCSimLikelihoodTrackBase::GetDirX() const {
+double WCSimLikelihoodTrackBase::GetDirX() const
+{
 	return fDir[0];
 }
-double WCSimLikelihoodTrackBase::GetDirY() const {
+double WCSimLikelihoodTrackBase::GetDirY() const
+{
 	return fDir[1];
 }
-double WCSimLikelihoodTrackBase::GetDirZ() const {
+double WCSimLikelihoodTrackBase::GetDirZ() const
+{
 	return fDir[2];
 }
-TVector3 WCSimLikelihoodTrackBase::GetDir() const {
+TVector3 WCSimLikelihoodTrackBase::GetDir() const
+{
 	return TVector3(this->GetDirX(), this->GetDirY(), this->GetDirZ());
 }
 
-TrackType WCSimLikelihoodTrackBase::GetType() const {
+TrackType WCSimLikelihoodTrackBase::GetType() const
+{
 	return fType;
 }
 
 ///////////////////////////////////////////////////////////////////////////
 // Destructor
 ///////////////////////////////////////////////////////////////////////////
-WCSimLikelihoodTrackBase::~WCSimLikelihoodTrackBase() {
+WCSimLikelihoodTrackBase::~WCSimLikelihoodTrackBase()
+{
 }
 
 Bool_t WCSimLikelihoodTrackBase::EnergyGreaterThanOrEqual(const WCSimLikelihoodTrackBase &a,
-		const WCSimLikelihoodTrackBase &b) {
+														  const WCSimLikelihoodTrackBase &b)
+{
 	return (a.GetE() >= b.GetE());
 }
 
 Bool_t WCSimLikelihoodTrackBase::EnergyGreaterThanOrEqualPtrs(WCSimLikelihoodTrackBase *a,
-		WCSimLikelihoodTrackBase *b) {
+															  WCSimLikelihoodTrackBase *b)
+{
 	return EnergyGreaterThanOrEqual(*a, *b);
 }
 
-bool WCSimLikelihoodTrackBase::IsSameTrack(WCSimLikelihoodTrackBase * b) const {
-	return (fVtx[0] == b->fVtx[0] && fVtx[1] == b->fVtx[1] && fVtx[2] == b->fVtx[2] && fDir[0] == b->fDir[0]
-			&& fDir[1] == b->fDir[1] && fDir[2] == b->fDir[2] && fT0 == b->fT0 && fTheta0 == b->fTheta0
-			&& fPhi0 == b->fPhi0 && fE0 == b->fE0 && fType == b->fType && fConversionDistance == b->fConversionDistance);
+bool WCSimLikelihoodTrackBase::IsSameTrack(WCSimLikelihoodTrackBase *b) const
+{
+	return (fVtx[0] == b->fVtx[0] && fVtx[1] == b->fVtx[1] && fVtx[2] == b->fVtx[2] && fDir[0] == b->fDir[0] && fDir[1] == b->fDir[1] && fDir[2] == b->fDir[2] && fT0 == b->fT0 && fTheta0 == b->fTheta0 && fPhi0 == b->fPhi0 && fE0 == b->fE0 && fType == b->fType && fConversionDistance == b->fConversionDistance);
 }
 
-bool WCSimLikelihoodTrackBase::SameTypeAndEnergy(WCSimLikelihoodTrackBase * other) const {
+bool WCSimLikelihoodTrackBase::SameTypeAndEnergy(WCSimLikelihoodTrackBase *other) const
+{
 	return (fType == other->GetType() && fE0 == other->GetE());
 }
 
-int WCSimLikelihoodTrackBase::GetPDG() const {
+int WCSimLikelihoodTrackBase::GetPDG() const
+{
 	return TrackType::GetPDGFromType(fType);
 }
 
-void WCSimLikelihoodTrackBase::Print() {
+void WCSimLikelihoodTrackBase::Print()
+{
 	printf("Vertex = (%.02fcm,%.02fcm,%.02fcm,%.02fns)   Dir = (%.04f,%.04f)   E = %.03f  Type = %s  Conv = %.02fcm\n",
-			fVtx[0], fVtx[1], fVtx[2], fT0, fTheta0, fPhi0, fE0, TrackType::AsString(fType).c_str(),
-			fConversionDistance);
-
+		   fVtx[0], fVtx[1], fVtx[2], fT0, fTheta0, fPhi0, fE0, TrackType::AsString(fType).c_str(),
+		   fConversionDistance);
 }
 
-double WCSimLikelihoodTrackBase::GetPropagationSpeedFrac() const {
+double WCSimLikelihoodTrackBase::GetPropagationSpeedFrac() const
+{
 	return GetPropagationSpeedFrac(fType);
 }
 
-double WCSimLikelihoodTrackBase::GetPropagationSpeedFrac(const TrackType &type) {
+double WCSimLikelihoodTrackBase::GetPropagationSpeedFrac(const TrackType &type)
+{
 	double speed = 1.0;
-	switch (type) {
+	switch (type)
+	{
 	case TrackType::PhotonLike:
 		// Fall through
 	case TrackType::ElectronLike:

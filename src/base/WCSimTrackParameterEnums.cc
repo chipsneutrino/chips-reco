@@ -1,3 +1,3 @@
 #include "WCSimTrackParameterEnums.hh"
-ClassImp (TrackType);
-ClassImp (FitterParameterType);
+ClassImp(TrackType);
+ClassImp(FitterParameterType);

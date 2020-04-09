@@ -19,18 +19,19 @@
 #include <cstdlib>
 
 #ifndef REFLEX_DICTIONARY
-ClassImp (WCSimPIDTree);
+ClassImp(WCSimPIDTree);
 #endif
 
 ///////////////////////////////////////////////////////////////
 //  METHODS FOR PIDTreeEntry CLASS
 //////////////////////////////////////////////////////////////
 
-WCSimPIDTree::WCSimPIDTree(TTree * resultsTree) {
+WCSimPIDTree::WCSimPIDTree(TTree *resultsTree)
+{
 	std::cout << " *** WCSimPIDTree::WCSimPIDTree() *** " << std::endl;
 
 	//Set up the TruthInfo
-    fTruthInfo = new TruthInfo();
+	fTruthInfo = new TruthInfo();
 	fBti = resultsTree->GetBranch("TruthInfo");
 	fBti->SetAddress(&fTruthInfo);
 
@@ -55,20 +56,23 @@ WCSimPIDTree::WCSimPIDTree(TTree * resultsTree) {
 	annNueCCQEvsNC = -999;
 }
 
-WCSimPIDTree::~WCSimPIDTree() {
+WCSimPIDTree::~WCSimPIDTree()
+{
 	// Empty
 }
 
-bool WCSimPIDTree::GetEntry(int entry) {
+bool WCSimPIDTree::GetEntry(int entry)
+{
 	// Load the entry into the trees
 	fBti->GetEntry(entry);
 	fBpi_el->GetEntry(entry);
 	fBpi_mu->GetEntry(entry);
 
 	// Check the events are the same...
-	if (!(fPidInfo_el->GetTotalQ() == fPidInfo_mu->GetTotalQ())) { 
+	if (!(fPidInfo_el->GetTotalQ() == fPidInfo_mu->GetTotalQ()))
+	{
 		//std::cout << "Error: Charges don't match for entry -> " << entry << std::endl;
-		return false; 
+		return false;
 	}
 
 	//Useful variables to have
@@ -76,9 +80,10 @@ bool WCSimPIDTree::GetEntry(int entry) {
 	totalQ = fPidInfo_el->GetTotalQ();
 	veto = fPidInfo_el->GetVeto();
 
-	if(totalQ <= 0.0 || nHits <= 0) { 
+	if (totalQ <= 0.0 || nHits <= 0)
+	{
 		//std::cout << "Error: No Hits!" << std::endl;
-		return false; 
+		return false;
 	}
 
 	//Truth variables
@@ -103,16 +108,16 @@ bool WCSimPIDTree::GetEntry(int entry) {
 
 	fracHitsUpstream = fPidInfo_el->GetFracHitsUpstream();
 	fracHitsDownstream = fPidInfo_el->GetFracHitsDownstream();
-	fracHitsInBottom = fPidInfo_el->GetFracHitsInBottom ();
+	fracHitsInBottom = fPidInfo_el->GetFracHitsInBottom();
 	fracHitsInTop = fPidInfo_el->GetFracHitsInTop();
 	fracHitsAboveMid = fPidInfo_el->GetFracHitsAboveMid();
-	fracHitsBelowMid = fPidInfo_el->GetFracHitsBelowMid();	
+	fracHitsBelowMid = fPidInfo_el->GetFracHitsBelowMid();
 	fracQUpstream = fPidInfo_el->GetFracQUpstream();
 	fracQDownstream = fPidInfo_el->GetFracQDownstream();
-	fracQInBottom = fPidInfo_el->GetFracQInBottom ();
+	fracQInBottom = fPidInfo_el->GetFracQInBottom();
 	fracQInTop = fPidInfo_el->GetFracQInTop();
 	fracQAboveMid = fPidInfo_el->GetFracQAboveMid();
-	fracQBelowMid = fPidInfo_el->GetFracQBelowMid();	
+	fracQBelowMid = fPidInfo_el->GetFracQBelowMid();
 
 	// Muon fit variables
 	charge2LnL_mu = fPidInfo_mu->GetCharge2LnL();
@@ -197,31 +202,35 @@ bool WCSimPIDTree::GetEntry(int entry) {
 	escapes_el = fPidInfo_el->Escapes();
 
 	// Apply the preselection cuts, keep them loose...
-	preselected = !(nHits < 50 || recoE_el < 550 || recoE_mu < 550 || recoE_el > 4950 || recoE_mu > 4950
-				|| vtxRho_el > 1100 || vtxZ_el > 550 || vtxZ_el < -550);
+	preselected = !(nHits < 50 || recoE_el < 550 || recoE_mu < 550 || recoE_el > 4950 || recoE_mu > 4950 || vtxRho_el > 1100 || vtxZ_el > 550 || vtxZ_el < -550);
 
 	return true;
 }
 
-void WCSimPIDTree::SetNueVsNumu(float NueCCQEvsNumuCCQE) {
+void WCSimPIDTree::SetNueVsNumu(float NueCCQEvsNumuCCQE)
+{
 	annNueCCQEvsNumuCCQE = NueCCQEvsNumuCCQE;
 }
 
-void WCSimPIDTree::SetNueVsNC(float NueCCQEvsNC) {
+void WCSimPIDTree::SetNueVsNC(float NueCCQEvsNC)
+{
 	annNueCCQEvsNC = NueCCQEvsNC;
 }
 
-void WCSimPIDTree::FillTree() {
+void WCSimPIDTree::FillTree()
+{
 	PIDOutputTree->Fill();
 }
 
-void WCSimPIDTree::Clear() {
+void WCSimPIDTree::Clear()
+{
 	fTruthInfo->Clear();
 	fPidInfo_el->Clear();
 	fPidInfo_mu->Clear();
 }
 
-void WCSimPIDTree::MakeOutputTree() {
+void WCSimPIDTree::MakeOutputTree()
+{
 	PIDOutputTree = new TTree("PIDTree_ann", "PIDTree_ann");
 
 	// PID Variables
@@ -243,7 +252,7 @@ void WCSimPIDTree::MakeOutputTree() {
 	PIDOutputTree->Branch("trueNueElectronElasticEvent", &trueNueElectronElasticEvent);
 	PIDOutputTree->Branch("trueInverseMuonDecayEvent", &trueInverseMuonDecayEvent);
 	PIDOutputTree->Branch("trueBeamE", &trueBeamE);
-	
+
 	// Combined variables
 	PIDOutputTree->Branch("veto", &veto);
 	PIDOutputTree->Branch("nHits", &nHits);

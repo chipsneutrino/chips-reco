@@ -10,27 +10,31 @@
 #include <sstream>
 #include <string>
 
-ClassImp (WCSimParameters)
+ClassImp(WCSimParameters)
 
-static WCSimParameters* fgParameters = 0;
+static WCSimParameters *fgParameters = 0;
 
-WCSimParameters* WCSimParameters::Instance() {
-	if (!fgParameters) {
+WCSimParameters *WCSimParameters::Instance()
+{
+	if (!fgParameters)
+	{
 		fgParameters = new WCSimParameters();
 	}
 
-	if (!fgParameters) {
-		assert (fgParameters);
+	if (!fgParameters)
+	{
+		assert(fgParameters);
 	}
 
-	if (fgParameters) {
-
+	if (fgParameters)
+	{
 	}
 
 	return fgParameters;
 }
 
-WCSimParameters::WCSimParameters() {
+WCSimParameters::WCSimParameters()
+{
 
 	// Slicer parameters
 	fSlicerClusterDistance = 250.0;
@@ -104,40 +108,56 @@ WCSimParameters::WCSimParameters() {
 	return;
 }
 
-WCSimParameters::~WCSimParameters() {
+WCSimParameters::~WCSimParameters()
+{
 	// empty
 }
 
-Double_t WCSimParameters::TimeResolution(Double_t Q) {
-	if (WCSimParameters::Instance()->GetUseSimpleTimeResolution()) {
+Double_t WCSimParameters::TimeResolution(Double_t Q)
+{
+	if (WCSimParameters::Instance()->GetUseSimpleTimeResolution())
+	{
 		return WCSimParameters::Instance()->GetSimpleTimeResolution(Q);
-	} else {
+	}
+	else
+	{
 		return WCSimParameters::Instance()->GetTimeResolution(Q);
 	}
 }
 
-Double_t WCSimParameters::TimeSlew(Double_t Q) {
-	if (WCSimParameters::Instance()->GetUseSimpleTimeSlew()) {
+Double_t WCSimParameters::TimeSlew(Double_t Q)
+{
+	if (WCSimParameters::Instance()->GetUseSimpleTimeSlew())
+	{
 		return WCSimParameters::Instance()->GetSimpleTimeSlew();
-	} else {
+	}
+	else
+	{
 		return WCSimParameters::Instance()->GetTimeSlew(Q);
 	}
 }
 
-Double_t WCSimParameters::RefractiveIndex(Double_t L) {
-	if (WCSimParameters::Instance()->GetUseSimpleRefractiveIndex()) {
+Double_t WCSimParameters::RefractiveIndex(Double_t L)
+{
+	if (WCSimParameters::Instance()->GetUseSimpleRefractiveIndex())
+	{
 		return WCSimParameters::Instance()->GetSimpleRefractiveIndex();
-	} else {
+	}
+	else
+	{
 		return WCSimParameters::Instance()->GetRefractiveIndex(L);
 	}
 }
 
-void WCSimParameters::PrintParameters() {
+void WCSimParameters::PrintParameters()
+{
 	WCSimParameters::Instance()->RunPrintParameters();
 }
 
-void WCSimParameters::RunPrintParameters() {
-	std::cout << std::endl << " *** WCSimParameters::PrintParameters() *** " << std::endl;
+void WCSimParameters::RunPrintParameters()
+{
+	std::cout << std::endl
+			  << " *** WCSimParameters::PrintParameters() *** " << std::endl;
 
 	std::cout << "SlicerClusterDistance = " << fSlicerClusterDistance << std::endl;
 	std::cout << "SlicerMinSize = " << fSlicerMinSize << std::endl;
@@ -181,39 +201,58 @@ void WCSimParameters::RunPrintParameters() {
 	std::cout << "PlotThetaMax = " << fPlotThetaMax << std::endl;
 	std::cout << "PlotPhiMax = " << fPlotPhiMax << std::endl;
 	std::cout << "PlotEnergyMax = " << fPlotEnergyMax << std::endl;
-	std::cout << "IgnoreLowCut" << fIgnoreLowCut << std::endl;	
-	std::cout << "IgnorehighCut" << fIgnoreHighCut << std::endl;	
+	std::cout << "IgnoreLowCut" << fIgnoreLowCut << std::endl;
+	std::cout << "IgnorehighCut" << fIgnoreHighCut << std::endl;
 	std::cout << "UseSimpleTimeResolution = " << fUseSimpleTimeResolution << std::endl;
 	std::cout << "UseSimpleTimeSlew = " << fUseSimpleTimeSlew << std::endl;
 	std::cout << "UseSimpleRefractiveIndex = " << fUseSimpleRefractiveIndex << std::endl;
 
-	std::cout << " ******************************************* " << std::endl << std::endl;
+	std::cout << " ******************************************* " << std::endl
+			  << std::endl;
 
 	return;
 }
 
-Double_t WCSimParameters::GetPlotMax(std::string param){
-	if (param == "kVtxX") {
+Double_t WCSimParameters::GetPlotMax(std::string param)
+{
+	if (param == "kVtxX")
+	{
 		return fPlotVtxXMax;
-	} else if (param == "kVtxY") {
+	}
+	else if (param == "kVtxY")
+	{
 		return fPlotVtxYMax;
-	} else if (param == "kVtxZ") {
+	}
+	else if (param == "kVtxZ")
+	{
 		return fPlotVtxZMax;
-	} else if (param == "kVtxT") {
+	}
+	else if (param == "kVtxT")
+	{
 		return fPlotVtxTMax;
-	} else if (param == "kDirTh") {
+	}
+	else if (param == "kDirTh")
+	{
 		return fPlotThetaMax;
-	} else if (param == "kDirPhi") {
+	}
+	else if (param == "kDirPhi")
+	{
 		return fPlotPhiMax;
-	} else if (param == "kEnergy") {
+	}
+	else if (param == "kEnergy")
+	{
 		return fPlotEnergyMax;
-	} else {
+	}
+	else
+	{
 		return -999;
 	}
 }
 
-void WCSimParameters::SetUseTimeOnly(Bool_t doIt) {
-	if (doIt) {
+void WCSimParameters::SetUseTimeOnly(Bool_t doIt)
+{
+	if (doIt)
+	{
 		std::cout << " *** WCSimParameters::SetUseTimeOnly *** " << std::endl;
 		fUseTime = true;
 		fUseCharge = false;
@@ -221,8 +260,10 @@ void WCSimParameters::SetUseTimeOnly(Bool_t doIt) {
 	return;
 }
 
-void WCSimParameters::SetUseChargeOnly(Bool_t doIt) {
-	if (doIt) {
+void WCSimParameters::SetUseChargeOnly(Bool_t doIt)
+{
+	if (doIt)
+	{
 		std::cout << " *** WCSimParameters::SetUseChargeOnly *** " << std::endl;
 		fUseCharge = true;
 		fUseTime = false;
@@ -230,8 +271,10 @@ void WCSimParameters::SetUseChargeOnly(Bool_t doIt) {
 	return;
 }
 
-void WCSimParameters::SetUseChargeAndTime(Bool_t doIt) {
-	if (doIt) {
+void WCSimParameters::SetUseChargeAndTime(Bool_t doIt)
+{
+	if (doIt)
+	{
 		std::cout << " *** WCSimParameters::SetUseChargeAndTime *** " << std::endl;
 		fUseCharge = true;
 		fUseTime = true;
@@ -239,23 +282,28 @@ void WCSimParameters::SetUseChargeAndTime(Bool_t doIt) {
 	return;
 }
 
-Double_t WCSimParameters::SpeedOfLight() {
-	return 29.9792458;  // velocity of light [cm/ns]
+Double_t WCSimParameters::SpeedOfLight()
+{
+	return 29.9792458; // velocity of light [cm/ns]
 }
 
-Double_t WCSimParameters::CherenkovAngle() {
-	return 42.0;  // degrees
+Double_t WCSimParameters::CherenkovAngle()
+{
+	return 42.0; // degrees
 }
 
-Double_t WCSimParameters::ThetaC() {
-	return 42.0;  // degrees
+Double_t WCSimParameters::ThetaC()
+{
+	return 42.0; // degrees
 }
 
-Double_t WCSimParameters::CosThetaC() {
-	return 0.743144825477394244;  // return TMath::Cos(42.0*TMath::Pi()/180.0);
+Double_t WCSimParameters::CosThetaC()
+{
+	return 0.743144825477394244; // return TMath::Cos(42.0*TMath::Pi()/180.0);
 }
 
-Double_t WCSimParameters::GetTimeResolution(Double_t Q) {
+Double_t WCSimParameters::GetTimeResolution(Double_t Q)
+{
 	/*
 	 // Old Parameterisation (lifted from WCSim)
 	 // ========================================
@@ -290,7 +338,8 @@ Double_t WCSimParameters::GetTimeResolution(Double_t Q) {
 	Double_t c1 = +3.634;
 	Double_t c2 = -1.458;
 
-	if (c2 < 0.0) {
+	if (c2 < 0.0)
+	{
 		qpesLow = (2.0 * c2 / c1) * (2.0 * c2 / c1);
 		if (qpes < qpesLow)
 			qpes = qpesLow;
@@ -301,7 +350,8 @@ Double_t WCSimParameters::GetTimeResolution(Double_t Q) {
 	return res;
 }
 
-Double_t WCSimParameters::WCSimTimeResolution(Double_t q, Double_t timeConst) {
+Double_t WCSimParameters::WCSimTimeResolution(Double_t q, Double_t timeConst)
+{
 
 	// Copied from WCSim
 	Double_t Q = (q > 0.5) ? q : 0.5;
@@ -313,7 +363,8 @@ Double_t WCSimParameters::WCSimTimeResolution(Double_t q, Double_t timeConst) {
 	return timingResolution;
 }
 
-Double_t WCSimParameters::GetTimeSlew(Double_t Q) {
+Double_t WCSimParameters::GetTimeSlew(Double_t Q)
+{
 	/*
 	 // Sep'2010: parameterisation, including scattered light:
 	 // ======================================================
@@ -343,11 +394,12 @@ Double_t WCSimParameters::GetTimeSlew(Double_t Q) {
 	return dt;
 }
 
-Double_t WCSimParameters::GetRefractiveIndex(Double_t r) {
+Double_t WCSimParameters::GetRefractiveIndex(Double_t r)
+{
 	Double_t c = 29.98;
-	Double_t n0 = 1.33;        // Old Attempt:
-	Double_t L0 = 0.0;         // 40.0
-	Double_t dndx = 0.000123;  // 0.00015
+	Double_t n0 = 1.33;		  // Old Attempt:
+	Double_t L0 = 0.0;		  // 40.0
+	Double_t dndx = 0.000123; // 0.00015
 
 	Double_t L = r / c;
 
@@ -356,7 +408,8 @@ Double_t WCSimParameters::GetRefractiveIndex(Double_t r) {
 	return n;
 }
 
-Double_t WCSimParameters::GetSimpleTimeResolution(Double_t Q) {
+Double_t WCSimParameters::GetSimpleTimeResolution(Double_t Q)
+{
 	Double_t qpes = Q;
 	if (qpes < 0.25)
 		qpes = 0.25;
@@ -368,28 +421,32 @@ Double_t WCSimParameters::GetSimpleTimeResolution(Double_t Q) {
 	return res;
 }
 
-void WCSimParameters::SetConfigFile(const char* config) {
+void WCSimParameters::SetConfigFile(const char *config)
+{
 	std::cout << "Setting config file" << std::endl;
 	fConfName = config;
 	this->LoadConfig();
 	return;
 }
 
-void WCSimParameters::LoadConfig() {
+void WCSimParameters::LoadConfig()
+{
 	// Open the file and test opening:
 	std::cout << "Loading configuration file" << std::endl;
 	std::ifstream inFile;
 	inFile.open(fConfName.c_str());
 
-	if (!inFile.is_open()) {
+	if (!inFile.is_open())
+	{
 		std::cerr << "Error: " << __FILE__ << "  " << __LINE__ << " - could not open " << fConfName << std::endl;
-		exit (EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 
 	// Read the file
 	std::string line;
 	Int_t lineNum = 0;
-	while (getline(inFile, line)) {
+	while (getline(inFile, line))
+	{
 		// std::cout << "Line is: " << line << std::endl;
 		// std::cout << "lineNum = " << lineNum << std::endl;
 		this->IgnoreComments(line);
@@ -401,7 +458,8 @@ void WCSimParameters::LoadConfig() {
 }
 
 /// Erases comments beginning with // or #
-void WCSimParameters::IgnoreComments(std::string &str) {
+void WCSimParameters::IgnoreComments(std::string &str)
+{
 	// std::cout << "IgnoreComments" << std::endl;
 	if (str.find("//") != str.npos)
 		str.erase(str.find("//"));
@@ -411,7 +469,8 @@ void WCSimParameters::IgnoreComments(std::string &str) {
 	return;
 }
 
-const Bool_t WCSimParameters::IsBlankLine(std::string str) {
+const Bool_t WCSimParameters::IsBlankLine(std::string str)
+{
 	// std::cout << "IsBlankLink" << "   " << str << std::endl;
 	if (str.find_first_not_of(' ') == str.npos)
 		return true;
@@ -419,7 +478,8 @@ const Bool_t WCSimParameters::IsBlankLine(std::string str) {
 		return false;
 }
 
-const Bool_t WCSimParameters::IsGoodLine(std::string str) {
+const Bool_t WCSimParameters::IsGoodLine(std::string str)
+{
 	// std::cout << "IsGoodLine: " << str << std::endl;
 
 	Bool_t haveEquals = false;
@@ -427,21 +487,26 @@ const Bool_t WCSimParameters::IsGoodLine(std::string str) {
 	Bool_t haveRHS = false;
 
 	// Look for an equals sign
-	if (str.find("=") == str.npos) {
-		std::cout << "No \"=\" sign found in string: " << std::endl << str << std::endl;
-	} else
+	if (str.find("=") == str.npos)
+	{
+		std::cout << "No \"=\" sign found in string: " << std::endl
+				  << str << std::endl;
+	}
+	else
 		haveEquals = true;
 
 	// Look for text on the LHS of = sign:
 	std::string tempStr = str;
 	tempStr.erase(0, tempStr.find_first_not_of("\t "));
-	if (tempStr[0] != '0') {
+	if (tempStr[0] != '0')
+	{
 		haveLHS = true;
 	}
 
 	// Look for text on RHS of = sign:
 	tempStr = str;
-	for (UInt_t rhs = tempStr.find("=") + 1; rhs < tempStr.length(); ++rhs) {
+	for (UInt_t rhs = tempStr.find("=") + 1; rhs < tempStr.length(); ++rhs)
+	{
 		if (tempStr[rhs] != '\t' && tempStr[rhs] != ' ')
 			haveRHS = true;
 	}
@@ -453,7 +518,8 @@ const Bool_t WCSimParameters::IsGoodLine(std::string str) {
 	return (haveEquals && haveLHS && haveRHS);
 }
 
-void WCSimParameters::ExtractPair(std::string &lhs, std::string &rhs, std::string str) {
+void WCSimParameters::ExtractPair(std::string &lhs, std::string &rhs, std::string str)
+{
 	// std::cout << "ExtractPair" << std::endl;
 	UInt_t splitPos = str.find("=");
 
@@ -472,11 +538,13 @@ void WCSimParameters::ExtractPair(std::string &lhs, std::string &rhs, std::strin
 	return;
 }
 
-void WCSimParameters::ParseLine(std::string str, Int_t lineNum) {
+void WCSimParameters::ParseLine(std::string str, Int_t lineNum)
+{
 	// std::cout << "ParseLine: " << str << std::endl;
-	if (!(this->IsGoodLine(str))) {
+	if (!(this->IsGoodLine(str)))
+	{
 		std::cerr << "Error: line " << lineNum << "has the wrong format" << std::endl;
-		exit (EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 
 	std::string lhs, rhs;
@@ -485,443 +553,684 @@ void WCSimParameters::ParseLine(std::string str, Int_t lineNum) {
 	return;
 }
 
-void WCSimParameters::AddToMap(std::string lhs, std::string rhs) {
+void WCSimParameters::AddToMap(std::string lhs, std::string rhs)
+{
 	// std::cout << "AddToMap" << std::endl;
-	if (fMap.find(lhs) == fMap.end()) {
+	if (fMap.find(lhs) == fMap.end())
+	{
 		fMap[lhs] = rhs;
-	} else {
+	}
+	else
+	{
 		std::cerr << "Error: map already contains the key: " << lhs << std::endl;
-		exit (EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 	std::cout << lhs << "  " << fMap[lhs] << std::endl;
 	return;
 }
 
-void WCSimParameters::SetFromMap() {
+void WCSimParameters::SetFromMap()
+{
 	// std::cout << "SetFromMap" << std::endl;
 	std::map<std::string, std::string>::const_iterator itr = fMap.begin();
 
 	// Loop through the map, checking if any of the keys correspond to things we can set
-	for (; itr != fMap.end(); ++itr) {
+	for (; itr != fMap.end(); ++itr)
+	{
 		std::cout << (*itr).first << "   " << (*itr).second << std::endl;
-		if ((*itr).first.compare("SlicerClusterDistance") == 0) {
+		if ((*itr).first.compare("SlicerClusterDistance") == 0)
+		{
 			std::stringstream ss(itr->second);
 			float val = 0.0;
-			if (!(ss >> val)) {
+			if (!(ss >> val))
+			{
 				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
-				exit (EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			fSlicerClusterDistance = val;
-		} else if ((*itr).first.compare("SlicerMinSize") == 0) {
+		}
+		else if ((*itr).first.compare("SlicerMinSize") == 0)
+		{
 			std::stringstream ss(itr->second);
 			int val = 0;
-			if (!(ss >> val)) {
+			if (!(ss >> val))
+			{
 				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a int" << std::endl;
-				exit (EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			fSlicerMinSize = val;
-		} else if ((*itr).first.compare("SlicerChargeCut") == 0) {
+		}
+		else if ((*itr).first.compare("SlicerChargeCut") == 0)
+		{
 			std::stringstream ss(itr->second);
 			float val = 0;
-			if (!(ss >> val)) {
+			if (!(ss >> val))
+			{
 				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
-				exit (EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			fSlicerChargeCut = val;
-		} else if ((*itr).first.compare("SlicerTimeCut") == 0) {
+		}
+		else if ((*itr).first.compare("SlicerTimeCut") == 0)
+		{
 			std::stringstream ss(itr->second);
 			float val = 0;
-			if (!(ss >> val)) {
+			if (!(ss >> val))
+			{
 				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
-				exit (EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			fSlicerTimeCut = val;
-		} else if ((*itr).first.compare("IterateSlicing") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+		}
+		else if ((*itr).first.compare("IterateSlicing") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
 				fIterateSlicing = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
-				fIterateSlicing = false;
-			} else {
-				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
 			}
-		} else if ((*itr).first.compare("VetoClusterDistance") == 0) {
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
+				fIterateSlicing = false;
+			}
+			else
+			{
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						  << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if ((*itr).first.compare("VetoClusterDistance") == 0)
+		{
 			std::stringstream ss(itr->second);
 			float val = 0;
-			if (!(ss >> val)) {
+			if (!(ss >> val))
+			{
 				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
-				exit (EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			fVetoClusterDistance = val;
-		} else if ((*itr).first.compare("VetoMinSize") == 0) {
+		}
+		else if ((*itr).first.compare("VetoMinSize") == 0)
+		{
 			std::stringstream ss(itr->second);
 			int val = 0;
-			if (!(ss >> val)) {
+			if (!(ss >> val))
+			{
 				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a int" << std::endl;
-				exit (EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			fVetoMinSize = val;
-		} else if ((*itr).first.compare("VetoMinChargeCut") == 0) {
+		}
+		else if ((*itr).first.compare("VetoMinChargeCut") == 0)
+		{
 			std::stringstream ss(itr->second);
 			float val = 0;
-			if (!(ss >> val)) {
+			if (!(ss >> val))
+			{
 				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
-				exit (EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			fVetoMinChargeCut = val;
-		} else if ((*itr).first.compare("VetoMaxChargeCut") == 0) {
+		}
+		else if ((*itr).first.compare("VetoMaxChargeCut") == 0)
+		{
 			std::stringstream ss(itr->second);
 			float val = 0;
-			if (!(ss >> val)) {
+			if (!(ss >> val))
+			{
 				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
-				exit (EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			fVetoMaxChargeCut = val;
-		} else if ((*itr).first.compare("VetoTimeCut") == 0) {
+		}
+		else if ((*itr).first.compare("VetoTimeCut") == 0)
+		{
 			std::stringstream ss(itr->second);
 			float val = 0;
-			if (!(ss >> val)) {
+			if (!(ss >> val))
+			{
 				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
-				exit (EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			fVetoTimeCut = val;
-		} else if ((*itr).first.compare("CalculateIntegrals") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+		}
+		else if ((*itr).first.compare("CalculateIntegrals") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
 				fCalculateIntegrals = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
+			}
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
 				fCalculateIntegrals = false;
-			} else {
-				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
 			}
-		} else if ((*itr).first.compare("TruncateIntegrals") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+			else
+			{
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						  << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if ((*itr).first.compare("TruncateIntegrals") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
 				fTruncateIntegrals = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
+			}
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
 				fTruncateIntegrals = false;
-			} else {
-				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
 			}
-		} else if ((*itr).first.compare("ConstrainExtent") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+			else
+			{
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						  << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if ((*itr).first.compare("ConstrainExtent") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
 				fConstrainExtent = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
+			}
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
 				fConstrainExtent = false;
-			} else {
-				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
 			}
-		} else if ((*itr).first.compare("UseTransmission") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+			else
+			{
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						  << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if ((*itr).first.compare("UseTransmission") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
 				fUseTransmission = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
+			}
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
 				fUseTransmission = false;
-			} else {
-				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
 			}
-		} else if ((*itr).first.compare("UseAngularEfficiency") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+			else
+			{
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						  << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if ((*itr).first.compare("UseAngularEfficiency") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
 				fUseAngularEfficiency = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
+			}
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
 				fUseAngularEfficiency = false;
-			} else {
-				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
 			}
-		} else if ((*itr).first.compare("UseGlassCathodeReflection") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+			else
+			{
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						  << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if ((*itr).first.compare("UseGlassCathodeReflection") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
 				fUseGlassCathodeReflection = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
+			}
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
 				fUseGlassCathodeReflection = false;
-			} else {
-				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
 			}
-		} else if ((*itr).first.compare("UseScatteringTable") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+			else
+			{
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						  << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if ((*itr).first.compare("UseScatteringTable") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
 				fUseScatteringTable = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
+			}
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
 				fUseScatteringTable = false;
-			} else {
-				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
 			}
-		} else if ((*itr).first.compare("UseNewAngularEfficiency") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+			else
+			{
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						  << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if ((*itr).first.compare("UseNewAngularEfficiency") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
 				fUseNewAngularEfficiency = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
+			}
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
 				fUseNewAngularEfficiency = false;
-			} else {
-				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
 			}
-		} else if ((*itr).first.compare("UseTrackFit") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+			else
+			{
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						  << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if ((*itr).first.compare("UseTrackFit") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
 				fUseTrackFit = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
-				fUseTrackFit = false;
-			} else {
-				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
 			}
-		} else if ((*itr).first.compare("QScaling") == 0) {
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
+				fUseTrackFit = false;
+			}
+			else
+			{
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						  << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if ((*itr).first.compare("QScaling") == 0)
+		{
 			std::stringstream ss(itr->second);
 			float val = 0;
-			if (!(ss >> val)) {
+			if (!(ss >> val))
+			{
 				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
-				exit (EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			fQScaling = val;
-		} else if ((*itr).first.compare("UseTime") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+		}
+		else if ((*itr).first.compare("UseTime") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
 				fUseTime = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
+			}
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
 				fUseTime = false;
-			} else {
-				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
 			}
-		} else if ((*itr).first.compare("UseCharge") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+			else
+			{
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						  << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if ((*itr).first.compare("UseCharge") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
 				fUseCharge = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
+			}
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
 				fUseCharge = false;
-			} else {
-				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
 			}
-		} else if ((*itr).first.compare("EqualiseChargeAndTime") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+			else
+			{
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						  << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if ((*itr).first.compare("EqualiseChargeAndTime") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
 				fEqualiseChargeAndTime = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
+			}
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
 				fEqualiseChargeAndTime = false;
-			} else {
-				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
 			}
-		} else if ((*itr).first.compare("SaveWCSimRootEvent") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+			else
+			{
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						  << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if ((*itr).first.compare("SaveWCSimRootEvent") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
 				fSaveWCSimRootEvent = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
-				fSaveWCSimRootEvent = false;
-			} else {
-				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
 			}
-		} else if ((*itr).first.compare("DigiType") == 0) {
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
+				fSaveWCSimRootEvent = false;
+			}
+			else
+			{
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						  << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if ((*itr).first.compare("DigiType") == 0)
+		{
 			std::cout << "It's " << ((*itr).second) << std::endl;
 			fDigiType = ((*itr).second);
-		} else if ((*itr).first.compare("SaveSeedInfo") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+		}
+		else if ((*itr).first.compare("SaveSeedInfo") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
 				fSaveSeedInfo = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
+			}
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
 				fSaveSeedInfo = false;
-			} else {
-				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
 			}
-		} else if ((*itr).first.compare("SaveStageInfo") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+			else
+			{
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						  << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if ((*itr).first.compare("SaveStageInfo") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
 				fSaveStageInfo = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
+			}
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
 				fSaveStageInfo = false;
-			} else {
-				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
 			}
-		} else if ((*itr).first.compare("SaveHitComparison") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+			else
+			{
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						  << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if ((*itr).first.compare("SaveHitComparison") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
 				fSaveHitComparison = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
+			}
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
 				fSaveHitComparison = false;
-			} else {
-				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
 			}
-		} else if ((*itr).first.compare("SaveParameters") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+			else
+			{
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						  << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if ((*itr).first.compare("SaveParameters") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
 				fSaveParameters = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
+			}
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
 				fSaveParameters = false;
-			} else {
-				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
 			}
-		} else if ((*itr).first.compare("UseCustomParticleSpeed") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+			else
+			{
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						  << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if ((*itr).first.compare("UseCustomParticleSpeed") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
 				fUseCustomParticleSpeed = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
+			}
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
 				fUseCustomParticleSpeed = false;
-			} else {
-				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
 			}
-		} else if ((*itr).first.compare("UseCustomSpeedOfLight") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+			else
+			{
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						  << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if ((*itr).first.compare("UseCustomSpeedOfLight") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
 				fUseCustomSpeedOfLight = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
+			}
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
 				fUseCustomSpeedOfLight = false;
-			} else {
-				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
 			}
-		} else if ((*itr).first.compare("UseFittedSpeedOfLight") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+			else
+			{
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						  << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if ((*itr).first.compare("UseFittedSpeedOfLight") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
 				fUseFittedSpeedOfLight = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
-				fUseFittedSpeedOfLight = false;
-			} else {
-				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
 			}
-		} else if ((*itr).first.compare("CustomParticleSpeed") == 0) {
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
+				fUseFittedSpeedOfLight = false;
+			}
+			else
+			{
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						  << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if ((*itr).first.compare("CustomParticleSpeed") == 0)
+		{
 			std::stringstream ss(itr->second);
 			float val = 0;
-			if (!(ss >> val)) {
+			if (!(ss >> val))
+			{
 				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
-				exit (EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			fCustomParticleSpeed = val;
-		} else if ((*itr).first.compare("CustomSpeedOfLight") == 0) {
+		}
+		else if ((*itr).first.compare("CustomSpeedOfLight") == 0)
+		{
 			std::stringstream ss(itr->second);
 			float val = 0;
-			if (!(ss >> val)) {
+			if (!(ss >> val))
+			{
 				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
-				exit (EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			fCustomSpeedOfLight = val;
-		} else if ((*itr).first.compare("FittedSpeedOfLight") == 0) {
+		}
+		else if ((*itr).first.compare("FittedSpeedOfLight") == 0)
+		{
 			std::stringstream ss(itr->second);
 			float val = 0;
-			if (!(ss >> val)) {
+			if (!(ss >> val))
+			{
 				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
-				exit (EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			fFittedSpeedOfLight = val;
-		} else if ((*itr).first.compare("PlotVtxXMax") == 0) {
+		}
+		else if ((*itr).first.compare("PlotVtxXMax") == 0)
+		{
 			std::stringstream ss(itr->second);
 			float val = 0;
-			if (!(ss >> val)) {
+			if (!(ss >> val))
+			{
 				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
-				exit (EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			fPlotVtxXMax = val;
-		} else if ((*itr).first.compare("PlotVtxYMax") == 0) {
+		}
+		else if ((*itr).first.compare("PlotVtxYMax") == 0)
+		{
 			std::stringstream ss(itr->second);
 			float val = 0;
-			if (!(ss >> val)) {
+			if (!(ss >> val))
+			{
 				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
-				exit (EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			fPlotVtxYMax = val;
-		} else if ((*itr).first.compare("PlotVtxZMax") == 0) {
+		}
+		else if ((*itr).first.compare("PlotVtxZMax") == 0)
+		{
 			std::stringstream ss(itr->second);
 			float val = 0;
-			if (!(ss >> val)) {
+			if (!(ss >> val))
+			{
 				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
-				exit (EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			fPlotVtxZMax = val;
-		} else if ((*itr).first.compare("PlotVtxTMax") == 0) {
+		}
+		else if ((*itr).first.compare("PlotVtxTMax") == 0)
+		{
 			std::stringstream ss(itr->second);
 			float val = 0;
-			if (!(ss >> val)) {
+			if (!(ss >> val))
+			{
 				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
-				exit (EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			fPlotVtxTMax = val;
-		} else if ((*itr).first.compare("PlotThetaMax") == 0) {
+		}
+		else if ((*itr).first.compare("PlotThetaMax") == 0)
+		{
 			std::stringstream ss(itr->second);
 			float val = 0;
-			if (!(ss >> val)) {
+			if (!(ss >> val))
+			{
 				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
-				exit (EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			fPlotThetaMax = val;
-		} else if ((*itr).first.compare("PlotPhiMax") == 0) {
+		}
+		else if ((*itr).first.compare("PlotPhiMax") == 0)
+		{
 			std::stringstream ss(itr->second);
 			float val = 0;
-			if (!(ss >> val)) {
+			if (!(ss >> val))
+			{
 				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
-				exit (EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			fPlotPhiMax = val;
-		} else if ((*itr).first.compare("PlotEnergyMax") == 0) {
+		}
+		else if ((*itr).first.compare("PlotEnergyMax") == 0)
+		{
 			std::stringstream ss(itr->second);
 			float val = 0;
-			if (!(ss >> val)) {
+			if (!(ss >> val))
+			{
 				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
-				exit (EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			fPlotEnergyMax = val;
-		} else if ((*itr).first.compare("IgnoreLowCut") == 0) {
+		}
+		else if ((*itr).first.compare("IgnoreLowCut") == 0)
+		{
 			std::stringstream ss(itr->second);
 			float val = 0;
-			if (!(ss >> val)) {
+			if (!(ss >> val))
+			{
 				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
-				exit (EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			fIgnoreLowCut = val;
-		} else if ((*itr).first.compare("IgnoreHighCut") == 0) {
+		}
+		else if ((*itr).first.compare("IgnoreHighCut") == 0)
+		{
 			std::stringstream ss(itr->second);
 			float val = 0;
-			if (!(ss >> val)) {
+			if (!(ss >> val))
+			{
 				std::cerr << "Error: " << (*itr).second << " = " << (*itr).second << " should be a double" << std::endl;
-				exit (EXIT_FAILURE);
+				exit(EXIT_FAILURE);
 			}
 			fIgnoreHighCut = val;
-		} else if ((*itr).first.compare("UseSimpleTimeResolution") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+		}
+		else if ((*itr).first.compare("UseSimpleTimeResolution") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
 				fUseSimpleTimeResolution = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
+			}
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
 				fUseSimpleTimeResolution = false;
-			} else {
-				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
 			}
-		} else if ((*itr).first.compare("UseSimpleTimeSlew") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
+			else
+			{
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						  << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if ((*itr).first.compare("UseSimpleTimeSlew") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
 				fUseSimpleTimeSlew = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
-				fUseSimpleTimeSlew = false;
-			} else {
-				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
 			}
-		} else if ((*itr).first.compare("UseSimpleRefractiveIndex") == 0) {
-			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0) {
-				fUseSimpleRefractiveIndex = true;
-			} else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0) {
-				fUseSimpleRefractiveIndex = false;
-			} else {
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
+				fUseSimpleTimeSlew = false;
+			}
+			else
+			{
 				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
-						<< std::endl;
-				exit (EXIT_FAILURE);
+						  << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if ((*itr).first.compare("UseSimpleRefractiveIndex") == 0)
+		{
+			if ((*itr).second.compare("true") == 0 || (*itr).second.compare("1") == 0)
+			{
+				fUseSimpleRefractiveIndex = true;
+			}
+			else if ((*itr).second.compare("false") == 0 || (*itr).second.compare("0") == 0)
+			{
+				fUseSimpleRefractiveIndex = false;
+			}
+			else
+			{
+				std::cerr << "Error: " << (*itr).first << " = " << (*itr).second << " should equal true/false or 1/0"
+						  << std::endl;
+				exit(EXIT_FAILURE);
 			}
 		}
 	}

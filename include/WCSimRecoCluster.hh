@@ -7,25 +7,24 @@
 
 class WCSimRecoDigit;
 
-class WCSimRecoCluster: public TObject {
-	public:
-		WCSimRecoCluster();
-		~WCSimRecoCluster();
+class WCSimRecoCluster : public TObject
+{
+public:
+	WCSimRecoCluster();
+	~WCSimRecoCluster();
 
-		void Reset();
-		void SortCluster();
+	void Reset();
+	void SortCluster();
 
-		void AddDigit(WCSimRecoDigit* digit);
+	void AddDigit(WCSimRecoDigit *digit);
 
-		WCSimRecoDigit* GetDigit(Int_t n);
-		Int_t GetNDigits();
+	WCSimRecoDigit *GetDigit(Int_t n);
+	Int_t GetNDigits();
 
-	private:
-		std::vector<WCSimRecoDigit*> fDigitList;
+private:
+	std::vector<WCSimRecoDigit *> fDigitList;
 
-		ClassDef(WCSimRecoCluster,0)
-
+	ClassDef(WCSimRecoCluster, 0)
 };
 
 #endif
-

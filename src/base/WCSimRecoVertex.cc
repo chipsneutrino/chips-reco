@@ -2,15 +2,17 @@
 
 #include "WCSimRecoObjectTable.hh"
 
-ClassImp (WCSimRecoVertex)
+ClassImp(WCSimRecoVertex)
 
-WCSimRecoVertex::WCSimRecoVertex() {
+WCSimRecoVertex::WCSimRecoVertex()
+{
 	this->Reset();
 
 	WCSimRecoObjectTable::Instance()->NewVertex();
 }
 
-WCSimRecoVertex::WCSimRecoVertex(Double_t x, Double_t y, Double_t z) {
+WCSimRecoVertex::WCSimRecoVertex(Double_t x, Double_t y, Double_t z)
+{
 	this->Reset();
 
 	this->SetVertex(x, y, z);
@@ -19,7 +21,8 @@ WCSimRecoVertex::WCSimRecoVertex(Double_t x, Double_t y, Double_t z) {
 	WCSimRecoObjectTable::Instance()->NewVertex();
 }
 
-WCSimRecoVertex::WCSimRecoVertex(Double_t x, Double_t y, Double_t z, Double_t px, Double_t py, Double_t pz) {
+WCSimRecoVertex::WCSimRecoVertex(Double_t x, Double_t y, Double_t z, Double_t px, Double_t py, Double_t pz)
+{
 	this->Reset();
 
 	this->SetVertex(x, y, z);
@@ -30,7 +33,8 @@ WCSimRecoVertex::WCSimRecoVertex(Double_t x, Double_t y, Double_t z, Double_t px
 }
 
 WCSimRecoVertex::WCSimRecoVertex(Double_t x, Double_t y, Double_t z, Double_t t, Double_t px, Double_t py, Double_t pz,
-		Double_t fom, Int_t nsteps, Bool_t pass, Int_t status) {
+								 Double_t fom, Int_t nsteps, Bool_t pass, Int_t status)
+{
 	this->Reset();
 
 	this->SetVertex(x, y, z);
@@ -42,7 +46,8 @@ WCSimRecoVertex::WCSimRecoVertex(Double_t x, Double_t y, Double_t z, Double_t t,
 }
 
 WCSimRecoVertex::WCSimRecoVertex(Double_t x, Double_t y, Double_t z, Double_t t, Double_t px, Double_t py, Double_t pz,
-		Double_t angle, Double_t length, Double_t fom, Int_t nsteps, Bool_t pass, Int_t status) {
+								 Double_t angle, Double_t length, Double_t fom, Int_t nsteps, Bool_t pass, Int_t status)
+{
 	this->Reset();
 
 	this->SetVertex(x, y, z, t);
@@ -55,15 +60,18 @@ WCSimRecoVertex::WCSimRecoVertex(Double_t x, Double_t y, Double_t z, Double_t t,
 	WCSimRecoObjectTable::Instance()->NewVertex();
 }
 
-WCSimRecoVertex::~WCSimRecoVertex() {
+WCSimRecoVertex::~WCSimRecoVertex()
+{
 	WCSimRecoObjectTable::Instance()->DeleteVertex();
 }
 
-void WCSimRecoVertex::SetVertex(Double_t x, Double_t y, Double_t z) {
+void WCSimRecoVertex::SetVertex(Double_t x, Double_t y, Double_t z)
+{
 	this->SetVertex(x, y, z, 950.0);
 }
 
-void WCSimRecoVertex::SetVertex(Double_t x, Double_t y, Double_t z, Double_t t) {
+void WCSimRecoVertex::SetVertex(Double_t x, Double_t y, Double_t z, Double_t t)
+{
 	fX = x;
 	fY = y;
 	fZ = z;
@@ -71,32 +79,38 @@ void WCSimRecoVertex::SetVertex(Double_t x, Double_t y, Double_t z, Double_t t) 
 	fFoundVertex = 1;
 }
 
-void WCSimRecoVertex::SetDirection(Double_t px, Double_t py, Double_t pz) {
+void WCSimRecoVertex::SetDirection(Double_t px, Double_t py, Double_t pz)
+{
 	fDirX = px;
 	fDirY = py;
 	fDirZ = pz;
 	fFoundDirection = 1;
 }
 
-void WCSimRecoVertex::SetConeAngle(Double_t angle) {
+void WCSimRecoVertex::SetConeAngle(Double_t angle)
+{
 	fConeAngle = angle;
 }
 
-void WCSimRecoVertex::SetTrackLength(Double_t length) {
+void WCSimRecoVertex::SetTrackLength(Double_t length)
+{
 	fTrackLength = length;
 }
 
-void WCSimRecoVertex::SetFOM(Double_t fom, Int_t nsteps, Bool_t pass) {
+void WCSimRecoVertex::SetFOM(Double_t fom, Int_t nsteps, Bool_t pass)
+{
 	fFOM = fom;
 	fIterations = nsteps;
 	fPass = pass;
 }
 
-void WCSimRecoVertex::SetStatus(Int_t status) {
+void WCSimRecoVertex::SetStatus(Int_t status)
+{
 	fStatus = status;
 }
 
-void WCSimRecoVertex::Reset() {
+void WCSimRecoVertex::Reset()
+{
 	fX = 0.0;
 	fY = 0.0;
 	fZ = 0.0;
@@ -117,4 +131,3 @@ void WCSimRecoVertex::Reset() {
 
 	fStatus = WCSimRecoVertex::kOK;
 }
-

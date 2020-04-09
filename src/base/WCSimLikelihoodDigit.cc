@@ -7,10 +7,11 @@
 #include <cstdlib>
 
 #ifndef REFLEX_DICTIONARY
-ClassImp (WCSimLikelihoodDigit)
+ClassImp(WCSimLikelihoodDigit)
 #endif
 
-WCSimLikelihoodDigit::WCSimLikelihoodDigit() {
+WCSimLikelihoodDigit::WCSimLikelihoodDigit()
+{
 	fTubeId = -999;
 	fQ = -999;
 	fT = -999;
@@ -26,11 +27,13 @@ WCSimLikelihoodDigit::WCSimLikelihoodDigit() {
 }
 
 WCSimLikelihoodDigit::WCSimLikelihoodDigit(Double_t x, Double_t y, Double_t z, Double_t t, Double_t Q, Int_t tubeId,
-		Double_t faceX, Double_t faceY, Double_t faceZ, TString pmtName, TGraph * wlWeightedQE,
-		double wlWeightedRefIndex, double exposeHeight) {
-	if (tubeId == 0) {
+										   Double_t faceX, Double_t faceY, Double_t faceZ, TString pmtName, TGraph *wlWeightedQE,
+										   double wlWeightedRefIndex, double exposeHeight)
+{
+	if (tubeId == 0)
+	{
 		std::cerr << "Error, trying to create a PMT with tubeID = 0.  WCSim numbers from 1." << std::endl;
-		exit (EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 	fTubeId = tubeId;
 	fPos[0] = x;
@@ -47,12 +50,13 @@ WCSimLikelihoodDigit::WCSimLikelihoodDigit(Double_t x, Double_t y, Double_t z, D
 	fExposeHeight = exposeHeight;
 }
 
-WCSimLikelihoodDigit::WCSimLikelihoodDigit(WCSimRootCherenkovDigiHit * myDigiHit) {
+WCSimLikelihoodDigit::WCSimLikelihoodDigit(WCSimRootCherenkovDigiHit *myDigiHit)
+{
 	fTubeId = myDigiHit->GetTubeId();
 	fQ = myDigiHit->GetQ();
 	fT = myDigiHit->GetT();
 
-	WCSimRootGeom * myGeom = (WCSimRootGeom*) (WCSimGeometry::Instance())->GetWCSimGeometry();
+	WCSimRootGeom *myGeom = (WCSimRootGeom *)(WCSimGeometry::Instance())->GetWCSimGeometry();
 	WCSimRootPMT myPMT = myGeom->GetPMTFromTubeID(fTubeId);
 	fPos[0] = myPMT.GetPosition(0);
 	fPos[1] = myPMT.GetPosition(1);
@@ -66,7 +70,8 @@ WCSimLikelihoodDigit::WCSimLikelihoodDigit(WCSimRootCherenkovDigiHit * myDigiHit
 	fExposeHeight = WCSimDetectorParameters::PMTExposeHeight(fPMTName.Data());
 }
 
-WCSimLikelihoodDigit::WCSimLikelihoodDigit(const WCSimLikelihoodDigit &otherLikelihoodDigit) {
+WCSimLikelihoodDigit::WCSimLikelihoodDigit(const WCSimLikelihoodDigit &otherLikelihoodDigit)
+{
 	fTubeId = otherLikelihoodDigit.fTubeId;
 	fQ = otherLikelihoodDigit.fQ;
 	fT = otherLikelihoodDigit.fT;
@@ -88,50 +93,63 @@ WCSimLikelihoodDigit::WCSimLikelihoodDigit(const WCSimLikelihoodDigit &otherLike
 ///////////////////////////////////////////////////////////////////////////
 // Destructor
 ///////////////////////////////////////////////////////////////////////////
-WCSimLikelihoodDigit::~WCSimLikelihoodDigit() {
+WCSimLikelihoodDigit::~WCSimLikelihoodDigit()
+{
 }
 
 ///////////////////////////////////////////////////////////////////////////
 // Getters
 ///////////////////////////////////////////////////////////////////////////
-int WCSimLikelihoodDigit::GetTubeId() const {
+int WCSimLikelihoodDigit::GetTubeId() const
+{
 	return fTubeId;
 }
-double WCSimLikelihoodDigit::GetQ() const {
+double WCSimLikelihoodDigit::GetQ() const
+{
 	return fQ;
 }
-double WCSimLikelihoodDigit::GetT() const {
+double WCSimLikelihoodDigit::GetT() const
+{
 	return fT;
 }
 
-TVector3 WCSimLikelihoodDigit::GetPos() const {
+TVector3 WCSimLikelihoodDigit::GetPos() const
+{
 	return TVector3(fPos[0], fPos[1], fPos[2]);
 }
-double WCSimLikelihoodDigit::GetX() const {
+double WCSimLikelihoodDigit::GetX() const
+{
 	return fPos[0];
 }
-double WCSimLikelihoodDigit::GetY() const {
+double WCSimLikelihoodDigit::GetY() const
+{
 	return fPos[1];
 }
-double WCSimLikelihoodDigit::GetZ() const {
+double WCSimLikelihoodDigit::GetZ() const
+{
 	return fPos[2];
 }
 
-TVector3 WCSimLikelihoodDigit::GetFace() const {
+TVector3 WCSimLikelihoodDigit::GetFace() const
+{
 	return TVector3(fFace[0], fFace[1], fFace[2]);
 }
-double WCSimLikelihoodDigit::GetFaceX() const {
+double WCSimLikelihoodDigit::GetFaceX() const
+{
 	return fFace[0];
 }
-double WCSimLikelihoodDigit::GetFaceY() const {
+double WCSimLikelihoodDigit::GetFaceY() const
+{
 	return fFace[1];
 }
-double WCSimLikelihoodDigit::GetFaceZ() const {
+double WCSimLikelihoodDigit::GetFaceZ() const
+{
 	return fFace[2];
 }
 
 // Relies on the fact that points in the QE graph are evenly spaced to avoid costly TGraph::Eval calls
-double WCSimLikelihoodDigit::GetAverageQE(const double &distanceToPMT) const {
+double WCSimLikelihoodDigit::GetAverageQE(const double &distanceToPMT) const
+{
 	double xMin, yMin;
 	double xMax, yMax;
 	fAverageQE->GetPoint(0, xMin, yMin);
@@ -139,61 +157,77 @@ double WCSimLikelihoodDigit::GetAverageQE(const double &distanceToPMT) const {
 
 	fAverageQE->GetPoint(fAverageQE->GetN() - 1, xMax, yMax);
 	assert(xMax > xMin);
-	int point = (int) (distanceToPMT / ((xMax - xMin) / (fAverageQE->GetN() - 1)));
-	if (distanceToPMT < xMin) {
+	int point = (int)(distanceToPMT / ((xMax - xMin) / (fAverageQE->GetN() - 1)));
+	if (distanceToPMT < xMin)
+	{
 		std::cerr << "WCSimLikelihoodDigit::GetAverageQE - Warning: distance to PMT of " << distanceToPMT
-				<< " is less than the minimum x-value in the graph, of " << xMin << std::endl;
+				  << " is less than the minimum x-value in the graph, of " << xMin << std::endl;
 	}
-	if (distanceToPMT > xMax) {
+	if (distanceToPMT > xMax)
+	{
 		std::cerr << "WCSimLikelihoodDigit::GetAverageQE - Warning: distance to PMT of " << distanceToPMT
-				<< " is greater than the maximum x-value in the graph, of " << xMax << std::endl;
-		point = (int) (xMax / ((xMax - xMin) / (fAverageQE->GetN() - 1)));
+				  << " is greater than the maximum x-value in the graph, of " << xMax << std::endl;
+		point = (int)(xMax / ((xMax - xMin) / (fAverageQE->GetN() - 1)));
 	}
 
-	if (point == fAverageQE->GetN() - 1) {
+	if (point == fAverageQE->GetN() - 1)
+	{
 		double x1, x2, y1, y2;
 		fAverageQE->GetPoint(point, x1, y1);
 		fAverageQE->GetPoint(point + 1, x2, y2);
 		return (y1 * (x2 - distanceToPMT) + y2 * (distanceToPMT - x1)) / (x2 - x1);
-	} else if (point > 0) {
+	}
+	else if (point > 0)
+	{
 		double x1, x2, y1, y2;
 		fAverageQE->GetPoint(point - 1, x1, y1);
 		fAverageQE->GetPoint(point, x2, y2);
 		return (y1 * (x2 - distanceToPMT) + y2 * (distanceToPMT - x1)) / (x2 - x1);
-
 	}
 	return fAverageQE->Eval(distanceToPMT);
 }
 
-double WCSimLikelihoodDigit::GetAverageRefIndex() const {
+double WCSimLikelihoodDigit::GetAverageRefIndex() const
+{
 	return fAverageRefIndex;
 }
-double WCSimLikelihoodDigit::GetExposeHeight() const {
+double WCSimLikelihoodDigit::GetExposeHeight() const
+{
 	return fExposeHeight;
 }
 
-void WCSimLikelihoodDigit::Print() const {
-	std::cout << "WCSimLikelihoodDigit::Print()" << std::endl << "     fTubeId = " << fTubeId << std::endl
-			<< "     fQ      = " << fQ << std::endl << "     fT      = " << fT << std::endl << "     fPos    = " << "("
-			<< fPos[0] << ", " << fPos[1] << ", " << fPos[2] << ")" << std::endl << "     fFace   = " << "(" << fFace[0]
-			<< ", " << fFace[1] << ", " << fFace[2] << ")" << std::endl << "     fExposeHeight = " << fExposeHeight
-			<< std::endl;
+void WCSimLikelihoodDigit::Print() const
+{
+	std::cout << "WCSimLikelihoodDigit::Print()" << std::endl
+			  << "     fTubeId = " << fTubeId << std::endl
+			  << "     fQ      = " << fQ << std::endl
+			  << "     fT      = " << fT << std::endl
+			  << "     fPos    = "
+			  << "("
+			  << fPos[0] << ", " << fPos[1] << ", " << fPos[2] << ")" << std::endl
+			  << "     fFace   = "
+			  << "(" << fFace[0]
+			  << ", " << fFace[1] << ", " << fFace[2] << ")" << std::endl
+			  << "     fExposeHeight = " << fExposeHeight
+			  << std::endl;
 	return;
 }
 
-TString WCSimLikelihoodDigit::GetPMTName() const {
+TString WCSimLikelihoodDigit::GetPMTName() const
+{
 	return fPMTName;
 }
 
-bool WCSimLikelihoodDigit::operator ==(const WCSimLikelihoodDigit &other) const {
-	return (fTubeId == other.fTubeId     ///< Unique PMT ID number from WCSim
-	&& fQ == other.fQ       ///< Digitized charge (P.E.)
-	&& fT == other.fT       ///< Time of hit
-	&& fPos[0] == other.fPos[0] ///< (x,y,z) co-ordinates of the PMT location
-	&& fPos[1] == other.fPos[1] && fPos[2] == other.fPos[2] && fFace[0] == other.fFace[0] ///< (x,y,z) components of the direction normal to the PMT
-	&& fFace[1] == other.fFace[1] && fFace[2] == other.fFace[2] && fPMTName == other.fPMTName ///< Name of PMT type, e.g. 3_inch_HQE
-	&& fAverageQE == other.fAverageQE ///< Average QE of the PMT, from weighting QE(wavelength) by the average Cherenkov spectrum - as a function of photon travel distance
-	&& fAverageRefIndex == other.fAverageRefIndex ///< Weight WCSim's refractive index by (wavelength * PMT QE(wavelength))
-	&& fExposeHeight == other.fExposeHeight ///< Height of PMT dome expose through the detector liner
+bool WCSimLikelihoodDigit::operator==(const WCSimLikelihoodDigit &other) const
+{
+	return (fTubeId == other.fTubeId																  ///< Unique PMT ID number from WCSim
+			&& fQ == other.fQ																		  ///< Digitized charge (P.E.)
+			&& fT == other.fT																		  ///< Time of hit
+			&& fPos[0] == other.fPos[0]																  ///< (x,y,z) co-ordinates of the PMT location
+			&& fPos[1] == other.fPos[1] && fPos[2] == other.fPos[2] && fFace[0] == other.fFace[0]	  ///< (x,y,z) components of the direction normal to the PMT
+			&& fFace[1] == other.fFace[1] && fFace[2] == other.fFace[2] && fPMTName == other.fPMTName ///< Name of PMT type, e.g. 3_inch_HQE
+			&& fAverageQE == other.fAverageQE														  ///< Average QE of the PMT, from weighting QE(wavelength) by the average Cherenkov spectrum - as a function of photon travel distance
+			&& fAverageRefIndex == other.fAverageRefIndex											  ///< Weight WCSim's refractive index by (wavelength * PMT QE(wavelength))
+			&& fExposeHeight == other.fExposeHeight													  ///< Height of PMT dome expose through the detector liner
 	);
 }

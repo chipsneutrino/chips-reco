@@ -3,35 +3,40 @@
 #include <iostream>
 #include <cassert>
 
-ClassImp (WCSimRecoObjectTable)
+ClassImp(WCSimRecoObjectTable)
 
-static WCSimRecoObjectTable* fgRecoObjectTable = 0;
+static WCSimRecoObjectTable *fgRecoObjectTable = 0;
 
-WCSimRecoObjectTable* WCSimRecoObjectTable::Instance() {
-	if (!fgRecoObjectTable) {
+WCSimRecoObjectTable *WCSimRecoObjectTable::Instance()
+{
+	if (!fgRecoObjectTable)
+	{
 		fgRecoObjectTable = new WCSimRecoObjectTable();
 	}
 
-	if (!fgRecoObjectTable) {
-		assert (fgRecoObjectTable);
+	if (!fgRecoObjectTable)
+	{
+		assert(fgRecoObjectTable);
 	}
 
-	if (fgRecoObjectTable) {
-
+	if (fgRecoObjectTable)
+	{
 	}
 
 	return fgRecoObjectTable;
 }
 
-WCSimRecoObjectTable::WCSimRecoObjectTable() {
+WCSimRecoObjectTable::WCSimRecoObjectTable()
+{
 	this->Reset();
 }
 
-WCSimRecoObjectTable::~WCSimRecoObjectTable() {
-
+WCSimRecoObjectTable::~WCSimRecoObjectTable()
+{
 }
 
-void WCSimRecoObjectTable::Reset() {
+void WCSimRecoObjectTable::Reset()
+{
 	numDigits = 0;
 	numClusters = 0;
 	numClusterDigits = 0;
@@ -40,7 +45,8 @@ void WCSimRecoObjectTable::Reset() {
 	numEvents = 0;
 }
 
-void WCSimRecoObjectTable::Print() {
+void WCSimRecoObjectTable::Print()
+{
 	std::cout << " *** WCSimRecoObjectTable::Print() *** " << std::endl;
 	std::cout << numDigits << "\t Digits " << std::endl;
 	std::cout << numClusterDigits << "\t ClusterDigits " << std::endl;

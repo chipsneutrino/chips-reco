@@ -15,7 +15,7 @@
 ClassImp(WCSimFitterTrackParMap)
 #endif
 
-	WCSimFitterTrackParMap::WCSimFitterTrackParMap(WCSimFitterConfig *config)
+WCSimFitterTrackParMap::WCSimFitterTrackParMap(WCSimFitterConfig *config)
 {
 	fFitterConfig = config;
 

@@ -7,17 +7,17 @@
 #include <iostream>
 
 #ifndef REFLEX_DICTIONARY
-ClassImp (WCSimLikelihoodTrack)
-ClassImp (WCSimLikelihoodPhotonTrack)
-ClassImp (WCSimLikelihoodUnknownTrack)
+ClassImp(WCSimLikelihoodTrack)
+	ClassImp(WCSimLikelihoodPhotonTrack)
+		ClassImp(WCSimLikelihoodUnknownTrack)
 #endif
 
 ///////////////////////////////////////////////////////////////
 //  METHODS FOR WCSIMLIKELIHOODTRACK CLASS
 //////////////////////////////////////////////////////////////
 
-WCSimLikelihoodTrack::WCSimLikelihoodTrack() :
-		WCSimLikelihoodTrackBase() {
+WCSimLikelihoodTrack::WCSimLikelihoodTrack() : WCSimLikelihoodTrackBase()
+{
 	fVtx[0] = -999;
 	fVtx[1] = -999;
 	fVtx[2] = -999;
@@ -34,7 +34,8 @@ WCSimLikelihoodTrack::WCSimLikelihoodTrack() :
 }
 
 WCSimLikelihoodTrack::WCSimLikelihoodTrack(double x, double y, double z, double t, double theta, double phi, double E,
-		TrackType::Type myType) {
+										   TrackType::Type myType)
+{
 	fVtx[0] = x;
 	fVtx[1] = y;
 	fVtx[2] = z;
@@ -50,53 +51,69 @@ WCSimLikelihoodTrack::WCSimLikelihoodTrack(double x, double y, double z, double 
 	return;
 }
 
-WCSimLikelihoodTrack::~WCSimLikelihoodTrack() {
+WCSimLikelihoodTrack::~WCSimLikelihoodTrack()
+{
 	// TODO Auto-generated destructor stub
 }
 
-double WCSimLikelihoodTrack::GetTrackParameter(const FitterParameterType::Type &type) const {
-	if (type == FitterParameterType::kVtxX) {
+double WCSimLikelihoodTrack::GetTrackParameter(const FitterParameterType::Type &type) const
+{
+	if (type == FitterParameterType::kVtxX)
+	{
 		return GetX();
 	}
-	if (type == FitterParameterType::kVtxY) {
+	if (type == FitterParameterType::kVtxY)
+	{
 		return GetY();
 	}
-	if (type == FitterParameterType::kVtxZ) {
+	if (type == FitterParameterType::kVtxZ)
+	{
 		return GetZ();
 	}
-	if (type == FitterParameterType::kVtxT) {
+	if (type == FitterParameterType::kVtxT)
+	{
 		return GetT();
 	}
-	if (type == FitterParameterType::kDirTh) {
+	if (type == FitterParameterType::kDirTh)
+	{
 		return GetTheta();
 	}
-	if (type == FitterParameterType::kDirPhi) {
+	if (type == FitterParameterType::kDirPhi)
+	{
 		return GetPhi();
 	}
-	if (type == FitterParameterType::kEnergy) {
+	if (type == FitterParameterType::kEnergy)
+	{
 		return GetE();
 	}
-	if (type == FitterParameterType::kConversionDistance) {
+	if (type == FitterParameterType::kConversionDistance)
+	{
 		return GetConversionDistance();
 	}
 	assert(0);
 	return -99999;
 }
 
-TVector3 WCSimLikelihoodTrack::GetPropagatedPos(const Double_t &s) const {
+TVector3 WCSimLikelihoodTrack::GetPropagatedPos(const Double_t &s) const
+{
 	return (this->GetVtx() + s * this->GetDir());
 }
 
-void WCSimLikelihoodTrack::SetType(const TrackType::Type &type) {
-	if (type == TrackType::ElectronLike || type == TrackType::MuonLike) {
+void WCSimLikelihoodTrack::SetType(const TrackType::Type &type)
+{
+	if (type == TrackType::ElectronLike || type == TrackType::MuonLike)
+	{
 		fType = type;
-	} else {
+	}
+	else
+	{
 		std::cerr << "Error in WCSimLikelihoodTrack::SetType: track type must be ElectronLike or MuonLike" << std::endl;
 		assert(type == TrackType::ElectronLike || type == TrackType::MuonLike);
 	}
 }
 
-TVector3 WCSimLikelihoodTrack::GetFirstEmissionVtx() const {
+TVector3 WCSimLikelihoodTrack::GetFirstEmissionVtx() const
+{
 	return GetVtx();
 } // Conversion distance is 0 so it emits straight away
 
@@ -104,8 +121,8 @@ TVector3 WCSimLikelihoodTrack::GetFirstEmissionVtx() const {
 //  METHODS FOR WCSIMLIKELIHOODPHOTONTRACK CLASS
 //////////////////////////////////////////////////////////////
 
-WCSimLikelihoodPhotonTrack::WCSimLikelihoodPhotonTrack() :
-		WCSimLikelihoodTrackBase() {
+WCSimLikelihoodPhotonTrack::WCSimLikelihoodPhotonTrack() : WCSimLikelihoodTrackBase()
+{
 	fVtx[0] = -999;
 	fVtx[1] = -999;
 	fVtx[2] = -999;
@@ -122,7 +139,8 @@ WCSimLikelihoodPhotonTrack::WCSimLikelihoodPhotonTrack() :
 }
 
 WCSimLikelihoodPhotonTrack::WCSimLikelihoodPhotonTrack(double x, double y, double z, double t, double theta, double phi,
-		double E, double convDistance) {
+													   double E, double convDistance)
+{
 	fVtx[0] = x;
 	fVtx[1] = y;
 	fVtx[2] = z;
@@ -137,52 +155,68 @@ WCSimLikelihoodPhotonTrack::WCSimLikelihoodPhotonTrack(double x, double y, doubl
 	SetConversionDistance(convDistance);
 }
 
-WCSimLikelihoodPhotonTrack::~WCSimLikelihoodPhotonTrack() {
+WCSimLikelihoodPhotonTrack::~WCSimLikelihoodPhotonTrack()
+{
 	// TODO Auto-generated destructor stub
 }
 
-void WCSimLikelihoodPhotonTrack::SetConversionDistance(const double& convDist) {
+void WCSimLikelihoodPhotonTrack::SetConversionDistance(const double &convDist)
+{
 	fConversionDistance = convDist;
 	fFirstEmissionVtx = GetPropagatedPos(convDist); // Where are Cherenkov photons first emitted?
 }
 
-double WCSimLikelihoodPhotonTrack::GetTrackParameter(const FitterParameterType::Type &type) const {
-	if (type == FitterParameterType::kVtxX) {
+double WCSimLikelihoodPhotonTrack::GetTrackParameter(const FitterParameterType::Type &type) const
+{
+	if (type == FitterParameterType::kVtxX)
+	{
 		return GetX();
 	}
-	if (type == FitterParameterType::kVtxY) {
+	if (type == FitterParameterType::kVtxY)
+	{
 		return GetY();
 	}
-	if (type == FitterParameterType::kVtxZ) {
+	if (type == FitterParameterType::kVtxZ)
+	{
 		return GetZ();
 	}
-	if (type == FitterParameterType::kVtxT) {
+	if (type == FitterParameterType::kVtxT)
+	{
 		return GetT();
 	}
-	if (type == FitterParameterType::kDirTh) {
+	if (type == FitterParameterType::kDirTh)
+	{
 		return GetTheta();
 	}
-	if (type == FitterParameterType::kDirPhi) {
+	if (type == FitterParameterType::kDirPhi)
+	{
 		return GetPhi();
 	}
-	if (type == FitterParameterType::kEnergy) {
+	if (type == FitterParameterType::kEnergy)
+	{
 		return GetE();
 	}
-	if (type == FitterParameterType::kConversionDistance) {
+	if (type == FitterParameterType::kConversionDistance)
+	{
 		return GetConversionDistance();
 	}
 	assert(0);
 	return -99999;
 }
 
-TVector3 WCSimLikelihoodPhotonTrack::GetPropagatedPos(const Double_t &s) const {
+TVector3 WCSimLikelihoodPhotonTrack::GetPropagatedPos(const Double_t &s) const
+{
 	return (this->GetVtx() + s * this->GetDir());
 }
 
-void WCSimLikelihoodPhotonTrack::SetType(const TrackType::Type& type) {
-	if (type == TrackType::PhotonLike) {
+void WCSimLikelihoodPhotonTrack::SetType(const TrackType::Type &type)
+{
+	if (type == TrackType::PhotonLike)
+	{
 		fType = type;
-	} else {
+	}
+	else
+	{
 		std::cerr << "Error in WCSimLikelihoodPhotonTrack::SetType: track type must be PhotonLike" << std::endl;
 		assert(type == TrackType::PhotonLike);
 	}
@@ -192,7 +226,8 @@ void WCSimLikelihoodPhotonTrack::SetType(const TrackType::Type& type) {
 // For a photon, this is found by travelling away from the vertex in the distance
 // of track propagation by the conversion distance.  Work this out when we set the
 // conversion distance so that this is just a lookup
-TVector3 WCSimLikelihoodPhotonTrack::GetFirstEmissionVtx() const {
+TVector3 WCSimLikelihoodPhotonTrack::GetFirstEmissionVtx() const
+{
 	return fFirstEmissionVtx;
 }
 
@@ -200,8 +235,8 @@ TVector3 WCSimLikelihoodPhotonTrack::GetFirstEmissionVtx() const {
 //  METHODS FOR WCSIMLIKELIHOODUNKNOWNTRACK CLASS
 //////////////////////////////////////////////////////////////
 
-WCSimLikelihoodUnknownTrack::WCSimLikelihoodUnknownTrack() :
-		WCSimLikelihoodTrackBase() {
+WCSimLikelihoodUnknownTrack::WCSimLikelihoodUnknownTrack() : WCSimLikelihoodTrackBase()
+{
 	fVtx[0] = -999;
 	fVtx[1] = -999;
 	fVtx[2] = -999;
@@ -218,7 +253,8 @@ WCSimLikelihoodUnknownTrack::WCSimLikelihoodUnknownTrack() :
 }
 
 WCSimLikelihoodUnknownTrack::WCSimLikelihoodUnknownTrack(double x, double y, double z, double t, double theta,
-		double phi, double E, double convDistance) {
+														 double phi, double E, double convDistance)
+{
 	fVtx[0] = x;
 	fVtx[1] = y;
 	fVtx[2] = z;
@@ -233,52 +269,68 @@ WCSimLikelihoodUnknownTrack::WCSimLikelihoodUnknownTrack(double x, double y, dou
 	SetConversionDistance(convDistance);
 }
 
-WCSimLikelihoodUnknownTrack::~WCSimLikelihoodUnknownTrack() {
+WCSimLikelihoodUnknownTrack::~WCSimLikelihoodUnknownTrack()
+{
 	// TODO Auto-generated destructor stub
 }
 
-void WCSimLikelihoodUnknownTrack::SetConversionDistance(const double& convDist) {
+void WCSimLikelihoodUnknownTrack::SetConversionDistance(const double &convDist)
+{
 	fConversionDistance = convDist;
 	fFirstEmissionVtx = GetPropagatedPos(convDist); // Where are Cherenkov photons first emitted?
 }
 
-double WCSimLikelihoodUnknownTrack::GetTrackParameter(const FitterParameterType::Type &type) const {
-	if (type == FitterParameterType::kVtxX) {
+double WCSimLikelihoodUnknownTrack::GetTrackParameter(const FitterParameterType::Type &type) const
+{
+	if (type == FitterParameterType::kVtxX)
+	{
 		return GetX();
 	}
-	if (type == FitterParameterType::kVtxY) {
+	if (type == FitterParameterType::kVtxY)
+	{
 		return GetY();
 	}
-	if (type == FitterParameterType::kVtxZ) {
+	if (type == FitterParameterType::kVtxZ)
+	{
 		return GetZ();
 	}
-	if (type == FitterParameterType::kVtxT) {
+	if (type == FitterParameterType::kVtxT)
+	{
 		return GetT();
 	}
-	if (type == FitterParameterType::kDirTh) {
+	if (type == FitterParameterType::kDirTh)
+	{
 		return GetTheta();
 	}
-	if (type == FitterParameterType::kDirPhi) {
+	if (type == FitterParameterType::kDirPhi)
+	{
 		return GetPhi();
 	}
-	if (type == FitterParameterType::kEnergy) {
+	if (type == FitterParameterType::kEnergy)
+	{
 		return GetE();
 	}
-	if (type == FitterParameterType::kConversionDistance) {
+	if (type == FitterParameterType::kConversionDistance)
+	{
 		return GetConversionDistance();
 	}
 	assert(0);
 	return -99999;
 }
 
-TVector3 WCSimLikelihoodUnknownTrack::GetPropagatedPos(const Double_t &s) const {
+TVector3 WCSimLikelihoodUnknownTrack::GetPropagatedPos(const Double_t &s) const
+{
 	return (this->GetVtx() + s * this->GetDir());
 }
 
-void WCSimLikelihoodUnknownTrack::SetType(const TrackType::Type& type) {
-	if (type == TrackType::Unknown) {
+void WCSimLikelihoodUnknownTrack::SetType(const TrackType::Type &type)
+{
+	if (type == TrackType::Unknown)
+	{
 		fType = type;
-	} else {
+	}
+	else
+	{
 		std::cerr << "Error in WCSimLikelihoodPhotonTrack::SetType: track type must be Unknown" << std::endl;
 		assert(type == TrackType::Unknown);
 	}
@@ -288,6 +340,7 @@ void WCSimLikelihoodUnknownTrack::SetType(const TrackType::Type& type) {
 // For a photon, this is found by travelling away from the vertex in the distance
 // of track propagation by the conversion distance.  Work this out when we set the
 // conversion distance so that this is just a lookup
-TVector3 WCSimLikelihoodUnknownTrack::GetFirstEmissionVtx() const {
+TVector3 WCSimLikelihoodUnknownTrack::GetFirstEmissionVtx() const
+{
 	return fFirstEmissionVtx;
 }

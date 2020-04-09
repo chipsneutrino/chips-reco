@@ -17,7 +17,7 @@
 
 ClassImp(WCSimGeometry)
 
-	static WCSimGeometry *fgGeometryHandle = 0;
+static WCSimGeometry *fgGeometryHandle = 0;
 
 Bool_t WCSimGeometry::TouchGeometry()
 {

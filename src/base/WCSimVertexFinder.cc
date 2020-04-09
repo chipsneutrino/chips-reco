@@ -16,11 +16,12 @@
 #include <iostream>
 #include <cassert>
 
-ClassImp (WCSimVertexFinder)
+ClassImp(WCSimVertexFinder)
 
-static WCSimVertexFinder* fgVertexFinder = 0;
+static WCSimVertexFinder *fgVertexFinder = 0;
 
-static void point_position_chi2(Int_t&, Double_t*, Double_t& f, Double_t* par, Int_t) {
+static void point_position_chi2(Int_t &, Double_t *, Double_t &f, Double_t *par, Int_t)
+{
 	Bool_t printDebugMessages = 0;
 
 	Double_t vtxX = par[0]; // centimetres
@@ -35,15 +36,17 @@ static void point_position_chi2(Int_t&, Double_t*, Double_t& f, Double_t* par, I
 
 	f = -fom; // note: need to maximize this fom
 
-	if (printDebugMessages) {
+	if (printDebugMessages)
+	{
 		std::cout << " [point_position_chi2] [" << fgVertexFinder->point_position_iterations() << "] (x,y,z)=(" << vtxX
-				<< "," << vtxY << "," << vtxZ << ") vtime=" << vtime << " fom=" << fom << std::endl;
+				  << "," << vtxY << "," << vtxZ << ") vtime=" << vtime << " fom=" << fom << std::endl;
 	}
 
 	return;
 }
 
-static void point_direction_chi2(Int_t&, Double_t*, Double_t& f, Double_t* par, Int_t) {
+static void point_direction_chi2(Int_t &, Double_t *, Double_t &f, Double_t *par, Int_t)
+{
 	Bool_t printDebugMessages = 0;
 
 	Double_t vtxX = fgVertexFinder->fVtxX;
@@ -51,7 +54,7 @@ static void point_direction_chi2(Int_t&, Double_t*, Double_t& f, Double_t* par, 
 	Double_t vtxZ = fgVertexFinder->fVtxZ;
 
 	Double_t dirTheta = par[0]; // radians
-	Double_t dirPhi = par[1]; // radians
+	Double_t dirPhi = par[1];	// radians
 
 	Double_t dirX = sin(dirTheta) * cos(dirPhi);
 	Double_t dirY = sin(dirTheta) * sin(dirPhi);
@@ -65,15 +68,17 @@ static void point_direction_chi2(Int_t&, Double_t*, Double_t& f, Double_t* par, 
 
 	f = -fom; // note: need to maximize this fom
 
-	if (printDebugMessages) {
+	if (printDebugMessages)
+	{
 		std::cout << " [point_direction_chi2] [" << fgVertexFinder->point_direction_iterations() << "] (px,py,pz)=("
-				<< dirX << "," << dirY << "," << dirZ << ") fom=" << fom << std::endl;
+				  << dirX << "," << dirY << "," << dirZ << ") fom=" << fom << std::endl;
 	}
 
 	return;
 }
 
-static void point_vertex_chi2(Int_t&, Double_t*, Double_t& f, Double_t* par, Int_t) {
+static void point_vertex_chi2(Int_t &, Double_t *, Double_t &f, Double_t *par, Int_t)
+{
 	Bool_t printDebugMessages = 0;
 
 	Double_t vtxX = par[0]; // centimetres
@@ -81,7 +86,7 @@ static void point_vertex_chi2(Int_t&, Double_t*, Double_t& f, Double_t* par, Int
 	Double_t vtxZ = par[2]; // centimetres
 
 	Double_t dirTheta = par[3]; // radians
-	Double_t dirPhi = par[4]; // radians
+	Double_t dirPhi = par[4];	// radians
 
 	Double_t dirX = sin(dirTheta) * cos(dirPhi);
 	Double_t dirY = sin(dirTheta) * sin(dirPhi);
@@ -96,16 +101,18 @@ static void point_vertex_chi2(Int_t&, Double_t*, Double_t& f, Double_t* par, Int
 
 	f = -fom; // note: need to maximize this fom
 
-	if (printDebugMessages) {
+	if (printDebugMessages)
+	{
 		std::cout << " [point_vertex_chi2] [" << fgVertexFinder->point_vertex_iterations() << "] (x,y,z)=(" << vtxX
-				<< "," << vtxY << "," << vtxZ << ") (px,py,pz)=(" << dirX << "," << dirY << "," << dirZ << ") vtime="
-				<< vtime << " fom=" << fom << std::endl;
+				  << "," << vtxY << "," << vtxZ << ") (px,py,pz)=(" << dirX << "," << dirY << "," << dirZ << ") vtime="
+				  << vtime << " fom=" << fom << std::endl;
 	}
 
 	return;
 }
 
-static void extended_vertex_chi2(Int_t&, Double_t*, Double_t& f, Double_t* par, Int_t) {
+static void extended_vertex_chi2(Int_t &, Double_t *, Double_t &f, Double_t *par, Int_t)
+{
 	Bool_t printDebugMessages = 0;
 
 	Double_t vtxX = par[0]; // centimetres
@@ -113,7 +120,7 @@ static void extended_vertex_chi2(Int_t&, Double_t*, Double_t& f, Double_t* par, 
 	Double_t vtxZ = par[2]; // centimetres
 
 	Double_t dirTheta = par[3]; // radians
-	Double_t dirPhi = par[4]; // radians
+	Double_t dirPhi = par[4];	// radians
 
 	Double_t dirX = sin(dirTheta) * cos(dirPhi);
 	Double_t dirY = sin(dirTheta) * sin(dirPhi);
@@ -128,16 +135,18 @@ static void extended_vertex_chi2(Int_t&, Double_t*, Double_t& f, Double_t* par, 
 
 	f = -fom; // note: need to maximize this fom
 
-	if (printDebugMessages) {
+	if (printDebugMessages)
+	{
 		std::cout << " [extended_vertex_chi2] [" << fgVertexFinder->extended_vertex_iterations() << "] (x,y,z)=("
-				<< vtxX << "," << vtxY << "," << vtxZ << ") (px,py,pz)=(" << dirX << "," << dirY << "," << dirZ
-				<< ") vtime=" << vtime << " fom=" << fom << std::endl;
+				  << vtxX << "," << vtxY << "," << vtxZ << ") (px,py,pz)=(" << dirX << "," << dirY << "," << dirZ
+				  << ") vtime=" << vtime << " fom=" << fom << std::endl;
 	}
 
 	return;
 }
 
-static void vertex_time_fom(Int_t&, Double_t*, Double_t& f, Double_t* par, Int_t) {
+static void vertex_time_fom(Int_t &, Double_t *, Double_t &f, Double_t *par, Int_t)
+{
 	Double_t vtxTime = par[0]; // nanoseconds
 
 	Double_t fom = 0.0;
@@ -149,13 +158,15 @@ static void vertex_time_fom(Int_t&, Double_t*, Double_t& f, Double_t* par, Int_t
 	return;
 }
 
-static void vertex_time_lnl(Int_t&, Double_t*, Double_t& f, Double_t* par, Int_t) {
+static void vertex_time_lnl(Int_t &, Double_t *, Double_t &f, Double_t *par, Int_t)
+{
 	Bool_t printDebugMessages = 0;
 
 	Double_t vtxTime = par[0]; // nanoseconds
 	Double_t vtxParam0 = fgVertexFinder->fFixTimeParam0;
 
-	if (fgVertexFinder->fFitTimeParams) {
+	if (fgVertexFinder->fFitTimeParams)
+	{
 		vtxParam0 = par[1];
 	}
 
@@ -166,22 +177,25 @@ static void vertex_time_lnl(Int_t&, Double_t*, Double_t& f, Double_t* par, Int_t
 
 	f = -fom; // note: need to maximize this fom
 
-	if (printDebugMessages) {
+	if (printDebugMessages)
+	{
 		std::cout << "  [vertex_time_lnl] [" << fgVertexFinder->time_fit_iterations() << "] vtime=" << vtxTime
-				<< " vparam=" << vtxParam0 << " fom=" << fom << std::endl;
+				  << " vparam=" << vtxParam0 << " fom=" << fom << std::endl;
 	}
 
 	return;
 }
 
-static void vertex_cone_lnl(Int_t&, Double_t*, Double_t& f, Double_t* par, Int_t) {
+static void vertex_cone_lnl(Int_t &, Double_t *, Double_t &f, Double_t *par, Int_t)
+{
 	Bool_t printDebugMessages = 0;
 
 	Double_t vtxParam0 = fgVertexFinder->fFixConeParam0;
 	Double_t vtxParam1 = fgVertexFinder->fFixConeParam1;
 	Double_t vtxParam2 = fgVertexFinder->fFixConeParam2;
 
-	if (fgVertexFinder->fFitConeParams) {
+	if (fgVertexFinder->fFitConeParams)
+	{
 		vtxParam0 = par[0];
 		vtxParam1 = par[1];
 		vtxParam2 = par[2];
@@ -195,95 +209,116 @@ static void vertex_cone_lnl(Int_t&, Double_t*, Double_t& f, Double_t* par, Int_t
 
 	f = -fom; // note: need to maximize this fom
 
-	if (printDebugMessages) {
+	if (printDebugMessages)
+	{
 		std::cout << "  [vertex_cone_lnl] [" << fgVertexFinder->cone_fit_iterations() << "] vparam0=" << vtxParam0
-				<< " vparam1=" << vtxParam1 << " vtxParam2=" << vtxParam2 << " fom=" << fom << std::endl;
+				  << " vparam1=" << vtxParam1 << " vtxParam2=" << vtxParam2 << " fom=" << fom << std::endl;
 	}
 
 	return;
 }
 
-WCSimVertexFinder* WCSimVertexFinder::Instance() {
-	if (!fgVertexFinder) {
+WCSimVertexFinder *WCSimVertexFinder::Instance()
+{
+	if (!fgVertexFinder)
+	{
 		fgVertexFinder = new WCSimVertexFinder();
 	}
 
-	if (!fgVertexFinder) {
-		assert (fgVertexFinder);
+	if (!fgVertexFinder)
+	{
+		assert(fgVertexFinder);
 	}
 
-	if (fgVertexFinder) {
-
+	if (fgVertexFinder)
+	{
 	}
 
 	return fgVertexFinder;
 }
 
-void WCSimVertexFinder::SimpleVertexOnly(Bool_t yesno) {
+void WCSimVertexFinder::SimpleVertexOnly(Bool_t yesno)
+{
 	WCSimVertexFinder::Instance()->SetSimpleVertexOnly(yesno);
 }
 
-void WCSimVertexFinder::PointFitOnly(Bool_t yesno) {
+void WCSimVertexFinder::PointFitOnly(Bool_t yesno)
+{
 	WCSimVertexFinder::Instance()->SetPointFitOnly(yesno);
 }
 
-void WCSimVertexFinder::UseTrueVertex(Bool_t yesno) {
+void WCSimVertexFinder::UseTrueVertex(Bool_t yesno)
+{
 	WCSimVertexFinder::Instance()->UsingTrueVertex(yesno);
 }
 
-void WCSimVertexFinder::UseTruePosition(Bool_t yesno) {
+void WCSimVertexFinder::UseTruePosition(Bool_t yesno)
+{
 	WCSimVertexFinder::Instance()->UsingTruePosition(yesno);
 }
 
-void WCSimVertexFinder::UseTrueDirection(Bool_t yesno) {
+void WCSimVertexFinder::UseTrueDirection(Bool_t yesno)
+{
 	WCSimVertexFinder::Instance()->UsingTrueDirection(yesno);
 }
 
-void WCSimVertexFinder::SeedWithTrueVertex(Bool_t yesno) {
+void WCSimVertexFinder::SeedWithTrueVertex(Bool_t yesno)
+{
 	WCSimVertexFinder::Instance()->SeedingWithTrueVertex(yesno);
 }
 
-void WCSimVertexFinder::SeedWithSimpleVertex(Bool_t yesno) {
+void WCSimVertexFinder::SeedWithSimpleVertex(Bool_t yesno)
+{
 	WCSimVertexFinder::Instance()->SeedingWithSimpleVertex(yesno);
 }
 
-void WCSimVertexFinder::SeedWithQuadruples(Bool_t yesno) {
+void WCSimVertexFinder::SeedWithQuadruples(Bool_t yesno)
+{
 	WCSimVertexFinder::Instance()->SeedingWithQuadruples(yesno);
 }
 
-void WCSimVertexFinder::NumSeeds(Int_t nseeds) {
+void WCSimVertexFinder::NumSeeds(Int_t nseeds)
+{
 	WCSimVertexFinder::Instance()->SetNumSeeds(nseeds);
 }
 
-void WCSimVertexFinder::FitWeights(Double_t tw, Double_t cw) {
+void WCSimVertexFinder::FitWeights(Double_t tw, Double_t cw)
+{
 	WCSimVertexFinder::Instance()->SetFitWeights(tw, cw);
 }
 
-void WCSimVertexFinder::FixTimeParams(Double_t param0) {
+void WCSimVertexFinder::FixTimeParams(Double_t param0)
+{
 	WCSimVertexFinder::Instance()->SetFixTimeParams(param0);
 }
 
-void WCSimVertexFinder::FitTimeParams() {
+void WCSimVertexFinder::FitTimeParams()
+{
 	WCSimVertexFinder::Instance()->SetFitTimeParams();
 }
 
-void WCSimVertexFinder::FixConeParams(Double_t param0, Double_t param1, Double_t param2) {
+void WCSimVertexFinder::FixConeParams(Double_t param0, Double_t param1, Double_t param2)
+{
 	WCSimVertexFinder::Instance()->SetFixConeParams(param0, param1, param2);
 }
 
-void WCSimVertexFinder::FitConeParams() {
+void WCSimVertexFinder::FitConeParams()
+{
 	WCSimVertexFinder::Instance()->SetFitConeParams();
 }
 
-void WCSimVertexFinder::FixVertexBias(Double_t bias) {
+void WCSimVertexFinder::FixVertexBias(Double_t bias)
+{
 	WCSimVertexFinder::Instance()->SetVertexBias(bias);
 }
 
-void WCSimVertexFinder::PrintParameters() {
+void WCSimVertexFinder::PrintParameters()
+{
 	WCSimVertexFinder::Instance()->RunPrintParameters();
 }
 
-WCSimVertexFinder::WCSimVertexFinder() {
+WCSimVertexFinder::WCSimVertexFinder()
+{
 	// default configuration
 	fBaseFOM = 100.0;
 	fPointFitOnly = 0;
@@ -296,19 +331,19 @@ WCSimVertexFinder::WCSimVertexFinder() {
 	fSeedWithQuadruples = 1;
 	fNumSeeds = 200;
 
-	fFitTimeParams = 0;     // don't fit by default
-	fFixTimeParam0 = 0.20;  // scattering parameter
+	fFitTimeParams = 0;	   // don't fit by default
+	fFixTimeParam0 = 0.20; // scattering parameter
 
-	fFitConeParams = 1;     // do fit by default
-	fFixConeParam0 = 0.25;  // track length parameter
-	fFixConeParam1 = 0.50;  // track length parameter
-	fFixConeParam2 = 0.75;  // particle ID:  0.0[electron]->1.0[muon]
+	fFitConeParams = 1;	   // do fit by default
+	fFixConeParam0 = 0.25; // track length parameter
+	fFixConeParam1 = 0.50; // track length parameter
+	fFixConeParam2 = 0.75; // particle ID:  0.0[electron]->1.0[muon]
 
-	fTimeFitWeight = 0.50;  // nominal time weight
-	fConeFitWeight = 0.50;  // nominal cone weight
+	fTimeFitWeight = 0.50; // nominal time weight
+	fConeFitWeight = 0.50; // nominal cone weight
 
-	fFixVertexBias = 1;     // fix vertex bias
-	fVertexBias = 25.0;     // size of vertex bias [cm]
+	fFixVertexBias = 1; // fix vertex bias
+	fVertexBias = 25.0; // size of vertex bias [cm]
 
 	fIntegralsDone = 0;
 
@@ -368,7 +403,8 @@ WCSimVertexFinder::WCSimVertexFinder() {
 	fConeParam2 = 0.0;
 }
 
-WCSimVertexFinder::~WCSimVertexFinder() {
+WCSimVertexFinder::~WCSimVertexFinder()
+{
 	// delete fitter
 	// =============
 	delete fMinuitPointPosition;
@@ -378,31 +414,43 @@ WCSimVertexFinder::~WCSimVertexFinder() {
 
 	delete fMinuitTimeFit;
 	delete fMinuitConeFit;
-
 }
 
-void WCSimVertexFinder::RunPrintParameters() {
+void WCSimVertexFinder::RunPrintParameters()
+{
 	std::cout << " *** WCSimVertexFinder::PrintParameters() *** " << std::endl;
 
-	std::cout << "  Vertex Finding Parameters: " << std::endl << "   PointFitOnly = " << fPointFitOnly << std::endl
-			<< "   UseTrueVertex = " << fUseTrueVertex << std::endl << "   UseTruePosition = " << fUseTruePosition
-			<< std::endl << "   UseTrueDirection = " << fUseTrueDirection << std::endl << "   SeedWithTrueVertex = "
-			<< fSeedWithTrueVertex << std::endl << "   SeedWithSimpleVertex = " << fSeedWithSimpleVertex << std::endl
-			<< "   SeedWithQuadruples = " << fSeedWithQuadruples << std::endl << "   NumSeeds = " << fNumSeeds
-			<< std::endl << "  Vertex Fitting Parameters: " << std::endl << "   BaseFOM = " << fBaseFOM << std::endl
-			<< "   FitTimeParams = " << fFitTimeParams << " (" << fFixTimeParam0 << ") " << std::endl
-			<< "   FitConeParams = " << fFitConeParams << " (" << fFixConeParam0 << "," << fFixConeParam1 << ","
-			<< fFixConeParam2 << ") " << std::endl << "   Weights = (" << fTimeFitWeight << "," << fConeFitWeight
-			<< ") " << std::endl << "   FixVertexBias = " << fFixVertexBias << " (" << fVertexBias << ") " << std::endl;
+	std::cout << "  Vertex Finding Parameters: " << std::endl
+			  << "   PointFitOnly = " << fPointFitOnly << std::endl
+			  << "   UseTrueVertex = " << fUseTrueVertex << std::endl
+			  << "   UseTruePosition = " << fUseTruePosition
+			  << std::endl
+			  << "   UseTrueDirection = " << fUseTrueDirection << std::endl
+			  << "   SeedWithTrueVertex = "
+			  << fSeedWithTrueVertex << std::endl
+			  << "   SeedWithSimpleVertex = " << fSeedWithSimpleVertex << std::endl
+			  << "   SeedWithQuadruples = " << fSeedWithQuadruples << std::endl
+			  << "   NumSeeds = " << fNumSeeds
+			  << std::endl
+			  << "  Vertex Fitting Parameters: " << std::endl
+			  << "   BaseFOM = " << fBaseFOM << std::endl
+			  << "   FitTimeParams = " << fFitTimeParams << " (" << fFixTimeParam0 << ") " << std::endl
+			  << "   FitConeParams = " << fFitConeParams << " (" << fFixConeParam0 << "," << fFixConeParam1 << ","
+			  << fFixConeParam2 << ") " << std::endl
+			  << "   Weights = (" << fTimeFitWeight << "," << fConeFitWeight
+			  << ") " << std::endl
+			  << "   FixVertexBias = " << fFixVertexBias << " (" << fVertexBias << ") " << std::endl;
 
 	return;
 }
 
-void WCSimVertexFinder::Reset() {
+void WCSimVertexFinder::Reset()
+{
 	return this->Clear();
 }
 
-void WCSimVertexFinder::Clear() {
+void WCSimVertexFinder::Clear()
+{
 	// clear vertices
 	// ==============
 	fSimplePosition = 0;
@@ -415,21 +463,26 @@ void WCSimVertexFinder::Clear() {
 	return;
 }
 
-WCSimRecoVertex* WCSimVertexFinder::Run(WCSimRecoEvent* myEvent) {
+WCSimRecoVertex *WCSimVertexFinder::Run(WCSimRecoEvent *myEvent)
+{
 	this->Clear();
 	this->GetTimeSeed(myEvent);
-	if (fSimpleVertexOnly) {
-		return (WCSimRecoVertex*) (this->RunSimpleFit(myEvent));
+	if (fSimpleVertexOnly)
+	{
+		return (WCSimRecoVertex *)(this->RunSimpleFit(myEvent));
 	}
-	if (fPointFitOnly) {
-		return (WCSimRecoVertex*) (this->RunPointFit(myEvent));
-	} else {
-		return (WCSimRecoVertex*) (this->RunExtendedFit(myEvent));
+	if (fPointFitOnly)
+	{
+		return (WCSimRecoVertex *)(this->RunPointFit(myEvent));
 	}
-
+	else
+	{
+		return (WCSimRecoVertex *)(this->RunExtendedFit(myEvent));
+	}
 }
 
-WCSimRecoVertex* WCSimVertexFinder::RunSimpleFit(WCSimRecoEvent* myEvent) {
+WCSimRecoVertex *WCSimVertexFinder::RunSimpleFit(WCSimRecoEvent *myEvent)
+{
 
 	// load event
 	// ==========
@@ -439,20 +492,22 @@ WCSimRecoVertex* WCSimVertexFinder::RunSimpleFit(WCSimRecoEvent* myEvent) {
 
 	// simple positiobn fit
 	// ===================
-	WCSimRecoVertex* simplePos = (WCSimRecoVertex*) (this->FindSimplePosition());
-	WCSimRecoVertex* pointPos = (WCSimRecoVertex*) (this->FitPointPosition(simplePos));
+	WCSimRecoVertex *simplePos = (WCSimRecoVertex *)(this->FindSimplePosition());
+	WCSimRecoVertex *pointPos = (WCSimRecoVertex *)(this->FitPointPosition(simplePos));
 
 	// simple direction fit
 	// ===================
-	WCSimRecoVertex* simpleDir = (WCSimRecoVertex*) (this->FindSimpleDirection(pointPos));
+	WCSimRecoVertex *simpleDir = (WCSimRecoVertex *)(this->FindSimpleDirection(pointPos));
 
 	return simpleDir;
 }
 
-WCSimRecoVertex* WCSimVertexFinder::RunPointFit(WCSimRecoEvent* myEvent) {
+WCSimRecoVertex *WCSimVertexFinder::RunPointFit(WCSimRecoEvent *myEvent)
+{
 	// return true vertex
 	// ==================
-	if (fUseTrueVertex) {
+	if (fUseTrueVertex)
+	{
 		return this->RunPointFitFromTruth(myEvent);
 	}
 
@@ -464,56 +519,60 @@ WCSimRecoVertex* WCSimVertexFinder::RunPointFit(WCSimRecoEvent* myEvent) {
 
 	// point positiobn fit
 	// ===================
-	WCSimRecoVertex* simplePos = (WCSimRecoVertex*) (this->FindSimplePosition());
-	WCSimRecoVertex* pointPos = (WCSimRecoVertex*) (this->FitPointPosition(simplePos));
+	WCSimRecoVertex *simplePos = (WCSimRecoVertex *)(this->FindSimplePosition());
+	WCSimRecoVertex *pointPos = (WCSimRecoVertex *)(this->FitPointPosition(simplePos));
 
 	// point direction fit
 	// ===================
-	WCSimRecoVertex* simpleDir = (WCSimRecoVertex*) (this->FindSimpleDirection(pointPos));
-	WCSimRecoVertex* pointDir = (WCSimRecoVertex*) (this->FitPointDirection(simpleDir));
+	WCSimRecoVertex *simpleDir = (WCSimRecoVertex *)(this->FindSimpleDirection(pointPos));
+	WCSimRecoVertex *pointDir = (WCSimRecoVertex *)(this->FitPointDirection(simpleDir));
 
 	// point vertex fit
 	// ================
-	WCSimRecoVertex* pointVtx = (WCSimRecoVertex*) (this->FitPointVertex(pointDir));
+	WCSimRecoVertex *pointVtx = (WCSimRecoVertex *)(this->FitPointVertex(pointDir));
 
 	// return vertex
 	// =============
 	return pointVtx;
 }
 
-WCSimRecoVertex* WCSimVertexFinder::RunExtendedFit(WCSimRecoEvent* myEvent) {
+WCSimRecoVertex *WCSimVertexFinder::RunExtendedFit(WCSimRecoEvent *myEvent)
+{
 	// return true vertex
 	// ==================
-	if (fUseTrueVertex) {
+	if (fUseTrueVertex)
+	{
 		return this->RunExtendedFitFromTruth(myEvent);
 	}
 
 	// point fit
 	// =========
-	WCSimRecoVertex* pointVtx = (WCSimRecoVertex*) (this->RunPointFit(myEvent));
+	WCSimRecoVertex *pointVtx = (WCSimRecoVertex *)(this->RunPointFit(myEvent));
 
 	std::cout << " *** WCSimVertexFinder::RunExtendedFit(...) *** " << std::endl;
 
 	// extended fit to vertex and direction
 	// ====================================
-	WCSimRecoVertex* extendedVtx = (WCSimRecoVertex*) (this->FitExtendedVertex(pointVtx));
+	WCSimRecoVertex *extendedVtx = (WCSimRecoVertex *)(this->FitExtendedVertex(pointVtx));
 
 	// correct bias in vertex and direction
 	// ====================================
-	WCSimRecoVertex* extendedVtxCorrected = (WCSimRecoVertex*) (this->CorrectExtendedVertex(extendedVtx));
+	WCSimRecoVertex *extendedVtxCorrected = (WCSimRecoVertex *)(this->CorrectExtendedVertex(extendedVtx));
 
 	// return vertex
 	// =============
 	return extendedVtxCorrected;
 }
 
-WCSimRecoVertex* WCSimVertexFinder::RunPointFitFromTruth(WCSimRecoEvent* myEvent) {
+WCSimRecoVertex *WCSimVertexFinder::RunPointFitFromTruth(WCSimRecoEvent *myEvent)
+{
 	std::cout << " *** WCSimVertexFinder::RunPointFit(...) *** " << std::endl;
 	std::cout << "  --- reconstruct vertex from truth --- " << std::endl;
 
-	WCSimTrueEvent* myTrueEvent = (WCSimTrueEvent*) (WCSimInterface::TrueEvent());
+	WCSimTrueEvent *myTrueEvent = (WCSimTrueEvent *)(WCSimInterface::TrueEvent());
 
-	if (myTrueEvent->GetNTracks() > 0) {
+	if (myTrueEvent->GetNTracks() > 0)
+	{
 		Double_t vtxX = myTrueEvent->GetVtxX();
 		Double_t vtxY = myTrueEvent->GetVtxY();
 		Double_t vtxZ = myTrueEvent->GetVtxZ();
@@ -521,19 +580,23 @@ WCSimRecoVertex* WCSimVertexFinder::RunPointFitFromTruth(WCSimRecoEvent* myEvent
 		Double_t dirY = myTrueEvent->GetDirY();
 		Double_t dirZ = myTrueEvent->GetDirZ();
 
-		return (WCSimRecoVertex*) (this->RunPointFit(myEvent, vtxX, vtxY, vtxZ, dirX, dirY, dirZ));
-	} else {
-		return (WCSimRecoVertex*) (this->BuildDummyVertex());
+		return (WCSimRecoVertex *)(this->RunPointFit(myEvent, vtxX, vtxY, vtxZ, dirX, dirY, dirZ));
+	}
+	else
+	{
+		return (WCSimRecoVertex *)(this->BuildDummyVertex());
 	}
 }
 
-WCSimRecoVertex* WCSimVertexFinder::RunExtendedFitFromTruth(WCSimRecoEvent* myEvent) {
+WCSimRecoVertex *WCSimVertexFinder::RunExtendedFitFromTruth(WCSimRecoEvent *myEvent)
+{
 	std::cout << " *** WCSimVertexFinder::RunExtendedFit(...) *** " << std::endl;
 	std::cout << "  --- reconstruct vertex from truth --- " << std::endl;
 
-	WCSimTrueEvent* myTrueEvent = (WCSimTrueEvent*) (WCSimInterface::TrueEvent());
+	WCSimTrueEvent *myTrueEvent = (WCSimTrueEvent *)(WCSimInterface::TrueEvent());
 
-	if (myTrueEvent->GetNTracks() > 0) {
+	if (myTrueEvent->GetNTracks() > 0)
+	{
 		Double_t vtxX = myTrueEvent->GetVtxX();
 		Double_t vtxY = myTrueEvent->GetVtxY();
 		Double_t vtxZ = myTrueEvent->GetVtxZ();
@@ -541,85 +604,96 @@ WCSimRecoVertex* WCSimVertexFinder::RunExtendedFitFromTruth(WCSimRecoEvent* myEv
 		Double_t dirY = myTrueEvent->GetDirY();
 		Double_t dirZ = myTrueEvent->GetDirZ();
 
-		return (WCSimRecoVertex*) (this->RunExtendedFit(myEvent, vtxX, vtxY, vtxZ, dirX, dirY, dirZ));
-	} else {
-		return (WCSimRecoVertex*) (this->BuildDummyVertex());
+		return (WCSimRecoVertex *)(this->RunExtendedFit(myEvent, vtxX, vtxY, vtxZ, dirX, dirY, dirZ));
+	}
+	else
+	{
+		return (WCSimRecoVertex *)(this->BuildDummyVertex());
 	}
 }
 
-WCSimRecoVertex* WCSimVertexFinder::Run(WCSimRecoEvent* myEvent, Double_t vtxX, Double_t vtxY, Double_t vtxZ,
-		Double_t dirX, Double_t dirY, Double_t dirZ) {
+WCSimRecoVertex *WCSimVertexFinder::Run(WCSimRecoEvent *myEvent, Double_t vtxX, Double_t vtxY, Double_t vtxZ,
+										Double_t dirX, Double_t dirY, Double_t dirZ)
+{
 	this->Clear();
 
-	if (fPointFitOnly) {
-		return (WCSimRecoVertex*) (this->RunPointFit(myEvent, vtxX, vtxY, vtxZ, dirX, dirY, dirZ));
-	} else {
-		return (WCSimRecoVertex*) (this->RunExtendedFit(myEvent, vtxX, vtxY, vtxZ, dirX, dirY, dirZ));
+	if (fPointFitOnly)
+	{
+		return (WCSimRecoVertex *)(this->RunPointFit(myEvent, vtxX, vtxY, vtxZ, dirX, dirY, dirZ));
+	}
+	else
+	{
+		return (WCSimRecoVertex *)(this->RunExtendedFit(myEvent, vtxX, vtxY, vtxZ, dirX, dirY, dirZ));
 	}
 }
 
-WCSimRecoVertex* WCSimVertexFinder::RunPointFit(WCSimRecoEvent* myEvent, Double_t vtxX, Double_t vtxY, Double_t vtxZ) {
+WCSimRecoVertex *WCSimVertexFinder::RunPointFit(WCSimRecoEvent *myEvent, Double_t vtxX, Double_t vtxY, Double_t vtxZ)
+{
 	// load event
 	// ==========
 	WCSimVertexGeometry::Instance()->LoadEvent(myEvent);
 
 	// fix point vertex
 	// ================
-	(WCSimRecoVertex*) (this->FixSimplePosition(vtxX, vtxY, vtxZ)); // Call this without declaring anything so we don't get a warning
-	WCSimRecoVertex* pointPos = (WCSimRecoVertex*) (this->FixPointPosition(vtxX, vtxY, vtxZ));
+	(WCSimRecoVertex *)(this->FixSimplePosition(vtxX, vtxY, vtxZ)); // Call this without declaring anything so we don't get a warning
+	WCSimRecoVertex *pointPos = (WCSimRecoVertex *)(this->FixPointPosition(vtxX, vtxY, vtxZ));
 
 	// return vertex
 	// =============
 	return pointPos;
 }
 
-WCSimRecoVertex* WCSimVertexFinder::RunPointFit(WCSimRecoEvent* myEvent, Double_t vtxX, Double_t vtxY, Double_t vtxZ,
-		Double_t dirX, Double_t dirY, Double_t dirZ) {
+WCSimRecoVertex *WCSimVertexFinder::RunPointFit(WCSimRecoEvent *myEvent, Double_t vtxX, Double_t vtxY, Double_t vtxZ,
+												Double_t dirX, Double_t dirY, Double_t dirZ)
+{
 	// fix point vertex
 	// ================
-	(WCSimRecoVertex*) (this->RunPointFit(myEvent, vtxX, vtxY, vtxZ));
+	(WCSimRecoVertex *)(this->RunPointFit(myEvent, vtxX, vtxY, vtxZ));
 
 	// fix point direction
 	// ===================
-	(WCSimRecoVertex*) (this->FixSimpleDirection(vtxX, vtxY, vtxZ, dirX, dirY, dirZ));
-	(WCSimRecoVertex*) (this->FixPointDirection(vtxX, vtxY, vtxZ, dirX, dirY, dirZ));
+	(WCSimRecoVertex *)(this->FixSimpleDirection(vtxX, vtxY, vtxZ, dirX, dirY, dirZ));
+	(WCSimRecoVertex *)(this->FixPointDirection(vtxX, vtxY, vtxZ, dirX, dirY, dirZ));
 
 	// fix point vertex
 	// ================
-	WCSimRecoVertex* pointVtx = (WCSimRecoVertex*) (this->FixPointVertex(vtxX, vtxY, vtxZ, dirX, dirY, dirZ));
+	WCSimRecoVertex *pointVtx = (WCSimRecoVertex *)(this->FixPointVertex(vtxX, vtxY, vtxZ, dirX, dirY, dirZ));
 
 	// return vertex
 	// =============
 	return pointVtx;
 }
 
-WCSimRecoVertex* WCSimVertexFinder::RunExtendedFit(WCSimRecoEvent* myEvent, Double_t vtxX, Double_t vtxY, Double_t vtxZ,
-		Double_t dirX, Double_t dirY, Double_t dirZ) {
+WCSimRecoVertex *WCSimVertexFinder::RunExtendedFit(WCSimRecoEvent *myEvent, Double_t vtxX, Double_t vtxY, Double_t vtxZ,
+												   Double_t dirX, Double_t dirY, Double_t dirZ)
+{
 	// fix point direction
 	// ===================
-	(WCSimRecoVertex*) (this->RunPointFit(myEvent, vtxX, vtxY, vtxZ, dirX, dirY, dirZ));
+	(WCSimRecoVertex *)(this->RunPointFit(myEvent, vtxX, vtxY, vtxZ, dirX, dirY, dirZ));
 
 	// fix extended vertex
 	// ===================
-	WCSimRecoVertex* extendedVtx = (WCSimRecoVertex*) (this->FixExtendedVertex(vtxX, vtxY, vtxZ, dirX, dirY, dirZ));
+	WCSimRecoVertex *extendedVtx = (WCSimRecoVertex *)(this->FixExtendedVertex(vtxX, vtxY, vtxZ, dirX, dirY, dirZ));
 
 	// return vertex
 	// =============
 	return extendedVtx;
 }
 
-WCSimRecoVertex* WCSimVertexFinder::BuildTrueVertex() {
-	WCSimTrueEvent* myTrueEvent = (WCSimTrueEvent*) (WCSimInterface::TrueEvent());
+WCSimRecoVertex *WCSimVertexFinder::BuildTrueVertex()
+{
+	WCSimTrueEvent *myTrueEvent = (WCSimTrueEvent *)(WCSimInterface::TrueEvent());
 
 	Double_t vtxX = myTrueEvent->GetVtxX();
 	Double_t vtxY = myTrueEvent->GetVtxY();
 	Double_t vtxZ = myTrueEvent->GetVtxZ();
 
-	return (WCSimRecoVertex*) (this->FixSimplePosition(vtxX, vtxY, vtxZ));
+	return (WCSimRecoVertex *)(this->FixSimplePosition(vtxX, vtxY, vtxZ));
 }
 
-WCSimRecoVertex* WCSimVertexFinder::BuildDummyVertex() {
-	WCSimRecoVertex* newVertex = new WCSimRecoVertex();
+WCSimRecoVertex *WCSimVertexFinder::BuildDummyVertex()
+{
+	WCSimRecoVertex *newVertex = new WCSimRecoVertex();
 
 	fSimplePosition = newVertex;
 	fSimpleDirection = newVertex;
@@ -633,24 +707,33 @@ WCSimRecoVertex* WCSimVertexFinder::BuildDummyVertex() {
 	return newVertex;
 }
 
-WCSimRecoVertex* WCSimVertexFinder::FindSimplePosition() {
-	if (fSeedWithTrueVertex) {
+WCSimRecoVertex *WCSimVertexFinder::FindSimplePosition()
+{
+	if (fSeedWithTrueVertex)
+	{
 		std::cout << "  --- seed vertex with truth --- " << std::endl;
-		return (WCSimRecoVertex*) (this->BuildTrueVertex());
+		return (WCSimRecoVertex *)(this->BuildTrueVertex());
 	}
 
-	if (fSeedWithSimpleVertex) {
-		fSimplePosition = (WCSimRecoVertex*) (WCSimVertexGeometry::Instance()->CalcSimpleVertex());
-	} else if (fSeedWithQuadruples) {
-		fSimplePosition = (WCSimRecoVertex*) (this->FindSeedPosition());
-	} else {
-		fSimplePosition = (WCSimRecoVertex*) (WCSimVertexGeometry::Instance()->CalcSimpleVertex());
+	if (fSeedWithSimpleVertex)
+	{
+		fSimplePosition = (WCSimRecoVertex *)(WCSimVertexGeometry::Instance()->CalcSimpleVertex());
+	}
+	else if (fSeedWithQuadruples)
+	{
+		fSimplePosition = (WCSimRecoVertex *)(this->FindSeedPosition());
+	}
+	else
+	{
+		fSimplePosition = (WCSimRecoVertex *)(WCSimVertexGeometry::Instance()->CalcSimpleVertex());
 	}
 
-	std::cout << "  simple vertex: " << std::endl << "    (vx,vy,vz)=(" << fSimplePosition->GetX() << ","
-			<< fSimplePosition->GetY() << "," << fSimplePosition->GetZ() << ") " << std::endl << "      vtime="
-			<< fSimplePosition->GetTime() << " itr=" << fSimplePosition->GetIterations() << " fom="
-			<< fSimplePosition->GetFOM() << std::endl;
+	std::cout << "  simple vertex: " << std::endl
+			  << "    (vx,vy,vz)=(" << fSimplePosition->GetX() << ","
+			  << fSimplePosition->GetY() << "," << fSimplePosition->GetZ() << ") " << std::endl
+			  << "      vtime="
+			  << fSimplePosition->GetTime() << " itr=" << fSimplePosition->GetIterations() << " fom="
+			  << fSimplePosition->GetFOM() << std::endl;
 
 	if (fSimplePosition->GetPass() == 0)
 		std::cout << "   <warning> simple vertex calculation failed! " << std::endl;
@@ -658,14 +741,18 @@ WCSimRecoVertex* WCSimVertexFinder::FindSimplePosition() {
 	return fSimplePosition;
 }
 
-WCSimRecoVertex* WCSimVertexFinder::FindSimpleDirection(WCSimRecoVertex* myVertex) {
-	fSimpleDirection = (WCSimRecoVertex*) (this->FindSeedDirection(myVertex));
+WCSimRecoVertex *WCSimVertexFinder::FindSimpleDirection(WCSimRecoVertex *myVertex)
+{
+	fSimpleDirection = (WCSimRecoVertex *)(this->FindSeedDirection(myVertex));
 
-	std::cout << "  simple direction: " << std::endl << "    (vx,vy,vz)=(" << fSimpleDirection->GetX() << ","
-			<< fSimpleDirection->GetY() << "," << fSimpleDirection->GetZ() << ") " << std::endl << "    (px,py,pz)=("
-			<< fSimpleDirection->GetDirX() << "," << fSimpleDirection->GetDirY() << "," << fSimpleDirection->GetDirZ()
-			<< ") " << std::endl << "      vtime=" << fSimpleDirection->GetTime() << " itr="
-			<< fSimpleDirection->GetIterations() << " fom=" << fSimpleDirection->GetFOM() << std::endl;
+	std::cout << "  simple direction: " << std::endl
+			  << "    (vx,vy,vz)=(" << fSimpleDirection->GetX() << ","
+			  << fSimpleDirection->GetY() << "," << fSimpleDirection->GetZ() << ") " << std::endl
+			  << "    (px,py,pz)=("
+			  << fSimpleDirection->GetDirX() << "," << fSimpleDirection->GetDirY() << "," << fSimpleDirection->GetDirZ()
+			  << ") " << std::endl
+			  << "      vtime=" << fSimpleDirection->GetTime() << " itr="
+			  << fSimpleDirection->GetIterations() << " fom=" << fSimpleDirection->GetFOM() << std::endl;
 
 	if (fSimpleDirection->GetPass() == 0)
 		std::cout << "   <warning> simple direction calculation failed! " << std::endl;
@@ -673,11 +760,12 @@ WCSimRecoVertex* WCSimVertexFinder::FindSimpleDirection(WCSimRecoVertex* myVerte
 	return fSimpleDirection;
 }
 
-WCSimRecoVertex* WCSimVertexFinder::FindSeedPosition() {
+WCSimRecoVertex *WCSimVertexFinder::FindSeedPosition()
+{
 	Double_t vtxX = 0.0;
 	Double_t vtxY = 0.0;
 	Double_t vtxZ = 0.0;
-//  Double_t vtxTime = 950.0;
+	//  Double_t vtxTime = 950.0;
 	Double_t vtxTime = fTimeSeed;
 	Double_t vtxFOM = 0.0;
 
@@ -687,33 +775,37 @@ WCSimRecoVertex* WCSimVertexFinder::FindSeedPosition() {
 	WCSimVertexGeometry::Instance()->CalcVertexSeeds(fNumSeeds);
 	UInt_t nlast = WCSimVertexGeometry::Instance()->GetNSeeds();
 
-	for (UInt_t n = 0; n < nlast; n++) {
+	for (UInt_t n = 0; n < nlast; n++)
+	{
 		vtxX = WCSimVertexGeometry::Instance()->GetSeedVtxX(n);
 		vtxY = WCSimVertexGeometry::Instance()->GetSeedVtxY(n);
 		vtxZ = WCSimVertexGeometry::Instance()->GetSeedVtxZ(n);
 
 		this->PointPositionChi2(vtxX, vtxY, vtxZ, vtxTime, vtxFOM);
 
-		if (vtxFOM > bestFOM) {
+		if (vtxFOM > bestFOM)
+		{
 			bestSeed = n;
 			bestFOM = vtxFOM;
 		}
 	}
 
-	if (bestSeed >= 0) {
+	if (bestSeed >= 0)
+	{
 		vtxX = WCSimVertexGeometry::Instance()->GetSeedVtxX(bestSeed);
 		vtxY = WCSimVertexGeometry::Instance()->GetSeedVtxY(bestSeed);
 		vtxZ = WCSimVertexGeometry::Instance()->GetSeedVtxZ(bestSeed);
 	}
 
-	WCSimRecoVertex* newVertex = (WCSimRecoVertex*) (this->FixSimplePosition(vtxX, vtxY, vtxZ));
+	WCSimRecoVertex *newVertex = (WCSimRecoVertex *)(this->FixSimplePosition(vtxX, vtxY, vtxZ));
 	newVertex->SetFOM(fBaseFOM, nlast, 1);
 
 	return newVertex;
 }
 
-WCSimRecoVertex* WCSimVertexFinder::FindSeedDirection(WCSimRecoVertex* myVertex) {
-	WCSimRecoVertex* seedVertex = (WCSimRecoVertex*) (WCSimVertexGeometry::Instance()->CalcSimpleDirection(myVertex));
+WCSimRecoVertex *WCSimVertexFinder::FindSeedDirection(WCSimRecoVertex *myVertex)
+{
+	WCSimRecoVertex *seedVertex = (WCSimRecoVertex *)(WCSimVertexGeometry::Instance()->CalcSimpleDirection(myVertex));
 
 	Double_t vtxX = seedVertex->GetX();
 	Double_t vtxY = seedVertex->GetY();
@@ -723,36 +815,41 @@ WCSimRecoVertex* WCSimVertexFinder::FindSeedDirection(WCSimRecoVertex* myVertex)
 	Double_t dirY = seedVertex->GetDirY();
 	Double_t dirZ = seedVertex->GetDirZ();
 
-	WCSimRecoVertex* newVertex = (WCSimRecoVertex*) (this->FixSimpleDirection(vtxX, vtxY, vtxZ, dirX, dirY, dirZ));
+	WCSimRecoVertex *newVertex = (WCSimRecoVertex *)(this->FixSimpleDirection(vtxX, vtxY, vtxZ, dirX, dirY, dirZ));
 	return newVertex;
 }
 
-WCSimRecoVertex* WCSimVertexFinder::FitPointPosition(WCSimRecoVertex* myVertex) {
-	return (WCSimRecoVertex*) (this->FitPointPositionWithMinuit(myVertex));
+WCSimRecoVertex *WCSimVertexFinder::FitPointPosition(WCSimRecoVertex *myVertex)
+{
+	return (WCSimRecoVertex *)(this->FitPointPositionWithMinuit(myVertex));
 }
 
-WCSimRecoVertex* WCSimVertexFinder::FitPointDirection(WCSimRecoVertex* myVertex) {
-	return (WCSimRecoVertex*) (this->FitPointDirectionWithMinuit(myVertex));
+WCSimRecoVertex *WCSimVertexFinder::FitPointDirection(WCSimRecoVertex *myVertex)
+{
+	return (WCSimRecoVertex *)(this->FitPointDirectionWithMinuit(myVertex));
 }
 
-WCSimRecoVertex* WCSimVertexFinder::FitPointVertex(WCSimRecoVertex* myVertex) {
-	return (WCSimRecoVertex*) (this->FitPointVertexWithMinuit(myVertex));
+WCSimRecoVertex *WCSimVertexFinder::FitPointVertex(WCSimRecoVertex *myVertex)
+{
+	return (WCSimRecoVertex *)(this->FitPointVertexWithMinuit(myVertex));
 }
 
-WCSimRecoVertex* WCSimVertexFinder::FitExtendedVertex(WCSimRecoVertex* myVertex) {
-	return (WCSimRecoVertex*) (this->FitExtendedVertexWithMinuit(myVertex));
+WCSimRecoVertex *WCSimVertexFinder::FitExtendedVertex(WCSimRecoVertex *myVertex)
+{
+	return (WCSimRecoVertex *)(this->FitExtendedVertexWithMinuit(myVertex));
 }
 
-WCSimRecoVertex* WCSimVertexFinder::FixSimplePosition(Double_t vtxX, Double_t vtxY, Double_t vtxZ) {
+WCSimRecoVertex *WCSimVertexFinder::FixSimplePosition(Double_t vtxX, Double_t vtxY, Double_t vtxZ)
+{
 	// initialization
 	// ==============
-//  Double_t vtxTime = 950.0;
+	//  Double_t vtxTime = 950.0;
 	Double_t vtxTime = fTimeSeed;
 	Double_t vtxFOM = fBaseFOM;
 
 	// create new vertex
 	// =================
-	WCSimRecoVertex* newVertex = new WCSimRecoVertex();
+	WCSimRecoVertex *newVertex = new WCSimRecoVertex();
 	fSimplePosition = newVertex;
 
 	// set vertex
@@ -762,26 +859,29 @@ WCSimRecoVertex* WCSimVertexFinder::FixSimplePosition(Double_t vtxX, Double_t vt
 
 	// print vertex
 	// ============
-	std::cout << "  set simple position: " << std::endl << "    (vx,vy,vz)=(" << newVertex->GetX() << ","
-			<< newVertex->GetY() << "," << newVertex->GetZ() << ") " << std::endl << "      vtime="
-			<< newVertex->GetTime() << " itr=" << newVertex->GetIterations() << " fom=" << newVertex->GetFOM()
-			<< std::endl;
+	std::cout << "  set simple position: " << std::endl
+			  << "    (vx,vy,vz)=(" << newVertex->GetX() << ","
+			  << newVertex->GetY() << "," << newVertex->GetZ() << ") " << std::endl
+			  << "      vtime="
+			  << newVertex->GetTime() << " itr=" << newVertex->GetIterations() << " fom=" << newVertex->GetFOM()
+			  << std::endl;
 
 	// return vertex
 	// =============
 	return newVertex;
 }
 
-WCSimRecoVertex* WCSimVertexFinder::FixPointPosition(Double_t vtxX, Double_t vtxY, Double_t vtxZ) {
+WCSimRecoVertex *WCSimVertexFinder::FixPointPosition(Double_t vtxX, Double_t vtxY, Double_t vtxZ)
+{
 	// initialization
 	// ==============
-//  Double_t vtxTime = 950.0;
+	//  Double_t vtxTime = 950.0;
 	Double_t vtxTime = fTimeSeed;
 	Double_t vtxFOM = 0.0;
 
 	// create new vertex
 	// =================
-	WCSimRecoVertex* newVertex = new WCSimRecoVertex();
+	WCSimRecoVertex *newVertex = new WCSimRecoVertex();
 	fPointPosition = newVertex;
 
 	// calculate vertex
@@ -799,27 +899,30 @@ WCSimRecoVertex* WCSimVertexFinder::FixPointPosition(Double_t vtxX, Double_t vtx
 
 	// print vertex
 	// ============
-	std::cout << "  set point position: " << std::endl << "     (vx,vy,vz)=(" << newVertex->GetX() << ","
-			<< newVertex->GetY() << "," << newVertex->GetZ() << ") " << std::endl << "      vtime="
-			<< newVertex->GetTime() << " itr=" << newVertex->GetIterations() << " fom=" << newVertex->GetFOM()
-			<< std::endl;
+	std::cout << "  set point position: " << std::endl
+			  << "     (vx,vy,vz)=(" << newVertex->GetX() << ","
+			  << newVertex->GetY() << "," << newVertex->GetZ() << ") " << std::endl
+			  << "      vtime="
+			  << newVertex->GetTime() << " itr=" << newVertex->GetIterations() << " fom=" << newVertex->GetFOM()
+			  << std::endl;
 
 	// return vertex
 	// =============
 	return newVertex;
 }
 
-WCSimRecoVertex* WCSimVertexFinder::FixSimpleDirection(Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t dirX,
-		Double_t dirY, Double_t dirZ) {
+WCSimRecoVertex *WCSimVertexFinder::FixSimpleDirection(Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t dirX,
+													   Double_t dirY, Double_t dirZ)
+{
 	// initialization
 	// ==============
-//  Double_t vtxTime = 950.0;
+	//  Double_t vtxTime = 950.0;
 	Double_t vtxTime = fTimeSeed;
 	Double_t dirFOM = fBaseFOM;
 
 	// create new vertex
 	// =================
-	WCSimRecoVertex* newVertex = new WCSimRecoVertex();
+	WCSimRecoVertex *newVertex = new WCSimRecoVertex();
 	fSimpleDirection = newVertex;
 
 	// set vertex
@@ -834,22 +937,25 @@ WCSimRecoVertex* WCSimVertexFinder::FixSimpleDirection(Double_t vtxX, Double_t v
 
 	// print vertex
 	// ============
-	std::cout << "  set simple direction: " << std::endl << "    (vx,vy,vz)=(" << newVertex->GetX() << ","
-			<< newVertex->GetY() << "," << newVertex->GetZ() << ") " << std::endl << "    (px,py,pz)=("
-			<< newVertex->GetDirX() << "," << newVertex->GetDirY() << "," << newVertex->GetDirZ() << ") " << std::endl
-			<< "      vtime=" << newVertex->GetTime() << " itr=" << newVertex->GetIterations() << " fom="
-			<< newVertex->GetFOM() << std::endl;
+	std::cout << "  set simple direction: " << std::endl
+			  << "    (vx,vy,vz)=(" << newVertex->GetX() << ","
+			  << newVertex->GetY() << "," << newVertex->GetZ() << ") " << std::endl
+			  << "    (px,py,pz)=("
+			  << newVertex->GetDirX() << "," << newVertex->GetDirY() << "," << newVertex->GetDirZ() << ") " << std::endl
+			  << "      vtime=" << newVertex->GetTime() << " itr=" << newVertex->GetIterations() << " fom="
+			  << newVertex->GetFOM() << std::endl;
 
 	// return vertex
 	// =============
 	return newVertex;
 }
 
-WCSimRecoVertex* WCSimVertexFinder::FixPointDirection(Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t dirX,
-		Double_t dirY, Double_t dirZ) {
+WCSimRecoVertex *WCSimVertexFinder::FixPointDirection(Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t dirX,
+													  Double_t dirY, Double_t dirZ)
+{
 	// initialization
 	// ==============
-//  Double_t vtxTime = 950.0;
+	//  Double_t vtxTime = 950.0;
 	Double_t vtxTime = fTimeSeed;
 	Double_t vtxAngle = 42.0;
 	Double_t vtxFOM = 0.0;
@@ -857,7 +963,7 @@ WCSimRecoVertex* WCSimVertexFinder::FixPointDirection(Double_t vtxX, Double_t vt
 
 	// create new vertex
 	// =================
-	WCSimRecoVertex* newVertex = new WCSimRecoVertex();
+	WCSimRecoVertex *newVertex = new WCSimRecoVertex();
 	fPointDirection = newVertex;
 
 	// figure of merit
@@ -879,29 +985,32 @@ WCSimRecoVertex* WCSimVertexFinder::FixPointDirection(Double_t vtxX, Double_t vt
 
 	// print vertex
 	// ============
-	std::cout << "  set point direction: " << std::endl << "    (vx,vy,vz)=(" << newVertex->GetX() << ","
-			<< newVertex->GetY() << "," << newVertex->GetZ() << ") " << std::endl << "    (px,py,pz)=("
-			<< newVertex->GetDirX() << "," << newVertex->GetDirY() << "," << newVertex->GetDirZ() << ") " << std::endl
-			<< "      angle=" << newVertex->GetConeAngle() << " vtime=" << newVertex->GetTime() << " itr="
-			<< newVertex->GetIterations() << " fom=" << newVertex->GetFOM() << std::endl;
+	std::cout << "  set point direction: " << std::endl
+			  << "    (vx,vy,vz)=(" << newVertex->GetX() << ","
+			  << newVertex->GetY() << "," << newVertex->GetZ() << ") " << std::endl
+			  << "    (px,py,pz)=("
+			  << newVertex->GetDirX() << "," << newVertex->GetDirY() << "," << newVertex->GetDirZ() << ") " << std::endl
+			  << "      angle=" << newVertex->GetConeAngle() << " vtime=" << newVertex->GetTime() << " itr="
+			  << newVertex->GetIterations() << " fom=" << newVertex->GetFOM() << std::endl;
 
 	// return vertex
 	// =============
 	return newVertex;
 }
 
-WCSimRecoVertex* WCSimVertexFinder::FixPointVertex(Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t dirX,
-		Double_t dirY, Double_t dirZ) {
+WCSimRecoVertex *WCSimVertexFinder::FixPointVertex(Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t dirX,
+												   Double_t dirY, Double_t dirZ)
+{
 	// initialization
 	// ==============
-//  Double_t vtxTime = 950.0;
+	//  Double_t vtxTime = 950.0;
 	Double_t vtxTime = fTimeSeed;
 	Double_t vtxAngle = 42.0;
 	Double_t vtxFOM = 0.0;
 
 	// create new vertex
 	// =================
-	WCSimRecoVertex* newVertex = new WCSimRecoVertex();
+	WCSimRecoVertex *newVertex = new WCSimRecoVertex();
 	fPointVertex = newVertex;
 
 	// figure of merit
@@ -921,29 +1030,32 @@ WCSimRecoVertex* WCSimVertexFinder::FixPointVertex(Double_t vtxX, Double_t vtxY,
 
 	// print vertex
 	// ============
-	std::cout << "  set point vertex: " << std::endl << "    (vx,vy,vz)=(" << newVertex->GetX() << ","
-			<< newVertex->GetY() << "," << newVertex->GetZ() << ") " << std::endl << "    (px,py,pz)=("
-			<< newVertex->GetDirX() << "," << newVertex->GetDirY() << "," << newVertex->GetDirZ() << ") " << std::endl
-			<< "      angle=" << newVertex->GetConeAngle() << " vtime=" << newVertex->GetTime() << " itr="
-			<< newVertex->GetIterations() << " fom=" << newVertex->GetFOM() << std::endl;
+	std::cout << "  set point vertex: " << std::endl
+			  << "    (vx,vy,vz)=(" << newVertex->GetX() << ","
+			  << newVertex->GetY() << "," << newVertex->GetZ() << ") " << std::endl
+			  << "    (px,py,pz)=("
+			  << newVertex->GetDirX() << "," << newVertex->GetDirY() << "," << newVertex->GetDirZ() << ") " << std::endl
+			  << "      angle=" << newVertex->GetConeAngle() << " vtime=" << newVertex->GetTime() << " itr="
+			  << newVertex->GetIterations() << " fom=" << newVertex->GetFOM() << std::endl;
 
 	// return vertex
 	// =============
 	return newVertex;
 }
 
-WCSimRecoVertex* WCSimVertexFinder::FixExtendedVertex(Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t dirX,
-		Double_t dirY, Double_t dirZ) {
+WCSimRecoVertex *WCSimVertexFinder::FixExtendedVertex(Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t dirX,
+													  Double_t dirY, Double_t dirZ)
+{
 	// initialization
 	// ==============
-//  Double_t vtxTime = 950.0;
+	//  Double_t vtxTime = 950.0;
 	Double_t vtxTime = fTimeSeed;
 	Double_t vtxAngle = 42.0;
 	Double_t vtxFOM = 0.0;
 
 	// create new vertex
 	// =================
-	WCSimRecoVertex* newVertex = new WCSimRecoVertex();
+	WCSimRecoVertex *newVertex = new WCSimRecoVertex();
 	fExtendedVertex = newVertex;
 
 	// figure of merit
@@ -963,18 +1075,21 @@ WCSimRecoVertex* WCSimVertexFinder::FixExtendedVertex(Double_t vtxX, Double_t vt
 
 	// print vertex
 	// ============
-	std::cout << "  set extended vertex: " << std::endl << "    (vx,vy,vz)=(" << newVertex->GetX() << ","
-			<< newVertex->GetY() << "," << newVertex->GetZ() << ") " << std::endl << "    (px,py,pz)=("
-			<< newVertex->GetDirX() << "," << newVertex->GetDirY() << "," << newVertex->GetDirZ() << ") " << std::endl
-			<< "      angle=" << newVertex->GetConeAngle() << " vtime=" << newVertex->GetTime() << " itr="
-			<< newVertex->GetIterations() << " fom=" << newVertex->GetFOM() << std::endl;
+	std::cout << "  set extended vertex: " << std::endl
+			  << "    (vx,vy,vz)=(" << newVertex->GetX() << ","
+			  << newVertex->GetY() << "," << newVertex->GetZ() << ") " << std::endl
+			  << "    (px,py,pz)=("
+			  << newVertex->GetDirX() << "," << newVertex->GetDirY() << "," << newVertex->GetDirZ() << ") " << std::endl
+			  << "      angle=" << newVertex->GetConeAngle() << " vtime=" << newVertex->GetTime() << " itr="
+			  << newVertex->GetIterations() << " fom=" << newVertex->GetFOM() << std::endl;
 
 	// return vertex
 	// =============
 	return newVertex;
 }
 
-WCSimRecoVertex* WCSimVertexFinder::CorrectExtendedVertex(WCSimRecoVertex* myVertex) {
+WCSimRecoVertex *WCSimVertexFinder::CorrectExtendedVertex(WCSimRecoVertex *myVertex)
+{
 	// get vertex and direction
 	// ========================
 	Double_t vtxX = myVertex->GetX();
@@ -998,16 +1113,18 @@ WCSimRecoVertex* WCSimVertexFinder::CorrectExtendedVertex(WCSimRecoVertex* myVer
 
 	// fix vertex bias
 	// ===============
-	if (fFixVertexBias) {
+	if (fFixVertexBias)
+	{
 		// Only correct the vertex bias if it doesn't move us outside of the detector.
 		Double_t tempX = vtxX - fVertexBias * dirX;
 		Double_t tempY = vtxY - fVertexBias * dirY;
 		Double_t tempZ = vtxZ - fVertexBias * dirZ;
 
-//    std::cout << " Vertex    = " << vtxX << ", " << vtxY << ", " << vtxZ << std::endl;
-//    std::cout << " Corrected = " << tempX << ", " << tempY << ", " << tempZ << std::endl;
+		//    std::cout << " Vertex    = " << vtxX << ", " << vtxY << ", " << vtxZ << std::endl;
+		//    std::cout << " Corrected = " << tempX << ", " << tempY << ", " << tempZ << std::endl;
 
-		if (WCSimGeometry::Instance()->InsideDetector(tempX, tempY, tempZ)) {
+		if (WCSimGeometry::Instance()->InsideDetector(tempX, tempY, tempZ))
+		{
 			vtxX -= fVertexBias * dirX;
 			vtxY -= fVertexBias * dirY;
 			vtxZ -= fVertexBias * dirZ;
@@ -1016,12 +1133,14 @@ WCSimRecoVertex* WCSimVertexFinder::CorrectExtendedVertex(WCSimRecoVertex* myVer
 	}
 
 	// If the vertex position inside in the detector in R, move it back radially until it is inside.
-	if (!WCSimGeometry::Instance()->InsideDetector(vtxX, vtxY, vtxZ)) {
+	if (!WCSimGeometry::Instance()->InsideDetector(vtxX, vtxY, vtxZ))
+	{
 		Double_t originalR = sqrt(vtxX * vtxX + vtxY * vtxY);
 		Double_t currR = originalR;
-		while (currR > WCSimGeometry::Instance()->GetCylRadius()) {
-//      std::cout << "LEIGH: Vertex position outside of the detector..." << currR 
-//                << ", " << WCSimGeometry::Instance()->GetCylRadius() << std::endl;
+		while (currR > WCSimGeometry::Instance()->GetCylRadius())
+		{
+			//      std::cout << "LEIGH: Vertex position outside of the detector..." << currR
+			//                << ", " << WCSimGeometry::Instance()->GetCylRadius() << std::endl;
 			vtxX -= vtxX / originalR;
 			vtxY -= vtxY / originalR;
 			currR = sqrt(vtxX * vtxX + vtxY * vtxY);
@@ -1030,19 +1149,23 @@ WCSimRecoVertex* WCSimVertexFinder::CorrectExtendedVertex(WCSimRecoVertex* myVer
 
 	// create new vertex
 	// =================
-	WCSimRecoVertex* newVertex = new WCSimRecoVertex(vtxX, vtxY, vtxZ, vtxTime, dirX, dirY, dirZ, angle, length, fom,
-			nsteps, pass, status);
+	WCSimRecoVertex *newVertex = new WCSimRecoVertex(vtxX, vtxY, vtxZ, vtxTime, dirX, dirY, dirZ, angle, length, fom,
+													 nsteps, pass, status);
 
 	fExtendedVertex = newVertex;
 
 	// print vertex
 	// ============
-	if (fFixVertexBias) {
-		std::cout << "  corrected extended vertex: " << std::endl << "    (vx,vy,vz)=(" << newVertex->GetX() << ","
-				<< newVertex->GetY() << "," << newVertex->GetZ() << ") " << std::endl << "    (px,py,pz)=("
-				<< newVertex->GetDirX() << "," << newVertex->GetDirY() << "," << newVertex->GetDirZ() << ") "
-				<< std::endl << "      angle=" << newVertex->GetConeAngle() << " vtime=" << newVertex->GetTime()
-				<< " itr=" << newVertex->GetIterations() << " fom=" << newVertex->GetFOM() << std::endl;
+	if (fFixVertexBias)
+	{
+		std::cout << "  corrected extended vertex: " << std::endl
+				  << "    (vx,vy,vz)=(" << newVertex->GetX() << ","
+				  << newVertex->GetY() << "," << newVertex->GetZ() << ") " << std::endl
+				  << "    (px,py,pz)=("
+				  << newVertex->GetDirX() << "," << newVertex->GetDirY() << "," << newVertex->GetDirZ() << ") "
+				  << std::endl
+				  << "      angle=" << newVertex->GetConeAngle() << " vtime=" << newVertex->GetTime()
+				  << " itr=" << newVertex->GetIterations() << " fom=" << newVertex->GetFOM() << std::endl;
 	}
 
 	// return vertex
@@ -1050,13 +1173,14 @@ WCSimRecoVertex* WCSimVertexFinder::CorrectExtendedVertex(WCSimRecoVertex* myVer
 	return newVertex;
 }
 
-WCSimRecoVertex* WCSimVertexFinder::FitPointPositionWithMinuit(WCSimRecoVertex* myVertex) {
+WCSimRecoVertex *WCSimVertexFinder::FitPointPositionWithMinuit(WCSimRecoVertex *myVertex)
+{
 	// initialization
 	// ==============
 	Double_t vtxX = 0.0;
 	Double_t vtxY = 0.0;
 	Double_t vtxZ = 0.0;
-//  Double_t vtxTime = 950.0;
+	//  Double_t vtxTime = 950.0;
 	Double_t vtxTime = fTimeSeed;
 
 	Double_t dirX = 0.0;
@@ -1082,12 +1206,13 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointPositionWithMinuit(WCSimRecoVertex* 
 
 	// create new vertex
 	// =================
-	WCSimRecoVertex* newVertex = new WCSimRecoVertex();
+	WCSimRecoVertex *newVertex = new WCSimRecoVertex();
 	fPointPosition = newVertex;
 
 	// abort if necessary
 	// ==================
-	if (foundSeed == 0) {
+	if (foundSeed == 0)
+	{
 		std::cout << "   <warning> point position fit failed to find input vertex " << std::endl;
 		status |= WCSimRecoVertex::kFailPointPosition;
 		newVertex->SetStatus(status);
@@ -1109,23 +1234,28 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointPositionWithMinuit(WCSimRecoVertex* 
 	Double_t fitYposErr = 0.0;
 	Double_t fitZposErr = 0.0;
 
-	Double_t* arglist = new Double_t[10];
-	arglist[0] = 1;  // 1: standard minimization
-					 // 2: try to improve minimum
+	Double_t *arglist = new Double_t[10];
+	arglist[0] = 1; // 1: standard minimization
+					// 2: try to improve minimum
 
 	// Get parameters from the geometry
 	Double_t extentX, extentY, extentZ;
-	if (WCSimGeometry::Instance()->IsCylinder()) {
+	if (WCSimGeometry::Instance()->IsCylinder())
+	{
 		extentX = WCSimGeometry::Instance()->GetCylRadius();
 		extentY = WCSimGeometry::Instance()->GetCylRadius();
 		extentZ = 0.5 * WCSimGeometry::Instance()->GetCylLength();
-	} else if (WCSimGeometry::Instance()->IsMailBox()) {
+	}
+	else if (WCSimGeometry::Instance()->IsMailBox())
+	{
 		extentX = WCSimGeometry::Instance()->GetMailBoxX();
 		extentY = WCSimGeometry::Instance()->GetMailBoxY();
 		extentZ = WCSimGeometry::Instance()->GetMailBoxZ();
-	} else {
+	}
+	else
+	{
 		std::cerr << "WCSimVErtexFinder: Couldn't determine the geometry." << std::endl;
-		exit (EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 
 	// re-initialize everything...
@@ -1148,12 +1278,12 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointPositionWithMinuit(WCSimRecoVertex* 
 	vtxX = fitXpos;
 	vtxY = fitYpos;
 	vtxZ = fitZpos;
-//  vtxTime = 950.0;
+	//  vtxTime = 950.0;
 	vtxTime = fTimeSeed;
 
 	vtxFOM = 0.0;
 
-	fPass = 0;               // flag = 0: normal termination
+	fPass = 0; // flag = 0: normal termination
 	if (flag == 0)
 		fPass = 1; // anything else: abnormal termination
 
@@ -1177,10 +1307,12 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointPositionWithMinuit(WCSimRecoVertex* 
 
 	// print vertex
 	// ============
-	std::cout << "  fitted point position: " << std::endl << "    (vx,vy,vz)=(" << newVertex->GetX() << ","
-			<< newVertex->GetY() << "," << newVertex->GetZ() << ") " << std::endl << "      vtime="
-			<< newVertex->GetTime() << " itr=" << newVertex->GetIterations() << " fom=" << newVertex->GetFOM()
-			<< std::endl;
+	std::cout << "  fitted point position: " << std::endl
+			  << "    (vx,vy,vz)=(" << newVertex->GetX() << ","
+			  << newVertex->GetY() << "," << newVertex->GetZ() << ") " << std::endl
+			  << "      vtime="
+			  << newVertex->GetTime() << " itr=" << newVertex->GetIterations() << " fom=" << newVertex->GetFOM()
+			  << std::endl;
 
 	if (!fPass)
 		std::cout << "   <warning> point position fit failed to converge! Error code: " << flag << std::endl;
@@ -1190,7 +1322,8 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointPositionWithMinuit(WCSimRecoVertex* 
 	return newVertex;
 }
 
-WCSimRecoVertex* WCSimVertexFinder::FitPointDirectionWithMinuit(WCSimRecoVertex* myVertex) {
+WCSimRecoVertex *WCSimVertexFinder::FitPointDirectionWithMinuit(WCSimRecoVertex *myVertex)
+{
 	// initialization
 	// ==============
 	Bool_t foundSeed = (myVertex->FoundVertex() && myVertex->FoundDirection());
@@ -1217,10 +1350,12 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointDirectionWithMinuit(WCSimRecoVertex*
 	Double_t seedTheta = acos(seedDirZ);
 	Double_t seedPhi = 0.0;
 
-	if (seedDirX != 0.0) {
+	if (seedDirX != 0.0)
+	{
 		seedPhi = atan(seedDirY / seedDirX);
 	}
-	if (seedDirX <= 0.0) {
+	if (seedDirX <= 0.0)
+	{
 		if (seedDirY > 0.0)
 			seedPhi += TMath::Pi();
 		if (seedDirY < 0.0)
@@ -1243,12 +1378,13 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointDirectionWithMinuit(WCSimRecoVertex*
 
 	// create new vertex
 	// =================
-	WCSimRecoVertex* newVertex = new WCSimRecoVertex();
+	WCSimRecoVertex *newVertex = new WCSimRecoVertex();
 	fPointDirection = newVertex;
 
 	// abort if necessary
 	// ==================
-	if (foundSeed == 0) {
+	if (foundSeed == 0)
+	{
 		std::cout << "   <warning> point direction fit failed to find input vertex " << std::endl;
 		status |= WCSimRecoVertex::kFailPointDirection;
 		newVertex->SetStatus(status);
@@ -1268,9 +1404,9 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointDirectionWithMinuit(WCSimRecoVertex*
 	Double_t dirThetaErr;
 	Double_t dirPhiErr;
 
-	Double_t* arglist = new Double_t[10];
-	arglist[0] = 1;  // 1: standard minimization
-					 // 2: try to improve minimum
+	Double_t *arglist = new Double_t[10];
+	arglist[0] = 1; // 1: standard minimization
+					// 2: try to improve minimum
 
 	// re-initialize everything...
 	fMinuitPointDirection->mncler();
@@ -1293,7 +1429,7 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointDirectionWithMinuit(WCSimRecoVertex*
 
 	vtxFOM = 0.0;
 
-	fPass = 0;               // flag = 0: normal termination
+	fPass = 0; // flag = 0: normal termination
 	if (flag == 0)
 		fPass = 1; // anything else: abnormal termination
 
@@ -1318,11 +1454,13 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointDirectionWithMinuit(WCSimRecoVertex*
 
 	// print vertex
 	// ============
-	std::cout << "  fitted point direction: " << std::endl << "    (vx,vy,vz)=(" << newVertex->GetX() << ","
-			<< newVertex->GetY() << "," << newVertex->GetZ() << ") " << std::endl << "    (px,py,pz)=("
-			<< newVertex->GetDirX() << "," << newVertex->GetDirY() << "," << newVertex->GetDirZ() << ") " << std::endl
-			<< "      angle=" << newVertex->GetConeAngle() << " vtime=" << newVertex->GetTime() << " itr="
-			<< newVertex->GetIterations() << " fom=" << newVertex->GetFOM() << std::endl;
+	std::cout << "  fitted point direction: " << std::endl
+			  << "    (vx,vy,vz)=(" << newVertex->GetX() << ","
+			  << newVertex->GetY() << "," << newVertex->GetZ() << ") " << std::endl
+			  << "    (px,py,pz)=("
+			  << newVertex->GetDirX() << "," << newVertex->GetDirY() << "," << newVertex->GetDirZ() << ") " << std::endl
+			  << "      angle=" << newVertex->GetConeAngle() << " vtime=" << newVertex->GetTime() << " itr="
+			  << newVertex->GetIterations() << " fom=" << newVertex->GetFOM() << std::endl;
 
 	if (!fPass)
 		std::cout << "   <warning> point direction fit failed to converge! Error code: " << flag << std::endl;
@@ -1332,13 +1470,14 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointDirectionWithMinuit(WCSimRecoVertex*
 	return newVertex;
 }
 
-WCSimRecoVertex* WCSimVertexFinder::FitPointVertexWithMinuit(WCSimRecoVertex* myVertex) {
+WCSimRecoVertex *WCSimVertexFinder::FitPointVertexWithMinuit(WCSimRecoVertex *myVertex)
+{
 	// initialization
 	// ==============
 	Double_t vtxX = 0.0;
 	Double_t vtxY = 0.0;
 	Double_t vtxZ = 0.0;
-//  Double_t vtxTime = 950.0;
+	//  Double_t vtxTime = 950.0;
 	Double_t vtxTime = fTimeSeed;
 
 	Double_t dirX = 0.0;
@@ -1364,10 +1503,12 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointVertexWithMinuit(WCSimRecoVertex* my
 	Double_t seedTheta = acos(seedDirZ);
 	Double_t seedPhi = 0.0;
 
-	if (seedDirX != 0.0) {
+	if (seedDirX != 0.0)
+	{
 		seedPhi = atan(seedDirY / seedDirX);
 	}
-	if (seedDirX <= 0.0) {
+	if (seedDirX <= 0.0)
+	{
 		if (seedDirY > 0.0)
 			seedPhi += TMath::Pi();
 		if (seedDirY < 0.0)
@@ -1384,12 +1525,13 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointVertexWithMinuit(WCSimRecoVertex* my
 
 	// create new vertex
 	// =================
-	WCSimRecoVertex* newVertex = new WCSimRecoVertex();
+	WCSimRecoVertex *newVertex = new WCSimRecoVertex();
 	fPointVertex = newVertex;
 
 	// abort if necessary
 	// ==================
-	if (foundSeed == 0) {
+	if (foundSeed == 0)
+	{
 		std::cout << "   <warning> point vertex fit failed to find input vertex " << std::endl;
 		status |= WCSimRecoVertex::kFailPointVertex;
 		newVertex->SetStatus(status);
@@ -1415,23 +1557,28 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointVertexWithMinuit(WCSimRecoVertex* my
 	Double_t fitThetaErr = 0.0;
 	Double_t fitPhiErr = 0.0;
 
-	Double_t* arglist = new Double_t[10];
-	arglist[0] = 2;  // 1: standard minimization
-					 // 2: try to improve minimum
+	Double_t *arglist = new Double_t[10];
+	arglist[0] = 2; // 1: standard minimization
+					// 2: try to improve minimum
 
 	// Get parameters from the geometry
 	Double_t extentX, extentY, extentZ;
-	if (WCSimGeometry::Instance()->IsCylinder()) {
+	if (WCSimGeometry::Instance()->IsCylinder())
+	{
 		extentX = WCSimGeometry::Instance()->GetCylRadius();
 		extentY = WCSimGeometry::Instance()->GetCylRadius();
 		extentZ = 0.5 * WCSimGeometry::Instance()->GetCylLength();
-	} else if (WCSimGeometry::Instance()->IsMailBox()) {
+	}
+	else if (WCSimGeometry::Instance()->IsMailBox())
+	{
 		extentX = WCSimGeometry::Instance()->GetMailBoxX();
 		extentY = WCSimGeometry::Instance()->GetMailBoxY();
 		extentZ = WCSimGeometry::Instance()->GetMailBoxZ();
-	} else {
+	}
+	else
+	{
 		std::cerr << "WCSimVErtexFinder: Couldn't determine the geometry." << std::endl;
-		exit (EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 
 	// re-initialize everything...
@@ -1458,7 +1605,7 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointVertexWithMinuit(WCSimRecoVertex* my
 	vtxX = fitXpos;
 	vtxY = fitYpos;
 	vtxZ = fitZpos;
-//  vtxTime = 950.0;
+	//  vtxTime = 950.0;
 	vtxTime = fTimeSeed;
 
 	dirX = sin(fitTheta) * cos(fitPhi);
@@ -1467,7 +1614,7 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointVertexWithMinuit(WCSimRecoVertex* my
 
 	vtxFOM = 0.0;
 
-	fPass = 0;               // flag = 0: normal termination
+	fPass = 0; // flag = 0: normal termination
 	if (flag == 0)
 		fPass = 1; // anything else: abnormal termination
 
@@ -1492,11 +1639,13 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointVertexWithMinuit(WCSimRecoVertex* my
 
 	// print vertex
 	// ============
-	std::cout << "  fitted point vertex: " << std::endl << "    (vx,vy,vz)=(" << newVertex->GetX() << ","
-			<< newVertex->GetY() << "," << newVertex->GetZ() << ") " << std::endl << "    (px,py,pz)=("
-			<< newVertex->GetDirX() << "," << newVertex->GetDirY() << "," << newVertex->GetDirZ() << ") " << std::endl
-			<< "      angle=" << newVertex->GetConeAngle() << " vtime=" << newVertex->GetTime() << " itr="
-			<< newVertex->GetIterations() << " fom=" << newVertex->GetFOM() << std::endl;
+	std::cout << "  fitted point vertex: " << std::endl
+			  << "    (vx,vy,vz)=(" << newVertex->GetX() << ","
+			  << newVertex->GetY() << "," << newVertex->GetZ() << ") " << std::endl
+			  << "    (px,py,pz)=("
+			  << newVertex->GetDirX() << "," << newVertex->GetDirY() << "," << newVertex->GetDirZ() << ") " << std::endl
+			  << "      angle=" << newVertex->GetConeAngle() << " vtime=" << newVertex->GetTime() << " itr="
+			  << newVertex->GetIterations() << " fom=" << newVertex->GetFOM() << std::endl;
 
 	if (!fPass)
 		std::cout << "   <warning> point vertex fit failed to converge! Error code: " << flag << std::endl;
@@ -1506,13 +1655,14 @@ WCSimRecoVertex* WCSimVertexFinder::FitPointVertexWithMinuit(WCSimRecoVertex* my
 	return newVertex;
 }
 
-WCSimRecoVertex* WCSimVertexFinder::FitExtendedVertexWithMinuit(WCSimRecoVertex* myVertex) {
+WCSimRecoVertex *WCSimVertexFinder::FitExtendedVertexWithMinuit(WCSimRecoVertex *myVertex)
+{
 	// initialization
 	// ==============
 	Double_t vtxX = 0.0;
 	Double_t vtxY = 0.0;
 	Double_t vtxZ = 0.0;
-//  Double_t vtxTime = 950.0;
+	//  Double_t vtxTime = 950.0;
 	Double_t vtxTime = fTimeSeed;
 
 	Double_t dirX = 0.0;
@@ -1538,10 +1688,12 @@ WCSimRecoVertex* WCSimVertexFinder::FitExtendedVertexWithMinuit(WCSimRecoVertex*
 	Double_t seedTheta = acos(seedDirZ);
 	Double_t seedPhi = 0.0;
 
-	if (seedDirX != 0.0) {
+	if (seedDirX != 0.0)
+	{
 		seedPhi = atan(seedDirY / seedDirX);
 	}
-	if (seedDirX <= 0.0) {
+	if (seedDirX <= 0.0)
+	{
 		if (seedDirY > 0.0)
 			seedPhi += TMath::Pi();
 		if (seedDirY < 0.0)
@@ -1558,12 +1710,13 @@ WCSimRecoVertex* WCSimVertexFinder::FitExtendedVertexWithMinuit(WCSimRecoVertex*
 
 	// create new vertex
 	// =================
-	WCSimRecoVertex* newVertex = new WCSimRecoVertex();
+	WCSimRecoVertex *newVertex = new WCSimRecoVertex();
 	fExtendedVertex = newVertex;
 
 	// abort if necessary
 	// ==================
-	if (foundSeed == 0) {
+	if (foundSeed == 0)
+	{
 		std::cout << "   <warning> extended vertex fit failed to find input vertex " << std::endl;
 		status |= WCSimRecoVertex::kFailExtendedVertex;
 		newVertex->SetStatus(status);
@@ -1589,23 +1742,28 @@ WCSimRecoVertex* WCSimVertexFinder::FitExtendedVertexWithMinuit(WCSimRecoVertex*
 	Double_t fitThetaErr = 0.0;
 	Double_t fitPhiErr = 0.0;
 
-	Double_t* arglist = new Double_t[10];
-	arglist[0] = 2;  // 1: standard minimization
-					 // 2: try to improve minimum
+	Double_t *arglist = new Double_t[10];
+	arglist[0] = 2; // 1: standard minimization
+					// 2: try to improve minimum
 
 	// Get parameters from the geometry
 	Double_t extentX, extentY, extentZ;
-	if (WCSimGeometry::Instance()->IsCylinder()) {
+	if (WCSimGeometry::Instance()->IsCylinder())
+	{
 		extentX = WCSimGeometry::Instance()->GetCylRadius();
 		extentY = WCSimGeometry::Instance()->GetCylRadius();
 		extentZ = 0.5 * WCSimGeometry::Instance()->GetCylLength();
-	} else if (WCSimGeometry::Instance()->IsMailBox()) {
+	}
+	else if (WCSimGeometry::Instance()->IsMailBox())
+	{
 		extentX = WCSimGeometry::Instance()->GetMailBoxX();
 		extentY = WCSimGeometry::Instance()->GetMailBoxY();
 		extentZ = WCSimGeometry::Instance()->GetMailBoxZ();
-	} else {
+	}
+	else
+	{
 		std::cerr << "WCSimVErtexFinder: Couldn't determine the geometry." << std::endl;
-		exit (EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 
 	// re-initialize everything...
@@ -1632,7 +1790,7 @@ WCSimRecoVertex* WCSimVertexFinder::FitExtendedVertexWithMinuit(WCSimRecoVertex*
 	vtxX = fitXpos;
 	vtxY = fitYpos;
 	vtxZ = fitZpos;
-//  vtxTime = 950.0;
+	//  vtxTime = 950.0;
 	vtxTime = fTimeSeed;
 
 	dirX = sin(fitTheta) * cos(fitPhi);
@@ -1641,7 +1799,7 @@ WCSimRecoVertex* WCSimVertexFinder::FitExtendedVertexWithMinuit(WCSimRecoVertex*
 
 	vtxFOM = 0.0;
 
-	fPass = 0;               // flag = 0: normal termination
+	fPass = 0; // flag = 0: normal termination
 	if (flag == 0)
 		fPass = 1; // anything else: abnormal termination
 
@@ -1666,11 +1824,13 @@ WCSimRecoVertex* WCSimVertexFinder::FitExtendedVertexWithMinuit(WCSimRecoVertex*
 
 	// print vertex
 	// ============
-	std::cout << "  fitted extended vertex: " << std::endl << "    (vx,vy,vz)=(" << newVertex->GetX() << ","
-			<< newVertex->GetY() << "," << newVertex->GetZ() << ") " << std::endl << "    (px,py,pz)=("
-			<< newVertex->GetDirX() << "," << newVertex->GetDirY() << "," << newVertex->GetDirZ() << ") " << std::endl
-			<< "      angle=" << newVertex->GetConeAngle() << " vtime=" << newVertex->GetTime() << " itr="
-			<< newVertex->GetIterations() << " fom=" << newVertex->GetFOM() << std::endl;
+	std::cout << "  fitted extended vertex: " << std::endl
+			  << "    (vx,vy,vz)=(" << newVertex->GetX() << ","
+			  << newVertex->GetY() << "," << newVertex->GetZ() << ") " << std::endl
+			  << "    (px,py,pz)=("
+			  << newVertex->GetDirX() << "," << newVertex->GetDirY() << "," << newVertex->GetDirZ() << ") " << std::endl
+			  << "      angle=" << newVertex->GetConeAngle() << " vtime=" << newVertex->GetTime() << " itr="
+			  << newVertex->GetIterations() << " fom=" << newVertex->GetFOM() << std::endl;
 
 	if (!fPass)
 		std::cout << "   <warning> extended vertex fit failed to converge! Error code: " << flag << std::endl;
@@ -1680,8 +1840,9 @@ WCSimRecoVertex* WCSimVertexFinder::FitExtendedVertexWithMinuit(WCSimRecoVertex*
 	return newVertex;
 }
 
-void WCSimVertexFinder::PointPositionChi2(Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t& vtxTime,
-		Double_t& fom) {
+void WCSimVertexFinder::PointPositionChi2(Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t &vtxTime,
+										  Double_t &fom)
+{
 	// figure of merit
 	// ===============
 	Double_t vtxFOM = 0.0;
@@ -1702,7 +1863,8 @@ void WCSimVertexFinder::PointPositionChi2(Double_t vtxX, Double_t vtxY, Double_t
 
 	// fix true position
 	// =================
-	if (fUseTruePosition) {
+	if (fUseTruePosition)
+	{
 		this->FixPositionChi2(vtxX, vtxY, vtxZ, fixPositionFOM);
 	}
 
@@ -1718,7 +1880,8 @@ void WCSimVertexFinder::PointPositionChi2(Double_t vtxX, Double_t vtxY, Double_t
 }
 
 void WCSimVertexFinder::PointDirectionChi2(Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t dirX, Double_t dirY,
-		Double_t dirZ, Double_t& vtxAngle, Double_t& fom) {
+										   Double_t dirZ, Double_t &vtxAngle, Double_t &fom)
+{
 	// figure of merit
 	// ===============
 	Double_t vtxFOM = 0.0;
@@ -1735,13 +1898,15 @@ void WCSimVertexFinder::PointDirectionChi2(Double_t vtxX, Double_t vtxY, Double_
 
 	// fix true position
 	// =================
-	if (fUseTruePosition) {
+	if (fUseTruePosition)
+	{
 		this->FixPositionChi2(vtxX, vtxY, vtxZ, fixPositionFOM);
 	}
 
 	// fix true direction
 	// ==================
-	if (fUseTrueDirection) {
+	if (fUseTrueDirection)
+	{
 		this->FixDirectionChi2(dirX, dirY, dirZ, fixDirectionFOM);
 	}
 
@@ -1757,7 +1922,8 @@ void WCSimVertexFinder::PointDirectionChi2(Double_t vtxX, Double_t vtxY, Double_
 }
 
 void WCSimVertexFinder::PointVertexChi2(Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t dirX, Double_t dirY,
-		Double_t dirZ, Double_t& vtxAngle, Double_t& vtxTime, Double_t& fom) {
+										Double_t dirZ, Double_t &vtxAngle, Double_t &vtxTime, Double_t &fom)
+{
 	// figure of merit
 	// ===============
 	Double_t vtxFOM = 0.0;
@@ -1779,13 +1945,15 @@ void WCSimVertexFinder::PointVertexChi2(Double_t vtxX, Double_t vtxY, Double_t v
 
 	// fix true position
 	// =================
-	if (fUseTruePosition) {
+	if (fUseTruePosition)
+	{
 		this->FixPositionChi2(vtxX, vtxY, vtxZ, fixPositionFOM);
 	}
 
 	// fix true direction
 	// ==================
-	if (fUseTrueDirection) {
+	if (fUseTrueDirection)
+	{
 		this->FixDirectionChi2(dirX, dirY, dirZ, fixDirectionFOM);
 	}
 
@@ -1801,7 +1969,8 @@ void WCSimVertexFinder::PointVertexChi2(Double_t vtxX, Double_t vtxY, Double_t v
 }
 
 void WCSimVertexFinder::ExtendedVertexChi2(Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t dirX, Double_t dirY,
-		Double_t dirZ, Double_t& vtxAngle, Double_t& vtxTime, Double_t& fom) {
+										   Double_t dirZ, Double_t &vtxAngle, Double_t &vtxTime, Double_t &fom)
+{
 	// figure of merit
 	// ===============
 	Double_t vtxFOM = 0.0;
@@ -1823,13 +1992,15 @@ void WCSimVertexFinder::ExtendedVertexChi2(Double_t vtxX, Double_t vtxY, Double_
 
 	// fix true position
 	// =================
-	if (fUseTruePosition) {
+	if (fUseTruePosition)
+	{
 		this->FixPositionChi2(vtxX, vtxY, vtxZ, fixPositionFOM);
 	}
 
 	// fix true direction
 	// ==================
-	if (fUseTrueDirection) {
+	if (fUseTrueDirection)
+	{
 		this->FixDirectionChi2(dirX, dirY, dirZ, fixDirectionFOM);
 	}
 
@@ -1844,7 +2015,8 @@ void WCSimVertexFinder::ExtendedVertexChi2(Double_t vtxX, Double_t vtxY, Double_
 	return;
 }
 
-void WCSimVertexFinder::PointPositionChi2(Double_t& vtxTime, Double_t& fom) {
+void WCSimVertexFinder::PointPositionChi2(Double_t &vtxTime, Double_t &fom)
+{
 	// calculate figure of merit
 	// =========================
 	this->FitPointTimePropertiesLnL(vtxTime, fom);
@@ -1852,7 +2024,8 @@ void WCSimVertexFinder::PointPositionChi2(Double_t& vtxTime, Double_t& fom) {
 	return;
 }
 
-void WCSimVertexFinder::PointDirectionChi2(Double_t& vtxAngle, Double_t& fom) {
+void WCSimVertexFinder::PointDirectionChi2(Double_t &vtxAngle, Double_t &fom)
+{
 	// calculate figure of merit
 	// =========================
 	this->FitPointConePropertiesLnL(vtxAngle, fom);
@@ -1860,7 +2033,8 @@ void WCSimVertexFinder::PointDirectionChi2(Double_t& vtxAngle, Double_t& fom) {
 	return;
 }
 
-void WCSimVertexFinder::PointVertexChi2(Double_t& vtxAngle, Double_t& vtxTime, Double_t& fom) {
+void WCSimVertexFinder::PointVertexChi2(Double_t &vtxAngle, Double_t &vtxTime, Double_t &fom)
+{
 	// calculate figure of merit
 	// =========================
 	Double_t timeFOM = 0.0;
@@ -1874,7 +2048,8 @@ void WCSimVertexFinder::PointVertexChi2(Double_t& vtxAngle, Double_t& vtxTime, D
 	return;
 }
 
-void WCSimVertexFinder::ExtendedVertexChi2(Double_t& vtxAngle, Double_t& vtxTime, Double_t& fom) {
+void WCSimVertexFinder::ExtendedVertexChi2(Double_t &vtxAngle, Double_t &vtxTime, Double_t &fom)
+{
 	// calculate figure of merit
 	// =========================
 	Double_t timeFOM = 0.0;
@@ -1888,24 +2063,28 @@ void WCSimVertexFinder::ExtendedVertexChi2(Double_t& vtxAngle, Double_t& vtxTime
 	return;
 }
 
-void WCSimVertexFinder::PointResiduals(Double_t vtxX, Double_t vtxY, Double_t vtxZ) {
+void WCSimVertexFinder::PointResiduals(Double_t vtxX, Double_t vtxY, Double_t vtxZ)
+{
 	return WCSimVertexGeometry::Instance()->CalcPointResiduals(vtxX, vtxY, vtxZ, 0.0, 0.0, 0.0, 0.0);
 }
 
 void WCSimVertexFinder::PointResiduals(Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t dirX, Double_t dirY,
-		Double_t dirZ) {
+									   Double_t dirZ)
+{
 	return WCSimVertexGeometry::Instance()->CalcPointResiduals(vtxX, vtxY, vtxZ, 0.0, dirX, dirY, dirZ);
 }
 
 void WCSimVertexFinder::ExtendedResiduals(Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t dirX, Double_t dirY,
-		Double_t dirZ) {
+										  Double_t dirZ)
+{
 	return WCSimVertexGeometry::Instance()->CalcExtendedResiduals(vtxX, vtxY, vtxZ, 0.0, dirX, dirY, dirZ);
 }
 
-void WCSimVertexFinder::FitTimePropertiesFoM(Double_t& vtxTime, Double_t& vtxFOM) {
+void WCSimVertexFinder::FitTimePropertiesFoM(Double_t &vtxTime, Double_t &vtxFOM)
+{
 	// calculate mean and rms
 	// ======================
-//  Double_t meanTime = 950.0;
+	//  Double_t meanTime = 950.0;
 	Double_t meanTime = fTimeSeed;
 
 	this->FindSimpleTimeProperties(meanTime);
@@ -1926,9 +2105,9 @@ void WCSimVertexFinder::FitTimePropertiesFoM(Double_t& vtxTime, Double_t& vtxFOM
 	Double_t fitTime = 0.0;
 	Double_t fitTimeErr = 0.0;
 
-	Double_t* arglist = new Double_t[10];
-	arglist[0] = 1;  // 1: standard minimization
-					 // 2: try to improve minimum
+	Double_t *arglist = new Double_t[10];
+	arglist[0] = 1; // 1: standard minimization
+					// 2: try to improve minimum
 
 	// re-initialize everything...
 	fMinuitTimeFit->mncler();
@@ -1956,10 +2135,11 @@ void WCSimVertexFinder::FitTimePropertiesFoM(Double_t& vtxTime, Double_t& vtxFOM
 	return;
 }
 
-void WCSimVertexFinder::FitPointTimePropertiesLnL(Double_t& vtxTime, Double_t& vtxFOM) {
+void WCSimVertexFinder::FitPointTimePropertiesLnL(Double_t &vtxTime, Double_t &vtxFOM)
+{
 	// calculate mean and rms
 	// ======================
-//  Double_t meanTime = 950.0;
+	//  Double_t meanTime = 950.0;
 	Double_t meanTime = fTimeSeed;
 
 	this->FindSimpleTimeProperties(meanTime);
@@ -1982,9 +2162,9 @@ void WCSimVertexFinder::FitPointTimePropertiesLnL(Double_t& vtxTime, Double_t& v
 	Double_t fitTime = 0.0;
 	Double_t fitTimeErr = 0.0;
 
-	Double_t* arglist = new Double_t[10];
-	arglist[0] = 1;  // 1: standard minimization
-					 // 2: try to improve minimum
+	Double_t *arglist = new Double_t[10];
+	arglist[0] = 1; // 1: standard minimization
+					// 2: try to improve minimum
 
 	// re-initialize everything...
 	fMinuitTimeFit->mncler();
@@ -2019,16 +2199,18 @@ void WCSimVertexFinder::FitPointTimePropertiesLnL(Double_t& vtxTime, Double_t& v
 	return;
 }
 
-void WCSimVertexFinder::FitExtendedTimePropertiesLnL(Double_t& vtxTime, Double_t& vtxFOM) {
+void WCSimVertexFinder::FitExtendedTimePropertiesLnL(Double_t &vtxTime, Double_t &vtxFOM)
+{
 	// return result from point fit
 	// ============================
-	if (fFitTimeParams == 0) {
+	if (fFitTimeParams == 0)
+	{
 		return this->FitPointTimePropertiesLnL(vtxTime, vtxFOM);
 	}
 
 	// calculate mean and rms
 	// ======================
-//  Double_t meanTime = 950.0;
+	//  Double_t meanTime = 950.0;
 	Double_t meanTime = fTimeSeed;
 
 	this->FindSimpleTimeProperties(meanTime);
@@ -2053,9 +2235,9 @@ void WCSimVertexFinder::FitExtendedTimePropertiesLnL(Double_t& vtxTime, Double_t
 	Double_t fitParam = seedParam;
 	Double_t fitParamErr = 0.0;
 
-	Double_t* arglist = new Double_t[10];
-	arglist[0] = 1;  // 1: standard minimization
-					 // 2: try to improve minimum
+	Double_t *arglist = new Double_t[10];
+	arglist[0] = 1; // 1: standard minimization
+					// 2: try to improve minimum
 
 	// re-initialize everything...
 	fMinuitTimeFit->mncler();
@@ -2092,7 +2274,8 @@ void WCSimVertexFinder::FitExtendedTimePropertiesLnL(Double_t& vtxTime, Double_t
 	return;
 }
 
-void WCSimVertexFinder::FitConePropertiesFoM(Double_t& coneAngle, Double_t& coneFOM) {
+void WCSimVertexFinder::FitConePropertiesFoM(Double_t &coneAngle, Double_t &coneFOM)
+{
 	coneAngle = 42.0; // nominal cone angle
 
 	this->ConePropertiesFoM(coneFOM);
@@ -2100,7 +2283,8 @@ void WCSimVertexFinder::FitConePropertiesFoM(Double_t& coneAngle, Double_t& cone
 	return;
 }
 
-void WCSimVertexFinder::FitPointConePropertiesLnL(Double_t& coneAngle, Double_t& coneFOM) {
+void WCSimVertexFinder::FitPointConePropertiesLnL(Double_t &coneAngle, Double_t &coneFOM)
+{
 	coneAngle = 42.0; // nominal cone angle
 
 	this->ConePropertiesLnL(fFixConeParam0, fFixConeParam1, fFixConeParam2, coneAngle, coneFOM);
@@ -2113,10 +2297,12 @@ void WCSimVertexFinder::FitPointConePropertiesLnL(Double_t& coneAngle, Double_t&
 	return;
 }
 
-void WCSimVertexFinder::FitExtendedConePropertiesLnL(Double_t& coneAngle, Double_t& coneFOM) {
+void WCSimVertexFinder::FitExtendedConePropertiesLnL(Double_t &coneAngle, Double_t &coneFOM)
+{
 	// return result from point fit
 	// ============================
-	if (fFitConeParams == 0) {
+	if (fFitConeParams == 0)
+	{
 		return this->FitPointConePropertiesLnL(coneAngle, coneFOM);
 	}
 
@@ -2145,9 +2331,9 @@ void WCSimVertexFinder::FitExtendedConePropertiesLnL(Double_t& coneAngle, Double
 
 	Double_t fitAngle = 42.0;
 
-	Double_t* arglist = new Double_t[10];
-	arglist[0] = 1;  // 1: standard minimization
-					 // 2: try to improve minimum
+	Double_t *arglist = new Double_t[10];
+	arglist[0] = 1; // 1: standard minimization
+					// 2: try to improve minimum
 
 	// re-initialize everything...
 	fMinuitConeFit->mncler();
@@ -2187,10 +2373,11 @@ void WCSimVertexFinder::FitExtendedConePropertiesLnL(Double_t& coneAngle, Double
 	return;
 }
 
-void WCSimVertexFinder::FindSimpleTimeProperties(Double_t& vtxTime) {
+void WCSimVertexFinder::FindSimpleTimeProperties(Double_t &vtxTime)
+{
 	// reset mean and rms
 	// ==================
-//  Double_t meanTime = 950.0;
+	//  Double_t meanTime = 950.0;
 	Double_t meanTime = fTimeSeed;
 
 	// calculate mean and rms of hits inside cone
@@ -2204,12 +2391,14 @@ void WCSimVertexFinder::FindSimpleTimeProperties(Double_t& vtxTime) {
 	Double_t deweight = 0.0;
 	Double_t deltaAngle = 0.0;
 
-	Double_t myConeEdge = 42.0;      // [degrees]
-	Double_t myConeEdgeSigma = 7.0;  // [degrees]
+	Double_t myConeEdge = 42.0;		// [degrees]
+	Double_t myConeEdgeSigma = 7.0; // [degrees]
 
-	for (Int_t idigit = 0; idigit < WCSimVertexGeometry::Instance()->GetNDigits(); idigit++) {
+	for (Int_t idigit = 0; idigit < WCSimVertexGeometry::Instance()->GetNDigits(); idigit++)
+	{
 
-		if (WCSimVertexGeometry::Instance()->IsFiltered(idigit)) {
+		if (WCSimVertexGeometry::Instance()->IsFiltered(idigit))
+		{
 			delta = WCSimVertexGeometry::Instance()->GetDelta(idigit);
 			sigma = WCSimVertexGeometry::Instance()->GetDeltaSigma(idigit);
 			weight = 1.0 / (sigma * sigma);
@@ -2218,9 +2407,12 @@ void WCSimVertexFinder::FindSimpleTimeProperties(Double_t& vtxTime) {
 			deltaAngle = WCSimVertexGeometry::Instance()->GetAngle(idigit) - myConeEdge;
 
 			// deweight hits outside cone
-			if (deltaAngle <= 0.0) {
+			if (deltaAngle <= 0.0)
+			{
 				deweight = 1.0;
-			} else {
+			}
+			else
+			{
 				deweight = 1.0 / (1.0 + (deltaAngle * deltaAngle) / (myConeEdgeSigma * myConeEdgeSigma));
 			}
 
@@ -2230,7 +2422,8 @@ void WCSimVertexFinder::FindSimpleTimeProperties(Double_t& vtxTime) {
 		}
 	}
 
-	if (Sw > 0.0) {
+	if (Sw > 0.0)
+	{
 		meanTime = Swx / Sw;
 	}
 
@@ -2241,40 +2434,41 @@ void WCSimVertexFinder::FindSimpleTimeProperties(Double_t& vtxTime) {
 	return;
 }
 
-void WCSimVertexFinder::TimePropertiesLnL(Double_t vtxTime, Double_t vtxParam, Double_t& vtxFOM) {
+void WCSimVertexFinder::TimePropertiesLnL(Double_t vtxTime, Double_t vtxParam, Double_t &vtxFOM)
+{
 	// nuisance parameters
 	// ===================
 	Double_t scatter = vtxParam;
 
 	// internal variables
 	// ==================
-	Double_t delta = 0.0;       // time residual of each hit
-	Double_t sigma = 0.0;       // time resolution of each hit
+	Double_t delta = 0.0; // time residual of each hit
+	Double_t sigma = 0.0; // time resolution of each hit
 
-	Double_t sigmaEarly = 1.5;  // width of early light
+	Double_t sigmaEarly = 1.5; // width of early light
 	Double_t sigmaLate = 3.5;  // width of late light
-	Double_t deltaShort = 5.0;  // decay time for scattered light [short]
+	Double_t deltaShort = 5.0; // decay time for scattered light [short]
 	Double_t deltaLong = 10.0; // decay time for scattered light [long]
 
-	Double_t alpha = scatter;   // size of scattering (Gaussian+Exponential)
-	Double_t beta = 0.15;      // size of late light (second Gaussian)
-	Double_t gamma = 0.66;      // coefficeient for double-exponential
+	Double_t alpha = scatter; // size of scattering (Gaussian+Exponential)
+	Double_t beta = 0.15;	  // size of late light (second Gaussian)
+	Double_t gamma = 0.66;	  // coefficeient for double-exponential
 
-	Double_t A = 0.0;           // normalisation of first Gaussian
-	Double_t Ascat = 0.0;       // normalisation of second Gaussian
-	Double_t Bshort = 0.0;      // normalisation of scattering (Gaussian+Exponential)
-	Double_t Blong = 0.0;       // normalisation of scattering (Gaussian+Exponential)
+	Double_t A = 0.0;	   // normalisation of first Gaussian
+	Double_t Ascat = 0.0;  // normalisation of second Gaussian
+	Double_t Bshort = 0.0; // normalisation of scattering (Gaussian+Exponential)
+	Double_t Blong = 0.0;  // normalisation of scattering (Gaussian+Exponential)
 
-	Double_t Preal = 0.0;       // probability of real hit
-	Double_t P = 0.0;           // probability of hit
+	Double_t Preal = 0.0; // probability of real hit
+	Double_t P = 0.0;	  // probability of hit
 
-	Double_t chi2 = 0.0;        // log-likelihood: chi2 = -2.0*log(L)
-	Double_t ndof = 0.0;        // total number of hits
-	Double_t fom = 0.0;         // figure of merit
+	Double_t chi2 = 0.0; // log-likelihood: chi2 = -2.0*log(L)
+	Double_t ndof = 0.0; // total number of hits
+	Double_t fom = 0.0;	 // figure of merit
 
 	// tuning parameters
 	// =================
-	Double_t fTimeFitNoiseRate = 0.10;  // hits/ns [0.40 for electrons, 0.02 for muons]
+	Double_t fTimeFitNoiseRate = 0.10; // hits/ns [0.40 for electrons, 0.02 for muons]
 
 	// add noise to model
 	// ==================
@@ -2283,9 +2477,11 @@ void WCSimVertexFinder::TimePropertiesLnL(Double_t vtxTime, Double_t vtxParam, D
 
 	// loop over digits
 	// ================
-	for (Int_t idigit = 0; idigit < WCSimVertexGeometry::Instance()->GetNDigits(); idigit++) {
+	for (Int_t idigit = 0; idigit < WCSimVertexGeometry::Instance()->GetNDigits(); idigit++)
+	{
 
-		if (WCSimVertexGeometry::Instance()->IsFiltered(idigit)) {
+		if (WCSimVertexGeometry::Instance()->IsFiltered(idigit))
+		{
 			delta = WCSimVertexGeometry::Instance()->GetDelta(idigit) - vtxTime;
 			sigma = WCSimVertexGeometry::Instance()->GetDeltaSigma(idigit);
 
@@ -2294,23 +2490,14 @@ void WCSimVertexFinder::TimePropertiesLnL(Double_t vtxTime, Double_t vtxParam, D
 			Bshort = 1.0 / (sigmaEarly * sqrt(0.5 * TMath::Pi()) + (9.0 / 8.0) * deltaShort);
 			Blong = 1.0 / (sigmaEarly * sqrt(0.5 * TMath::Pi()) + (9.0 / 8.0) * deltaLong);
 
-			if (delta <= 0) {
-				Preal = (1.0 - beta) * (1.0 - alpha) * A * exp(-(delta * delta) / (2.0 * sigma * sigma))
-						+ beta * (1.0 - alpha) * Ascat * exp(-(delta * delta) / (2.0 * sigmaEarly * sigmaEarly))
-						+ alpha * gamma * Bshort * exp(-(delta * delta) / (2.0 * sigmaEarly * sigmaEarly))
-						+ alpha * (1.0 - gamma) * Blong * exp(-(delta * delta) / (2.0 * sigmaEarly * sigmaEarly));
+			if (delta <= 0)
+			{
+				Preal = (1.0 - beta) * (1.0 - alpha) * A * exp(-(delta * delta) / (2.0 * sigma * sigma)) + beta * (1.0 - alpha) * Ascat * exp(-(delta * delta) / (2.0 * sigmaEarly * sigmaEarly)) + alpha * gamma * Bshort * exp(-(delta * delta) / (2.0 * sigmaEarly * sigmaEarly)) + alpha * (1.0 - gamma) * Blong * exp(-(delta * delta) / (2.0 * sigmaEarly * sigmaEarly));
 				P = (1.0 - Pnoise) * Preal + Pnoise;
-			} else {
-				Preal = (1.0 - beta) * (1.0 - alpha) * A * exp(-(delta * delta) / (2.0 * sigma * sigma))
-						+ beta * (1.0 - alpha) * Ascat * exp(-(delta * delta) / (2.0 * sigmaLate * sigmaLate))
-						+ alpha * gamma * Bshort
-								* ((delta / deltaShort)
-										/ pow((1.0 + 4.0 * (delta / deltaShort) * (delta / deltaShort)), 2.0)
-										+ exp(-delta / deltaShort))
-						+ alpha * (1.0 - gamma) * Blong
-								* ((delta / deltaLong)
-										/ pow((1.0 + 4.0 * (delta / deltaLong) * (delta / deltaLong)), 2.0)
-										+ exp(-delta / deltaLong));
+			}
+			else
+			{
+				Preal = (1.0 - beta) * (1.0 - alpha) * A * exp(-(delta * delta) / (2.0 * sigma * sigma)) + beta * (1.0 - alpha) * Ascat * exp(-(delta * delta) / (2.0 * sigmaLate * sigmaLate)) + alpha * gamma * Bshort * ((delta / deltaShort) / pow((1.0 + 4.0 * (delta / deltaShort) * (delta / deltaShort)), 2.0) + exp(-delta / deltaShort)) + alpha * (1.0 - gamma) * Blong * ((delta / deltaLong) / pow((1.0 + 4.0 * (delta / deltaLong) * (delta / deltaLong)), 2.0) + exp(-delta / deltaLong));
 				P = (1.0 - Pnoise) * Preal + Pnoise;
 			}
 
@@ -2321,7 +2508,8 @@ void WCSimVertexFinder::TimePropertiesLnL(Double_t vtxTime, Double_t vtxParam, D
 
 	// calculate figure of merit
 	// =========================
-	if (ndof > 0.0) {
+	if (ndof > 0.0)
+	{
 		fom = fBaseFOM - 5.0 * chi2 / ndof;
 	}
 
@@ -2333,7 +2521,8 @@ void WCSimVertexFinder::TimePropertiesLnL(Double_t vtxTime, Double_t vtxParam, D
 }
 
 void WCSimVertexFinder::ConePropertiesLnL(Double_t coneParam0, Double_t coneParam1, Double_t coneParam2,
-		Double_t& coneAngle, Double_t& coneFOM) {
+										  Double_t &coneAngle, Double_t &coneFOM)
+{
 	// nuisance parameters
 	// ===================
 	Double_t alpha = coneParam0;
@@ -2372,11 +2561,11 @@ void WCSimVertexFinder::ConePropertiesLnL(Double_t coneParam0, Double_t conePara
 	// ==========================================
 	Double_t lambdaMuShort = 12.8959; ///0.5; //  0.5;
 	Double_t lambdaMuLong = 89.5664;  //5.0; // 15.0;
-	Double_t alphaMu = 1.64654;      //1.0; //  4.5;
+	Double_t alphaMu = 1.64654;		  //1.0; //  4.5;
 
 	Double_t lambdaElShort = 13.9358; //1.0; //  2.5;
-	Double_t lambdaElLong = 102.696; //7.5; // 15.0;
-	Double_t alphaEl = 0.743182;      //6.0; //  3.5;
+	Double_t lambdaElLong = 102.696;  //7.5; // 15.0;
+	Double_t alphaEl = 0.743182;	  //6.0; //  3.5;
 
 	// numerical integrals
 	// ===================
@@ -2385,35 +2574,26 @@ void WCSimVertexFinder::ConePropertiesLnL(Double_t coneParam0, Double_t conePara
 
 	// inside cone
 	Int_t nbinsInside = 420;
-	for (Int_t n = 0; n < nbinsInside; n++) {
-		deltaAngle = -42.0 + (n + 0.5) * (42.0 / (double) nbinsInside);
-		fSconeB += 1.4944765 * sin((42.0 + deltaAngle) * (TMath::Pi() / 180.0))
-				* (1.0 / (1.0 + (deltaAngle * deltaAngle) / (deltaAngle0 * deltaAngle0)))
-				* (42.0 / (double) nbinsInside);
+	for (Int_t n = 0; n < nbinsInside; n++)
+	{
+		deltaAngle = -42.0 + (n + 0.5) * (42.0 / (double)nbinsInside);
+		fSconeB += 1.4944765 * sin((42.0 + deltaAngle) * (TMath::Pi() / 180.0)) * (1.0 / (1.0 + (deltaAngle * deltaAngle) / (deltaAngle0 * deltaAngle0))) * (42.0 / (double)nbinsInside);
 	}
 
 	// outside cone
-	if (fIntegralsDone == 0) {
+	if (fIntegralsDone == 0)
+	{
 		fSmu = 0.0;
 		fSel = 0.0;
 
 		Int_t nbinsOutside = 1380;
-		for (Int_t n = 0; n < nbinsOutside; n++) {
-			deltaAngle = 0.0 + (n + 0.5) * (138.0 / (double) nbinsOutside);
+		for (Int_t n = 0; n < nbinsOutside; n++)
+		{
+			deltaAngle = 0.0 + (n + 0.5) * (138.0 / (double)nbinsOutside);
 
-			fSmu += 1.4944765 * sin((42.0 + deltaAngle) * (TMath::Pi() / 180.0))
-					* (1.0 / (1.0 + alphaMu * (lambdaMuShort / lambdaMuLong)))
-					* (1.0 / (1.0 + (deltaAngle * deltaAngle) / (lambdaMuShort * lambdaMuShort))
-							+ alphaMu * (lambdaMuShort / lambdaMuLong)
-									/ (1.0 + (deltaAngle * deltaAngle) / (lambdaMuLong * lambdaMuLong)))
-					* (138.0 / (double) nbinsOutside);
+			fSmu += 1.4944765 * sin((42.0 + deltaAngle) * (TMath::Pi() / 180.0)) * (1.0 / (1.0 + alphaMu * (lambdaMuShort / lambdaMuLong))) * (1.0 / (1.0 + (deltaAngle * deltaAngle) / (lambdaMuShort * lambdaMuShort)) + alphaMu * (lambdaMuShort / lambdaMuLong) / (1.0 + (deltaAngle * deltaAngle) / (lambdaMuLong * lambdaMuLong))) * (138.0 / (double)nbinsOutside);
 
-			fSel += 1.4944765 * sin((42.0 + deltaAngle) * (TMath::Pi() / 180.0))
-					* (1.0 / (1.0 + alphaEl * (lambdaElShort / lambdaElLong)))
-					* (1.0 / (1.0 + (deltaAngle * deltaAngle) / (lambdaElShort * lambdaElShort))
-							+ alphaEl * (lambdaElShort / lambdaElLong)
-									/ (1.0 + (deltaAngle * deltaAngle) / (lambdaElLong * lambdaElLong)))
-					* (138.0 / (double) nbinsOutside);
+			fSel += 1.4944765 * sin((42.0 + deltaAngle) * (TMath::Pi() / 180.0)) * (1.0 / (1.0 + alphaEl * (lambdaElShort / lambdaElLong))) * (1.0 / (1.0 + (deltaAngle * deltaAngle) / (lambdaElShort * lambdaElShort)) + alphaEl * (lambdaElShort / lambdaElLong) / (1.0 + (deltaAngle * deltaAngle) / (lambdaElLong * lambdaElLong))) * (138.0 / (double)nbinsOutside);
 		}
 
 		std::cout << " --- calculating integrals: Smu=" << fSmu << " Sel=" << fSel << std::endl;
@@ -2423,26 +2603,33 @@ void WCSimVertexFinder::ConePropertiesLnL(Double_t coneParam0, Double_t conePara
 
 	// loop over digits
 	// ================
-	for (Int_t idigit = 0; idigit < WCSimVertexGeometry::Instance()->GetNDigits(); idigit++) {
+	for (Int_t idigit = 0; idigit < WCSimVertexGeometry::Instance()->GetNDigits(); idigit++)
+	{
 
-		if (WCSimVertexGeometry::Instance()->IsFiltered(idigit)) {
+		if (WCSimVertexGeometry::Instance()->IsFiltered(idigit))
+		{
 			digitQ = WCSimVertexGeometry::Instance()->GetDigitQ(idigit);
 			deltaAngle = WCSimVertexGeometry::Instance()->GetAngle(idigit) - 42.0;
 
 			// pulse height distribution
 			// =========================
-			if (deltaAngle <= 0) {
+			if (deltaAngle <= 0)
+			{
 				sigmaQ = sigmaQmax;
-			} else {
-				sigmaQ = sigmaQmin
-						+ (sigmaQmax - sigmaQmin) / (1.0 + (deltaAngle * deltaAngle) / (sigmaAngle * sigmaAngle));
+			}
+			else
+			{
+				sigmaQ = sigmaQmin + (sigmaQmax - sigmaQmin) / (1.0 + (deltaAngle * deltaAngle) / (sigmaAngle * sigmaAngle));
 			}
 
 			A = 1.0 / (log(2.0) + 0.5 * TMath::Pi() * sigmaQ);
 
-			if (digitQ < 1.0) {
+			if (digitQ < 1.0)
+			{
 				Pcharge = 2.0 * A * digitQ / (1.0 + digitQ * digitQ);
-			} else {
+			}
+			else
+			{
 				Pcharge = A / (1.0 + (digitQ - 1.0) * (digitQ - 1.0) / (sigmaQ * sigmaQ));
 			}
 
@@ -2450,28 +2637,22 @@ void WCSimVertexFinder::ConePropertiesLnL(Double_t coneParam0, Double_t conePara
 			// ====================
 			A = 1.0 / (alpha * fSconeA + (1.0 - alpha) * fSconeB + beta * fSmu + (1.0 - beta) * fSel); // numerical integrals
 
-			if (deltaAngle <= 0) {
+			if (deltaAngle <= 0)
+			{
 
 				// pdfs inside cone:
 				PconeA = 1.4944765 * sin((42.0 + deltaAngle) * (TMath::Pi() / 180.0));
-				PconeB = 1.4944765 * sin((42.0 + deltaAngle) * (TMath::Pi() / 180.0))
-						* (1.0 / (1.0 + (deltaAngle * deltaAngle) / (deltaAngle0 * deltaAngle0)));
+				PconeB = 1.4944765 * sin((42.0 + deltaAngle) * (TMath::Pi() / 180.0)) * (1.0 / (1.0 + (deltaAngle * deltaAngle) / (deltaAngle0 * deltaAngle0)));
 
 				Pangle = A * (alpha * PconeA + (1.0 - alpha) * PconeB);
-			} else {
+			}
+			else
+			{
 
 				// pdfs outside cone
-				Pmu = 1.4944765 * sin((42.0 + deltaAngle) * (TMath::Pi() / 180.0))
-						* (1.0 / (1.0 + alphaMu * (lambdaMuShort / lambdaMuLong)))
-						* (1.0 / (1.0 + (deltaAngle * deltaAngle) / (lambdaMuShort * lambdaMuShort))
-								+ alphaMu * (lambdaMuShort / lambdaMuLong)
-										/ (1.0 + (deltaAngle * deltaAngle) / (lambdaMuLong * lambdaMuLong)));
+				Pmu = 1.4944765 * sin((42.0 + deltaAngle) * (TMath::Pi() / 180.0)) * (1.0 / (1.0 + alphaMu * (lambdaMuShort / lambdaMuLong))) * (1.0 / (1.0 + (deltaAngle * deltaAngle) / (lambdaMuShort * lambdaMuShort)) + alphaMu * (lambdaMuShort / lambdaMuLong) / (1.0 + (deltaAngle * deltaAngle) / (lambdaMuLong * lambdaMuLong)));
 
-				Pel = 1.4944765 * sin((42.0 + deltaAngle) * (TMath::Pi() / 180.0))
-						* (1.0 / (1.0 + alphaEl * (lambdaElShort / lambdaElLong)))
-						* (1.0 / (1.0 + (deltaAngle * deltaAngle) / (lambdaElShort * lambdaElShort))
-								+ alphaEl * (lambdaElShort / lambdaElLong)
-										/ (1.0 + (deltaAngle * deltaAngle) / (lambdaElLong * lambdaElLong)));
+				Pel = 1.4944765 * sin((42.0 + deltaAngle) * (TMath::Pi() / 180.0)) * (1.0 / (1.0 + alphaEl * (lambdaElShort / lambdaElLong))) * (1.0 / (1.0 + (deltaAngle * deltaAngle) / (lambdaElShort * lambdaElShort)) + alphaEl * (lambdaElShort / lambdaElLong) / (1.0 + (deltaAngle * deltaAngle) / (lambdaElLong * lambdaElLong)));
 
 				Pangle = A * (beta * Pmu + (1.0 - beta) * Pel);
 			}
@@ -2487,7 +2668,8 @@ void WCSimVertexFinder::ConePropertiesLnL(Double_t coneParam0, Double_t conePara
 
 	// calculate figure of merit
 	// =========================
-	if (ndof > 0.0) {
+	if (ndof > 0.0)
+	{
 		fom = fBaseFOM - 5.0 * chi2 / ndof;
 		angle = beta * 43.0 + (1.0 - beta) * 49.0;
 	}
@@ -2500,7 +2682,8 @@ void WCSimVertexFinder::ConePropertiesLnL(Double_t coneParam0, Double_t conePara
 	return;
 }
 
-void WCSimVertexFinder::TimePropertiesFoM(Double_t vtxTime, Double_t& vtxFOM) {
+void WCSimVertexFinder::TimePropertiesFoM(Double_t vtxTime, Double_t &vtxFOM)
+{
 	// calculate figure of merit
 	// =========================
 	Double_t Swx = 0.0;
@@ -2527,22 +2710,24 @@ void WCSimVertexFinder::TimePropertiesFoM(Double_t vtxTime, Double_t& vtxFOM) {
 	//   To drop below zero at 2.5 sigma, set Penalty = exp(-6.25/2) = 0.044
 	//   To drop below zero at 3 sigma,   set Penalty = exp(-9/2)    = 0.011 ]
 
-	Double_t sigmaRes = 2.0;         // time resolution
-	Double_t sigmaLow = 2.0;         // time resolution inside cone
-	Double_t sigmaHigh = 2.0;        // time resolution outside cone
+	Double_t sigmaRes = 2.0;  // time resolution
+	Double_t sigmaLow = 2.0;  // time resolution inside cone
+	Double_t sigmaHigh = 2.0; // time resolution outside cone
 
 	// muons electrons
-	Double_t myConeAngle = 42.0;     // cherenkov cone      // 42.0    42.0
+	Double_t myConeAngle = 42.0;	 // cherenkov cone      // 42.0    42.0
 	Double_t myConeAngleSigma = 2.0; //   [degrees]         //  2.0     2.0
 
-	Double_t myConeEdge = 42.0;      // overall window      // 42.0    48.0
-	Double_t myConeEdgeSigma = 2.0;  //   [degrees]         //  2.0     8.0
+	Double_t myConeEdge = 42.0;		// overall window      // 42.0    48.0
+	Double_t myConeEdgeSigma = 2.0; //   [degrees]         //  2.0     8.0
 
 	Double_t fom = 0.0;
 
-	for (Int_t idigit = 0; idigit < WCSimVertexGeometry::Instance()->GetNDigits(); idigit++) {
+	for (Int_t idigit = 0; idigit < WCSimVertexGeometry::Instance()->GetNDigits(); idigit++)
+	{
 
-		if (WCSimVertexGeometry::Instance()->IsFiltered(idigit)) {
+		if (WCSimVertexGeometry::Instance()->IsFiltered(idigit))
+		{
 			delta = WCSimVertexGeometry::Instance()->GetDelta(idigit) - vtxTime;
 			sigma = WCSimVertexGeometry::Instance()->GetDeltaSigma(idigit);
 			weight = 1.0 / (sigma * sigma);
@@ -2553,24 +2738,31 @@ void WCSimVertexFinder::TimePropertiesFoM(Double_t vtxTime, Double_t& vtxFOM) {
 			// time weights inside and outside cone
 			inweight = exp(-(delta * delta) / (2.0 * sigmaRes * sigmaRes)) - penalty;
 
-			if (delta <= 0) {
-				outweight = (2.0 * sigmaRes / (sigmaLow + sigmaHigh))
-						* (exp(-(delta * delta) / (2.0 * sigmaLow * sigmaLow)) - penalty);
-			} else {
-				outweight = (2.0 * sigmaRes / (sigmaLow + sigmaHigh))
-						* (exp(-(delta * delta) / (2.0 * sigmaHigh * sigmaHigh)) - penalty);
+			if (delta <= 0)
+			{
+				outweight = (2.0 * sigmaRes / (sigmaLow + sigmaHigh)) * (exp(-(delta * delta) / (2.0 * sigmaLow * sigmaLow)) - penalty);
+			}
+			else
+			{
+				outweight = (2.0 * sigmaRes / (sigmaLow + sigmaHigh)) * (exp(-(delta * delta) / (2.0 * sigmaHigh * sigmaHigh)) - penalty);
 			}
 
-			if (deltaAngle <= 0) {
+			if (deltaAngle <= 0)
+			{
 				alpha = 1.0;
-			} else {
+			}
+			else
+			{
 				alpha = 1.0 / (1.0 + (deltaAngle * deltaAngle) / (myConeAngleSigma * myConeAngleSigma));
 			}
 
 			// deweight hits outside cone
-			if (deltaEdge <= 0.0) {
+			if (deltaEdge <= 0.0)
+			{
 				deweight = 1.0;
-			} else {
+			}
+			else
+			{
 				deweight = 1.0 / (1.0 + (deltaEdge * deltaEdge) / (myConeEdgeSigma * myConeEdgeSigma));
 			}
 
@@ -2583,7 +2775,8 @@ void WCSimVertexFinder::TimePropertiesFoM(Double_t vtxTime, Double_t& vtxFOM) {
 		}
 	}
 
-	if (Sw > 0.0) {
+	if (Sw > 0.0)
+	{
 		fom = fBaseFOM * Swx / Sw;
 	}
 
@@ -2594,12 +2787,13 @@ void WCSimVertexFinder::TimePropertiesFoM(Double_t vtxTime, Double_t& vtxFOM) {
 	return;
 }
 
-void WCSimVertexFinder::ConePropertiesFoM(Double_t& coneFOM) {
+void WCSimVertexFinder::ConePropertiesFoM(Double_t &coneFOM)
+{
 	// calculate figure of merit
 	// =========================
-	Double_t coneEdge = 42.0;     // nominal cone angle
-	Double_t coneEdgeLow = 21.0;  // cone edge (low side)
-	Double_t coneEdgeHigh = 3.0;  // cone edge (high side)   [muons: 3.0, electrons: 7.0]
+	Double_t coneEdge = 42.0;	 // nominal cone angle
+	Double_t coneEdgeLow = 21.0; // cone edge (low side)
+	Double_t coneEdgeHigh = 3.0; // cone edge (high side)   [muons: 3.0, electrons: 7.0]
 
 	Double_t deltaAngle = 0.0;
 	Double_t digitCharge = 0.0;
@@ -2609,25 +2803,29 @@ void WCSimVertexFinder::ConePropertiesFoM(Double_t& coneFOM) {
 
 	Double_t fom = 0.0;
 
-	for (Int_t idigit = 0; idigit < WCSimVertexGeometry::Instance()->GetNDigits(); idigit++) {
+	for (Int_t idigit = 0; idigit < WCSimVertexGeometry::Instance()->GetNDigits(); idigit++)
+	{
 
-		if (WCSimVertexGeometry::Instance()->IsFiltered(idigit)) {
+		if (WCSimVertexGeometry::Instance()->IsFiltered(idigit))
+		{
 			deltaAngle = WCSimVertexGeometry::Instance()->GetAngle(idigit) - coneEdge;
 			digitCharge = WCSimVertexGeometry::Instance()->GetDigitQ(idigit);
 
-			if (deltaAngle <= 0.0) {
-				coneCharge += digitCharge
-						* (0.75 + 0.25 / (1.0 + (deltaAngle * deltaAngle) / (coneEdgeLow * coneEdgeLow)));
-			} else {
-				coneCharge += digitCharge
-						* (0.00 + 1.00 / (1.0 + (deltaAngle * deltaAngle) / (coneEdgeHigh * coneEdgeHigh)));
+			if (deltaAngle <= 0.0)
+			{
+				coneCharge += digitCharge * (0.75 + 0.25 / (1.0 + (deltaAngle * deltaAngle) / (coneEdgeLow * coneEdgeLow)));
+			}
+			else
+			{
+				coneCharge += digitCharge * (0.00 + 1.00 / (1.0 + (deltaAngle * deltaAngle) / (coneEdgeHigh * coneEdgeHigh)));
 			}
 
 			allCharge += digitCharge;
 		}
 	}
 
-	if (allCharge > 0.0) {
+	if (allCharge > 0.0)
+	{
 		fom = fBaseFOM * coneCharge / allCharge;
 	}
 
@@ -2638,7 +2836,8 @@ void WCSimVertexFinder::ConePropertiesFoM(Double_t& coneFOM) {
 	return;
 }
 
-void WCSimVertexFinder::PenaltyChi2(Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t& chi2) {
+void WCSimVertexFinder::PenaltyChi2(Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t &chi2)
+{
 	// default penalty
 	// ===============
 	Double_t deltaChi2 = 0;
@@ -2646,10 +2845,11 @@ void WCSimVertexFinder::PenaltyChi2(Double_t vtxX, Double_t vtxY, Double_t vtxZ,
 	// check vertex position
 	// =====================
 	Bool_t inDetector = WCSimGeometry::Instance()->InsideDetector(vtxX, vtxY, vtxZ);
-	if (inDetector == 0) {
+	if (inDetector == 0)
+	{
 
-		Double_t deltaR = WCSimGeometry::Instance()->DistanceToEdge(vtxX, vtxY, vtxZ);  // [cm]
-		Double_t deltaRbase = 500.0; // [cm]
+		Double_t deltaR = WCSimGeometry::Instance()->DistanceToEdge(vtxX, vtxY, vtxZ); // [cm]
+		Double_t deltaRbase = 500.0;												   // [cm]
 
 		deltaChi2 += -fBaseFOM * (deltaR / deltaRbase) * (deltaR / deltaRbase);
 	}
@@ -2661,22 +2861,23 @@ void WCSimVertexFinder::PenaltyChi2(Double_t vtxX, Double_t vtxY, Double_t vtxZ,
 	return;
 }
 
-void WCSimVertexFinder::FixPositionChi2(Double_t vx, Double_t vy, Double_t vz, Double_t& chi2) {
+void WCSimVertexFinder::FixPositionChi2(Double_t vx, Double_t vy, Double_t vz, Double_t &chi2)
+{
 	// default penalty
 	// ===============
 	Double_t deltaChi2 = 0;
 
 	// get true event
 	// ==============
-	WCSimTrueEvent* myTrueEvent = (WCSimTrueEvent*) (WCSimInterface::TrueEvent());
+	WCSimTrueEvent *myTrueEvent = (WCSimTrueEvent *)(WCSimInterface::TrueEvent());
 
-	if (myTrueEvent->GetNTracks() > 0) {
+	if (myTrueEvent->GetNTracks() > 0)
+	{
 		Double_t trueVtxX = myTrueEvent->GetVtxX();
 		Double_t trueVtxY = myTrueEvent->GetVtxY();
 		Double_t trueVtxZ = myTrueEvent->GetVtxZ();
 
-		Double_t deltaRsq = (vx - trueVtxX) * (vx - trueVtxX) + (vy - trueVtxY) * (vy - trueVtxY)
-				+ (vz - trueVtxZ) * (vz - trueVtxZ);
+		Double_t deltaRsq = (vx - trueVtxX) * (vx - trueVtxX) + (vy - trueVtxY) * (vy - trueVtxY) + (vz - trueVtxZ) * (vz - trueVtxZ);
 		Double_t deltaRsqBase = 0.25 * 0.25; // [cm]
 
 		deltaChi2 += -10.0 * fBaseFOM * (1.0 - 1.0 / (1.0 + (deltaRsq / deltaRsqBase)));
@@ -2689,16 +2890,18 @@ void WCSimVertexFinder::FixPositionChi2(Double_t vx, Double_t vy, Double_t vz, D
 	return;
 }
 
-void WCSimVertexFinder::FixDirectionChi2(Double_t px, Double_t py, Double_t pz, Double_t& chi2) {
+void WCSimVertexFinder::FixDirectionChi2(Double_t px, Double_t py, Double_t pz, Double_t &chi2)
+{
 	// default penalty
 	// ===============
 	Double_t deltaChi2 = 0;
 
 	// get true event
 	// ==============
-	WCSimTrueEvent* myTrueEvent = (WCSimTrueEvent*) (WCSimInterface::TrueEvent());
+	WCSimTrueEvent *myTrueEvent = (WCSimTrueEvent *)(WCSimInterface::TrueEvent());
 
-	if (myTrueEvent->GetNTracks() > 0) {
+	if (myTrueEvent->GetNTracks() > 0)
+	{
 		Double_t trueDirX = myTrueEvent->GetDirX();
 		Double_t trueDirY = myTrueEvent->GetDirY();
 		Double_t trueDirZ = myTrueEvent->GetDirZ();
@@ -2706,8 +2909,7 @@ void WCSimVertexFinder::FixDirectionChi2(Double_t px, Double_t py, Double_t pz, 
 		Double_t deltaTheta = (180.0 / TMath::Pi()) * (TMath::ACos(px * trueDirX + py * trueDirY + pz * trueDirZ));
 		Double_t deltaThetaBase = 0.5; // [degrees]
 
-		deltaChi2 += -10.0 * fBaseFOM
-				* (1.0 - 1.0 / (1.0 + (deltaTheta / deltaThetaBase) * (deltaTheta / deltaThetaBase)));
+		deltaChi2 += -10.0 * fBaseFOM * (1.0 - 1.0 / (1.0 + (deltaTheta / deltaThetaBase) * (deltaTheta / deltaThetaBase)));
 	}
 
 	// return penalty
@@ -2717,15 +2919,15 @@ void WCSimVertexFinder::FixDirectionChi2(Double_t px, Double_t py, Double_t pz, 
 	return;
 }
 
-void WCSimVertexFinder::GetTimeSeed(WCSimRecoEvent *evt) {
+void WCSimVertexFinder::GetTimeSeed(WCSimRecoEvent *evt)
+{
 
 	double firstTime = 1e6;
-	for (int d = 0; d < evt->GetNFilterDigits(); ++d) {
+	for (int d = 0; d < evt->GetNFilterDigits(); ++d)
+	{
 		double t = evt->GetFilterDigit(d)->GetRawTime();
 		if (t < firstTime)
 			firstTime = t;
 	}
 	fTimeSeed = firstTime;
-
 }
-

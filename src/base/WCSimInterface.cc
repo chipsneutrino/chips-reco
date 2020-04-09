@@ -24,84 +24,102 @@
 #include <iostream>
 #include <set>
 
-ClassImp (WCSimInterface)
+ClassImp(WCSimInterface)
 
-static WCSimInterface* fgInterface = 0;
+static WCSimInterface *fgInterface = 0;
 
-Bool_t WCSimInterface::TouchData() {
-	if (WCSimInterface::Instance()->GetEntries() > 0) {
+Bool_t WCSimInterface::TouchData()
+{
+	if (WCSimInterface::Instance()->GetEntries() > 0)
+	{
 		return true;
-	} else {
+	}
+	else
+	{
 		std::cout << " *** WCSimInterface::TouchData() *** " << std::endl;
-		std::cout << "  <error> need to input data... " << std::endl << "    Call: WCSimInterface::LoadData(...) "
-				<< std::endl;
+		std::cout << "  <error> need to input data... " << std::endl
+				  << "    Call: WCSimInterface::LoadData(...) "
+				  << std::endl;
 		return false;
 	}
 }
 
-WCSimInterface* WCSimInterface::Instance() {
-	if (!fgInterface) {
+WCSimInterface *WCSimInterface::Instance()
+{
+	if (!fgInterface)
+	{
 		fgInterface = new WCSimInterface();
 	}
 
 	return fgInterface;
 }
 
-void WCSimInterface::LoadData(const char* file) {
+void WCSimInterface::LoadData(const char *file)
+{
 	return WCSimInterface::Instance()->AddFile(file);
 }
 
-void WCSimInterface::LoadEvent(Int_t ievent) {
+void WCSimInterface::LoadEvent(Int_t ievent)
+{
 	return WCSimInterface::Instance()->BuildEvent(ievent);
 }
 
-Int_t WCSimInterface::GetNumEvents() {
+Int_t WCSimInterface::GetNumEvents()
+{
 	return WCSimInterface::Instance()->GetEntries();
 }
 
-Bool_t WCSimInterface::TouchEvent() {
+Bool_t WCSimInterface::TouchEvent()
+{
 	return WCSimInterface::Instance()->CheckEvent();
 }
 
-Int_t WCSimInterface::GetRunNumber() {
+Int_t WCSimInterface::GetRunNumber()
+{
 	return WCSimInterface::RecoEvent()->GetRun();
 }
 
-Int_t WCSimInterface::GetEventNumber() {
+Int_t WCSimInterface::GetEventNumber()
+{
 	return WCSimInterface::RecoEvent()->GetEvent();
 }
 
-Int_t WCSimInterface::GetTriggerNumber() {
+Int_t WCSimInterface::GetTriggerNumber()
+{
 	return WCSimInterface::RecoEvent()->GetTrigger();
 }
 
-void WCSimInterface::SetEnergyThreshold(Double_t input_mev) {
+void WCSimInterface::SetEnergyThreshold(Double_t input_mev)
+{
 	return WCSimInterface::Instance()->SetTrueEnergyThreshold(input_mev);
 }
 
-void WCSimInterface::SetRangeThreshold(Double_t input_cm) {
+void WCSimInterface::SetRangeThreshold(Double_t input_cm)
+{
 	return WCSimInterface::Instance()->SetTrueRangeThreshold(input_cm);
 }
 
-void WCSimInterface::Reset() {
+void WCSimInterface::Reset()
+{
 	return WCSimInterface::Instance()->ResetForNewSample();
 }
 
-WCSimInterface::WCSimInterface() {
+WCSimInterface::WCSimInterface()
+{
 	fTrueEvent = new WCSimTrueEvent();
 	fRecoEvent = new WCSimRecoEvent();
 
-	fDigitList = new std::vector<WCSimRecoDigit*>;
-	fVetoDigitList = new std::vector<WCSimRecoDigit*>;
-	fTrackList = new std::vector<WCSimTrueTrack*>;
-	fTrueLikelihoodTracks = new std::vector<WCSimLikelihoodTrackBase*>;
+	fDigitList = new std::vector<WCSimRecoDigit *>;
+	fVetoDigitList = new std::vector<WCSimRecoDigit *>;
+	fTrackList = new std::vector<WCSimTrueTrack *>;
+	fTrueLikelihoodTracks = new std::vector<WCSimLikelihoodTrackBase *>;
 
 	fTrigger = 0;
 	fEvent = 0;
 	fGeometry = 0;
 
 	fEnergyThreshold = 25.0; // 25 MeV
-	fRangeThreshold = 15.0;  // 15 cm
+	fRangeThreshold = 15.0;	 // 15 cm
 
 	// create event chain
 	fChain = new TChain("wcsimT", "chain");
@@ -114,7 +132,8 @@ WCSimInterface::WCSimInterface() {
 	this->ResetForNewSample();
 }
 
-WCSimInterface::~WCSimInterface() {
+WCSimInterface::~WCSimInterface()
+{
 	this->ResetTrueEvent();
 	this->ResetRecoEvent();
 
@@ -125,7 +144,8 @@ WCSimInterface::~WCSimInterface() {
 	delete fTrackList;
 }
 
-void WCSimInterface::AddFile(const char* file) {
+void WCSimInterface::AddFile(const char *file)
+{
 	std::cout << " *** WCSimInterface::LoadData(...) *** " << std::endl;
 	std::cout << "  adding: " << file << std::endl;
 
@@ -133,26 +153,31 @@ void WCSimInterface::AddFile(const char* file) {
 
 	std::cout << "   ... total entries=" << fChain->GetEntries() << std::endl;
 
-	if (!fGeometry && fChain->GetEntries() > 0) {
+	if (!fGeometry && fChain->GetEntries() > 0)
+	{
 		std::cout << " *** WCSimInterface::LoadGeometry(...) *** " << std::endl;
 		fChainGeom->Add(file);
-		if (fChainGeom->GetEntries() > 0) {
+		if (fChainGeom->GetEntries() > 0)
+		{
 			fChainGeom->GetEntry(0);
 			if (fGeometry)
-				WCSimGeometry::BuildGeometry (fGeometry);
+				WCSimGeometry::BuildGeometry(fGeometry);
 		}
 	}
 
 	return;
 }
 
-void WCSimInterface::ResetForNewSample() {
-	if (fChain->GetEntries() > 0) {
+void WCSimInterface::ResetForNewSample()
+{
+	if (fChain->GetEntries() > 0)
+	{
 		std::cout << " *** WCSimInterface::Reset() *** " << std::endl;
 	}
 
 	// event chain
-	if (fChain) {
+	if (fChain)
+	{
 		fChain->Reset();
 		fChain->SetBranchAddress("wcsimrootevent", &fEvent);
 		if (fEvent)
@@ -161,7 +186,8 @@ void WCSimInterface::ResetForNewSample() {
 	}
 
 	// geometry chain
-	if (fChainGeom) {
+	if (fChainGeom)
+	{
 		fChainGeom->Reset();
 		fChainGeom->SetBranchAddress("wcsimrootgeom", &fGeometry);
 		if (fGeometry)
@@ -184,15 +210,17 @@ void WCSimInterface::ResetForNewSample() {
 	return;
 }
 
-void WCSimInterface::ResetTrueEvent() {
+void WCSimInterface::ResetTrueEvent()
+{
 	// Reset
 	// =====
 	fTrueEvent->Reset();
 
 	// delete list of tracks
 	// =====================
-	for (UInt_t i = 0; i < fTrackList->size(); i++) {
-		delete (WCSimTrueTrack*) (fTrackList->at(i));
+	for (UInt_t i = 0; i < fTrackList->size(); i++)
+	{
+		delete (WCSimTrueTrack *)(fTrackList->at(i));
 	}
 
 	// clear list of tracks
@@ -202,12 +230,15 @@ void WCSimInterface::ResetTrueEvent() {
 	return;
 }
 
-void WCSimInterface::ResetTrueLikelihoodTracks() {
+void WCSimInterface::ResetTrueLikelihoodTracks()
+{
 	// delete list of tracks
 	// =====================
-	if (fTrueLikelihoodTracks != 0x0) {
-		for (UInt_t i = 0; i < fTrueLikelihoodTracks->size(); i++) {
-			delete (WCSimLikelihoodTrackBase*) (fTrueLikelihoodTracks->at(i));
+	if (fTrueLikelihoodTracks != 0x0)
+	{
+		for (UInt_t i = 0; i < fTrueLikelihoodTracks->size(); i++)
+		{
+			delete (WCSimLikelihoodTrackBase *)(fTrueLikelihoodTracks->at(i));
 		}
 		fTrueLikelihoodTracks->clear();
 		delete fTrueLikelihoodTracks;
@@ -216,68 +247,84 @@ void WCSimInterface::ResetTrueLikelihoodTracks() {
 	return;
 }
 
-void WCSimInterface::BuildTrueLikelihoodTracks() {
+void WCSimInterface::BuildTrueLikelihoodTracks()
+{
 	std::cout << " *** WCSimInterface::BuildTrueLikelihoodTracks() *** " << std::endl;
 
 	TDatabasePDG myDatabase;
 
 	WCSimTruthSummary sum = fEvent->GetTruthSummary();
 
-	fTrueLikelihoodTracks = new std::vector<WCSimLikelihoodTrackBase*>;
-	if (sum.IsParticleGunEvent()) {
-		TParticlePDG * beamParticle = myDatabase.GetParticle(sum.GetBeamPDG());
+	fTrueLikelihoodTracks = new std::vector<WCSimLikelihoodTrackBase *>;
+	if (sum.IsParticleGunEvent())
+	{
+		TParticlePDG *beamParticle = myDatabase.GetParticle(sum.GetBeamPDG());
 
 		// If we have a pi-zero gun, make sure we treat it properly.
-		if (sum.GetBeamPDG() == 111) {
-			std::vector<WCSimLikelihoodTrackBase*> tracks = this->GetPi0PhotonTracks(sum, sum.GetBeamEnergy(),
-					fTrigger->GetTracks());
-			for (unsigned int iTrack = 0; iTrack < tracks.size(); ++iTrack) {
+		if (sum.GetBeamPDG() == 111)
+		{
+			std::vector<WCSimLikelihoodTrackBase *> tracks = this->GetPi0PhotonTracks(sum, sum.GetBeamEnergy(),
+																					  fTrigger->GetTracks());
+			for (unsigned int iTrack = 0; iTrack < tracks.size(); ++iTrack)
+			{
 				fTrueLikelihoodTracks->push_back(tracks.at(iTrack));
 			}
-		} else {
+		}
+		else
+		{
 			double mm_to_cm = 0.1;
-			WCSimLikelihoodTrackBase * track = WCSimLikelihoodTrackFactory::MakeTrack(
-					TrackType::GetTypeFromPDG(sum.GetBeamPDG()), sum.GetVertexX() * mm_to_cm,
-					sum.GetVertexY() * mm_to_cm, sum.GetVertexZ() * mm_to_cm, sum.GetVertexT(),
-					sum.GetBeamDir().Theta(), sum.GetBeamDir().Phi(),
-					sum.GetBeamEnergy() - beamParticle->Mass() * 1000); // Mass comes in GeV but we work in MeV
+			WCSimLikelihoodTrackBase *track = WCSimLikelihoodTrackFactory::MakeTrack(
+				TrackType::GetTypeFromPDG(sum.GetBeamPDG()), sum.GetVertexX() * mm_to_cm,
+				sum.GetVertexY() * mm_to_cm, sum.GetVertexZ() * mm_to_cm, sum.GetVertexT(),
+				sum.GetBeamDir().Theta(), sum.GetBeamDir().Phi(),
+				sum.GetBeamEnergy() - beamParticle->Mass() * 1000); // Mass comes in GeV but we work in MeV
 			fTrueLikelihoodTracks->push_back(track);
 		}
-	} else {
+	}
+	else
+	{
 		double mm_to_cm = 0.1;
-		for (unsigned int i = 0; i < sum.GetNPrimaries(); ++i) {
+		for (unsigned int i = 0; i < sum.GetNPrimaries(); ++i)
+		{
 			// We had a final state pi0, so get the photons it decays to
-			if (sum.GetPrimaryPDG(i) == 111) {
-				std::vector<WCSimLikelihoodTrackBase*> tracks = this->GetPi0PhotonTracks(sum, sum.GetPrimaryEnergy(i),
-						fTrigger->GetTracks());
-				for (unsigned int iTrack = 0; iTrack < tracks.size(); ++iTrack) {
+			if (sum.GetPrimaryPDG(i) == 111)
+			{
+				std::vector<WCSimLikelihoodTrackBase *> tracks = this->GetPi0PhotonTracks(sum, sum.GetPrimaryEnergy(i),
+																						  fTrigger->GetTracks());
+				for (unsigned int iTrack = 0; iTrack < tracks.size(); ++iTrack)
+				{
 					fTrueLikelihoodTracks->push_back(tracks.at(iTrack));
 				}
-			} else if (TrackType::GetTypeFromPDG(sum.GetPrimaryPDG(i)) != TrackType::Unknown) {
-				TParticlePDG * primaryParticle = myDatabase.GetParticle(sum.GetPrimaryPDG(i));
-				if (sum.GetPrimaryEnergy(i) < 20) {
+			}
+			else if (TrackType::GetTypeFromPDG(sum.GetPrimaryPDG(i)) != TrackType::Unknown)
+			{
+				TParticlePDG *primaryParticle = myDatabase.GetParticle(sum.GetPrimaryPDG(i));
+				if (sum.GetPrimaryEnergy(i) < 20)
+				{
 					continue;
 				}
-				WCSimLikelihoodTrackBase * track = WCSimLikelihoodTrackFactory::MakeTrack(
-						TrackType::GetTypeFromPDG(sum.GetPrimaryPDG(i)), sum.GetVertexX() * mm_to_cm,
-						sum.GetVertexY() * mm_to_cm, sum.GetVertexZ() * mm_to_cm, sum.GetVertexT(),
-						sum.GetPrimaryDir(i).Theta(), sum.GetPrimaryDir(i).Phi(),
-						sum.GetPrimaryEnergy(i) - primaryParticle->Mass() * 1000 // Mass comes in GeV but we want MeV
-								);
+				WCSimLikelihoodTrackBase *track = WCSimLikelihoodTrackFactory::MakeTrack(
+					TrackType::GetTypeFromPDG(sum.GetPrimaryPDG(i)), sum.GetVertexX() * mm_to_cm,
+					sum.GetVertexY() * mm_to_cm, sum.GetVertexZ() * mm_to_cm, sum.GetVertexT(),
+					sum.GetPrimaryDir(i).Theta(), sum.GetPrimaryDir(i).Phi(),
+					sum.GetPrimaryEnergy(i) - primaryParticle->Mass() * 1000 // Mass comes in GeV but we want MeV
+				);
 				fTrueLikelihoodTracks->push_back(track);
 			}
 		}
 		// Leigh: If this is an overlay event, add the overlays too.
-		if (sum.IsOverlayEvent()) {
-			for (unsigned int i = 0; i < sum.GetNOverlays(); ++i) {
+		if (sum.IsOverlayEvent())
+		{
+			for (unsigned int i = 0; i < sum.GetNOverlays(); ++i)
+			{
 				// Make the track
-				TParticlePDG * overlayParticle = myDatabase.GetParticle(sum.GetOverlayPDG(i));
-				WCSimLikelihoodTrackBase * track = WCSimLikelihoodTrackFactory::MakeTrack(
-						TrackType::GetTypeFromPDG(sum.GetOverlayPDG(i)), sum.GetOverlayVertexX() * mm_to_cm,
-						sum.GetOverlayVertexY() * mm_to_cm, sum.GetOverlayVertexZ() * mm_to_cm, sum.GetOverlayVertexT(),
-						sum.GetOverlayDir(i).Theta(), sum.GetOverlayDir(i).Phi(),
-						sum.GetOverlayEnergy(i) - overlayParticle->Mass() * 1000 // Mass comes in GeV but we want MeV
-								);
+				TParticlePDG *overlayParticle = myDatabase.GetParticle(sum.GetOverlayPDG(i));
+				WCSimLikelihoodTrackBase *track = WCSimLikelihoodTrackFactory::MakeTrack(
+					TrackType::GetTypeFromPDG(sum.GetOverlayPDG(i)), sum.GetOverlayVertexX() * mm_to_cm,
+					sum.GetOverlayVertexY() * mm_to_cm, sum.GetOverlayVertexZ() * mm_to_cm, sum.GetOverlayVertexT(),
+					sum.GetOverlayDir(i).Theta(), sum.GetOverlayDir(i).Phi(),
+					sum.GetOverlayEnergy(i) - overlayParticle->Mass() * 1000 // Mass comes in GeV but we want MeV
+				);
 				fTrueLikelihoodTracks->push_back(track);
 			}
 		}
@@ -285,18 +332,21 @@ void WCSimInterface::BuildTrueLikelihoodTracks() {
 	return;
 }
 
-void WCSimInterface::ResetRecoEvent() {
+void WCSimInterface::ResetRecoEvent()
+{
 	// Reset
 	// =====
 	fRecoEvent->Reset();
 
 	// delete list of digits
 	// =====================
-	for (UInt_t i = 0; i < fDigitList->size(); i++) {
-		delete (WCSimRecoDigit*) (fDigitList->at(i));
+	for (UInt_t i = 0; i < fDigitList->size(); i++)
+	{
+		delete (WCSimRecoDigit *)(fDigitList->at(i));
 	}
-	for (UInt_t i = 0; i < fVetoDigitList->size(); i++) {
-		delete (WCSimRecoDigit*) (fVetoDigitList->at(i));
+	for (UInt_t i = 0; i < fVetoDigitList->size(); i++)
+	{
+		delete (WCSimRecoDigit *)(fVetoDigitList->at(i));
 	}
 
 	// clear list of digits
@@ -307,52 +357,62 @@ void WCSimInterface::ResetRecoEvent() {
 	return;
 }
 
-Int_t WCSimInterface::GetEntries() {
+Int_t WCSimInterface::GetEntries()
+{
 	return fChain->GetEntries();
 }
 
-Bool_t WCSimInterface::CheckEvent() {
+Bool_t WCSimInterface::CheckEvent()
+{
 	if (fTrigger)
 		return true;
 	else
 		return false;
 }
 
-void WCSimInterface::BuildEvent(Int_t ievent) {
+void WCSimInterface::BuildEvent(Int_t ievent)
+{
 	std::cout << " *** WCSimInterface::BuildEvent(" << ievent << ") *** " << std::endl;
 
-	WCSimRootTrigger* myTrigger = (WCSimRootTrigger*) (this->GetWCSimTrigger(ievent));
+	WCSimRootTrigger *myTrigger = (WCSimRootTrigger *)(this->GetWCSimTrigger(ievent));
 
 	this->BuildEvent(myTrigger);
 
 	return;
 }
 
-WCSimRootEvent* WCSimInterface::GetWCSimEvent(Int_t ievent) {
-	if (fEvent) {
+WCSimRootEvent *WCSimInterface::GetWCSimEvent(Int_t ievent)
+{
+	if (fEvent)
+	{
 		delete fEvent;
 		fEvent = 0;
 		fTrigger = 0;
 	} // Added the braces - was resetting everything to zero without them - AJP 18/04/13
 
-	if (ievent >= 0 && ievent < fChain->GetEntries()) {  // This was || not && - don't think it should be - AJP 18/04/13
+	if (ievent >= 0 && ievent < fChain->GetEntries())
+	{ // This was || not && - don't think it should be - AJP 18/04/13
 		fChain->GetEntry(ievent);
-	} else {
+	}
+	else
+	{
 		std::cout << "  <warning>: this event doesn't exist! " << std::endl;
 	}
 
 	return fEvent;
 }
 
-WCSimRootTrigger* WCSimInterface::GetWCSimTrigger(Int_t ievent) {
-	WCSimRootEvent* myEvent = (WCSimRootEvent*) (this->GetWCSimEvent(ievent));
+WCSimRootTrigger *WCSimInterface::GetWCSimTrigger(Int_t ievent)
+{
+	WCSimRootEvent *myEvent = (WCSimRootEvent *)(this->GetWCSimEvent(ievent));
 
 	fTrigger = WCSimInterface::FilterTrigger(myEvent);
 
 	return fTrigger;
 }
 
-WCSimRootTrigger* WCSimInterface::FilterTrigger(WCSimRootEvent* myEvent) {
+WCSimRootTrigger *WCSimInterface::FilterTrigger(WCSimRootEvent *myEvent)
+{
 	// Sanity Check
 	// ============
 	if (myEvent == 0)
@@ -360,7 +420,7 @@ WCSimRootTrigger* WCSimInterface::FilterTrigger(WCSimRootEvent* myEvent) {
 
 	// make a WCSim Trigger
 	// ====================
-	WCSimRootTrigger* myTrigger = 0;
+	WCSimRootTrigger *myTrigger = 0;
 
 	// for now, pick the largest trigger
 	// =================================
@@ -382,33 +442,44 @@ WCSimRootTrigger* WCSimInterface::FilterTrigger(WCSimRootEvent* myEvent) {
 
 	Int_t triggerDigits = 0;
 	Int_t triggerNumber = -1;
-	for (Int_t nTrigger = 0; nTrigger < myEvent->GetNumberOfEvents(); nTrigger++) {
-		WCSimRootTrigger* tempTrigger = (WCSimRootTrigger*) (myEvent->GetTrigger(nTrigger));
+	for (Int_t nTrigger = 0; nTrigger < myEvent->GetNumberOfEvents(); nTrigger++)
+	{
+		WCSimRootTrigger *tempTrigger = (WCSimRootTrigger *)(myEvent->GetTrigger(nTrigger));
 		Int_t nDigits = tempTrigger->GetCherenkovDigiHits()->GetLast();
 
-		if (nDigits > triggerDigits) {
+		if (nDigits > triggerDigits)
+		{
 			triggerDigits = nDigits;
 			triggerNumber = nTrigger;
 		}
 	}
 
-	if (triggerNumber >= 0) {
-		myTrigger = (WCSimRootTrigger*) (myEvent->GetTrigger(triggerNumber));
+	if (triggerNumber >= 0)
+	{
+		myTrigger = (WCSimRootTrigger *)(myEvent->GetTrigger(triggerNumber));
 	}
 
-	if (myTrigger) {
-		std::cout << " *** WCSimInterface::FilterTrigger(...) *** " << std::endl << "  Run = "
-				<< myTrigger->GetHeader()->GetRun() << std::endl << "  Event = " << myTrigger->GetHeader()->GetEvtNum()
-				<< std::endl << "  Trigger = " << myTrigger->GetHeader()->GetSubEvtNumber()
-				<< std::endl << "  Ncherenkovhits = " << myTrigger->GetNcherenkovhits() << std::endl;
-	} else {
+	if (myTrigger)
+	{
+		std::cout << " *** WCSimInterface::FilterTrigger(...) *** " << std::endl
+				  << "  Run = "
+				  << myTrigger->GetHeader()->GetRun() << std::endl
+				  << "  Event = " << myTrigger->GetHeader()->GetEvtNum()
+				  << std::endl
+				  << "  Trigger = " << myTrigger->GetHeader()->GetSubEvtNumber()
+				  << std::endl
+				  << "  Ncherenkovhits = " << myTrigger->GetNcherenkovhits() << std::endl;
+	}
+	else
+	{
 		std::cout << " <warning>: failed to find trigger for this event " << std::endl;
 	}
 
 	return myTrigger;
 }
 
-void WCSimInterface::BuildEvent(WCSimRootTrigger* myTrigger) {
+void WCSimInterface::BuildEvent(WCSimRootTrigger *myTrigger)
+{
 	// Reset everything
 	// =====
 	this->ResetTrueEvent();
@@ -419,7 +490,8 @@ void WCSimInterface::BuildEvent(WCSimRootTrigger* myTrigger) {
 
 	// check for trigger
 	// =================
-	if (myTrigger == 0) {
+	if (myTrigger == 0)
+	{
 		return;
 	}
 
@@ -438,23 +510,28 @@ void WCSimInterface::BuildEvent(WCSimRootTrigger* myTrigger) {
 	return;
 }
 
-WCSimTrueEvent* WCSimInterface::TrueEvent() {
+WCSimTrueEvent *WCSimInterface::TrueEvent()
+{
 	return WCSimInterface::Instance()->GetTrueEvent();
 }
 
-WCSimRecoEvent* WCSimInterface::RecoEvent() {
+WCSimRecoEvent *WCSimInterface::RecoEvent()
+{
 	return WCSimInterface::Instance()->GetRecoEvent();
 }
 
-WCSimRootEvent* WCSimInterface::WCSimEvent() {
+WCSimRootEvent *WCSimInterface::WCSimEvent()
+{
 	return WCSimInterface::Instance()->GetWCSimEvent();
 }
 
-WCSimRootTrigger* WCSimInterface::WCSimTrigger() {
+WCSimRootTrigger *WCSimInterface::WCSimTrigger()
+{
 	return WCSimInterface::Instance()->GetWCSimTrigger();
 }
 
-void WCSimInterface::BuildTrueEvent(WCSimRootTrigger* myTrigger) {
+void WCSimInterface::BuildTrueEvent(WCSimRootTrigger *myTrigger)
+{
 	// Build True Event
 	// ================
 	std::cout << " *** WCSimInterface::BuildTrueEvent(...) *** " << std::endl;
@@ -462,7 +539,7 @@ void WCSimInterface::BuildTrueEvent(WCSimRootTrigger* myTrigger) {
 	// Get Array of Tracks
 	// ===================
 	std::cout << "Interface" << std::endl;
-	TClonesArray* fTrackArray = (TClonesArray*) (myTrigger->GetTracks());
+	TClonesArray *fTrackArray = (TClonesArray *)(myTrigger->GetTracks());
 	std::cout << "Intefrace done" << std::endl;
 
 	Int_t ipdg = 0;
@@ -530,8 +607,9 @@ void WCSimInterface::BuildTrueEvent(WCSimRootTrigger* myTrigger) {
 
 	// loop over tracks
 	// =================
-	for (Int_t nTrack = 0; nTrack < 1 + fTrackArray->GetLast(); nTrack++) {
-		WCSimRootTrack* myTrack = (WCSimRootTrack*) (fTrackArray->At(nTrack));
+	for (Int_t nTrack = 0; nTrack < 1 + fTrackArray->GetLast(); nTrack++)
+	{
+		WCSimRootTrack *myTrack = (WCSimRootTrack *)(fTrackArray->At(nTrack));
 
 		// get track properties
 		// ====================
@@ -572,21 +650,27 @@ void WCSimInterface::BuildTrueEvent(WCSimRootTrigger* myTrigger) {
 		qz = g4ez - g4vz;
 		g4ds = sqrt(qx * qx + qy * qy + qz * qz);
 
-		if (g4ds > 0.0) {
+		if (g4ds > 0.0)
+		{
 			qx /= g4ds;
 			qy /= g4ds;
 			qz /= g4ds;
 		}
 
 		// entry point
-		if (endReg >= 0) {
-			if (WCSimGeometry::Instance()->InsideDetector(g4vx, g4vy, g4vz)) {
+		if (endReg >= 0)
+		{
+			if (WCSimGeometry::Instance()->InsideDetector(g4vx, g4vy, g4vz))
+			{
 				vx = g4vx;
 				vy = g4vy;
 				vz = g4vz;
-			} else {
+			}
+			else
+			{
 				WCSimGeometry::Instance()->ProjectToNearEdge(g4vx, g4vy, g4vz, px, py, pz, vx, vy, vz, vtxReg);
-				if (vtxReg < 0) {
+				if (vtxReg < 0)
+				{
 					WCSimGeometry::Instance()->ProjectToNearEdge(g4vx, g4vy, g4vz, qx, qy, qz, vx, vy, vz, vtxReg);
 				}
 			}
@@ -595,14 +679,19 @@ void WCSimInterface::BuildTrueEvent(WCSimRootTrigger* myTrigger) {
 		}
 
 		// exit point
-		if (vtxReg >= 0) {
-			if (WCSimGeometry::Instance()->InsideDetector(g4ex, g4ey, g4ez)) {
+		if (vtxReg >= 0)
+		{
+			if (WCSimGeometry::Instance()->InsideDetector(g4ex, g4ey, g4ez))
+			{
 				ex = g4ex;
 				ey = g4ey;
 				ez = g4ez;
-			} else {
+			}
+			else
+			{
 				WCSimGeometry::Instance()->ProjectToNearEdge(g4ex, g4ey, g4ez, -px, -py, -pz, ex, ey, ez, endReg);
-				if (endReg < 0) {
+				if (endReg < 0)
+				{
 					WCSimGeometry::Instance()->ProjectToNearEdge(g4ex, g4ey, g4ez, -qx, -qy, -qz, ex, ey, ez, endReg);
 				}
 			}
@@ -611,20 +700,24 @@ void WCSimInterface::BuildTrueEvent(WCSimRootTrigger* myTrigger) {
 		}
 
 		// distance travelled through detector
-		if (vtxReg >= 0 && endReg >= 0) {
+		if (vtxReg >= 0 && endReg >= 0)
+		{
 			ds = sqrt((ex - vx) * (ex - vx) + (ey - vy) * (ey - vy) + (ez - vz) * (ez - vz));
 		}
 
 		// figure of merit
-		fom = trkK * ds;  // <- no idea if this is right...
+		fom = trkK * ds; // <- no idea if this is right...
 
 		// possible track
 		possible_track = 0;
 		if (fabs(ipdg) == 13 || fabs(ipdg) == 11 || fabs(ipdg) == 211 || fabs(ipdg) == 321 // <- no idea if this is right...
-		|| fabs(ipdg) == 2212 || ipdg == 22) {
-			if (trkK > 0.0) {
+			|| fabs(ipdg) == 2212 || ipdg == 22)
+		{
+			if (trkK > 0.0)
+			{
 				beta = trkP / trkE;
-				if (fom > 0.0 && trkP / trkE > 0.75) {
+				if (fom > 0.0 && trkP / trkE > 0.75)
+				{
 					possible_track = 1;
 				}
 			}
@@ -632,23 +725,27 @@ void WCSimInterface::BuildTrueEvent(WCSimRootTrigger* myTrigger) {
 
 		// new track
 		new_track = 0;
-		if (possible_track) {
-			if (nTrack >= 2 && trkK > fEnergyThreshold && ds > fRangeThreshold) {
+		if (possible_track)
+		{
+			if (nTrack >= 2 && trkK > fEnergyThreshold && ds > fRangeThreshold)
+			{
 				new_track = 1;
 			}
 		}
 
 		// make new track
 		// ==============
-		if (new_track) {
-			WCSimTrueTrack* trueTrack = new WCSimTrueTrack(ipdg, ipdgparent, g4vx, g4vy, g4vz, g4ex, g4ey, g4ez, vx, vy,
-					vz, ex, ey, ez, px, py, pz, trkE, trkP);
+		if (new_track)
+		{
+			WCSimTrueTrack *trueTrack = new WCSimTrueTrack(ipdg, ipdgparent, g4vx, g4vy, g4vz, g4ex, g4ey, g4ez, vx, vy,
+														   vz, ex, ey, ez, px, py, pz, trkE, trkP);
 			fTrueEvent->AddTrack(trueTrack);
 
 			fTrackList->push_back(trueTrack);
 
 			// assign primary track
-			if (fom > maxfom) {
+			if (fom > maxfom)
+			{
 				primeIpdg = ipdg;
 				primeG4Vx = g4vx;
 				primeG4Vy = g4vy;
@@ -672,13 +769,13 @@ void WCSimInterface::BuildTrueEvent(WCSimRootTrigger* myTrigger) {
 		}
 
 		// print out track info
-//    std::cout << "   [" << nTrack; if( new_track) std::cout << "*"; std::cout << "] iflag=" << iflag << " pdg=" << ipdg << ", p=" << trkP << " E=" << trkE << " K=" << trkK << std::endl;
-//    std::cout << "     g4vtx=(" << g4vx << "," << g4vy << "," << g4vz << "), g4end=(" << g4ex << "," << g4ey << "," << g4ez << ") " << std::endl;
-//    std::cout << "     g4dir=(" << px << "," << py << "," << pz << "), g4trk=(" << qx << "," << qy << "," << qz << ")" << std::endl;
-//    std::cout << "     vtx=(" << vx << "," << vy << "," << vz << "), end=(" << ex << "," << ey << "," << ez << ") " << std::endl;
-//    std::cout << "     ds=" << ds << " beta=" << beta << " fom=" << fom << " ";
-//    if( new_track ) std::cout << " [TRACK] "; // PRINT: MAKE TRACK
-//    std::cout << std::endl; // PRINT: NEW LINE
+		//    std::cout << "   [" << nTrack; if( new_track) std::cout << "*"; std::cout << "] iflag=" << iflag << " pdg=" << ipdg << ", p=" << trkP << " E=" << trkE << " K=" << trkK << std::endl;
+		//    std::cout << "     g4vtx=(" << g4vx << "," << g4vy << "," << g4vz << "), g4end=(" << g4ex << "," << g4ey << "," << g4ez << ") " << std::endl;
+		//    std::cout << "     g4dir=(" << px << "," << py << "," << pz << "), g4trk=(" << qx << "," << qy << "," << qz << ")" << std::endl;
+		//    std::cout << "     vtx=(" << vx << "," << vy << "," << vz << "), end=(" << ex << "," << ey << "," << ez << ") " << std::endl;
+		//    std::cout << "     ds=" << ds << " beta=" << beta << " fom=" << fom << " ";
+		//    if( new_track ) std::cout << " [TRACK] "; // PRINT: MAKE TRACK
+		//    std::cout << std::endl; // PRINT: NEW LINE
 
 		// print warning messages
 		//if (vtxReg < 0) {
@@ -692,19 +789,27 @@ void WCSimInterface::BuildTrueEvent(WCSimRootTrigger* myTrigger) {
 
 	// set true event header
 	fTrueEvent->SetHeader(primeIpdg, primeG4Vx, primeG4Vy, primeG4Vz, primeG4Ex, primeG4Ey, primeG4Ez, primeVx, primeVy,
-			primeVz, primeEx, primeEy, primeEz, primePx, primePy, primePz, primeTrkE, primeTrkP);
+						  primeVz, primeEx, primeEy, primeEz, primePx, primePy, primePz, primeTrkE, primeTrkP);
 
-	std::cout << "  true event info: " << std::endl << "   Ipdg = " << primeIpdg << std::endl << "   G4 Vertex = ("
-			<< primeG4Vx << "," << primeG4Vy << "," << primeG4Vz << ") " << std::endl << "   G4 End = (" << primeG4Ex
-			<< "," << primeG4Ey << "," << primeG4Ez << ") " << std::endl << "   Vertex = (" << primeVx << "," << primeVy
-			<< "," << primeVz << ") " << std::endl << "   End = (" << primeEx << "," << primeEy << "," << primeEz
-			<< ") " << std::endl << "   Direction = (" << primePx << "," << primePy << "," << primePz << ") "
-			<< std::endl << "   Energy = " << primeTrkE << " MeV" << std::endl;
+	std::cout << "  true event info: " << std::endl
+			  << "   Ipdg = " << primeIpdg << std::endl
+			  << "   G4 Vertex = ("
+			  << primeG4Vx << "," << primeG4Vy << "," << primeG4Vz << ") " << std::endl
+			  << "   G4 End = (" << primeG4Ex
+			  << "," << primeG4Ey << "," << primeG4Ez << ") " << std::endl
+			  << "   Vertex = (" << primeVx << "," << primeVy
+			  << "," << primeVz << ") " << std::endl
+			  << "   End = (" << primeEx << "," << primeEy << "," << primeEz
+			  << ") " << std::endl
+			  << "   Direction = (" << primePx << "," << primePy << "," << primePz << ") "
+			  << std::endl
+			  << "   Energy = " << primeTrkE << " MeV" << std::endl;
 
 	return;
 }
 
-void WCSimInterface::BuildRecoEvent(WCSimRootTrigger* myTrigger) {
+void WCSimInterface::BuildRecoEvent(WCSimRootTrigger *myTrigger)
+{
 	// Build Reco Event
 	// ================
 	std::cout << " *** WCSimInterface::BuildRecoEvent(...) *** " << std::endl;
@@ -719,22 +824,23 @@ void WCSimInterface::BuildRecoEvent(WCSimRootTrigger* myTrigger) {
 
 	// get array of digitized hits
 	// ===========================
-	TClonesArray* fDigiHitArray = (TClonesArray*) (myTrigger->GetCherenkovDigiHits());
+	TClonesArray *fDigiHitArray = (TClonesArray *)(myTrigger->GetCherenkovDigiHits());
 
 	////////////////////
 	double lowCut = WCSimParameters::Instance()->GetIgnoreLowCut();
 	double highCut = WCSimParameters::Instance()->GetIgnoreHighCut();
 	double length = WCSimGeometry::Instance()->GetCylLength();
 	std::cout << "lowCut -> " << lowCut << ", highCut -> " << highCut << ", length -> " << length << std::endl;
-	double capCut = (length/2) - 20;
-	std::cout << "capCut -> " << capCut << std::endl; 
+	double capCut = (length / 2) - 20;
+	std::cout << "capCut -> " << capCut << std::endl;
 	////////////////////
 
 	// loop over digits
 	// ================
-	for (Int_t nDigit = 0; nDigit < 1 + fDigiHitArray->GetLast(); nDigit++) {
+	for (Int_t nDigit = 0; nDigit < 1 + fDigiHitArray->GetLast(); nDigit++)
+	{
 
-		WCSimRootCherenkovDigiHit* myDigit = (WCSimRootCherenkovDigiHit*) (fDigiHitArray->At(nDigit));
+		WCSimRootCherenkovDigiHit *myDigit = (WCSimRootCherenkovDigiHit *)(fDigiHitArray->At(nDigit));
 		Int_t tube = myDigit->GetTubeId();
 		Double_t rawQ = myDigit->GetQ();
 		Double_t rawT = myDigit->GetT();
@@ -748,19 +854,27 @@ void WCSimInterface::BuildRecoEvent(WCSimRootTrigger* myTrigger) {
 		Double_t z = WCSimGeometry::Instance()->GetZ(tube);
 
 		////////////////////
-		if (lowCut != 0.0 && z < lowCut && z > -capCut) {
+		if (lowCut != 0.0 && z < lowCut && z > -capCut)
+		{
 			continue;
-		} else if (highCut != 0.0 && z > highCut && z < capCut) {
+		}
+		else if (highCut != 0.0 && z > highCut && z < capCut)
+		{
 			continue;
-		} else {
-			WCSimRecoDigit* recoDigit = new WCSimRecoDigit(region, tube, x, y, z, rawT, rawQ, calT, calQ);
-			if (region != WCSimGeometry::kVeto) {
+		}
+		else
+		{
+			WCSimRecoDigit *recoDigit = new WCSimRecoDigit(region, tube, x, y, z, rawT, rawQ, calT, calQ);
+			if (region != WCSimGeometry::kVeto)
+			{
 				fRecoEvent->AddDigit(recoDigit);
 				fDigitList->push_back(recoDigit);
-			} else {
+			}
+			else
+			{
 				fRecoEvent->AddVetoDigit(recoDigit);
 				fVetoDigitList->push_back(recoDigit);
-			}				
+			}
 		}
 		////////////////////
 
@@ -783,15 +897,17 @@ void WCSimInterface::BuildRecoEvent(WCSimRootTrigger* myTrigger) {
 	return;
 }
 
-WCSimLikelihoodDigitArray WCSimInterface::GetWCSimLikelihoodDigitArray(int ievent) {
-	WCSimRootEvent* myEvent = (WCSimRootEvent*) (GetWCSimEvent(ievent));
+WCSimLikelihoodDigitArray WCSimInterface::GetWCSimLikelihoodDigitArray(int ievent)
+{
+	WCSimRootEvent *myEvent = (WCSimRootEvent *)(GetWCSimEvent(ievent));
 	fLikelihoodDigitArray = WCSimLikelihoodDigitArray(myEvent);
 	return fLikelihoodDigitArray;
 }
 
-std::vector<WCSimLikelihoodTrackBase*> WCSimInterface::GetPi0PhotonTracks(const WCSimTruthSummary &sum, double energy,
-		TClonesArray* trajCont) {
-	std::vector<WCSimLikelihoodTrackBase*> photons;
+std::vector<WCSimLikelihoodTrackBase *> WCSimInterface::GetPi0PhotonTracks(const WCSimTruthSummary &sum, double energy,
+																		   TClonesArray *trajCont)
+{
+	std::vector<WCSimLikelihoodTrackBase *> photons;
 	// Iterate through the TClonesArray looking for what we want...
 	bool gotPi0 = false;
 	int gotPhotons = 0;
@@ -804,15 +920,17 @@ std::vector<WCSimLikelihoodTrackBase*> WCSimInterface::GetPi0PhotonTracks(const 
 	TVector3 photonDir1, photonDir2;
 
 	TVector3 mainVtx = sum.GetVertex();
-	for (int e = 0; e < trajCont->GetEntries(); ++e) {
+	for (int e = 0; e < trajCont->GetEntries(); ++e)
+	{
 		// Skip the first entry for particle gun events as it is repeated
 		if (e == 0 && sum.IsParticleGunEvent())
 			continue;
 
 		// Get the track
-		WCSimRootTrack* trk = (WCSimRootTrack*) (*trajCont)[e];
+		WCSimRootTrack *trk = (WCSimRootTrack *)(*trajCont)[e];
 
-		if (!gotPi0) {
+		if (!gotPi0)
+		{
 			// Is it a pizero?
 			if (trk->GetIpnu() != 111)
 				continue;
@@ -824,7 +942,9 @@ std::vector<WCSimLikelihoodTrackBase*> WCSimInterface::GetPi0PhotonTracks(const 
 
 			pi0Vtx = TVector3(trk->GetStart(0), trk->GetStart(1), trk->GetStart(2));
 			pi0Dir = TVector3(trk->GetDir(0), trk->GetDir(1), trk->GetDir(2));
-		} else {
+		}
+		else
+		{
 			// Presumably the photons are after the pi0? Let's look for them, then
 			if (trk->GetIpnu() != 22)
 				continue; // Is it a photon?
@@ -833,60 +953,69 @@ std::vector<WCSimLikelihoodTrackBase*> WCSimInterface::GetPi0PhotonTracks(const 
 			if (trk->GetParentId() != pi0ID)
 				continue; // Pi0 stop and photon start at the same point?
 			// This is a photon that we are looking for!
-			if (gotPhotons == 0) {
+			if (gotPhotons == 0)
+			{
 				photonEn1 = trk->GetE();
 				photonDir1 = TVector3(trk->GetDir(0), trk->GetDir(1), trk->GetDir(2));
-			} else {
+			}
+			else
+			{
 				photonEn2 = trk->GetE();
 				photonDir2 = TVector3(trk->GetDir(0), trk->GetDir(1), trk->GetDir(2));
 			}
 			++gotPhotons;
 		}
 	}
-	if (gotPi0 && gotPhotons == 2) {
-		WCSimLikelihoodTrackBase * track;
+	if (gotPi0 && gotPhotons == 2)
+	{
+		WCSimLikelihoodTrackBase *track;
 		std::map<FitterParameterType::Type, double> extraPars;
 		FitterParameterType::Type type = FitterParameterType::kConversionDistance;
 		extraPars[type] = 0.0;
 
 		track = WCSimLikelihoodTrackFactory::MakeTrack(TrackType::PhotonLike, pi0Vtx.X(), pi0Vtx.Y(), pi0Vtx.Z(),
-				sum.GetVertexT(), TMath::ACos(photonDir1.Z()), TMath::ATan2(photonDir1.Y(), photonDir1.X()), photonEn1,
-				extraPars);
+													   sum.GetVertexT(), TMath::ACos(photonDir1.Z()), TMath::ATan2(photonDir1.Y(), photonDir1.X()), photonEn1,
+													   extraPars);
 		photons.push_back(track);
 		track = WCSimLikelihoodTrackFactory::MakeTrack(TrackType::PhotonLike, pi0Vtx.X(), pi0Vtx.Y(), pi0Vtx.Z(),
-				sum.GetVertexT(), TMath::ACos(photonDir2.Z()), TMath::ATan2(photonDir2.Y(), photonDir2.X()), photonEn2,
-				extraPars);
+													   sum.GetVertexT(), TMath::ACos(photonDir2.Z()), TMath::ATan2(photonDir2.Y(), photonDir2.X()), photonEn2,
+													   extraPars);
 		photons.push_back(track);
 	}
 	return photons;
 }
 
-bool WCSimInterface::EventIsVetoed() {
+bool WCSimInterface::EventIsVetoed()
+{
 	return AnyTrueLeptonEscaped();
 }
 
-bool WCSimInterface::AnyTrueLeptonEscaped() {
+bool WCSimInterface::AnyTrueLeptonEscaped()
+{
 	WCSimTruthSummary ts(fEvent->GetTruthSummary());
 	TVector3 vtx = ts.GetVertex() * 0.1;
 	TVector3 dir = ts.GetPrimaryDir(0);
 
-	if (fEvent->GetNumberOfEvents() <= 0) {
+	if (fEvent->GetNumberOfEvents() <= 0)
+	{
 		return false;
 	}
 	bool escapes = false;
 
-	WCSimRootTrigger * fTrigger = fEvent->GetTrigger(0);
-	TObjArray * allTracks = fTrigger->GetTracks();
+	WCSimRootTrigger *fTrigger = fEvent->GetTrigger(0);
+	TObjArray *allTracks = fTrigger->GetTracks();
 	int nTracks = fTrigger->GetNtrack();
 
 	std::set<int> startVols;
 	std::set<int> endVols;
 
-	for (int i = 0; i < nTracks; ++i) {
+	for (int i = 0; i < nTracks; ++i)
+	{
 		// Only look at electron and muon tracks
-		WCSimRootTrack * myTrack = (WCSimRootTrack*) allTracks->At(i);
+		WCSimRootTrack *myTrack = (WCSimRootTrack *)allTracks->At(i);
 
-		if (myTrack->GetIpnu() != 11 && myTrack->GetIpnu() != 13) {
+		if (myTrack->GetIpnu() != 11 && myTrack->GetIpnu() != 13)
+		{
 			continue;
 		}
 

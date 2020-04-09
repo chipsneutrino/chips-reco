@@ -2,10 +2,11 @@
 
 #include "WCSimRecoObjectTable.hh"
 
-ClassImp (WCSimRecoRing)
+ClassImp(WCSimRecoRing)
 
 WCSimRecoRing::WCSimRecoRing(Double_t vtxx, Double_t vtxy, Double_t vtxz, Double_t dirx, Double_t diry, Double_t dirz,
-		Double_t angle, Double_t height) {
+							 Double_t angle, Double_t height)
+{
 	fVtxX = vtxx;
 	fVtxY = vtxy;
 	fVtxZ = vtxz;
@@ -19,7 +20,7 @@ WCSimRecoRing::WCSimRecoRing(Double_t vtxx, Double_t vtxy, Double_t vtxz, Double
 	WCSimRecoObjectTable::Instance()->NewRing();
 }
 
-WCSimRecoRing::~WCSimRecoRing() {
+WCSimRecoRing::~WCSimRecoRing()
+{
 	WCSimRecoObjectTable::Instance()->DeleteRing();
 }
-

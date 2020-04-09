@@ -5,36 +5,44 @@
 
 #include <algorithm>
 
-ClassImp (WCSimRecoCluster)
+ClassImp(WCSimRecoCluster)
 
-WCSimRecoCluster::WCSimRecoCluster() {
+WCSimRecoCluster::WCSimRecoCluster()
+{
 	WCSimRecoObjectTable::Instance()->NewCluster();
 }
 
-WCSimRecoCluster::~WCSimRecoCluster() {
+WCSimRecoCluster::~WCSimRecoCluster()
+{
 	WCSimRecoObjectTable::Instance()->DeleteCluster();
 }
 
-void WCSimRecoCluster::Reset() {
+void WCSimRecoCluster::Reset()
+{
 	fDigitList.clear();
 }
 
-static bool CompareTimes(WCSimRecoDigit *rd1, WCSimRecoDigit *rd2) {
+static bool CompareTimes(WCSimRecoDigit *rd1, WCSimRecoDigit *rd2)
+{
 	return (rd1->GetTime() > rd2->GetTime());
 }
 
-void WCSimRecoCluster::SortCluster() {
+void WCSimRecoCluster::SortCluster()
+{
 	sort(fDigitList.begin(), fDigitList.end(), CompareTimes);
 }
 
-void WCSimRecoCluster::AddDigit(WCSimRecoDigit* digit) {
+void WCSimRecoCluster::AddDigit(WCSimRecoDigit *digit)
+{
 	fDigitList.push_back(digit);
 }
 
-WCSimRecoDigit* WCSimRecoCluster::GetDigit(Int_t n) {
-	return (WCSimRecoDigit*) (fDigitList.at(n));
+WCSimRecoDigit *WCSimRecoCluster::GetDigit(Int_t n)
+{
+	return (WCSimRecoDigit *)(fDigitList.at(n));
 }
 
-Int_t WCSimRecoCluster::GetNDigits() {
+Int_t WCSimRecoCluster::GetNDigits()
+{
 	return fDigitList.size();
 }

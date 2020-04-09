@@ -2,7 +2,7 @@
 
 #ifndef REFLEX_DICTIONARY
 ClassImp(WCSimHitPrediction)
-	ClassImp(WCSimSingleHitComparison)
+ClassImp(WCSimSingleHitComparison)
 #endif
 
 WCSimHitPrediction::WCSimHitPrediction()

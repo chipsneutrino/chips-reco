@@ -19,31 +19,38 @@
 #include <cassert>
 #include <map>
 
-ClassImp (WCSimVertexGeometry)
+ClassImp(WCSimVertexGeometry)
 
-static WCSimVertexGeometry* fgVertexGeometry = 0;
+static WCSimVertexGeometry *fgVertexGeometry = 0;
 
-WCSimVertexGeometry* WCSimVertexGeometry::Instance() {
-	if (!fgVertexGeometry) {
+WCSimVertexGeometry *WCSimVertexGeometry::Instance()
+{
+	if (!fgVertexGeometry)
+	{
 		fgVertexGeometry = new WCSimVertexGeometry();
 	}
 
-	if (!fgVertexGeometry) {
-		assert (fgVertexGeometry);
+	if (!fgVertexGeometry)
+	{
+		assert(fgVertexGeometry);
 	}
 
-	if (fgVertexGeometry) {
-
+	if (fgVertexGeometry)
+	{
 	}
 
 	return fgVertexGeometry;
 }
 
-WCSimVertexGeometry::WCSimVertexGeometry() {
-	if (WCSimGeometry::TouchGeometry()) {
-//    fPMTs = WCSimGeometry::Instance()->GetNumPMTs();
+WCSimVertexGeometry::WCSimVertexGeometry()
+{
+	if (WCSimGeometry::TouchGeometry())
+	{
+		//    fPMTs = WCSimGeometry::Instance()->GetNumPMTs();
 		fPMTs = WCSimGeometry::Instance()->GetNumInnerPMTs();
-	} else {
+	}
+	else
+	{
 		fPMTs = 100000; // maximum number of digits
 	}
 
@@ -114,7 +121,8 @@ WCSimVertexGeometry::WCSimVertexGeometry() {
 
 	fDelta = new Double_t[fPMTs];
 
-	for (Int_t n = 0; n < fPMTs; n++) {
+	for (Int_t n = 0; n < fPMTs; n++)
+	{
 		fIsFiltered[n] = 0.0;
 
 		fDigitID[n] = -999;
@@ -152,7 +160,8 @@ WCSimVertexGeometry::WCSimVertexGeometry() {
 	}
 }
 
-WCSimVertexGeometry::~WCSimVertexGeometry() {
+WCSimVertexGeometry::~WCSimVertexGeometry()
+{
 	if (fIsFiltered)
 		delete[] fIsFiltered;
 
@@ -216,7 +225,8 @@ WCSimVertexGeometry::~WCSimVertexGeometry() {
 		delete[] fDelta;
 }
 
-void WCSimVertexGeometry::LoadEvent(WCSimRecoEvent* myEvent) {
+void WCSimVertexGeometry::LoadEvent(WCSimRecoEvent *myEvent)
+{
 	// resetting arrays
 	// ================
 	if (myEvent == 0)
@@ -247,27 +257,30 @@ void WCSimVertexGeometry::LoadEvent(WCSimRecoEvent* myEvent) {
 
 	// get lists of digits
 	// ==================
-	std::vector<WCSimRecoDigit*>* myDigitList = (std::vector<WCSimRecoDigit*>*) (myEvent->GetDigitList());
+	std::vector<WCSimRecoDigit *> *myDigitList = (std::vector<WCSimRecoDigit *> *)(myEvent->GetDigitList());
 	fNDigits = myDigitList->size();
 
-	std::vector<WCSimRecoDigit*>* myFilterDigitList = (std::vector<WCSimRecoDigit*>*) (myEvent->GetFilterDigitList());
+	std::vector<WCSimRecoDigit *> *myFilterDigitList = (std::vector<WCSimRecoDigit *> *)(myEvent->GetFilterDigitList());
 	fNFilterDigits = myFilterDigitList->size();
 
 	// sanity checks
 	// =============
-	if (fNDigits <= 0) {
+	if (fNDigits <= 0)
+	{
 		std::cout << " *** WCSimVertexGeometry::LoadEvent(...) *** " << std::endl;
 		std::cout << "   <warning> event has no digits! " << std::endl;
 		return;
 	}
 
-	if (fNDigits > fPMTs) {
+	if (fNDigits > fPMTs)
+	{
 		std::cout << " *** WCSimVertexGeometry::LoadEvent(...) *** " << std::endl;
 		std::cout << "   <warning> event will be truncated! " << std::endl;
 		fNDigits = fPMTs;
 	}
 
-	if (fNFilterDigits > fNDigits) {
+	if (fNFilterDigits > fNDigits)
+	{
 		fNFilterDigits = fNDigits;
 	}
 
@@ -288,8 +301,9 @@ void WCSimVertexGeometry::LoadEvent(WCSimRecoEvent* myEvent) {
 	Double_t SFwx = 0.0;
 	Double_t SFw = 0.0;
 
-	for (Int_t idigit = 0; idigit < fNDigits; idigit++) {
-		WCSimRecoDigit* recoDigit = (WCSimRecoDigit*) (myDigitList->at(idigit));
+	for (Int_t idigit = 0; idigit < fNDigits; idigit++)
+	{
+		WCSimRecoDigit *recoDigit = (WCSimRecoDigit *)(myDigitList->at(idigit));
 
 		fDigitID[idigit] = recoDigit->GetTubeID();
 		fDigitX[idigit] = recoDigit->GetX();
@@ -329,26 +343,31 @@ void WCSimVertexGeometry::LoadEvent(WCSimRecoEvent* myEvent) {
 		Swx += recoDigit->GetQPEs();
 		Sw += 1.0;
 
-		if (fMinTime < 0 || recoDigit->GetTime() < fMinTime) {
+		if (fMinTime < 0 || recoDigit->GetTime() < fMinTime)
+		{
 			fMinTime = recoDigit->GetTime();
 		}
 
-		if (fMaxTime < 0 || recoDigit->GetTime() > fMaxTime) {
+		if (fMaxTime < 0 || recoDigit->GetTime() > fMaxTime)
+		{
 			fMaxTime = recoDigit->GetTime();
 		}
 
-		if (recoDigit->IsFiltered()) {
+		if (recoDigit->IsFiltered())
+		{
 			SFwx += recoDigit->GetQPEs();
 			SFw += 1.0;
 		}
 	}
 
-	if (Sw > 0.0) {
+	if (Sw > 0.0)
+	{
 		fTotalQ = Swx;
 		fMeanQ = Swx / Sw;
 	}
 
-	if (SFw > 0.0) {
+	if (SFw > 0.0)
+	{
 		fTotalFilteredQ = SFwx;
 		fMeanFilteredQ = SFwx / SFw;
 	}
@@ -361,7 +380,8 @@ void WCSimVertexGeometry::LoadEvent(WCSimRecoEvent* myEvent) {
 	return;
 }
 
-WCSimRecoVertex* WCSimVertexGeometry::CalcSimpleVertex(WCSimRecoEvent* myEvent) {
+WCSimRecoVertex *WCSimVertexGeometry::CalcSimpleVertex(WCSimRecoEvent *myEvent)
+{
 	// load event
 	// ==========
 	this->LoadEvent(myEvent);
@@ -371,7 +391,8 @@ WCSimRecoVertex* WCSimVertexGeometry::CalcSimpleVertex(WCSimRecoEvent* myEvent) 
 	return this->CalcSimpleVertex(myEvent);
 }
 
-WCSimRecoVertex* WCSimVertexGeometry::CalcSimpleVertex() {
+WCSimRecoVertex *WCSimVertexGeometry::CalcSimpleVertex()
+{
 	// simple vertex
 	// =============
 	Double_t vtxX = 0.0;
@@ -385,7 +406,7 @@ WCSimRecoVertex* WCSimVertexGeometry::CalcSimpleVertex() {
 
 	// create new vertex
 	// =================
-	WCSimRecoVertex* newVertex = new WCSimRecoVertex();
+	WCSimRecoVertex *newVertex = new WCSimRecoVertex();
 
 	// calculate vertex
 	// ================
@@ -405,7 +426,8 @@ WCSimRecoVertex* WCSimVertexGeometry::CalcSimpleVertex() {
 	return newVertex;
 }
 
-void WCSimVertexGeometry::CalcSimpleVertex(Double_t& vtxX, Double_t& vtxY, Double_t& vtxZ, Double_t& vtxTime) {
+void WCSimVertexGeometry::CalcSimpleVertex(Double_t &vtxX, Double_t &vtxY, Double_t &vtxZ, Double_t &vtxTime)
+{
 	// simple vertex
 	// =============
 	// just calculate average position of digits
@@ -425,8 +447,10 @@ void WCSimVertexGeometry::CalcSimpleVertex(Double_t& vtxX, Double_t& vtxY, Doubl
 	Double_t Swt = 0.0;
 	Double_t Sw = 0.0;
 
-	for (Int_t idigit = 0; idigit < fNDigits; idigit++) {
-		if (fIsFiltered[idigit]) {
+	for (Int_t idigit = 0; idigit < fNDigits; idigit++)
+	{
+		if (fIsFiltered[idigit])
+		{
 			Swx += fDigitQ[idigit] * fDigitX[idigit];
 			Swy += fDigitQ[idigit] * fDigitY[idigit];
 			Swz += fDigitQ[idigit] * fDigitZ[idigit];
@@ -437,7 +461,8 @@ void WCSimVertexGeometry::CalcSimpleVertex(Double_t& vtxX, Double_t& vtxY, Doubl
 
 	// average position
 	// ================
-	if (Sw > 0.0) {
+	if (Sw > 0.0)
+	{
 		vtxX = Swx / Sw;
 		vtxY = Swy / Sw;
 		vtxZ = Swz / Sw;
@@ -447,7 +472,8 @@ void WCSimVertexGeometry::CalcSimpleVertex(Double_t& vtxX, Double_t& vtxY, Doubl
 	return;
 }
 
-WCSimRecoVertex* WCSimVertexGeometry::CalcSimpleDirection(WCSimRecoEvent* myEvent, WCSimRecoVertex* myVertex) {
+WCSimRecoVertex *WCSimVertexGeometry::CalcSimpleDirection(WCSimRecoEvent *myEvent, WCSimRecoVertex *myVertex)
+{
 	// load event
 	// ==========
 	this->LoadEvent(myEvent);
@@ -457,7 +483,8 @@ WCSimRecoVertex* WCSimVertexGeometry::CalcSimpleDirection(WCSimRecoEvent* myEven
 	return this->CalcSimpleDirection(myVertex);
 }
 
-WCSimRecoVertex* WCSimVertexGeometry::CalcSimpleDirection(WCSimRecoVertex* myVertex) {
+WCSimRecoVertex *WCSimVertexGeometry::CalcSimpleDirection(WCSimRecoVertex *myVertex)
+{
 	// load vertex
 	// ===========
 	Double_t vtxX = myVertex->GetX();
@@ -471,7 +498,7 @@ WCSimRecoVertex* WCSimVertexGeometry::CalcSimpleDirection(WCSimRecoVertex* myVer
 
 	// create new vertex
 	// =================
-	WCSimRecoVertex* newVertex = new WCSimRecoVertex();
+	WCSimRecoVertex *newVertex = new WCSimRecoVertex();
 
 	// loop over digits
 	// ================
@@ -480,8 +507,10 @@ WCSimRecoVertex* WCSimVertexGeometry::CalcSimpleDirection(WCSimRecoVertex* myVer
 	Double_t Swz = 0.0;
 	Double_t Sw = 0.0;
 
-	for (Int_t idigit = 0; idigit < fNDigits; idigit++) {
-		if (fIsFiltered[idigit]) {
+	for (Int_t idigit = 0; idigit < fNDigits; idigit++)
+	{
+		if (fIsFiltered[idigit])
+		{
 			Double_t q = fDigitQ[idigit];
 
 			Double_t dx = fDigitX[idigit] - vtxX;
@@ -510,7 +539,8 @@ WCSimRecoVertex* WCSimVertexGeometry::CalcSimpleDirection(WCSimRecoVertex* myVer
 	Bool_t pass = 0;
 	Double_t fom = 0.0;
 
-	if (Sw > 0.0) {
+	if (Sw > 0.0)
+	{
 		Double_t qx = Swx / Sw;
 		Double_t qy = Swy / Sw;
 		Double_t qz = Swz / Sw;
@@ -527,7 +557,8 @@ WCSimRecoVertex* WCSimVertexGeometry::CalcSimpleDirection(WCSimRecoVertex* myVer
 
 	// set vertex and direction
 	// ========================
-	if (pass) {
+	if (pass)
+	{
 		newVertex->SetVertex(vtxX, vtxY, vtxZ, vtxTime);
 		newVertex->SetDirection(dirX, dirY, dirZ);
 		newVertex->SetFOM(fom, itr, pass);
@@ -544,7 +575,8 @@ WCSimRecoVertex* WCSimVertexGeometry::CalcSimpleDirection(WCSimRecoVertex* myVer
 	return newVertex;
 }
 
-void WCSimVertexGeometry::CalcResiduals(WCSimRecoEvent* myEvent, WCSimRecoVertex* myVertex) {
+void WCSimVertexGeometry::CalcResiduals(WCSimRecoEvent *myEvent, WCSimRecoVertex *myVertex)
+{
 	// load event
 	// ==========
 	this->LoadEvent(myEvent);
@@ -554,7 +586,8 @@ void WCSimVertexGeometry::CalcResiduals(WCSimRecoEvent* myEvent, WCSimRecoVertex
 	return this->CalcResiduals(myVertex);
 }
 
-void WCSimVertexGeometry::CalcResiduals(WCSimRecoVertex* myVertex) {
+void WCSimVertexGeometry::CalcResiduals(WCSimRecoVertex *myVertex)
+{
 	// sanity check
 	// ============
 	if (myVertex == 0)
@@ -577,10 +610,12 @@ void WCSimVertexGeometry::CalcResiduals(WCSimRecoVertex* myVertex) {
 }
 
 void WCSimVertexGeometry::CalcPointResiduals(Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t vtxTime,
-		Double_t dirX, Double_t dirY, Double_t dirZ) {
+											 Double_t dirX, Double_t dirY, Double_t dirZ)
+{
 	this->CalcResiduals(vtxX, vtxY, vtxZ, vtxTime, dirX, dirY, dirZ);
 
-	for (Int_t idigit = 0; idigit < fNDigits; idigit++) {
+	for (Int_t idigit = 0; idigit < fNDigits; idigit++)
+	{
 		fDelta[idigit] = fPointResidual[idigit];
 	}
 
@@ -588,10 +623,12 @@ void WCSimVertexGeometry::CalcPointResiduals(Double_t vtxX, Double_t vtxY, Doubl
 }
 
 void WCSimVertexGeometry::CalcExtendedResiduals(Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t vtxTime,
-		Double_t dirX, Double_t dirY, Double_t dirZ) {
+												Double_t dirX, Double_t dirY, Double_t dirZ)
+{
 	this->CalcResiduals(vtxX, vtxY, vtxZ, vtxTime, dirX, dirY, dirZ);
 
-	for (Int_t idigit = 0; idigit < fNDigits; idigit++) {
+	for (Int_t idigit = 0; idigit < fNDigits; idigit++)
+	{
 		fDelta[idigit] = fExtendedResidual[idigit];
 	}
 
@@ -599,10 +636,12 @@ void WCSimVertexGeometry::CalcExtendedResiduals(Double_t vtxX, Double_t vtxY, Do
 }
 
 void WCSimVertexGeometry::CalcResiduals(Double_t vtxX, Double_t vtxY, Double_t vtxZ, Double_t vtxTime, Double_t dirX,
-		Double_t dirY, Double_t dirZ) {
+										Double_t dirY, Double_t dirZ)
+{
 	// reset arrays
 	// ============
-	for (Int_t idigit = 0; idigit < fNDigits; idigit++) {
+	for (Int_t idigit = 0; idigit < fNDigits; idigit++)
+	{
 		fConeAngle[idigit] = 0.0;
 		fZenith[idigit] = 0.0;
 		fAzimuth[idigit] = 0.0;
@@ -628,11 +667,12 @@ void WCSimVertexGeometry::CalcResiduals(Double_t vtxX, Double_t vtxY, Double_t v
 	// cone angle
 	// ==========
 	Double_t thetadeg = WCSimParameters::CherenkovAngle(); // degrees
-	Double_t theta = thetadeg * (TMath::Pi() / 180.0); // degrees->radians
+	Double_t theta = thetadeg * (TMath::Pi() / 180.0);	   // degrees->radians
 
 	// loop over digits
 	// ================
-	for (Int_t idigit = 0; idigit < fNDigits; idigit++) {
+	for (Int_t idigit = 0; idigit < fNDigits; idigit++)
+	{
 		// Vector from the vertex to the PMT
 		Double_t dx = fDigitX[idigit] - vtxX;
 		Double_t dy = fDigitY[idigit] - vtxY;
@@ -655,24 +695,26 @@ void WCSimVertexGeometry::CalcResiduals(Double_t vtxX, Double_t vtxY, Double_t v
 		Double_t azideg = 0.0;
 
 		// calculate angles if direction is known
-		if (dirX * dirX + dirY * dirY + dirZ * dirZ > 0.0) {
+		if (dirX * dirX + dirY * dirY + dirZ * dirZ > 0.0)
+		{
 
 			// zenith angle - angle from the track direction top the PMT, when viewed from vertex
 			cosphi = px * dirX + py * dirY + pz * dirZ;
-			phi = acos(cosphi); // radians
+			phi = acos(cosphi);					  // radians
 			phideg = phi / (TMath::Pi() / 180.0); // radians->degrees
 			sinphi = sqrt(1.0 - cosphi * cosphi);
 			sinphi += 0.24 * exp(-sinphi / 0.24);
 			sinphi /= 0.684; // sin(phideg)/sin(thetadeg) // Some parametrisation of solid angle, maybe? Guessing based on later variable names
 
 			// azimuthal angle
-			if (dirX * dirX + dirY * dirY > 0.0) {
-				ax = (px * dirZ - pz * dirX)
-						- (py * dirX - px * dirY) * (1.0 - dirZ) * dirY / sqrt(dirX * dirX + dirY * dirY);
-				ay = (py * dirZ - pz * dirY)
-						- (px * dirY - py * dirX) * (1.0 - dirZ) * dirX / sqrt(dirX * dirX + dirY * dirY);
+			if (dirX * dirX + dirY * dirY > 0.0)
+			{
+				ax = (px * dirZ - pz * dirX) - (py * dirX - px * dirY) * (1.0 - dirZ) * dirY / sqrt(dirX * dirX + dirY * dirY);
+				ay = (py * dirZ - pz * dirY) - (px * dirY - py * dirX) * (1.0 - dirZ) * dirX / sqrt(dirX * dirX + dirY * dirY);
 				az = pz * dirZ + py * dirY + px * dirX;
-			} else {
+			}
+			else
+			{
 				ax = px;
 				ay = py;
 				az = pz;
@@ -681,7 +723,7 @@ void WCSimVertexGeometry::CalcResiduals(Double_t vtxX, Double_t vtxY, Double_t v
 			azideg = atan2(ay, ax) / (TMath::Pi() / 180.0); // radians->degrees
 		}
 
-		Double_t Lpoint = ds;  // Distance from vertex to PMT
+		Double_t Lpoint = ds; // Distance from vertex to PMT
 		Double_t Ltrack = 0.0;
 		Double_t Lphoton = 0.0;
 		Double_t Lscatter = 0.0;
@@ -701,12 +743,15 @@ void WCSimVertexGeometry::CalcResiduals(Double_t vtxX, Double_t vtxY, Double_t v
 		 *  We're working out these distances
 		 *
 		 */
-		if (phi < theta) {
+		if (phi < theta)
+		{
 			// We have to go forward before we can emit and hit the PMTA
 			Ltrack = Lpoint * sin(theta - phi) / sin(theta);
 			Lphoton = Lpoint * sin(phi) / sin(theta);
 			Lscatter = 0.0;
-		} else {
+		}
+		else
+		{
 			// We can emit straight away
 			Ltrack = 0.0;
 			Lphoton = Lpoint;
@@ -725,35 +770,36 @@ void WCSimVertexGeometry::CalcResiduals(Double_t vtxX, Double_t vtxY, Double_t v
 
 		WCSimRootPMT thisPMT = WCSimGeometry::Instance()->GetWCSimGeometry()->GetPMTFromTubeID(fDigitID[idigit]);
 		TString pmtName = thisPMT.GetPMTName();
-		if (fPMTTimeConstantMap.find(pmtName) == fPMTTimeConstantMap.end()) {
+		if (fPMTTimeConstantMap.find(pmtName) == fPMTTimeConstantMap.end())
+		{
 			WCSimPMTConfig config = fPMTManager->GetPMTByName(std::string(pmtName.Data()));
 			fPMTTimeConstantMap[pmtName] = config.GetTimeConstant();
 		}
 		Double_t res = WCSimParameters::WCSimTimeResolution(qpes, fPMTTimeConstantMap[pmtName]); // PMT time resolution
 
 		fConeAngle[idigit] = thetadeg; // degrees (angle of Cherenkov cone)
-		fZenith[idigit] = phideg;      // degrees (angle from the vertex to the PMT wrt the track)
-		fAzimuth[idigit] = azideg;     // degrees (azimuthal angle angle around the ring from vertex to PMT wrt track)
-		fSolidAngle[idigit] = sinphi; // ?? Possibly an expression for the differential solid angle occupied at this angle.
+		fZenith[idigit] = phideg;	   // degrees (angle from the vertex to the PMT wrt the track)
+		fAzimuth[idigit] = azideg;	   // degrees (azimuthal angle angle around the ring from vertex to PMT wrt track)
+		fSolidAngle[idigit] = sinphi;  // ?? Possibly an expression for the differential solid angle occupied at this angle.
 
-		fDistPoint[idigit] = Lpoint;       // Distance from vertex to PMT
-		fDistTrack[idigit] = Ltrack;       // Distance travelled by track before photon emitted
-		fDistPhoton[idigit] = Lphoton;     // Distance from photon emission to PMT
-		fDistScatter[idigit] = Lscatter;   // Distance the photon would have to scatter to make it to the PMT
+		fDistPoint[idigit] = Lpoint;	 // Distance from vertex to PMT
+		fDistTrack[idigit] = Ltrack;	 // Distance travelled by track before photon emitted
+		fDistPhoton[idigit] = Lphoton;	 // Distance from photon emission to PMT
+		fDistScatter[idigit] = Lscatter; // Distance the photon would have to scatter to make it to the PMT
 
 		fDeltaTime[idigit] = dt;   // Time between vertex and PMT hit
 		fDeltaSigma[idigit] = res; // Error on that time due to PMT resolution
 
-		fDeltaAngle[idigit] = phideg - thetadeg;    // degrees
-		fDeltaPoint[idigit] = Lpoint / (fC / fN);     // Time taken by light going direct from vertex to PMT
-		fDeltaTrack[idigit] = Ltrack / fC;          // Time taken by propagating track
-		fDeltaPhoton[idigit] = Lphoton / (fC / fN);   // Time taken by light going from its point of emission to the PMT
+		fDeltaAngle[idigit] = phideg - thetadeg;	  // degrees
+		fDeltaPoint[idigit] = Lpoint / (fC / fN);	  // Time taken by light going direct from vertex to PMT
+		fDeltaTrack[idigit] = Ltrack / fC;			  // Time taken by propagating track
+		fDeltaPhoton[idigit] = Lphoton / (fC / fN);	  // Time taken by light going from its point of emission to the PMT
 		fDeltaScatter[idigit] = Lscatter / (fC / fN); // Time taken by photon travelling for the required scattering distance
 
-		fPointPath[idigit] = fN * Lpoint;              // Effective path length from vertex to PMT
+		fPointPath[idigit] = fN * Lpoint;			   // Effective path length from vertex to PMT
 		fExtendedPath[idigit] = Ltrack + fN * Lphoton; // Effective path length considering particle and photon travel distance
 
-		fPointResidual[idigit] = dt - Lpoint / (fC / fN); // Difference between the measured time and the predicted arrival time for light going direct from vertex to PMT
+		fPointResidual[idigit] = dt - Lpoint / (fC / fN);					// Difference between the measured time and the predicted arrival time for light going direct from vertex to PMT
 		fExtendedResidual[idigit] = dt - Ltrack / fC - Lphoton / (fC / fN); // Difference between the measured and predicted times for light emitted after the track has propagated some distance before emitting
 
 		fDelta[idigit] = fExtendedResidual[idigit]; // default
@@ -762,12 +808,15 @@ void WCSimVertexGeometry::CalcResiduals(Double_t vtxX, Double_t vtxY, Double_t v
 	return;
 }
 
-Double_t WCSimVertexGeometry::GetDeltaCorrection(Int_t idigit, Double_t Length) {
-	if (Length <= 0.0 || GetDistTrack(idigit) < Length) {
+Double_t WCSimVertexGeometry::GetDeltaCorrection(Int_t idigit, Double_t Length)
+{
+	if (Length <= 0.0 || GetDistTrack(idigit) < Length)
+	{
 		return 0.0;
 	}
 
-	else {
+	else
+	{
 		Double_t Lpoint = GetDistPoint(idigit);
 		Double_t Ltrack = GetDistTrack(idigit);
 		Double_t Lphoton = GetDistPhoton(idigit);
@@ -790,7 +839,8 @@ Double_t WCSimVertexGeometry::GetDeltaCorrection(Int_t idigit, Double_t Length) 
 	}
 }
 
-void WCSimVertexGeometry::CalcVertexSeeds(WCSimRecoEvent* myEvent, Int_t NSeeds) {
+void WCSimVertexGeometry::CalcVertexSeeds(WCSimRecoEvent *myEvent, Int_t NSeeds)
+{
 	// load event
 	// ==========
 	this->LoadEvent(myEvent);
@@ -800,7 +850,8 @@ void WCSimVertexGeometry::CalcVertexSeeds(WCSimRecoEvent* myEvent, Int_t NSeeds)
 	return this->CalcVertexSeeds(NSeeds);
 }
 
-void WCSimVertexGeometry::CalcVertexSeeds(Int_t NSeeds) {
+void WCSimVertexGeometry::CalcVertexSeeds(Int_t NSeeds)
+{
 	// reset list of seeds
 	// ===================
 	vSeedVtxX.clear();
@@ -826,10 +877,12 @@ void WCSimVertexGeometry::CalcVertexSeeds(Int_t NSeeds) {
 	// ==========================
 	vSeedDigitList.clear();
 
-	for (fThisDigit = 0; fThisDigit < fNDigits; fThisDigit++) {
-		if (fIsFiltered[fThisDigit]) {
-			if (fDigitT[fThisDigit] - fMinTime >= 0 && fDigitT[fThisDigit] - fMinTime < 300
-					&& fDigitQ[fThisDigit] >= 5.0) {
+	for (fThisDigit = 0; fThisDigit < fNDigits; fThisDigit++)
+	{
+		if (fIsFiltered[fThisDigit])
+		{
+			if (fDigitT[fThisDigit] - fMinTime >= 0 && fDigitT[fThisDigit] - fMinTime < 300 && fDigitQ[fThisDigit] >= 5.0)
+			{
 				vSeedDigitList.push_back(fThisDigit);
 			}
 		}
@@ -865,7 +918,8 @@ void WCSimVertexGeometry::CalcVertexSeeds(Int_t NSeeds) {
 	UInt_t counter = 0;
 	UInt_t NSeedsTarget = NSeeds;
 
-	while (GetNSeeds() < NSeedsTarget && counter < 100 * NSeedsTarget) {
+	while (GetNSeeds() < NSeedsTarget && counter < 100 * NSeedsTarget)
+	{
 		counter++;
 
 		// choose next four digits
@@ -880,7 +934,7 @@ void WCSimVertexGeometry::CalcVertexSeeds(Int_t NSeeds) {
 
 		// find common vertex
 		WCSimGeometry::FindVertex(x0, y0, z0, t0, x1, y1, z1, t1, x2, y2, z2, t2, x3, y3, z3, t3, fVtxX1, fVtxY1,
-				fVtxZ1, fVtxTime1, fVtxX2, fVtxY2, fVtxZ2, fVtxTime2);
+								  fVtxZ1, fVtxTime1, fVtxX2, fVtxY2, fVtxZ2, fVtxTime2);
 
 		//
 		// std::cout << "   result: (x,y,z,t)=(" << fVtxX1 << "," << fVtxY1 << "," << fVtxZ1 << "," << fVtxTime1 << ") " << std::endl
@@ -888,7 +942,8 @@ void WCSimVertexGeometry::CalcVertexSeeds(Int_t NSeeds) {
 		//
 
 		// add first digit
-		if (WCSimGeometry::Instance()->InsideDetector(fVtxX1, fVtxY1, fVtxZ1)) {
+		if (WCSimGeometry::Instance()->InsideDetector(fVtxX1, fVtxY1, fVtxZ1))
+		{
 			vSeedVtxX.push_back(fVtxX1);
 			vSeedVtxY.push_back(fVtxY1);
 			vSeedVtxZ.push_back(fVtxZ1);
@@ -896,21 +951,22 @@ void WCSimVertexGeometry::CalcVertexSeeds(Int_t NSeeds) {
 		}
 
 		// add second digit
-		if (WCSimGeometry::Instance()->InsideDetector(fVtxX2, fVtxY2, fVtxZ2)) {
+		if (WCSimGeometry::Instance()->InsideDetector(fVtxX2, fVtxY2, fVtxZ2))
+		{
 			vSeedVtxX.push_back(fVtxX2);
 			vSeedVtxY.push_back(fVtxY2);
 			vSeedVtxZ.push_back(fVtxZ2);
 			vSeedVtxTime.push_back(fVtxTime2);
 		}
-
 	}
 
 	return;
 }
 
-void WCSimVertexGeometry::ChooseNextQuadruple(Double_t& x0, Double_t& y0, Double_t& z0, Double_t& t0, Double_t& x1,
-		Double_t& y1, Double_t& z1, Double_t& t1, Double_t& x2, Double_t& y2, Double_t& z2, Double_t& t2, Double_t& x3,
-		Double_t& y3, Double_t& z3, Double_t& t3) {
+void WCSimVertexGeometry::ChooseNextQuadruple(Double_t &x0, Double_t &y0, Double_t &z0, Double_t &t0, Double_t &x1,
+											  Double_t &y1, Double_t &z1, Double_t &t1, Double_t &x2, Double_t &y2, Double_t &z2, Double_t &t2, Double_t &x3,
+											  Double_t &y3, Double_t &z3, Double_t &t3)
+{
 	this->ChooseNextDigit(x0, y0, z0, t0);
 	this->ChooseNextDigit(x1, y1, z1, t1);
 	this->ChooseNextDigit(x2, y2, z2, t2);
@@ -919,7 +975,8 @@ void WCSimVertexGeometry::ChooseNextQuadruple(Double_t& x0, Double_t& y0, Double
 	return;
 }
 
-void WCSimVertexGeometry::ChooseNextDigit(Double_t& xpos, Double_t& ypos, Double_t& zpos, Double_t& time) {
+void WCSimVertexGeometry::ChooseNextDigit(Double_t &xpos, Double_t &ypos, Double_t &zpos, Double_t &time)
+{
 	// default
 	xpos = 0;
 	ypos = 0;
@@ -957,4 +1014,3 @@ void WCSimVertexGeometry::ChooseNextDigit(Double_t& xpos, Double_t& ypos, Double
 
 	return;
 }
-

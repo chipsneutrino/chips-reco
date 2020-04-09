@@ -2,10 +2,11 @@
 
 #include "WCSimRecoObjectTable.hh"
 
-ClassImp (WCSimRecoDigit)
+ClassImp(WCSimRecoDigit)
 
 WCSimRecoDigit::WCSimRecoDigit(Int_t region, Int_t tubeID, Double_t x, Double_t y, Double_t z, Double_t rawT,
-		Double_t rawQ, Double_t calT, Double_t calQ) {
+							   Double_t rawQ, Double_t calT, Double_t calQ)
+{
 	fRegion = region;
 	fTubeID = tubeID;
 
@@ -24,6 +25,7 @@ WCSimRecoDigit::WCSimRecoDigit(Int_t region, Int_t tubeID, Double_t x, Double_t 
 	WCSimRecoObjectTable::Instance()->NewDigit();
 }
 
-WCSimRecoDigit::~WCSimRecoDigit() {
+WCSimRecoDigit::~WCSimRecoDigit()
+{
 	WCSimRecoObjectTable::Instance()->DeleteDigit();
 }

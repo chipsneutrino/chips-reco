@@ -22,30 +22,34 @@
 #include <iostream>
 #include <cmath>
 
-ClassImp (WCSimRecoSeed)
+ClassImp(WCSimRecoSeed)
 
-WCSimRecoSeed::WCSimRecoSeed() :
-		fDirBeforeRings(0, 0, 0) {
+WCSimRecoSeed::WCSimRecoSeed() : fDirBeforeRings(0, 0, 0)
+{
 	fNTracks = 9999;
 	fCosmicSeed = 0x0;
 	fCosmicFit = false;
 }
 
-WCSimRecoSeed::~WCSimRecoSeed() {
-	if (fCosmicSeed != 0x0) {
+WCSimRecoSeed::~WCSimRecoSeed()
+{
+	if (fCosmicSeed != 0x0)
+	{
 		delete fCosmicSeed;
 	}
 }
 
-void WCSimRecoSeed::Run() {
-	WCSimRecoEvent* myEvent = WCSimInterface::RecoEvent();
+void WCSimRecoSeed::Run()
+{
+	WCSimRecoEvent *myEvent = WCSimInterface::RecoEvent();
 
 	this->Run(myEvent);
 
 	return;
 }
 
-void WCSimRecoSeed::Run(WCSimRecoEvent* myEvent) {
+void WCSimRecoSeed::Run(WCSimRecoEvent *myEvent)
+{
 
 	// filter digits
 	// =============
@@ -54,7 +58,7 @@ void WCSimRecoSeed::Run(WCSimRecoEvent* myEvent) {
 	// reconstruct vertex
 	// ==================
 	this->RunRecoVertex(myEvent);
-	
+
 	// reconstruct rings
 	// =================
 	this->RunRecoRings(myEvent);
@@ -62,15 +66,18 @@ void WCSimRecoSeed::Run(WCSimRecoEvent* myEvent) {
 	return;
 }
 
-std::vector<WCSimRecoEvent*> WCSimRecoSeed::RunSeed(WCSimRecoEvent* myEvent) {
+std::vector<WCSimRecoEvent *> WCSimRecoSeed::RunSeed(WCSimRecoEvent *myEvent)
+{
 
 	// filter digits
 	// =============
 	this->RunFilter(myEvent);
 
 	// Run the cosmic seed if required
-	if (fCosmicFit) {
-		if (fCosmicSeed != 0x0) {
+	if (fCosmicFit)
+	{
+		if (fCosmicSeed != 0x0)
+		{
 			delete fCosmicSeed;
 		}
 		fCosmicSeed = new WCSimCosmicSeed(myEvent->GetVetoDigitList());
@@ -79,14 +86,16 @@ std::vector<WCSimRecoEvent*> WCSimRecoSeed::RunSeed(WCSimRecoEvent* myEvent) {
 	}
 
 	// Now run the slicer
-	std::vector<WCSimRecoEvent*> slicedEvents = this->RunSlicer(myEvent);
+	std::vector<WCSimRecoEvent *> slicedEvents = this->RunSlicer(myEvent);
 
 	std::cout << "Found " << slicedEvents.size() << " slices." << std::endl;
-	if (slicedEvents.size() > 0) {
+	if (slicedEvents.size() > 0)
+	{
 
 		unsigned int nSlices = slicedEvents.size();
 
-		for (unsigned int i = 0; i < nSlices; ++i) {
+		for (unsigned int i = 0; i < nSlices; ++i)
+		{
 			std::cout << "Processing slice " << i << " of " << nSlices << std::endl;
 			slicedEvents[i]->SetFilterDone();
 			// reconstruct vertex
@@ -101,27 +110,29 @@ std::vector<WCSimRecoEvent*> WCSimRecoSeed::RunSeed(WCSimRecoEvent* myEvent) {
 	return slicedEvents;
 }
 
-void WCSimRecoSeed::RunFilter(WCSimRecoEvent* myEvent) {
+void WCSimRecoSeed::RunFilter(WCSimRecoEvent *myEvent)
+{
 	// Don't run the filter if it has already been done
 	if (myEvent->IsFilterDone())
 		return;
 
 	// Get Digit List
 	// ==============
-	std::vector<WCSimRecoDigit*>* myDigitList = (std::vector<WCSimRecoDigit*>*) (myEvent->GetDigitList());
+	std::vector<WCSimRecoDigit *> *myDigitList = (std::vector<WCSimRecoDigit *> *)(myEvent->GetDigitList());
 
 	// Get Data Cleaner
 	// ================
-	WCSimDataCleaner* myDataCleaner = WCSimDataCleaner::Instance();
+	WCSimDataCleaner *myDataCleaner = WCSimDataCleaner::Instance();
 
 	// Run Data Cleaner
 	// ================
-	std::vector<WCSimRecoDigit*>* myFilterDigitList = (std::vector<WCSimRecoDigit*>*) (myDataCleaner->Run(myDigitList));
+	std::vector<WCSimRecoDigit *> *myFilterDigitList = (std::vector<WCSimRecoDigit *> *)(myDataCleaner->Run(myDigitList));
 
 	// Add Filtered Digits
 	// ===================
-	for (UInt_t n = 0; n < myFilterDigitList->size(); n++) {
-		WCSimRecoDigit* recoDigit = (WCSimRecoDigit*) (myFilterDigitList->at(n));
+	for (UInt_t n = 0; n < myFilterDigitList->size(); n++)
+	{
+		WCSimRecoDigit *recoDigit = (WCSimRecoDigit *)(myFilterDigitList->at(n));
 		myEvent->AddFilterDigit(recoDigit);
 	}
 
@@ -132,58 +143,67 @@ void WCSimRecoSeed::RunFilter(WCSimRecoEvent* myEvent) {
 	return;
 }
 
-std::vector<WCSimRecoEvent*> WCSimRecoSeed::RunSlicer(WCSimRecoEvent* myEvent) {
+std::vector<WCSimRecoEvent *> WCSimRecoSeed::RunSlicer(WCSimRecoEvent *myEvent)
+{
 
 	WCSimRecoSlicer recoSlicer;
 	recoSlicer.SetInputEvent(myEvent);
 	recoSlicer.SetNumberOfTracks(fNTracks);
-	if (fCosmicFit) {
-		if (fCosmicSeed != 0x0) {
-			if (fCosmicSeed->GetSuccess()) {
+	if (fCosmicFit)
+	{
+		if (fCosmicSeed != 0x0)
+		{
+			if (fCosmicSeed->GetSuccess())
+			{
 				recoSlicer.SetCosmicSeed(fCosmicSeed);
 			}
 		}
 	}
 	recoSlicer.Run();
 	return recoSlicer.GetSlicedEvents();
-//  WCSimRecoSlicer recoSlicer;
-//  recoSlicer.SetInputEvent(myEvent);
-//  recoSlicer.SliceTheEvent();
-//  return recoSlicer.GetSlicedEvents();
+	//  WCSimRecoSlicer recoSlicer;
+	//  recoSlicer.SetInputEvent(myEvent);
+	//  recoSlicer.SliceTheEvent();
+	//  return recoSlicer.GetSlicedEvents();
 }
 
-void WCSimRecoSeed::RunRecoVertex(WCSimRecoEvent* myEvent) {
+void WCSimRecoSeed::RunRecoVertex(WCSimRecoEvent *myEvent)
+{
 	// Run Filter (if necessary)
 	// =========================
-	if (myEvent->IsFilterDone() == 0) {
+	if (myEvent->IsFilterDone() == 0)
+	{
 		this->RunFilter(myEvent);
 	}
 
 	// Check Filter Digits (bail out if necessary)
 	// ===========================================
-	if (myEvent->GetNFilterDigits() == 0) {
+	if (myEvent->GetNFilterDigits() == 0)
+	{
 		myEvent->SetVertexFinderDone();
 		return;
 	}
 
 	// Get Vertex Finder
 	// =================
-	WCSimVertexFinder* myVertexFinder = WCSimVertexFinder::Instance();
+	WCSimVertexFinder *myVertexFinder = WCSimVertexFinder::Instance();
 	myVertexFinder->SimpleVertexOnly();
 
 	// Run Vertex Finder
 	// =================
-	WCSimRecoVertex* myVertex = (WCSimRecoVertex*) (myVertexFinder->Run(myEvent));
+	WCSimRecoVertex *myVertex = (WCSimRecoVertex *)(myVertexFinder->Run(myEvent));
 
 	// Set Vertex
 	// ==========
-	if (myVertex->FoundVertex()) {
+	if (myVertex->FoundVertex())
+	{
 		myEvent->SetVertex(myVertex->GetX(), myVertex->GetY(), myVertex->GetZ(), myVertex->GetTime());
 	}
 
 	// Set Direction
 	// =============
-	if (myVertex->FoundDirection()) {
+	if (myVertex->FoundDirection())
+	{
 		myEvent->SetDirection(myVertex->GetDirX(), myVertex->GetDirY(), myVertex->GetDirZ());
 	}
 
@@ -205,47 +225,52 @@ void WCSimRecoSeed::RunRecoVertex(WCSimRecoEvent* myEvent) {
 	return;
 }
 
-void WCSimRecoSeed::RunRecoRings(WCSimRecoEvent* myEvent) {
+void WCSimRecoSeed::RunRecoRings(WCSimRecoEvent *myEvent)
+{
 	// Find Vertex (if necessary)
 	// ==========================
-	if (myEvent->IsVertexFinderDone() == 0) {
+	if (myEvent->IsVertexFinderDone() == 0)
+	{
 		this->RunRecoVertex(myEvent);
 	}
 
 	// Check Filter Digits (bail out if necessary)
 	// ===========================================
-	if (myEvent->GetNFilterDigits() == 0) {
+	if (myEvent->GetNFilterDigits() == 0)
+	{
 		return;
 	}
 
 	// Check Vertex (bail out if necessary)
 	// ====================================
-	if (myEvent->FoundVertex() == 0) {
+	if (myEvent->FoundVertex() == 0)
+	{
 		myEvent->SetRingFinderDone();
 		return;
 	}
 
 	// Get Vertex
 	// ==========
-	WCSimRecoVertex* myVertex = (WCSimRecoVertex*) (myEvent->GetVertex());
+	WCSimRecoVertex *myVertex = (WCSimRecoVertex *)(myEvent->GetVertex());
 
 	// Get Ring Finder
 	// ===============
-	WCSimRingFinder* myRingFinder = WCSimRingFinder::Instance();
+	WCSimRingFinder *myRingFinder = WCSimRingFinder::Instance();
 	myRingFinder->SetUsingTSpectrum2();
 
 	// Run Ring Finder
 	// ===============
-	std::vector<WCSimRecoRing*>* myRingList = (std::vector<WCSimRecoRing*>*) (myRingFinder->Run(myEvent, myVertex));
+	std::vector<WCSimRecoRing *> *myRingList = (std::vector<WCSimRecoRing *> *)(myRingFinder->Run(myEvent, myVertex));
 
 	// Add Hough Maps
 	myEvent->SetHoughArray(myRingFinder->GetHoughTransformArray());
 
 	// Add Rings
 	// =========
-	for (UInt_t n = 0; n < myRingList->size(); n++) {
+	for (UInt_t n = 0; n < myRingList->size(); n++)
+	{
 		std::cout << "Adding ring" << std::endl;
-		WCSimRecoRing* recoRing = (WCSimRecoRing*) (myRingList->at(n));
+		WCSimRecoRing *recoRing = (WCSimRecoRing *)(myRingList->at(n));
 		myEvent->AddRing(recoRing);
 	}
 
@@ -255,4 +280,3 @@ void WCSimRecoSeed::RunRecoRings(WCSimRecoEvent* myEvent) {
 
 	return;
 }
-

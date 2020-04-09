@@ -14,75 +14,87 @@
 #include <iostream>
 #include <vector>
 
-ClassImp (WCSimRingFinder)
+ClassImp(WCSimRingFinder)
 
-static WCSimRingFinder* fgRingFinder = 0;
+static WCSimRingFinder *fgRingFinder = 0;
 
-WCSimRingFinder* WCSimRingFinder::Instance() {
-	if (!fgRingFinder) {
+WCSimRingFinder *WCSimRingFinder::Instance()
+{
+	if (!fgRingFinder)
+	{
 		fgRingFinder = new WCSimRingFinder();
 	}
 
-	if (!fgRingFinder) {
-		assert (fgRingFinder);
+	if (!fgRingFinder)
+	{
+		assert(fgRingFinder);
 	}
 
-	if (fgRingFinder) {
-
+	if (fgRingFinder)
+	{
 	}
 
 	return fgRingFinder;
 }
 
-void WCSimRingFinder::UseRecoVertex() {
+void WCSimRingFinder::UseRecoVertex()
+{
 	WCSimRingFinder::Instance()->SetUsingRecoVertex();
 }
 
-// Set the x co-ordinate bin in Hough space 
-void WCSimRingFinder::HoughX(Int_t x) {
+// Set the x co-ordinate bin in Hough space
+void WCSimRingFinder::HoughX(Int_t x)
+{
 	WCSimRingFinder::Instance()->SetHoughX(x);
 }
-// Set the y co-ordinate bin in Hough space  
-void WCSimRingFinder::HoughY(Int_t y) {
+// Set the y co-ordinate bin in Hough space
+void WCSimRingFinder::HoughY(Int_t y)
+{
 	WCSimRingFinder::Instance()->SetHoughY(y);
 }
 
 // Set the number of Hough points
-void WCSimRingFinder::HoughPoints(Int_t n) {
+void WCSimRingFinder::HoughPoints(Int_t n)
+{
 	WCSimRingFinder::Instance()->SetHoughPoints(n);
 }
 
-// Set number of bins for the Cherenkov cone angle  
-void WCSimRingFinder::ConeAngleBins(Int_t bins) {
+// Set number of bins for the Cherenkov cone angle
+void WCSimRingFinder::ConeAngleBins(Int_t bins)
+{
 	WCSimRingFinder::Instance()->SetConeAngleBins(bins);
 }
 
 // Set range of Cherenkov cone angle
-void WCSimRingFinder::ConeAngleMin(Double_t min) {
+void WCSimRingFinder::ConeAngleMin(Double_t min)
+{
 	WCSimRingFinder::Instance()->SetConeAngleMin(min);
 }
 
-void WCSimRingFinder::ConeAngleMax(Double_t max) {
+void WCSimRingFinder::ConeAngleMax(Double_t max)
+{
 	WCSimRingFinder::Instance()->SetConeAngleMax(max);
 }
 
-void WCSimRingFinder::PrintParameters() {
+void WCSimRingFinder::PrintParameters()
+{
 	WCSimRingFinder::Instance()->RunPrintParameters();
 }
 
-WCSimRingFinder::WCSimRingFinder() {
+WCSimRingFinder::WCSimRingFinder()
+{
 	// use reco vertex
 	fUseVertex = 0;
 	fUseTSpectrum2 = 0;
 
 	// default hough transform parameters
-	fHoughX = 64;         // bins in phi
-	fHoughY = 64;         // bins in cos(theta)
-	fHoughPoints = 720;   // hough points
+	fHoughX = 64;		// bins in phi
+	fHoughY = 64;		// bins in cos(theta)
+	fHoughPoints = 720; // hough points
 
-	fConeAngleBins = 1;   // hough angle bins
-	fConeAngleMin = 41;   // hough cone (min)
-	fConeAngleMax = 43;   // hough cone (max)
+	fConeAngleBins = 1; // hough angle bins
+	fConeAngleMin = 41; // hough cone (min)
+	fConeAngleMax = 43; // hough cone (max)
 
 	// hough transform object
 	fHoughTransform = 0;
@@ -92,42 +104,52 @@ WCSimRingFinder::WCSimRingFinder() {
 }
 
 // Delete the Hough transform, array and ell entries in the ringlist
-WCSimRingFinder::~WCSimRingFinder() {
-	if (fHoughTransform) {
+WCSimRingFinder::~WCSimRingFinder()
+{
+	if (fHoughTransform)
+	{
 		delete fHoughTransform;
 	}
 
-	if (fHoughTransformArray) {
+	if (fHoughTransformArray)
+	{
 		delete fHoughTransformArray;
 	}
-
 }
 
-void WCSimRingFinder::RunPrintParameters() {
+void WCSimRingFinder::RunPrintParameters()
+{
 	std::cout << " *** WCSimRingFinder::PrintParameters() *** " << std::endl;
 
-	std::cout << "  Ring Finder Parameters: " << std::endl << "   UseVertex = " << fUseVertex << std::endl
-			<< "   HoughX = " << fHoughX << std::endl << "   HoughY = " << fHoughY << std::endl << "   ConeAngleBins = "
-			<< fConeAngleBins << std::endl << "   ConeAngleMin = " << fConeAngleMin << std::endl << "   ConeAngleMax = "
-			<< fConeAngleMax << std::endl;
+	std::cout << "  Ring Finder Parameters: " << std::endl
+			  << "   UseVertex = " << fUseVertex << std::endl
+			  << "   HoughX = " << fHoughX << std::endl
+			  << "   HoughY = " << fHoughY << std::endl
+			  << "   ConeAngleBins = "
+			  << fConeAngleBins << std::endl
+			  << "   ConeAngleMin = " << fConeAngleMin << std::endl
+			  << "   ConeAngleMax = "
+			  << fConeAngleMax << std::endl;
 
 	return;
 }
 
-void WCSimRingFinder::Reset() {
+void WCSimRingFinder::Reset()
+{
 	// blank?
 	return;
 }
 
-std::vector<WCSimRecoRing*>* WCSimRingFinder::Run(WCSimRecoVertex* myVertex) {
+std::vector<WCSimRecoRing *> *WCSimRingFinder::Run(WCSimRecoVertex *myVertex)
+{
 	std::cout << " *** WCSimRingFinder::Run(Vertex) *** " << std::endl;
 
 	// Make new ring, using vertex
 	// ===========================
-	WCSimRecoRing* myRing = new WCSimRecoRing(myVertex->GetX(), myVertex->GetY(), myVertex->GetZ(), myVertex->GetDirX(),
-			myVertex->GetDirY(), myVertex->GetDirZ(), myVertex->GetConeAngle(), 0.0); // height of hough peak
+	WCSimRecoRing *myRing = new WCSimRecoRing(myVertex->GetX(), myVertex->GetY(), myVertex->GetZ(), myVertex->GetDirX(),
+											  myVertex->GetDirY(), myVertex->GetDirZ(), myVertex->GetConeAngle(), 0.0); // height of hough peak
 
-	std::vector<WCSimRecoRing*>* newRings = new std::vector<WCSimRecoRing*>();
+	std::vector<WCSimRecoRing *> *newRings = new std::vector<WCSimRecoRing *>();
 	newRings->push_back(myRing);
 
 	// Return Ring List
@@ -135,31 +157,34 @@ std::vector<WCSimRecoRing*>* WCSimRingFinder::Run(WCSimRecoVertex* myVertex) {
 	return newRings;
 }
 
-std::vector<WCSimRecoRing*>* WCSimRingFinder::Run(WCSimRecoEvent* myEvent, WCSimRecoVertex* myVertex) {
+std::vector<WCSimRecoRing *> *WCSimRingFinder::Run(WCSimRecoEvent *myEvent, WCSimRecoVertex *myVertex)
+{
 	// get filter digit list
 	// =====================
-	std::vector<WCSimRecoDigit*>* myFilterDigitList = (std::vector<WCSimRecoDigit*>*) (myEvent->GetFilterDigitList());
+	std::vector<WCSimRecoDigit *> *myFilterDigitList = (std::vector<WCSimRecoDigit *> *)(myEvent->GetFilterDigitList());
 
 	// run vertex finder
 	// =================
-	return (std::vector<WCSimRecoRing*>*) (this->Run(myFilterDigitList, myVertex));
+	return (std::vector<WCSimRecoRing *> *)(this->Run(myFilterDigitList, myVertex));
 }
 
-std::vector<WCSimRecoRing*>* WCSimRingFinder::Run(std::vector<WCSimRecoDigit*>* myDigitList,
-		WCSimRecoVertex* myVertex) {
+std::vector<WCSimRecoRing *> *WCSimRingFinder::Run(std::vector<WCSimRecoDigit *> *myDigitList,
+												   WCSimRecoVertex *myVertex)
+{
 	std::cout << " *** WCSimRingFinder::Run(...) *** " << std::endl;
 
 	// override
 	// ========
-	if (fUseVertex) {
+	if (fUseVertex)
+	{
 		std::cout << "  --- reconstruct ring from vertex --- " << std::endl;
 		return this->Run(myVertex);
 	}
 
 	// apply Hough Transform
 	// =====================
-	WCSimHoughTransformArray* myHoughTransformArray = (WCSimHoughTransformArray*) (this->HoughTransformArray(
-			myDigitList, myVertex));
+	WCSimHoughTransformArray *myHoughTransformArray = (WCSimHoughTransformArray *)(this->HoughTransformArray(
+		myDigitList, myVertex));
 
 	// Find Hough Peak
 	// ===============
@@ -171,57 +196,66 @@ std::vector<WCSimRecoRing*>* WCSimRingFinder::Run(std::vector<WCSimRecoDigit*>* 
 	Double_t seedDirY = myVertex->GetDirY();
 	Double_t seedDirZ = myVertex->GetDirZ();
 
-	std::vector < Double_t > houghDirX;
-	std::vector < Double_t > houghDirY;
-	std::vector < Double_t > houghDirZ;
-	std::vector < Double_t > houghAngle;
-	std::vector < Double_t > houghHeight;
+	std::vector<Double_t> houghDirX;
+	std::vector<Double_t> houghDirY;
+	std::vector<Double_t> houghDirZ;
+	std::vector<Double_t> houghAngle;
+	std::vector<Double_t> houghHeight;
 
-	if (this->UsingTSpectrum2()) {
+	if (this->UsingTSpectrum2())
+	{
 		//myHoughTransformArray->FitTSpectrum2(houghDirX,houghDirY,houghDirZ,houghAngle,houghHeight);
 		myHoughTransformArray->FitMultiPeaksSmooth(houghDirX, houghDirY, houghDirZ, seedDirX, seedDirY, seedDirZ,
 												   houghAngle, houghHeight);
-	} else {
+	}
+	else
+	{
 		myHoughTransformArray->FindPeak(houghDirX, houghDirY, houghDirZ, houghAngle, houghHeight);
 	}
 	std::cout << "The number of rings passed into the loop is..." << houghDirX.size() << std::endl;
 
-	std::vector<WCSimRecoRing*>* newRings = new std::vector<WCSimRecoRing*>();
-	for (int iRings = 0; iRings < (int) houghDirX.size(); iRings++) {
+	std::vector<WCSimRecoRing *> *newRings = new std::vector<WCSimRecoRing *>();
+	for (int iRings = 0; iRings < (int)houghDirX.size(); iRings++)
+	{
 		// Make New Ring
 		// =============
 		std::cout << "  found new ring: (vx,vy,vz)=(" << houghVtxX << "," << houghVtxY << "," << houghVtxZ << ") "
-				<< std::endl << "                  (px,py,pz)=(" << houghDirX[iRings] << "," << houghDirY[iRings] << ","
-				<< houghDirZ[iRings] << ") " << std::endl << "                   angle=" << houghAngle[iRings]
-				<< " height=" << houghHeight[iRings] << std::endl;
+				  << std::endl
+				  << "                  (px,py,pz)=(" << houghDirX[iRings] << "," << houghDirY[iRings] << ","
+				  << houghDirZ[iRings] << ") " << std::endl
+				  << "                   angle=" << houghAngle[iRings]
+				  << " height=" << houghHeight[iRings] << std::endl;
 
-		WCSimRecoRing* myRing = new WCSimRecoRing(houghVtxX, houghVtxY, houghVtxZ, houghDirX[iRings], houghDirY[iRings],
-				houghDirZ[iRings], houghAngle[iRings], houghHeight[iRings]);
+		WCSimRecoRing *myRing = new WCSimRecoRing(houghVtxX, houghVtxY, houghVtxZ, houghDirX[iRings], houghDirY[iRings],
+												  houghDirZ[iRings], houghAngle[iRings], houghHeight[iRings]);
 		newRings->push_back(myRing);
 	}
-	
+
 	return newRings;
 }
 
-WCSimHoughTransform* WCSimRingFinder::HoughTransform(WCSimRecoEvent* myEvent, WCSimRecoVertex* myVertex,
-		Double_t myAngle) {
+WCSimHoughTransform *WCSimRingFinder::HoughTransform(WCSimRecoEvent *myEvent, WCSimRecoVertex *myVertex,
+													 Double_t myAngle)
+{
 	// get filter digit list
 	// =====================
-	std::vector<WCSimRecoDigit*>* myFilterDigitList = (std::vector<WCSimRecoDigit*>*) (myEvent->GetFilterDigitList());
+	std::vector<WCSimRecoDigit *> *myFilterDigitList = (std::vector<WCSimRecoDigit *> *)(myEvent->GetFilterDigitList());
 
 	// run Hough Transform
 	// ===================
-	return (WCSimHoughTransform*) (this->HoughTransform(myFilterDigitList, myVertex, myAngle));
+	return (WCSimHoughTransform *)(this->HoughTransform(myFilterDigitList, myVertex, myAngle));
 }
 
-WCSimHoughTransform* WCSimRingFinder::HoughTransform(std::vector<WCSimRecoDigit*>* myFilterDigitList,
-		WCSimRecoVertex* myVertex, Double_t myAngle) {
+WCSimHoughTransform *WCSimRingFinder::HoughTransform(std::vector<WCSimRecoDigit *> *myFilterDigitList,
+													 WCSimRecoVertex *myVertex, Double_t myAngle)
+{
 	std::cout << " *** WCSimRingFinder::HoughTransform(...) *** " << std::endl;
 	std::cout << "  calculate Hough Transform for cone angle: " << myAngle << std::endl;
 
 	// make new Hough Transform (if necessary)
 	// =======================================
-	if (fHoughTransform == 0) {
+	if (fHoughTransform == 0)
+	{
 		fHoughTransform = new WCSimHoughTransform(fHoughX, fHoughY);
 	}
 
@@ -231,8 +265,9 @@ WCSimHoughTransform* WCSimRingFinder::HoughTransform(std::vector<WCSimRecoDigit*
 
 	// perform Hough Transform
 	// =======================
-	for (UInt_t idigit = 0; idigit < myFilterDigitList->size(); idigit++) {
-		WCSimRecoDigit* myDigit = (WCSimRecoDigit*) (myFilterDigitList->at(idigit));
+	for (UInt_t idigit = 0; idigit < myFilterDigitList->size(); idigit++)
+	{
+		WCSimRecoDigit *myDigit = (WCSimRecoDigit *)(myFilterDigitList->at(idigit));
 
 		Double_t x = myDigit->GetX();
 		Double_t y = myDigit->GetY();
@@ -253,8 +288,9 @@ WCSimHoughTransform* WCSimRingFinder::HoughTransform(std::vector<WCSimRecoDigit*
 
 		Double_t weight = 1.0;
 
-		for (Int_t n = 0; n < fHoughPoints; n++) {
-			omega = 360.0 * ((double) n / (double) fHoughPoints);
+		for (Int_t n = 0; n < fHoughPoints; n++)
+		{
+			omega = 360.0 * ((double)n / (double)fHoughPoints);
 
 			WCSimGeometry::FindCircle(x, y, z, vx, vy, vz, myAngle, omega, rx, ry, rz, nx, ny, nz, r);
 
@@ -267,18 +303,20 @@ WCSimHoughTransform* WCSimRingFinder::HoughTransform(std::vector<WCSimRecoDigit*
 	return fHoughTransform;
 }
 
-WCSimHoughTransformArray* WCSimRingFinder::HoughTransformArray(WCSimRecoEvent* myEvent, WCSimRecoVertex* myVertex) {
+WCSimHoughTransformArray *WCSimRingFinder::HoughTransformArray(WCSimRecoEvent *myEvent, WCSimRecoVertex *myVertex)
+{
 	// get filter digit list
 	// =====================
-	std::vector<WCSimRecoDigit*>* myFilterDigitList = (std::vector<WCSimRecoDigit*>*) (myEvent->GetFilterDigitList());
+	std::vector<WCSimRecoDigit *> *myFilterDigitList = (std::vector<WCSimRecoDigit *> *)(myEvent->GetFilterDigitList());
 
 	// run Hough Transform
 	// ===================
-	return (WCSimHoughTransformArray*) (this->HoughTransformArray(myFilterDigitList, myVertex));
+	return (WCSimHoughTransformArray *)(this->HoughTransformArray(myFilterDigitList, myVertex));
 }
 
-WCSimHoughTransformArray* WCSimRingFinder::HoughTransformArray(std::vector<WCSimRecoDigit*>* myFilterDigitList,
-		WCSimRecoVertex* myVertex) {
+WCSimHoughTransformArray *WCSimRingFinder::HoughTransformArray(std::vector<WCSimRecoDigit *> *myFilterDigitList,
+															   WCSimRecoVertex *myVertex)
+{
 	std::cout << " *** WCSimRingFinder::HoughTransformArray(...) *** " << std::endl;
 
 	// make new Hough Transform array (if necessary)
@@ -293,8 +331,9 @@ WCSimHoughTransformArray* WCSimRingFinder::HoughTransformArray(std::vector<WCSim
 
 	// perform Hough Transform
 	// =======================
-	for (UInt_t idigit = 0; idigit < myFilterDigitList->size(); idigit++) {
-		WCSimRecoDigit* myDigit = (WCSimRecoDigit*) (myFilterDigitList->at(idigit));
+	for (UInt_t idigit = 0; idigit < myFilterDigitList->size(); idigit++)
+	{
+		WCSimRecoDigit *myDigit = (WCSimRecoDigit *)(myFilterDigitList->at(idigit));
 
 		Double_t x = myDigit->GetX();
 		Double_t y = myDigit->GetY();
@@ -318,13 +357,15 @@ WCSimHoughTransformArray* WCSimRingFinder::HoughTransformArray(std::vector<WCSim
 		//Double_t weight = 1.0;
 
 		// Loops over omega to step round the rim of cones, and over nAngle to repeat over cone angles
-		for (Int_t n = 0; n < fHoughPoints; n++) {
-			omega = 360.0 * ((double) n / (double) fHoughPoints);
+		for (Int_t n = 0; n < fHoughPoints; n++)
+		{
+			omega = 360.0 * ((double)n / (double)fHoughPoints);
 
-			for (Int_t nAngle = 0; nAngle < fHoughTransformArray->GetConeAngleBins(); nAngle++) {
+			for (Int_t nAngle = 0; nAngle < fHoughTransformArray->GetConeAngleBins(); nAngle++)
+			{
 				Double_t myAngle = fHoughTransformArray->GetConeAngle(nAngle);
-				WCSimHoughTransform* myHoughTransform = (WCSimHoughTransform*) (fHoughTransformArray->GetHoughTransform(
-						nAngle));
+				WCSimHoughTransform *myHoughTransform = (WCSimHoughTransform *)(fHoughTransformArray->GetHoughTransform(
+					nAngle));
 
 				WCSimGeometry::FindCircle(x, y, z, vx, vy, vz, myAngle, omega, rx, ry, rz, nx, ny, nz, r);
 
@@ -337,4 +378,3 @@ WCSimHoughTransformArray* WCSimRingFinder::HoughTransformArray(std::vector<WCSim
 	// ================================
 	return fHoughTransformArray;
 }
-

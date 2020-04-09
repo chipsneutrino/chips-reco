@@ -23,10 +23,11 @@
 #include "WCSimPIDTree.hh"
 
 #ifndef REFLEX_DICTIONARY
-ClassImp (WCSimPID);
+ClassImp(WCSimPID);
 #endif
 
-WCSimPID::WCSimPID() {
+WCSimPID::WCSimPID()
+{
 	fElTrainDir = "";
 	fMuTrainDir = "";
 	fNcTrainDir = "";
@@ -35,23 +36,25 @@ WCSimPID::WCSimPID() {
 	fMuAllDir = "";
 }
 
-WCSimPID::~WCSimPID() {
+WCSimPID::~WCSimPID()
+{
 	// TODO Auto-generated destructor stub
 }
 
 // Public Methods
-void WCSimPID::Train() {
+void WCSimPID::Train()
+{
 	std::cout << " *** WCSimPID::Train() *** " << std::endl;
 
 	// Check the training directories have been set...
 	assert(fElTrainDir != "" && fMuTrainDir != "" && fNcTrainDir != "");
 
 	// Define the names of the training files we create and then use...
-	const char * elFile = "elTraining.root";
-	const char * muFile = "muTraining.root";
+	const char *elFile = "elTraining.root";
+	const char *muFile = "muTraining.root";
 
-	const char * elFile_NCSelect = "elTraining_NCSelect.root";
-	const char * ncFile_NCSelect = "ncTraining_NCSelect.root";
+	const char *elFile_NCSelect = "elTraining_NCSelect.root";
+	const char *ncFile_NCSelect = "ncTraining_NCSelect.root";
 
 	// Make the training files for the Nue vs Numu network
 	MakeTrainingFile(fElTrainDir, elFile);
@@ -68,15 +71,16 @@ void WCSimPID::Train() {
 	TrainTMVA_electronCCQEvsNC(elFile_NCSelect, ncFile_NCSelect);
 }
 
-void WCSimPID::Read() {
+void WCSimPID::Read()
+{
 	std::cout << " *** WCSimPID::Read() *** " << std::endl;
 
 	// Check the reading directories have been set...
 	assert(fElAllDir != "" && fMuAllDir != "");
 
 	// Define the names of the output files...
-	const char * elAllFile = "elAllOutput.root";
-	const char * muAllFile = "muAllOutput.root";
+	const char *elAllFile = "elAllOutput.root";
+	const char *muAllFile = "muAllOutput.root";
 
 	// Read to file for the two directories...
 	ReadToFile(fElAllDir, elAllFile);
@@ -87,32 +91,43 @@ void WCSimPID::Read() {
 }
 
 // Private Methods
-void WCSimPID::MakeCombinedFile(std::string trainDir, const char * trainingFileName) {
+void WCSimPID::MakeCombinedFile(std::string trainDir, const char *trainingFileName)
+{
 	std::cout << "Making combined File from -> " << trainDir << std::endl;
 
 	// We want to fill a TChain with all the files in the directory that are worth using...
-	TChain * chain = new TChain("fResultsTree");
+	TChain *chain = new TChain("fResultsTree");
 
-	char* dir = gSystem->ExpandPathName(trainDir.c_str());
-    void* dirp = gSystem->OpenDirectory(dir);
-    const char* entry;
-    TString str;
+	char *dir = gSystem->ExpandPathName(trainDir.c_str());
+	void *dirp = gSystem->OpenDirectory(dir);
+	const char *entry;
+	TString str;
 	int fileSkipNoTree = 0;
 	int fileSkipBadBranches = 0;
 	int totalFiles = 0;
-    while((entry = (char*)gSystem->GetDirEntry(dirp))){
-        str = entry;
-        if(str.EndsWith("_tree.root")){
+	while ((entry = (char *)gSystem->GetDirEntry(dirp)))
+	{
+		str = entry;
+		if (str.EndsWith("_tree.root"))
+		{
 			totalFiles += 1;
 			//std::cout << "Processing File -> " << entry << " ..." << std::endl;
 
 			// Open the file and check a couple of things...
 			// 1) It contains the TTree "fResultsTree"
 			// 2) "fResultsTree" contains 6 branches (EventHeader, TruthInfo, RecoSummary_ElectronLike, PIDInfo_ElectronLike, RecoSummary_MuonLike, PIDInfo_MuonLike)
-			TFile * inputFile = new TFile(gSystem->ConcatFileName(dir, entry), "READ");
-			if(!inputFile->GetListOfKeys()->Contains("fResultsTree")){ fileSkipNoTree += 1; continue;}
-			TTree * resultsTree = (TTree*) (inputFile->Get("fResultsTree"));
-			if(resultsTree->GetListOfBranches()->GetEntries() != 6) { fileSkipBadBranches += 1; continue; }
+			TFile *inputFile = new TFile(gSystem->ConcatFileName(dir, entry), "READ");
+			if (!inputFile->GetListOfKeys()->Contains("fResultsTree"))
+			{
+				fileSkipNoTree += 1;
+				continue;
+			}
+			TTree *resultsTree = (TTree *)(inputFile->Get("fResultsTree"));
+			if (resultsTree->GetListOfBranches()->GetEntries() != 6)
+			{
+				fileSkipBadBranches += 1;
+				continue;
+			}
 
 			// If it passes the tests, close the file and add to the TChain so we can use its events...
 			inputFile->Close();
@@ -124,39 +139,42 @@ void WCSimPID::MakeCombinedFile(std::string trainDir, const char * trainingFileN
 	// Now we merge the TChain into a new TFile with the name given by trainingFileName...
 	chain->Merge(trainingFileName);
 
-	std::cout << "Total Files -> " << totalFiles << ", Used -> " << (totalFiles-(fileSkipNoTree+fileSkipBadBranches)) << std::endl;
+	std::cout << "Total Files -> " << totalFiles << ", Used -> " << (totalFiles - (fileSkipNoTree + fileSkipBadBranches)) << std::endl;
 	std::cout << "fileSkipNoTree -> " << fileSkipNoTree << ", fileSkipBadBranches -> " << fileSkipBadBranches << std::endl;
 	std::cout << "Chain contains " << chain->GetEntries() << " events" << std::endl;
 
 	delete chain;
 }
 
-void WCSimPID::MakeTrainingFile(std::string trainDir, const char * trainingFileName) {
+void WCSimPID::MakeTrainingFile(std::string trainDir, const char *trainingFileName)
+{
 
 	// Make the combined file first
 	MakeCombinedFile(trainDir, trainingFileName);
 
 	// Now we add the PIDTree to the training file which merges various parameters from the resultsTree into one tree...
-	TFile * trainingFile = new TFile(trainingFileName,"UPDATE");
+	TFile *trainingFile = new TFile(trainingFileName, "UPDATE");
 	assert(trainingFile->GetListOfKeys()->Contains("fResultsTree"));
-    TTree * resultsTree = (TTree*) (trainingFile->Get("fResultsTree"));
+	TTree *resultsTree = (TTree *)(trainingFile->Get("fResultsTree"));
 	int numEntries = resultsTree->GetEntries();
 
-	WCSimPIDTree * pidTree = new WCSimPIDTree(resultsTree);
+	WCSimPIDTree *pidTree = new WCSimPIDTree(resultsTree);
 
 	int totalCut = 0;
 	// Loop over the events
-	for(Int_t iEvent = 0; iEvent < numEntries; ++iEvent) {
-		if (!pidTree->GetEntry(iEvent)) { 
+	for (Int_t iEvent = 0; iEvent < numEntries; ++iEvent)
+	{
+		if (!pidTree->GetEntry(iEvent))
+		{
 			totalCut += 1;
-			continue; 
+			continue;
 		}
 		pidTree->FillTree();
 		pidTree->Clear();
 	}
-	std::cout << "Total Events -> " << numEntries << ", used -> " << (numEntries-totalCut) << std::endl;
+	std::cout << "Total Events -> " << numEntries << ", used -> " << (numEntries - totalCut) << std::endl;
 
-	TTree * tree = pidTree->GetOutputTree();
+	TTree *tree = pidTree->GetOutputTree();
 	tree->Write();
 	trainingFile->Close();
 
@@ -164,27 +182,28 @@ void WCSimPID::MakeTrainingFile(std::string trainDir, const char * trainingFileN
 	delete trainingFile;
 }
 
-void WCSimPID::MakeTrainingFile_NCSelect(std::string trainDir, const char * trainingFileName) {
+void WCSimPID::MakeTrainingFile_NCSelect(std::string trainDir, const char *trainingFileName)
+{
 
 	// Make the combined file first
 	MakeCombinedFile(trainDir, trainingFileName);
 
 	// Now we add the PIDTree to the training file which merges various parameters from the resultsTree into one tree...
-	TFile * trainingFile = new TFile(trainingFileName,"UPDATE");
+	TFile *trainingFile = new TFile(trainingFileName, "UPDATE");
 	assert(trainingFile->GetListOfKeys()->Contains("fResultsTree"));
-    TTree * resultsTree = (TTree*) (trainingFile->Get("fResultsTree"));
+	TTree *resultsTree = (TTree *)(trainingFile->Get("fResultsTree"));
 	int numEntries = resultsTree->GetEntries();
 
-	WCSimPIDTree * pidTree = new WCSimPIDTree(resultsTree);
+	WCSimPIDTree *pidTree = new WCSimPIDTree(resultsTree);
 
 	// Define the variables for the TMVA reader
 	float annNueCCQEvsNumuCCQE = 0.0;
 
 	float nHits;
 	float totalQ;
-    float deltaCharge2LnL;
-    float deltaTime2LnL;
-    float deltaCharge2LnLOverNHits;
+	float deltaCharge2LnL;
+	float deltaTime2LnL;
+	float deltaCharge2LnLOverNHits;
 
 	float charge2LnL_el;
 	float charge2LnL_mu;
@@ -192,64 +211,66 @@ void WCSimPID::MakeTrainingFile_NCSelect(std::string trainDir, const char * trai
 	float time2LnL_mu;
 
 	float fracHitsOutsideRing_el;
-    float fracHitsOutsideRing_mu;
+	float fracHitsOutsideRing_mu;
 	float fracHitsInRing_el;
-    float fracHitsInRing_mu;
+	float fracHitsInRing_mu;
 	float fracQOutsideRing_el;
-    float fracQOutsideRing_mu;
+	float fracQOutsideRing_mu;
 	float fracQInRing_el;
-    float fracQInRing_mu;
+	float fracQInRing_mu;
 	float fracPredQOutsideRing_el;
-    float fracPredQOutsideRing_mu;
+	float fracPredQOutsideRing_mu;
 	float fracPredQInRing_el;
-    float fracPredQInRing_mu;
+	float fracPredQInRing_mu;
 
-    float predictedChargeOverTotalCharge_mu;
-    float predictedChargeOverTotalCharge_el;
-    float recoEOverQ_mu;
-    float recoEOverQ_el;
+	float predictedChargeOverTotalCharge_mu;
+	float predictedChargeOverTotalCharge_el;
+	float recoEOverQ_mu;
+	float recoEOverQ_el;
 
 	// Reader for the nue CCQE vs. numu CCQE ANN
-	TMVA::Reader* reader = new TMVA::Reader("!Color:!Silent");
+	TMVA::Reader *reader = new TMVA::Reader("!Color:!Silent");
 
-	reader->AddVariable("nHits",&nHits);
-	reader->AddVariable("totalQ",&nHits);
-	reader->AddVariable("deltaCharge2LnL",&deltaCharge2LnL);
-	reader->AddVariable("deltaTime2LnL",&deltaTime2LnL);
-	reader->AddVariable("deltaCharge2LnLOverNHits",&deltaCharge2LnLOverNHits);
+	reader->AddVariable("nHits", &nHits);
+	reader->AddVariable("totalQ", &nHits);
+	reader->AddVariable("deltaCharge2LnL", &deltaCharge2LnL);
+	reader->AddVariable("deltaTime2LnL", &deltaTime2LnL);
+	reader->AddVariable("deltaCharge2LnLOverNHits", &deltaCharge2LnLOverNHits);
 
-	reader->AddVariable("charge2LnL_el",&charge2LnL_el);
-	reader->AddVariable("charge2LnL_mu",&charge2LnL_mu);
-	reader->AddVariable("time2LnL_el",&time2LnL_el);
-	reader->AddVariable("time2LnL_mu",&time2LnL_mu);
+	reader->AddVariable("charge2LnL_el", &charge2LnL_el);
+	reader->AddVariable("charge2LnL_mu", &charge2LnL_mu);
+	reader->AddVariable("time2LnL_el", &time2LnL_el);
+	reader->AddVariable("time2LnL_mu", &time2LnL_mu);
 
-	reader->AddVariable("fracHitsOutsideRing_el",&fracHitsOutsideRing_el);
-	reader->AddVariable("fracHitsOutsideRing_mu",&fracHitsOutsideRing_mu);
-	reader->AddVariable("fracHitsInRing_el",&fracHitsInRing_el);
-	reader->AddVariable("fracHitsInRing_mu",&fracHitsInRing_mu);
-	reader->AddVariable("fracQOutsideRing_el",&fracQOutsideRing_el);
-	reader->AddVariable("fracQOutsideRing_mu",&fracQOutsideRing_mu);
-	reader->AddVariable("fracQInRing_el",&fracQInRing_el);
-	reader->AddVariable("fracQInRing_mu",&fracQInRing_mu);
-	reader->AddVariable("fracPredQOutsideRing_el",&fracPredQOutsideRing_el);
-	reader->AddVariable("fracPredQOutsideRing_mu",&fracPredQOutsideRing_mu);
-	reader->AddVariable("fracPredQInRing_el",&fracPredQInRing_el);
-	reader->AddVariable("fracPredQInRing_mu",&fracPredQInRing_mu);
+	reader->AddVariable("fracHitsOutsideRing_el", &fracHitsOutsideRing_el);
+	reader->AddVariable("fracHitsOutsideRing_mu", &fracHitsOutsideRing_mu);
+	reader->AddVariable("fracHitsInRing_el", &fracHitsInRing_el);
+	reader->AddVariable("fracHitsInRing_mu", &fracHitsInRing_mu);
+	reader->AddVariable("fracQOutsideRing_el", &fracQOutsideRing_el);
+	reader->AddVariable("fracQOutsideRing_mu", &fracQOutsideRing_mu);
+	reader->AddVariable("fracQInRing_el", &fracQInRing_el);
+	reader->AddVariable("fracQInRing_mu", &fracQInRing_mu);
+	reader->AddVariable("fracPredQOutsideRing_el", &fracPredQOutsideRing_el);
+	reader->AddVariable("fracPredQOutsideRing_mu", &fracPredQOutsideRing_mu);
+	reader->AddVariable("fracPredQInRing_el", &fracPredQInRing_el);
+	reader->AddVariable("fracPredQInRing_mu", &fracPredQInRing_mu);
 
-	reader->AddVariable("predictedChargeOverTotalCharge_el",&predictedChargeOverTotalCharge_el);
-	reader->AddVariable("predictedChargeOverTotalCharge_mu",&predictedChargeOverTotalCharge_mu);
-	reader->AddVariable("recoEOverQ_el",&recoEOverQ_el);
-	reader->AddVariable("recoEOverQ_mu",&recoEOverQ_mu);
-	
+	reader->AddVariable("predictedChargeOverTotalCharge_el", &predictedChargeOverTotalCharge_el);
+	reader->AddVariable("predictedChargeOverTotalCharge_mu", &predictedChargeOverTotalCharge_mu);
+	reader->AddVariable("recoEOverQ_el", &recoEOverQ_el);
+	reader->AddVariable("recoEOverQ_mu", &recoEOverQ_mu);
+
 	// Set the weight file
 	reader->BookMVA("MLP", "weights/tmva_nueCCQE_vs_numuCCQE_MLP.weights.xml");
 
 	int totalCut = 0;
 	// Loop over the events
-	for(Int_t iEvent = 0; iEvent < numEntries; ++iEvent) {
-		if (!pidTree->GetEntry(iEvent)) { 
+	for (Int_t iEvent = 0; iEvent < numEntries; ++iEvent)
+	{
+		if (!pidTree->GetEntry(iEvent))
+		{
 			totalCut += 1;
-			continue; 
+			continue;
 		}
 
 		// Fill the needed variables for the readers from the PIDTree
@@ -289,9 +310,9 @@ void WCSimPID::MakeTrainingFile_NCSelect(std::string trainDir, const char * trai
 		pidTree->FillTree();
 		pidTree->Clear();
 	}
-	std::cout << "Total Events -> " << numEntries << ", used -> " << (numEntries-totalCut) << std::endl;
+	std::cout << "Total Events -> " << numEntries << ", used -> " << (numEntries - totalCut) << std::endl;
 
-	TTree * tree = pidTree->GetOutputTree();
+	TTree *tree = pidTree->GetOutputTree();
 	tree->Write();
 	trainingFile->Close();
 
@@ -299,25 +320,27 @@ void WCSimPID::MakeTrainingFile_NCSelect(std::string trainDir, const char * trai
 	delete trainingFile;
 }
 
-void WCSimPID::TrainTMVA_electronMuonCCQE(const char * sigFileName, const char * bkgFileName) {
+void WCSimPID::TrainTMVA_electronMuonCCQE(const char *sigFileName, const char *bkgFileName)
+{
 	std::cout << " *** WCSimPID::TrainTMVA_electronMuonCCQE() *** " << std::endl;
 
-    // Fill the signal and background TChains...
-    TChain * sig = new TChain("PIDTree_ann"); 
-    sig->Add(sigFileName);
-	TChain * bkgNumuCC = new TChain("PIDTree_ann");
-    bkgNumuCC->Add(bkgFileName);
+	// Fill the signal and background TChains...
+	TChain *sig = new TChain("PIDTree_ann");
+	sig->Add(sigFileName);
+	TChain *bkgNumuCC = new TChain("PIDTree_ann");
+	bkgNumuCC->Add(bkgFileName);
 
-    // Open the output file and create the TMVA factory object...
-    TFile* outputFile = TFile::Open("weights/tmva_nueCCQE_vs_numuCCQE.root", "RECREATE");
-    TMVA::Factory* factory = new TMVA::Factory("tmva_nueCCQE_vs_numuCCQE", outputFile, "");
+	// Open the output file and create the TMVA factory object...
+	TFile *outputFile = TFile::Open("weights/tmva_nueCCQE_vs_numuCCQE.root", "RECREATE");
+	TMVA::Factory *factory = new TMVA::Factory("tmva_nueCCQE_vs_numuCCQE", outputFile, "");
 
-	TMVA::DataLoader* loader = new TMVA::DataLoader("dataset");
+	TMVA::DataLoader *loader = new TMVA::DataLoader("dataset");
 
-    // global event weights (see below for setting event-wise weights)
-    double sigWeight = 1.0; double bkgNumuCCWeight = 1.0;
-    loader->AddSignalTree(sig, sigWeight);
-    loader->AddBackgroundTree(bkgNumuCC, bkgNumuCCWeight);
+	// global event weights (see below for setting event-wise weights)
+	double sigWeight = 1.0;
+	double bkgNumuCCWeight = 1.0;
+	loader->AddSignalTree(sig, sigWeight);
+	loader->AddBackgroundTree(bkgNumuCC, bkgNumuCCWeight);
 
 	/*
     loader->AddVariable("nHits",'F');
@@ -337,80 +360,82 @@ void WCSimPID::TrainTMVA_electronMuonCCQE(const char * sigFileName, const char *
 	*/
 
 	// Variables for Nue vs Numu ANN...
-    loader->AddVariable("nHits",'F');
-	loader->AddVariable("totalQ",'F');
-    loader->AddVariable("deltaCharge2LnL",'F');
-    loader->AddVariable("deltaTime2LnL",'F');
-    loader->AddVariable("deltaCharge2LnLOverNHits",'F');	
+	loader->AddVariable("nHits", 'F');
+	loader->AddVariable("totalQ", 'F');
+	loader->AddVariable("deltaCharge2LnL", 'F');
+	loader->AddVariable("deltaTime2LnL", 'F');
+	loader->AddVariable("deltaCharge2LnLOverNHits", 'F');
 
-	loader->AddVariable("charge2LnL_el",'F');
-	loader->AddVariable("charge2LnL_mu",'F');
-	loader->AddVariable("time2LnL_el",'F');
-    loader->AddVariable("time2LnL_mu",'F');
+	loader->AddVariable("charge2LnL_el", 'F');
+	loader->AddVariable("charge2LnL_mu", 'F');
+	loader->AddVariable("time2LnL_el", 'F');
+	loader->AddVariable("time2LnL_mu", 'F');
 
-	loader->AddVariable("fracHitsOutsideRing_el",'F');
-    loader->AddVariable("fracHitsOutsideRing_mu",'F');
-	loader->AddVariable("fracHitsInRing_el",'F');
-    loader->AddVariable("fracHitsInRing_mu",'F');
-    loader->AddVariable("fracQOutsideRing_el",'F');
-    loader->AddVariable("fracQOutsideRing_mu",'F');
-	loader->AddVariable("fracQInRing_el",'F');
-    loader->AddVariable("fracQInRing_mu",'F');
-	loader->AddVariable("fracPredQOutsideRing_el",'F');
-    loader->AddVariable("fracPredQOutsideRing_mu",'F');
-	loader->AddVariable("fracPredQInRing_el",'F');
-    loader->AddVariable("fracPredQInRing_mu",'F');
-    
-	loader->AddVariable("predictedChargeOverTotalCharge_el",'F');
-    loader->AddVariable("predictedChargeOverTotalCharge_mu",'F');
-    loader->AddVariable("recoEOverQ_el",'F');
-    loader->AddVariable("recoEOverQ_mu",'F');
-    
-    //loader->AddVariable("nRings",'F');
-    //loader->AddVariable("firstRingHeight",'F');
-    //loader->AddVariable("lastRingHeight",'F');
+	loader->AddVariable("fracHitsOutsideRing_el", 'F');
+	loader->AddVariable("fracHitsOutsideRing_mu", 'F');
+	loader->AddVariable("fracHitsInRing_el", 'F');
+	loader->AddVariable("fracHitsInRing_mu", 'F');
+	loader->AddVariable("fracQOutsideRing_el", 'F');
+	loader->AddVariable("fracQOutsideRing_mu", 'F');
+	loader->AddVariable("fracQInRing_el", 'F');
+	loader->AddVariable("fracQInRing_mu", 'F');
+	loader->AddVariable("fracPredQOutsideRing_el", 'F');
+	loader->AddVariable("fracPredQOutsideRing_mu", 'F');
+	loader->AddVariable("fracPredQInRing_el", 'F');
+	loader->AddVariable("fracPredQInRing_mu", 'F');
 
-    // We apply the preselection...
+	loader->AddVariable("predictedChargeOverTotalCharge_el", 'F');
+	loader->AddVariable("predictedChargeOverTotalCharge_mu", 'F');
+	loader->AddVariable("recoEOverQ_el", 'F');
+	loader->AddVariable("recoEOverQ_mu", 'F');
+
+	//loader->AddVariable("nRings",'F');
+	//loader->AddVariable("firstRingHeight",'F');
+	//loader->AddVariable("lastRingHeight",'F');
+
+	// We apply the preselection...
 	//TCut mycut = "preselected == 1 && !veto";
-    TCut mycut = "preselected == 1";
+	TCut mycut = "preselected == 1";
 
-    // Use half of the events for training, half for testing
-    loader->PrepareTrainingAndTestTree(mycut, mycut, "nTrain_Signal=25000:nTrain_Background=25000:SplitMode=Random:NormMode=NumEvents:!V");
+	// Use half of the events for training, half for testing
+	loader->PrepareTrainingAndTestTree(mycut, mycut, "nTrain_Signal=25000:nTrain_Background=25000:SplitMode=Random:NormMode=NumEvents:!V");
 
-    // Book MVA method (see TMVA manual) for more methods...  
-    factory->BookMethod(loader, TMVA::Types::kMLP, "MLP","H:!V:NeuronType=tanh:VarTransform=N:NCycles=600:HiddenLayers=N+5:TestRate=5" );
+	// Book MVA method (see TMVA manual) for more methods...
+	factory->BookMethod(loader, TMVA::Types::kMLP, "MLP", "H:!V:NeuronType=tanh:VarTransform=N:NCycles=600:HiddenLayers=N+5:TestRate=5");
 
-    // Train, test and evaluate all methods
-    factory->TrainAllMethods();
-    factory->TestAllMethods();
-    factory->EvaluateAllMethods();
+	// Train, test and evaluate all methods
+	factory->TrainAllMethods();
+	factory->TestAllMethods();
+	factory->EvaluateAllMethods();
 
-    // Save the output and finish up
-    outputFile->Close();
-    delete factory;
+	// Save the output and finish up
+	outputFile->Close();
+	delete factory;
 	delete loader;
-    return;
+	return;
 }
 
-void WCSimPID::TrainTMVA_electronCCQEvsNC(const char * sigFileName, const char * bkgFileName) {
+void WCSimPID::TrainTMVA_electronCCQEvsNC(const char *sigFileName, const char *bkgFileName)
+{
 	std::cout << " *** WCSimPID::TrainTMVA_electronCCQEvsNC() *** " << std::endl;
 
 	// Fill the signal and background TChains...
-    TChain * sig = new TChain("PIDTree_ann");
-    sig->Add(sigFileName);
-    TChain * bkgNumuNC = new TChain("PIDTree_ann");
-    bkgNumuNC->Add(bkgFileName);
+	TChain *sig = new TChain("PIDTree_ann");
+	sig->Add(sigFileName);
+	TChain *bkgNumuNC = new TChain("PIDTree_ann");
+	bkgNumuNC->Add(bkgFileName);
 
-    // Open the output file and create the TMVA factory object...
-    TFile* outputFile = TFile::Open("weights/tmva_nueCCQE_vs_numuNC.root", "RECREATE");
-    TMVA::Factory* factory = new TMVA::Factory("tmva_nueCCQE_vs_numuNC", outputFile, "");
+	// Open the output file and create the TMVA factory object...
+	TFile *outputFile = TFile::Open("weights/tmva_nueCCQE_vs_numuNC.root", "RECREATE");
+	TMVA::Factory *factory = new TMVA::Factory("tmva_nueCCQE_vs_numuNC", outputFile, "");
 
-	TMVA::DataLoader* loader = new TMVA::DataLoader("dataset");
+	TMVA::DataLoader *loader = new TMVA::DataLoader("dataset");
 
-    // global event weights (see below for setting event-wise weights)
-    double sigWeight = 1.0; double bkgNumuNCWeight = 1.0;
-    loader->AddSignalTree(sig, sigWeight);
-    loader->AddBackgroundTree(bkgNumuNC, bkgNumuNCWeight);
+	// global event weights (see below for setting event-wise weights)
+	double sigWeight = 1.0;
+	double bkgNumuNCWeight = 1.0;
+	loader->AddSignalTree(sig, sigWeight);
+	loader->AddBackgroundTree(bkgNumuNC, bkgNumuNCWeight);
 
 	/*
     loader->AddVariable("nHits",'F');
@@ -432,114 +457,116 @@ void WCSimPID::TrainTMVA_electronCCQEvsNC(const char * sigFileName, const char *
 	*/
 
 	// Variables for Nue vs Numu ANN...
-    loader->AddVariable("nHits",'F');
-	loader->AddVariable("totalQ",'F');
-    loader->AddVariable("deltaCharge2LnL",'F');
-    loader->AddVariable("deltaTime2LnL",'F');
-    loader->AddVariable("deltaCharge2LnLOverNHits",'F');	
+	loader->AddVariable("nHits", 'F');
+	loader->AddVariable("totalQ", 'F');
+	loader->AddVariable("deltaCharge2LnL", 'F');
+	loader->AddVariable("deltaTime2LnL", 'F');
+	loader->AddVariable("deltaCharge2LnLOverNHits", 'F');
 
-	loader->AddVariable("charge2LnL_el",'F');
-	loader->AddVariable("charge2LnL_mu",'F');
-	loader->AddVariable("time2LnL_el",'F');
-    loader->AddVariable("time2LnL_mu",'F');
+	loader->AddVariable("charge2LnL_el", 'F');
+	loader->AddVariable("charge2LnL_mu", 'F');
+	loader->AddVariable("time2LnL_el", 'F');
+	loader->AddVariable("time2LnL_mu", 'F');
 
-	loader->AddVariable("fracHitsOutsideRing_el",'F');
-    loader->AddVariable("fracHitsOutsideRing_mu",'F');
-	loader->AddVariable("fracHitsInRing_el",'F');
-    loader->AddVariable("fracHitsInRing_mu",'F');
-    loader->AddVariable("fracQOutsideRing_el",'F');
-    loader->AddVariable("fracQOutsideRing_mu",'F');
-	loader->AddVariable("fracQInRing_el",'F');
-    loader->AddVariable("fracQInRing_mu",'F');
-	loader->AddVariable("fracPredQOutsideRing_el",'F');
-    loader->AddVariable("fracPredQOutsideRing_mu",'F');
-	loader->AddVariable("fracPredQInRing_el",'F');
-    loader->AddVariable("fracPredQInRing_mu",'F');
-    
-	loader->AddVariable("predictedChargeOverTotalCharge_el",'F');
-    loader->AddVariable("predictedChargeOverTotalCharge_mu",'F');
-    loader->AddVariable("recoEOverQ_el",'F');
-    loader->AddVariable("recoEOverQ_mu",'F');
+	loader->AddVariable("fracHitsOutsideRing_el", 'F');
+	loader->AddVariable("fracHitsOutsideRing_mu", 'F');
+	loader->AddVariable("fracHitsInRing_el", 'F');
+	loader->AddVariable("fracHitsInRing_mu", 'F');
+	loader->AddVariable("fracQOutsideRing_el", 'F');
+	loader->AddVariable("fracQOutsideRing_mu", 'F');
+	loader->AddVariable("fracQInRing_el", 'F');
+	loader->AddVariable("fracQInRing_mu", 'F');
+	loader->AddVariable("fracPredQOutsideRing_el", 'F');
+	loader->AddVariable("fracPredQOutsideRing_mu", 'F');
+	loader->AddVariable("fracPredQInRing_el", 'F');
+	loader->AddVariable("fracPredQInRing_mu", 'F');
 
-	loader->AddVariable("dirX_el",'F');
-	loader->AddVariable("dirX_mu",'F');
-	loader->AddVariable("dirY_el",'F');
-	loader->AddVariable("dirY_mu",'F');
-	loader->AddVariable("dirZ_el",'F');
-	loader->AddVariable("dirZ_mu",'F');
+	loader->AddVariable("predictedChargeOverTotalCharge_el", 'F');
+	loader->AddVariable("predictedChargeOverTotalCharge_mu", 'F');
+	loader->AddVariable("recoEOverQ_el", 'F');
+	loader->AddVariable("recoEOverQ_mu", 'F');
 
-	loader->AddVariable("fracHitsDownstream",'F');
-	loader->AddVariable("fracQDownstream",'F');
-	loader->AddVariable("fracHitsBelowMid",'F');
-	loader->AddVariable("fracQBelowMid",'F');
+	loader->AddVariable("dirX_el", 'F');
+	loader->AddVariable("dirX_mu", 'F');
+	loader->AddVariable("dirY_el", 'F');
+	loader->AddVariable("dirY_mu", 'F');
+	loader->AddVariable("dirZ_el", 'F');
+	loader->AddVariable("dirZ_mu", 'F');
 
-    //loader->AddVariable("nRings",'F');
-    //loader->AddVariable("firstRingHeight",'F');
-    //loader->AddVariable("lastRingHeight",'F');
-    
-    // We apply the preselection...
+	loader->AddVariable("fracHitsDownstream", 'F');
+	loader->AddVariable("fracQDownstream", 'F');
+	loader->AddVariable("fracHitsBelowMid", 'F');
+	loader->AddVariable("fracQBelowMid", 'F');
+
+	//loader->AddVariable("nRings",'F');
+	//loader->AddVariable("firstRingHeight",'F');
+	//loader->AddVariable("lastRingHeight",'F');
+
+	// We apply the preselection...
 	//TCut mycut = "preselected == 1 && annNueCCQEvsNumuCCQE>0.8 && !veto";
-    //TCut mycut = "preselected == 1 && annNueCCQEvsNumuCCQE>0.8";
+	//TCut mycut = "preselected == 1 && annNueCCQEvsNumuCCQE>0.8";
 	TCut mycut = "preselected == 1";
 
-    // Use half of the events for training, half for testing
-    loader->PrepareTrainingAndTestTree(mycut, mycut, "nTrain_Signal=25000:nTrain_Background=25000:SplitMode=Random:NormMode=NumEvents:!V");
+	// Use half of the events for training, half for testing
+	loader->PrepareTrainingAndTestTree(mycut, mycut, "nTrain_Signal=25000:nTrain_Background=25000:SplitMode=Random:NormMode=NumEvents:!V");
 
-    // Book MVA method (see TMVA manual) for more methods...  
-    factory->BookMethod(loader, TMVA::Types::kMLP, "MLP","H:!V:NeuronType=tanh:VarTransform=N:NCycles=600:HiddenLayers=N+5:TestRate=5" );
+	// Book MVA method (see TMVA manual) for more methods...
+	factory->BookMethod(loader, TMVA::Types::kMLP, "MLP", "H:!V:NeuronType=tanh:VarTransform=N:NCycles=600:HiddenLayers=N+5:TestRate=5");
 
-    // Train, test and evaluate all methods
-    factory->TrainAllMethods();
-    factory->TestAllMethods();
-    factory->EvaluateAllMethods();    
+	// Train, test and evaluate all methods
+	factory->TrainAllMethods();
+	factory->TestAllMethods();
+	factory->EvaluateAllMethods();
 
-    // Save the output and finish up
-    outputFile->Close();
-    delete factory;
+	// Save the output and finish up
+	outputFile->Close();
+	delete factory;
 	delete loader;
-    return;
+	return;
 }
 
-void WCSimPID::MakePlots(const char * sigFileName, const char * bkgFileName) {
+void WCSimPID::MakePlots(const char *sigFileName, const char *bkgFileName)
+{
 	std::cout << " *** WCSimPID::MakePlots() *** " << std::endl;
 
 	// Now we read the PIDTree's and make plots of sig vs background
 	//TFile * sigFile = new TFile(sigFileName,"READ");
 	//assert(sigFile->GetListOfKeys()->Contains("PIDTree_ann"));
-    //TTree * sigTree = (TTree*) (sigFile->Get("PIDTree_ann"));
+	//TTree * sigTree = (TTree*) (sigFile->Get("PIDTree_ann"));
 	//int sigFileEntries = sigTree->GetEntries();
 
 	//TFile * bkgFile = new TFile(bkgFileName,"READ");
 	//assert(bkgFile->GetListOfKeys()->Contains("PIDTree_ann"));
-    //TTree * bkgTree = (TTree*) (bkgFile->Get("PIDTree_ann"));
+	//TTree * bkgTree = (TTree*) (bkgFile->Get("PIDTree_ann"));
 	//int bkgFileEntries = bkgTree->GetEntries();
 
 	//sigFile->Close();
 	//bkgFile->Close();
 }
 
-void WCSimPID::ReadToFile(std::string readDir, const char * readFileName) {
+void WCSimPID::ReadToFile(std::string readDir, const char *readFileName)
+{
 
 	// Make the combined file first
 	MakeCombinedFile(readDir, readFileName);
 
 	// Now we add the PIDTree to the reading file and Evaluate the two ANNs
-	TFile * readingFile = new TFile(readFileName,"UPDATE");
+	TFile *readingFile = new TFile(readFileName, "UPDATE");
 	assert(readingFile->GetListOfKeys()->Contains("fResultsTree"));
-    TTree * resultsTree = (TTree*) (readingFile->Get("fResultsTree"));
+	TTree *resultsTree = (TTree *)(readingFile->Get("fResultsTree"));
 	int numEntries = resultsTree->GetEntries();
 
-	WCSimPIDTree * pidTree = new WCSimPIDTree(resultsTree);
+	WCSimPIDTree *pidTree = new WCSimPIDTree(resultsTree);
 
 	// Define the variables for the TMVA reader
 	float annNueCCQEvsNumuCCQE = 0.0;
-	float annNueCCQEvsNC       = 0.0;
+	float annNueCCQEvsNC = 0.0;
 
 	float nHits = 0.0;
 	float totalQ = 0.0;
-    float deltaCharge2LnL = 0.0;
-    float deltaTime2LnL = 0.0;
-    float deltaCharge2LnLOverNHits = 0.0;
+	float deltaCharge2LnL = 0.0;
+	float deltaTime2LnL = 0.0;
+	float deltaCharge2LnLOverNHits = 0.0;
 
 	float charge2LnL_el = 0.0;
 	float charge2LnL_mu = 0.0;
@@ -547,22 +574,22 @@ void WCSimPID::ReadToFile(std::string readDir, const char * readFileName) {
 	float time2LnL_mu = 0.0;
 
 	float fracHitsOutsideRing_el = 0.0;
-    float fracHitsOutsideRing_mu = 0.0;
+	float fracHitsOutsideRing_mu = 0.0;
 	float fracHitsInRing_el = 0.0;
-    float fracHitsInRing_mu = 0.0;
+	float fracHitsInRing_mu = 0.0;
 	float fracQOutsideRing_el = 0.0;
-    float fracQOutsideRing_mu = 0.0;
+	float fracQOutsideRing_mu = 0.0;
 	float fracQInRing_el = 0.0;
-    float fracQInRing_mu = 0.0;
+	float fracQInRing_mu = 0.0;
 	float fracPredQOutsideRing_el = 0.0;
-    float fracPredQOutsideRing_mu = 0.0;
+	float fracPredQOutsideRing_mu = 0.0;
 	float fracPredQInRing_el = 0.0;
-    float fracPredQInRing_mu = 0.0;
+	float fracPredQInRing_mu = 0.0;
 
-    float predictedChargeOverTotalCharge_mu = 0.0;
-    float predictedChargeOverTotalCharge_el = 0.0;
-    float recoEOverQ_mu = 0.0;
-    float recoEOverQ_el = 0.0;
+	float predictedChargeOverTotalCharge_mu = 0.0;
+	float predictedChargeOverTotalCharge_el = 0.0;
+	float recoEOverQ_mu = 0.0;
+	float recoEOverQ_el = 0.0;
 
 	float dirX_el = 0.0;
 	float dirX_mu = 0.0;
@@ -577,71 +604,71 @@ void WCSimPID::ReadToFile(std::string readDir, const char * readFileName) {
 	float fracQBelowMid = 0.0;
 
 	// Readers for the nue CCQE vs. numu CCQE MVAs and the nue CCQE vs NC trees
-	TMVA::Reader* readerElMu = new TMVA::Reader("!Color:!Silent");
-	TMVA::Reader* readerElNc = new TMVA::Reader("!Color:!Silent");
+	TMVA::Reader *readerElMu = new TMVA::Reader("!Color:!Silent");
+	TMVA::Reader *readerElNc = new TMVA::Reader("!Color:!Silent");
 
 	// Add the variables to the readers...
-    readerElMu->AddVariable("nHits",&nHits);
-	readerElMu->AddVariable("totalQ",&totalQ);
-    readerElMu->AddVariable("deltaCharge2LnL",&deltaCharge2LnL);
-    readerElMu->AddVariable("deltaTime2LnL",&deltaTime2LnL);
-    readerElMu->AddVariable("deltaCharge2LnLOverNHits",&deltaCharge2LnLOverNHits);	
-	readerElMu->AddVariable("charge2LnL_el",&charge2LnL_el);
-	readerElMu->AddVariable("charge2LnL_mu",&charge2LnL_mu);
-	readerElMu->AddVariable("time2LnL_el",&time2LnL_el);
-    readerElMu->AddVariable("time2LnL_mu",&time2LnL_mu);
-	readerElMu->AddVariable("fracHitsOutsideRing_el",&fracHitsOutsideRing_el);
-    readerElMu->AddVariable("fracHitsOutsideRing_mu",&fracHitsOutsideRing_mu);
-	readerElMu->AddVariable("fracHitsInRing_el",&fracHitsInRing_el);
-    readerElMu->AddVariable("fracHitsInRing_mu",&fracHitsInRing_mu);
-    readerElMu->AddVariable("fracQOutsideRing_el",&fracQOutsideRing_el);
-    readerElMu->AddVariable("fracQOutsideRing_mu",&fracQOutsideRing_mu);
-	readerElMu->AddVariable("fracQInRing_el",&fracQInRing_el);
-    readerElMu->AddVariable("fracQInRing_mu",&fracQInRing_mu);
-	readerElMu->AddVariable("fracPredQOutsideRing_el",&fracPredQOutsideRing_el);
-    readerElMu->AddVariable("fracPredQOutsideRing_mu",&fracPredQOutsideRing_mu);
-	readerElMu->AddVariable("fracPredQInRing_el",&fracPredQInRing_el);
-    readerElMu->AddVariable("fracPredQInRing_mu",&fracPredQInRing_mu);
-	readerElMu->AddVariable("predictedChargeOverTotalCharge_el",&predictedChargeOverTotalCharge_el);
-    readerElMu->AddVariable("predictedChargeOverTotalCharge_mu",&predictedChargeOverTotalCharge_mu);
-    readerElMu->AddVariable("recoEOverQ_el",&recoEOverQ_el);
-    readerElMu->AddVariable("recoEOverQ_mu",&recoEOverQ_mu);
+	readerElMu->AddVariable("nHits", &nHits);
+	readerElMu->AddVariable("totalQ", &totalQ);
+	readerElMu->AddVariable("deltaCharge2LnL", &deltaCharge2LnL);
+	readerElMu->AddVariable("deltaTime2LnL", &deltaTime2LnL);
+	readerElMu->AddVariable("deltaCharge2LnLOverNHits", &deltaCharge2LnLOverNHits);
+	readerElMu->AddVariable("charge2LnL_el", &charge2LnL_el);
+	readerElMu->AddVariable("charge2LnL_mu", &charge2LnL_mu);
+	readerElMu->AddVariable("time2LnL_el", &time2LnL_el);
+	readerElMu->AddVariable("time2LnL_mu", &time2LnL_mu);
+	readerElMu->AddVariable("fracHitsOutsideRing_el", &fracHitsOutsideRing_el);
+	readerElMu->AddVariable("fracHitsOutsideRing_mu", &fracHitsOutsideRing_mu);
+	readerElMu->AddVariable("fracHitsInRing_el", &fracHitsInRing_el);
+	readerElMu->AddVariable("fracHitsInRing_mu", &fracHitsInRing_mu);
+	readerElMu->AddVariable("fracQOutsideRing_el", &fracQOutsideRing_el);
+	readerElMu->AddVariable("fracQOutsideRing_mu", &fracQOutsideRing_mu);
+	readerElMu->AddVariable("fracQInRing_el", &fracQInRing_el);
+	readerElMu->AddVariable("fracQInRing_mu", &fracQInRing_mu);
+	readerElMu->AddVariable("fracPredQOutsideRing_el", &fracPredQOutsideRing_el);
+	readerElMu->AddVariable("fracPredQOutsideRing_mu", &fracPredQOutsideRing_mu);
+	readerElMu->AddVariable("fracPredQInRing_el", &fracPredQInRing_el);
+	readerElMu->AddVariable("fracPredQInRing_mu", &fracPredQInRing_mu);
+	readerElMu->AddVariable("predictedChargeOverTotalCharge_el", &predictedChargeOverTotalCharge_el);
+	readerElMu->AddVariable("predictedChargeOverTotalCharge_mu", &predictedChargeOverTotalCharge_mu);
+	readerElMu->AddVariable("recoEOverQ_el", &recoEOverQ_el);
+	readerElMu->AddVariable("recoEOverQ_mu", &recoEOverQ_mu);
 
-    readerElNc->AddVariable("nHits",&nHits);
-	readerElNc->AddVariable("totalQ",&totalQ);
-    readerElNc->AddVariable("deltaCharge2LnL",&deltaCharge2LnL);
-    readerElNc->AddVariable("deltaTime2LnL",&deltaTime2LnL);
-    readerElNc->AddVariable("deltaCharge2LnLOverNHits",&deltaCharge2LnLOverNHits);	
-	readerElNc->AddVariable("charge2LnL_el",&charge2LnL_el);
-	readerElNc->AddVariable("charge2LnL_mu",&charge2LnL_mu);
-	readerElNc->AddVariable("time2LnL_el",&time2LnL_el);
-    readerElNc->AddVariable("time2LnL_mu",&time2LnL_mu);
-	readerElNc->AddVariable("fracHitsOutsideRing_el",&fracHitsOutsideRing_el);
-    readerElNc->AddVariable("fracHitsOutsideRing_mu",&fracHitsOutsideRing_mu);
-	readerElNc->AddVariable("fracHitsInRing_el",&fracHitsInRing_el);
-    readerElNc->AddVariable("fracHitsInRing_mu",&fracHitsInRing_mu);
-    readerElNc->AddVariable("fracQOutsideRing_el",&fracQOutsideRing_el);
-    readerElNc->AddVariable("fracQOutsideRing_mu",&fracQOutsideRing_mu);
-	readerElNc->AddVariable("fracQInRing_el",&fracQInRing_el);
-    readerElNc->AddVariable("fracQInRing_mu",&fracQInRing_mu);
-	readerElNc->AddVariable("fracPredQOutsideRing_el",&fracPredQOutsideRing_el);
-    readerElNc->AddVariable("fracPredQOutsideRing_mu",&fracPredQOutsideRing_mu);
-	readerElNc->AddVariable("fracPredQInRing_el",&fracPredQInRing_el);
-    readerElNc->AddVariable("fracPredQInRing_mu",&fracPredQInRing_mu);
-	readerElNc->AddVariable("predictedChargeOverTotalCharge_el",&predictedChargeOverTotalCharge_el);
-    readerElNc->AddVariable("predictedChargeOverTotalCharge_mu",&predictedChargeOverTotalCharge_mu);
-    readerElNc->AddVariable("recoEOverQ_el",&recoEOverQ_el);
-    readerElNc->AddVariable("recoEOverQ_mu",&recoEOverQ_mu);
-	readerElNc->AddVariable("dirX_el",&dirX_el);
-	readerElNc->AddVariable("dirX_mu",&dirX_mu);
-	readerElNc->AddVariable("dirY_el",&dirY_el);
-	readerElNc->AddVariable("dirY_mu",&dirY_mu);
-	readerElNc->AddVariable("dirZ_el",&dirZ_el);
-	readerElNc->AddVariable("dirZ_mu",&dirZ_mu);
-	readerElNc->AddVariable("fracHitsDownstream",&fracHitsDownstream);
-	readerElNc->AddVariable("fracQDownstream",&fracQDownstream);
-	readerElNc->AddVariable("fracHitsBelowMid",&fracHitsBelowMid);
-	readerElNc->AddVariable("fracQBelowMid",&fracQBelowMid);
+	readerElNc->AddVariable("nHits", &nHits);
+	readerElNc->AddVariable("totalQ", &totalQ);
+	readerElNc->AddVariable("deltaCharge2LnL", &deltaCharge2LnL);
+	readerElNc->AddVariable("deltaTime2LnL", &deltaTime2LnL);
+	readerElNc->AddVariable("deltaCharge2LnLOverNHits", &deltaCharge2LnLOverNHits);
+	readerElNc->AddVariable("charge2LnL_el", &charge2LnL_el);
+	readerElNc->AddVariable("charge2LnL_mu", &charge2LnL_mu);
+	readerElNc->AddVariable("time2LnL_el", &time2LnL_el);
+	readerElNc->AddVariable("time2LnL_mu", &time2LnL_mu);
+	readerElNc->AddVariable("fracHitsOutsideRing_el", &fracHitsOutsideRing_el);
+	readerElNc->AddVariable("fracHitsOutsideRing_mu", &fracHitsOutsideRing_mu);
+	readerElNc->AddVariable("fracHitsInRing_el", &fracHitsInRing_el);
+	readerElNc->AddVariable("fracHitsInRing_mu", &fracHitsInRing_mu);
+	readerElNc->AddVariable("fracQOutsideRing_el", &fracQOutsideRing_el);
+	readerElNc->AddVariable("fracQOutsideRing_mu", &fracQOutsideRing_mu);
+	readerElNc->AddVariable("fracQInRing_el", &fracQInRing_el);
+	readerElNc->AddVariable("fracQInRing_mu", &fracQInRing_mu);
+	readerElNc->AddVariable("fracPredQOutsideRing_el", &fracPredQOutsideRing_el);
+	readerElNc->AddVariable("fracPredQOutsideRing_mu", &fracPredQOutsideRing_mu);
+	readerElNc->AddVariable("fracPredQInRing_el", &fracPredQInRing_el);
+	readerElNc->AddVariable("fracPredQInRing_mu", &fracPredQInRing_mu);
+	readerElNc->AddVariable("predictedChargeOverTotalCharge_el", &predictedChargeOverTotalCharge_el);
+	readerElNc->AddVariable("predictedChargeOverTotalCharge_mu", &predictedChargeOverTotalCharge_mu);
+	readerElNc->AddVariable("recoEOverQ_el", &recoEOverQ_el);
+	readerElNc->AddVariable("recoEOverQ_mu", &recoEOverQ_mu);
+	readerElNc->AddVariable("dirX_el", &dirX_el);
+	readerElNc->AddVariable("dirX_mu", &dirX_mu);
+	readerElNc->AddVariable("dirY_el", &dirY_el);
+	readerElNc->AddVariable("dirY_mu", &dirY_mu);
+	readerElNc->AddVariable("dirZ_el", &dirZ_el);
+	readerElNc->AddVariable("dirZ_mu", &dirZ_mu);
+	readerElNc->AddVariable("fracHitsDownstream", &fracHitsDownstream);
+	readerElNc->AddVariable("fracQDownstream", &fracQDownstream);
+	readerElNc->AddVariable("fracHitsBelowMid", &fracHitsBelowMid);
+	readerElNc->AddVariable("fracQBelowMid", &fracQBelowMid);
 
 	// Book the readers with their weight files...
 	readerElMu->BookMVA("MLP", "weights/tmva_nueCCQE_vs_numuCCQE_MLP.weights.xml");
@@ -649,10 +676,12 @@ void WCSimPID::ReadToFile(std::string readDir, const char * readFileName) {
 
 	int totalCut = 0;
 	// Loop over the events
-	for(Int_t iEvent = 0; iEvent < numEntries; ++iEvent) {
-		if (!pidTree->GetEntry(iEvent)) { 
+	for (Int_t iEvent = 0; iEvent < numEntries; ++iEvent)
+	{
+		if (!pidTree->GetEntry(iEvent))
+		{
 			totalCut += 1;
-			continue; 
+			continue;
 		}
 
 		// Fill the needed variables for the readers from the PIDTree
@@ -707,53 +736,54 @@ void WCSimPID::ReadToFile(std::string readDir, const char * readFileName) {
 		pidTree->FillTree();
 		pidTree->Clear();
 	}
-	std::cout << "Total Events -> " << numEntries << ", used -> " << (numEntries-totalCut) << std::endl;
+	std::cout << "Total Events -> " << numEntries << ", used -> " << (numEntries - totalCut) << std::endl;
 
-	TTree * tree = pidTree->GetOutputTree();
+	TTree *tree = pidTree->GetOutputTree();
 	tree->Write();
 	readingFile->Close();
 
 	delete pidTree;
-	delete readingFile;	
+	delete readingFile;
 }
 
-void WCSimPID::ScanCuts(const char * elAllFile, const char * muAllFile, bool makePlots) {
+void WCSimPID::ScanCuts(const char *elAllFile, const char *muAllFile, bool makePlots)
+{
 	std::cout << " *** WCSimPID::ScanCuts() *** " << std::endl;
 
 	std::cout << "Making Plots -> " << makePlots << std::endl;
 
 	// Settings...
 	double normNumEvents = 1000;
-  	double scaleNue = 0.05;
-  	double scaleNumu = 0.95;
+	double scaleNue = 0.05;
+	double scaleNumu = 0.95;
 
 	double min = 0.7;
 	double max = 1.0;
 	int nBins = 30;
-	double width = (max-min)/(double)nBins;
+	double width = (max - min) / (double)nBins;
 
-	TChain * PIDTree_ann = new TChain("PIDTree_ann", "PIDTree_ann");
-  	PIDTree_ann->Add(elAllFile);
-  	PIDTree_ann->Add(muAllFile);
+	TChain *PIDTree_ann = new TChain("PIDTree_ann", "PIDTree_ann");
+	PIDTree_ann->Add(elAllFile);
+	PIDTree_ann->Add(muAllFile);
 
 	// Number of pure CC and NC events
-    int numNueCCEvents = PIDTree_ann->GetEntries("trueBeamPDG==12 && trueCCEvent");
-    int numNueNCEvents = PIDTree_ann->GetEntries("trueBeamPDG==12 && trueNCEvent");
-    int numNumuCCEvents = PIDTree_ann->GetEntries("trueBeamPDG==14 && trueCCEvent");
-    int numNumuNCEvents = PIDTree_ann->GetEntries("trueBeamPDG==14 && trueNCEvent");
+	int numNueCCEvents = PIDTree_ann->GetEntries("trueBeamPDG==12 && trueCCEvent");
+	int numNueNCEvents = PIDTree_ann->GetEntries("trueBeamPDG==12 && trueNCEvent");
+	int numNumuCCEvents = PIDTree_ann->GetEntries("trueBeamPDG==14 && trueCCEvent");
+	int numNumuNCEvents = PIDTree_ann->GetEntries("trueBeamPDG==14 && trueNCEvent");
 
-    // Number of each type of CC event 
-    int numNueCCQEEvents = PIDTree_ann->GetEntries("trueBeamPDG==12 && trueCCEvent && trueQEEvent");
-    int numNumuCCQEEvents = PIDTree_ann->GetEntries("trueBeamPDG==14 && trueCCEvent && trueQEEvent");
-    int numNueCCnonQEEvents = PIDTree_ann->GetEntries("trueBeamPDG==12 && trueCCEvent && !trueQEEvent");
-    int numNumuCCnonQEEvents = PIDTree_ann->GetEntries("trueBeamPDG==14 && trueCCEvent && !trueQEEvent");
+	// Number of each type of CC event
+	int numNueCCQEEvents = PIDTree_ann->GetEntries("trueBeamPDG==12 && trueCCEvent && trueQEEvent");
+	int numNumuCCQEEvents = PIDTree_ann->GetEntries("trueBeamPDG==14 && trueCCEvent && trueQEEvent");
+	int numNueCCnonQEEvents = PIDTree_ann->GetEntries("trueBeamPDG==12 && trueCCEvent && !trueQEEvent");
+	int numNumuCCnonQEEvents = PIDTree_ann->GetEntries("trueBeamPDG==14 && trueCCEvent && !trueQEEvent");
 
-    double weightNueNCEvents  = normNumEvents * (scaleNue * 0.3)/(double)numNueNCEvents;
-    double weightNumuNCEvents = normNumEvents * (scaleNumu * 0.3)/(double)numNumuNCEvents;
-    double weightNueCCQEEvents  = normNumEvents * (scaleNue * 0.7 * 0.2)/(double)numNueCCQEEvents;
-    double weightNumuCCQEEvents = normNumEvents * (scaleNumu * 0.7 * 0.2)/(double)numNumuCCQEEvents;
-    double weightNueCCnonQEEvents  = normNumEvents * (scaleNue * 0.7 * 0.8)/(double)numNueCCnonQEEvents;
-    double weightNumuCCnonQEEvents = normNumEvents * (scaleNumu * 0.7 * 0.8)/(double)numNumuCCnonQEEvents;
+	double weightNueNCEvents = normNumEvents * (scaleNue * 0.3) / (double)numNueNCEvents;
+	double weightNumuNCEvents = normNumEvents * (scaleNumu * 0.3) / (double)numNumuNCEvents;
+	double weightNueCCQEEvents = normNumEvents * (scaleNue * 0.7 * 0.2) / (double)numNueCCQEEvents;
+	double weightNumuCCQEEvents = normNumEvents * (scaleNumu * 0.7 * 0.2) / (double)numNumuCCQEEvents;
+	double weightNueCCnonQEEvents = normNumEvents * (scaleNue * 0.7 * 0.8) / (double)numNueCCnonQEEvents;
+	double weightNumuCCnonQEEvents = normNumEvents * (scaleNumu * 0.7 * 0.8) / (double)numNumuCCnonQEEvents;
 
 	double maxCCQEValue = 0.0;
 	double xCutCCQEOpt = 0.0;
@@ -764,121 +794,134 @@ void WCSimPID::ScanCuts(const char * elAllFile, const char * muAllFile, bool mak
 
 	// Make some histogram to fill and save
 	// Efficiency plots...
-	TH2D * nueCCQEEffHist = new TH2D("nueCCQEEff","nueCCQEEff", nBins, min, max, nBins, min, max);
-	nueCCQEEffHist->SetMaximum(1); nueCCQEEffHist->SetMinimum(0);
+	TH2D *nueCCQEEffHist = new TH2D("nueCCQEEff", "nueCCQEEff", nBins, min, max, nBins, min, max);
+	nueCCQEEffHist->SetMaximum(1);
+	nueCCQEEffHist->SetMinimum(0);
 	nueCCQEEffHist->GetXaxis()->SetTitle("Nue vs Numu Cut");
 	nueCCQEEffHist->GetYaxis()->SetTitle("Nue vs NC Cut");
-	TH2D * nueCCEffHist = new TH2D("nueCCEff","nueCCEff", nBins, min, max, nBins, min, max);
-	nueCCEffHist->SetMaximum(1); nueCCEffHist->SetMinimum(0);
+	TH2D *nueCCEffHist = new TH2D("nueCCEff", "nueCCEff", nBins, min, max, nBins, min, max);
+	nueCCEffHist->SetMaximum(1);
+	nueCCEffHist->SetMinimum(0);
 	nueCCEffHist->GetXaxis()->SetTitle("Nue vs Numu Cut");
 	nueCCEffHist->GetYaxis()->SetTitle("Nue vs NC Cut");
-	TH2D * numuCCEffHist = new TH2D("numuCCEff","numuCCEff", nBins, min, max, nBins, min, max);
-	numuCCEffHist->SetMaximum(0.15); numuCCEffHist->SetMinimum(0);
+	TH2D *numuCCEffHist = new TH2D("numuCCEff", "numuCCEff", nBins, min, max, nBins, min, max);
+	numuCCEffHist->SetMaximum(0.15);
+	numuCCEffHist->SetMinimum(0);
 	numuCCEffHist->GetXaxis()->SetTitle("Nue vs Numu Cut");
 	numuCCEffHist->GetYaxis()->SetTitle("Nue vs NC Cut");
-	TH2D * NCEffHist = new TH2D("NCEff","NCEff", nBins, min, max, nBins, min, max);
-	NCEffHist->SetMaximum(0.15); NCEffHist->SetMinimum(0);
+	TH2D *NCEffHist = new TH2D("NCEff", "NCEff", nBins, min, max, nBins, min, max);
+	NCEffHist->SetMaximum(0.15);
+	NCEffHist->SetMinimum(0);
 	NCEffHist->GetXaxis()->SetTitle("Nue vs Numu Cut");
 	NCEffHist->GetYaxis()->SetTitle("Nue vs NC Cut");
 
 	// Purity Plots...
-	TH2D * nueCCQEPurHist = new TH2D("nueCCQEPur","nueCCQEPur", nBins, min, max, nBins, min, max);
-	nueCCQEPurHist->SetMaximum(1); nueCCQEPurHist->SetMinimum(0);
+	TH2D *nueCCQEPurHist = new TH2D("nueCCQEPur", "nueCCQEPur", nBins, min, max, nBins, min, max);
+	nueCCQEPurHist->SetMaximum(1);
+	nueCCQEPurHist->SetMinimum(0);
 	nueCCQEPurHist->GetXaxis()->SetTitle("Nue vs Numu Cut");
 	nueCCQEPurHist->GetYaxis()->SetTitle("Nue vs NC Cut");
-	TH2D * nueCCPurHist = new TH2D("nueCCPur","nueCCPur", nBins, min, max, nBins, min, max);
-	nueCCPurHist->SetMaximum(1); nueCCPurHist->SetMinimum(0);	
+	TH2D *nueCCPurHist = new TH2D("nueCCPur", "nueCCPur", nBins, min, max, nBins, min, max);
+	nueCCPurHist->SetMaximum(1);
+	nueCCPurHist->SetMinimum(0);
 	nueCCPurHist->GetXaxis()->SetTitle("Nue vs Numu Cut");
 	nueCCPurHist->GetYaxis()->SetTitle("Nue vs NC Cut");
 
 	// Eff * Put PLots...
-	TH2D * nueCCQEEffPurHist = new TH2D("nueCCQEEffPur","nueCCQEEffPur", nBins, min, max, nBins, min, max);
-	nueCCQEEffPurHist->SetMaximum(0.15); nueCCQEEffPurHist->SetMinimum(0);
+	TH2D *nueCCQEEffPurHist = new TH2D("nueCCQEEffPur", "nueCCQEEffPur", nBins, min, max, nBins, min, max);
+	nueCCQEEffPurHist->SetMaximum(0.15);
+	nueCCQEEffPurHist->SetMinimum(0);
 	nueCCQEEffPurHist->GetXaxis()->SetTitle("Nue vs Numu Cut");
-	nueCCQEEffPurHist->GetYaxis()->SetTitle("Nue vs NC Cut");	
-	TH2D * nueCCEffPurHist = new TH2D("nueCCEffPur","nueCCEffPur", nBins, min, max, nBins, min, max);
-	nueCCEffPurHist->SetMaximum(0.15); nueCCEffPurHist->SetMinimum(0);
+	nueCCQEEffPurHist->GetYaxis()->SetTitle("Nue vs NC Cut");
+	TH2D *nueCCEffPurHist = new TH2D("nueCCEffPur", "nueCCEffPur", nBins, min, max, nBins, min, max);
+	nueCCEffPurHist->SetMaximum(0.15);
+	nueCCEffPurHist->SetMinimum(0);
 	nueCCEffPurHist->GetXaxis()->SetTitle("Nue vs Numu Cut");
 	nueCCEffPurHist->GetYaxis()->SetTitle("Nue vs NC Cut");
 
-	for(int xBin=1; xBin<=nBins; xBin++) {
-		double xCut = min + ((double)xBin*width);
-		for (int yBin=0; yBin<=nBins; yBin++) {
-			double yCut = min + ((double)yBin*width);
+	for (int xBin = 1; xBin <= nBins; xBin++)
+	{
+		double xCut = min + ((double)xBin * width);
+		for (int yBin = 0; yBin <= nBins; yBin++)
+		{
+			double yCut = min + ((double)yBin * width);
 
-			// Our cut to select each sample is comes from joining together the preselection and ANN 
-            // cuts, and then adding the cut for this specific sample
-			
+			// Our cut to select each sample is comes from joining together the preselection and ANN
+			// cuts, and then adding the cut for this specific sample
+
 			// First the nue CCQEs
 			TString nueCCQECutString = Form("(trueBeamPDG==12 && trueCCEvent && trueQEEvent) && (preselected && (annNueCCQEvsNC > %f) && (annNueCCQEvsNumuCCQE > %f))", yCut, xCut);
-  			double numNueCCQECut = PIDTree_ann->GetEntries(nueCCQECutString.Data());
+			double numNueCCQECut = PIDTree_ann->GetEntries(nueCCQECutString.Data());
 
 			// Then the numu CCQEs
 			TString numuCCQECutString = Form("(trueBeamPDG==14 && trueCCEvent && trueQEEvent) && (preselected && (annNueCCQEvsNC > %f) && (annNueCCQEvsNumuCCQE > %f))", yCut, xCut);
-  			double numNumuCCQECut = PIDTree_ann->GetEntries(numuCCQECutString.Data());
+			double numNumuCCQECut = PIDTree_ann->GetEntries(numuCCQECutString.Data());
 
 			// Then the nue NCs
 			TString nueNCCutString = Form("(trueBeamPDG==12 && trueNCEvent) && (preselected && (annNueCCQEvsNC > %f) && (annNueCCQEvsNumuCCQE > %f))", yCut, xCut);
-  			double numNueNCCut = PIDTree_ann->GetEntries(nueNCCutString.Data());
+			double numNueNCCut = PIDTree_ann->GetEntries(nueNCCutString.Data());
 
 			// Then the numu NCs
 			TString numuNCCutString = Form("(trueBeamPDG==14 && trueNCEvent) && (preselected && (annNueCCQEvsNC > %f) && (annNueCCQEvsNumuCCQE > %f))", yCut, xCut);
-  			double numNumuNCCut = PIDTree_ann->GetEntries(numuNCCutString.Data());
+			double numNumuNCCut = PIDTree_ann->GetEntries(numuNCCutString.Data());
 
 			// The the nue CC but non-CCQEs
 			TString nueCCnonQECutString = Form("(trueBeamPDG==12 && trueCCEvent && !trueQEEvent) && (preselected && (annNueCCQEvsNC > %f) && (annNueCCQEvsNumuCCQE > %f))", yCut, xCut);
-  			double numNueCCnonQECut = PIDTree_ann->GetEntries(nueCCnonQECutString.Data());
+			double numNueCCnonQECut = PIDTree_ann->GetEntries(nueCCnonQECutString.Data());
 
 			// And finally the numu CC but non-CCQEs
 			TString numuCCnonQECutString = Form("(trueBeamPDG==14 && trueCCEvent && !trueQEEvent) && (preselected && (annNueCCQEvsNC > %f) && (annNueCCQEvsNumuCCQE > %f))", yCut, xCut);
-  			double numNumuCCnonQECut = PIDTree_ann->GetEntries(numuCCnonQECutString.Data());
+			double numNumuCCnonQECut = PIDTree_ann->GetEntries(numuCCnonQECutString.Data());
 
-			// Now we work out the efficiencies: the numerator is the weighted number of selected events, 
-        	// and the denominator is the weighted number of total events in this sample.  The error is the
-            // error on the mean of a binomially distributed variable: err = sqrt(p * (1-p) / n)
+			// Now we work out the efficiencies: the numerator is the weighted number of selected events,
+			// and the denominator is the weighted number of total events in this sample.  The error is the
+			// error on the mean of a binomially distributed variable: err = sqrt(p * (1-p) / n)
 
-            // First we'll do the efficiency for selecting nue CCQE events
-            //double nueCCQEEff = (numNueCCQECut*weightNueCCQEEvents)/(numNueCCQEEvents*weightNueCCQEEvents);
+			// First we'll do the efficiency for selecting nue CCQE events
+			//double nueCCQEEff = (numNueCCQECut*weightNueCCQEEvents)/(numNueCCQEEvents*weightNueCCQEEvents);
 			// Error example if we wanted to use it...
-            //errorNueCCQE = math.sqrt(nueCCQEEff * (1-nueCCQEEff) / (numNueCCQEEvents*weightNueCCQEEvents))
+			//errorNueCCQE = math.sqrt(nueCCQEEff * (1-nueCCQEEff) / (numNueCCQEEvents*weightNueCCQEEvents))
 
 			// Work out totals...
-			double nueCCAll   = ((numNueCCQECut*weightNueCCQEEvents) + (numNueCCnonQECut*weightNueCCnonQEEvents));
-            double nueCCQEAll = (numNueCCQECut*weightNueCCQEEvents);
-            double numuCCAll  = ((numNumuCCQECut*weightNumuCCQEEvents) + (numNumuCCnonQECut*weightNumuCCnonQEEvents));
-            double nuNCAll    = ((numNumuNCCut*weightNumuNCEvents) + (numNueNCCut*weightNueNCEvents));
+			double nueCCAll = ((numNueCCQECut * weightNueCCQEEvents) + (numNueCCnonQECut * weightNueCCnonQEEvents));
+			double nueCCQEAll = (numNueCCQECut * weightNueCCQEEvents);
+			double numuCCAll = ((numNumuCCQECut * weightNumuCCQEEvents) + (numNumuCCnonQECut * weightNumuCCnonQEEvents));
+			double nuNCAll = ((numNumuNCCut * weightNumuNCEvents) + (numNueNCCut * weightNueNCEvents));
 
 			// Work out Nue CCQE Efficiency and Purity
-			double nueCCQEEff = nueCCQEAll/(numNueCCQEEvents*weightNueCCQEEvents);
-			double nueCCQEPur = nueCCQEAll/(nueCCAll+numuCCAll+nuNCAll);
+			double nueCCQEEff = nueCCQEAll / (numNueCCQEEvents * weightNueCCQEEvents);
+			double nueCCQEPur = nueCCQEAll / (nueCCAll + numuCCAll + nuNCAll);
 
 			// Work out Nue CC Efficiency and Purity
-			double nueCCEff = nueCCAll/((numNueCCQEEvents*weightNueCCQEEvents) + (numNueCCnonQEEvents*weightNueCCnonQEEvents));
-			double nueCCPur = nueCCAll/(nueCCAll+numuCCAll+nuNCAll);
+			double nueCCEff = nueCCAll / ((numNueCCQEEvents * weightNueCCQEEvents) + (numNueCCnonQEEvents * weightNueCCnonQEEvents));
+			double nueCCPur = nueCCAll / (nueCCAll + numuCCAll + nuNCAll);
 
 			// Work out the numu and NC efficiency...
-			double numuCCEff = numuCCAll/((numNumuCCQEEvents*weightNumuCCQEEvents) + (numNumuCCnonQEEvents*weightNumuCCnonQEEvents));
-			double nuNCEff = nuNCAll/((numNueNCEvents*weightNueNCEvents) + (numNumuNCEvents*weightNumuNCEvents));
+			double numuCCEff = numuCCAll / ((numNumuCCQEEvents * weightNumuCCQEEvents) + (numNumuCCnonQEEvents * weightNumuCCnonQEEvents));
+			double nuNCEff = nuNCAll / ((numNueNCEvents * weightNueNCEvents) + (numNumuNCEvents * weightNumuNCEvents));
 
-            // Work out eff*pur
+			// Work out eff*pur
 			double fomCCQE = nueCCQEEff * nueCCQEPur;
 			double fomCC = nueCCEff * nueCCPur;
 
 			// Is it the best value so far?
-			if (fomCCQE >= maxCCQEValue) {
+			if (fomCCQE >= maxCCQEValue)
+			{
 				maxCCQEValue = fomCCQE;
 				xCutCCQEOpt = xCut;
 				yCutCCQEOpt = yCut;
 			}
 
-			if (fomCC >= maxCCValue) {
+			if (fomCC >= maxCCValue)
+			{
 				maxCCValue = fomCC;
 				xCutCCOpt = xCut;
 				yCutCCOpt = yCut;
 			}
 
 			// Fill all the plots...
-			if(makePlots) {
+			if (makePlots)
+			{
 				nueCCQEEffHist->SetBinContent(xBin, yBin, nueCCQEEff);
 				nueCCEffHist->SetBinContent(xBin, yBin, nueCCEff);
 				numuCCEffHist->SetBinContent(xBin, yBin, numuCCEff);
@@ -891,14 +934,14 @@ void WCSimPID::ScanCuts(const char * elAllFile, const char * muAllFile, bool mak
 
 			//std::cout << xBin << "-" << yBin << " nueCCEff=" << nueCCEff << " nueCCPur=" << nueCCPur << " fomCC=" << fomCC << std::endl;
 
-
-            //double fom_cc = nueCCAll/sqrt(nueCCAll+numuCCAll+nuNCAll);
-            //double fom_ccqe = nueCCQEAll/sqrt(nueCCAll+numuCCAll+nuNCAll);		
+			//double fom_cc = nueCCAll/sqrt(nueCCAll+numuCCAll+nuNCAll);
+			//double fom_ccqe = nueCCQEAll/sqrt(nueCCAll+numuCCAll+nuNCAll);
 		}
 	}
 
-	if(makePlots) {
-		TFile * plotFile = new TFile("cutPlots.root","RECREATE");
+	if (makePlots)
+	{
+		TFile *plotFile = new TFile("cutPlots.root", "RECREATE");
 		nueCCQEEffHist->Write();
 		nueCCEffHist->Write();
 		numuCCEffHist->Write();
@@ -908,7 +951,7 @@ void WCSimPID::ScanCuts(const char * elAllFile, const char * muAllFile, bool mak
 		nueCCQEEffPurHist->Write();
 		nueCCEffPurHist->Write();
 		plotFile->Close();
-	}	
+	}
 
 	std::cout << "CCQE Opt (" << maxCCQEValue << ") at x=" << xCutCCQEOpt << " y=" << yCutCCQEOpt << std::endl;
 	std::cout << "CC Opt (" << maxCCValue << ") at x=" << xCutCCOpt << " y=" << yCutCCOpt << std::endl;

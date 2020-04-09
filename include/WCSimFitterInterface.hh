@@ -17,50 +17,51 @@ class WCSimOutputTree;
 class WCSimPiZeroFitter;
 class WCSimCosmicFitter;
 
-class WCSimFitterInterface {
-	public:
-		virtual ~WCSimFitterInterface();
-		WCSimFitterInterface();
+class WCSimFitterInterface
+{
+public:
+	virtual ~WCSimFitterInterface();
+	WCSimFitterInterface();
 
-		void SetInputFileName(const char * inputfile, bool modifyFile);
+	void SetInputFileName(const char *inputfile, bool modifyFile);
 
-		void SetMakeFits(bool makeFits);
+	void SetMakeFits(bool makeFits);
 
-		void AddFitterConfig(WCSimFitterConfig * config);
+	void AddFitterConfig(WCSimFitterConfig *config);
 
-		void AddFitterPlots(WCSimFitterPlots * plots);
+	void AddFitterPlots(WCSimFitterPlots *plots);
 
-		void InitFitter(WCSimFitterConfig * config);
+	void InitFitter(WCSimFitterConfig *config);
 
-		void LoadWCSimData();
+	void LoadWCSimData();
 
-		void InitFitterPlots(TString outputName, WCSimFitterConfig * config);
+	void InitFitterPlots(TString outputName, WCSimFitterConfig *config);
 
-		void Run();
+	void Run();
 
-	private:
-		// Fit configuration parameters
-		int fNumFits;
-		std::vector<WCSimFitterConfig *> fFitterConfigs;
+private:
+	// Fit configuration parameters
+	int fNumFits;
+	std::vector<WCSimFitterConfig *> fFitterConfigs;
 
-		// Input file parameters
-		bool fModifyInputFile;
-		TString fFileName;
-		TString fOutputName;
+	// Input file parameters
+	bool fModifyInputFile;
+	TString fFileName;
+	TString fOutputName;
 
-		// Fitters, selections, particle identification, output etc...
-		WCSimLikelihoodFitter * fFitter;
-		WCSimPiZeroFitter * fPiZeroFitter;
-		WCSimCosmicFitter * fCosmicFitter;
-		WCSimOutputTree * fOutputTree;
+	// Fitters, selections, particle identification, output etc...
+	WCSimLikelihoodFitter *fFitter;
+	WCSimPiZeroFitter *fPiZeroFitter;
+	WCSimCosmicFitter *fCosmicFitter;
+	WCSimOutputTree *fOutputTree;
 
-		bool fMakeFits;
+	bool fMakeFits;
 
-		bool fMakePlots;
-		TString fPlotsName;
-		WCSimFitterPlots * fFitterPlots;
+	bool fMakePlots;
+	TString fPlotsName;
+	WCSimFitterPlots *fFitterPlots;
 
-		ClassDef(WCSimFitterInterface,0)
+	ClassDef(WCSimFitterInterface, 0)
 };
 
 #endif /* WCSIMFITTERINTERFACE_HH_ */
