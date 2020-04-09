@@ -8,80 +8,83 @@
 class WCSimRecoDigit;
 class WCSimRecoClusteringUtil;
 
-class WCSimCosmicSeed {
+class WCSimCosmicSeed
+{
 
-	public:
+public:
+	WCSimCosmicSeed();
+	WCSimCosmicSeed(std::vector<WCSimRecoDigit *> *fVetoDigitArray);
+	~WCSimCosmicSeed();
 
-		WCSimCosmicSeed();
-		WCSimCosmicSeed(std::vector<WCSimRecoDigit*>* fVetoDigitArray);
-		~WCSimCosmicSeed();
+	void SetVetoDigits(std::vector<WCSimRecoDigit *> *digits)
+	{
+		fVetoDigits = digits;
+	}
 
-		void SetVetoDigits(std::vector<WCSimRecoDigit*>* digits) {
-			fVetoDigits = digits;
-		}
+	void SetInnerDigits(std::vector<WCSimRecoDigit *> *digits)
+	{
+		fInnerDigits = digits;
+	}
 
-		void SetInnerDigits(std::vector<WCSimRecoDigit*>* digits) {
-			fInnerDigits = digits;
-		}
+	TVector3 GetFittedVtx() const
+	{
+		return fFittedVtx;
+	}
 
-		TVector3 GetFittedVtx() const {
-			return fFittedVtx;
-		}
+	TVector3 GetFittedDir() const
+	{
+		return fFittedDir;
+	}
 
-		TVector3 GetFittedDir() const {
-			return fFittedDir;
-		}
+	double GetFittedVtxT() const
+	{
+		return fFittedVtxT;
+	}
 
-		double GetFittedVtxT() const {
-			return fFittedVtxT;
-		}
+	bool GetSuccess() const
+	{
+		return fSuccess;
+	}
 
-		bool GetSuccess() const {
-			return fSuccess;
-		}
+	void CalcSeedVtxAndDir();
 
-		void CalcSeedVtxAndDir();
+	bool HasVetoDigits();
 
-		bool HasVetoDigits();
+	// If we have a seed, check to see if a given position is inside so that we can
+	// use the seed to shadow a region of the detector.
+	bool IsHitShadowed(double hx, double hy, double hz);
 
-		// If we have a seed, check to see if a given position is inside so that we can
-		// use the seed to shadow a region of the detector.
-		bool IsHitShadowed(double hx, double hy, double hz);
+private:
+	void RunSimpleEntrySeed();
+	void RunSimpleCrossingSeed();
+	void GetSimpleDirectionFromInner();
 
-	private:
+	void RunClusteringSeed();
 
-		void RunSimpleEntrySeed();
-		void RunSimpleCrossingSeed();
-		void GetSimpleDirectionFromInner();
+	// Generate the ring points
+	void GenerateRingPoints();
 
-		void RunClusteringSeed();
+	WCSimRecoDigit *GetBiggestClusterHit(std::vector<WCSimRecoDigit *> clust);
 
-		// Generate the ring points
-		void GenerateRingPoints();
+	std::vector<WCSimRecoDigit *> *fVetoDigits;
+	std::vector<WCSimRecoDigit *> *fInnerDigits;
 
-		WCSimRecoDigit* GetBiggestClusterHit(std::vector<WCSimRecoDigit*> clust);
+	TVector3 fFittedVtx;
+	TVector3 fFittedDir;
+	double fFittedVtxT;
 
-		std::vector<WCSimRecoDigit*>* fVetoDigits;
-		std::vector<WCSimRecoDigit*>* fInnerDigits;
+	bool fSuccess;
 
-		TVector3 fFittedVtx;
-		TVector3 fFittedDir;
-		double fFittedVtxT;
+	// Store the 360 points that form the ring outline
+	std::vector<double> fRingPosX;
+	std::vector<double> fRingPosY;
+	std::vector<double> fRingPosZ;
 
-		bool fSuccess;
+	double fMaxDistBetweenRingPoints;
 
-		// Store the 360 points that form the ring outline
-		std::vector<double> fRingPosX;
-		std::vector<double> fRingPosY;
-		std::vector<double> fRingPosZ;
+	WCSimRecoClusteringUtil *fClusteringUtil;
 
-		double fMaxDistBetweenRingPoints;
-
-		WCSimRecoClusteringUtil *fClusteringUtil;
-
-		ClassDef(WCSimCosmicSeed,0)
-
+	ClassDef(WCSimCosmicSeed, 0)
 };
 
 #endif
-

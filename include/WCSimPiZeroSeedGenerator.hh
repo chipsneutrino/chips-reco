@@ -15,25 +15,28 @@
 class WCSimFitterConfig;
 class WCSimPiZeroSeed;
 
-class WCSimPiZeroSeedGenerator: public TObject {
-	public:
-		WCSimPiZeroSeedGenerator(WCSimFitterConfig * config);
-		virtual ~WCSimPiZeroSeedGenerator();
+class WCSimPiZeroSeedGenerator : public TObject
+{
+public:
+	WCSimPiZeroSeedGenerator(WCSimFitterConfig *config);
+	virtual ~WCSimPiZeroSeedGenerator();
 
-		std::vector<WCSimPiZeroSeed*> GetSeeds(const int &event);
+	std::vector<WCSimPiZeroSeed *> GetSeeds(const int &event);
 
-		virtual unsigned int GetNumSeeds() const;
+	virtual unsigned int GetNumSeeds() const;
 
-	protected:
-		void MakeSeeds();
-		std::vector<WCSimPiZeroSeed*> fPiZeroSeeds;
-		bool fMadeSeeds;
-		void SetEvent(const int &event);
-	private:
-		WCSimPiZeroHoughSeeder fPiZeroHoughSeeder;
-		WCSimPiZeroSingleElectronSeeder fPiZeroSingleElectronSeeder;
-		WCSimFitterConfig * fFitterConfig;
-		int fEvent;ClassDef(WCSimPiZeroSeedGenerator,0);
+protected:
+	void MakeSeeds();
+	std::vector<WCSimPiZeroSeed *> fPiZeroSeeds;
+	bool fMadeSeeds;
+	void SetEvent(const int &event);
+
+private:
+	WCSimPiZeroHoughSeeder fPiZeroHoughSeeder;
+	WCSimPiZeroSingleElectronSeeder fPiZeroSingleElectronSeeder;
+	WCSimFitterConfig *fFitterConfig;
+	int fEvent;
+	ClassDef(WCSimPiZeroSeedGenerator, 0);
 };
 
 #endif /* WCSIMPIZEROSEEDGENERATOR_HH_ */
