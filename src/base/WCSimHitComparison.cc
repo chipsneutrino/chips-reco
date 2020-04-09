@@ -3,6 +3,7 @@
 #ifndef REFLEX_DICTIONARY
 ClassImp(WCSimHitPrediction)
 ClassImp(WCSimSingleHitComparison)
+ClassImp(WCSimHitComparison)
 #endif
 
 WCSimHitPrediction::WCSimHitPrediction()
@@ -65,4 +66,43 @@ WCSimSingleHitComparison &WCSimSingleHitComparison::operator=(const WCSimSingleH
 WCSimSingleHitComparison::~WCSimSingleHitComparison()
 {
 	// Empty, nothing to delete here
+}
+
+WCSimHitComparison::WCSimHitComparison()
+{
+	// Empty, nothing to delete here
+}
+
+WCSimHitComparison::~WCSimHitComparison()
+{
+	// Empty, nothing to delete here
+}
+
+WCSimHitComparison::WCSimHitComparison(const WCSimHitComparison &other) : fSingleHitComparisons(other.fSingleHitComparisons)
+{
+	// Empty
+}
+
+WCSimHitComparison &WCSimHitComparison::operator=(const WCSimHitComparison &rhs)
+{
+	if (&rhs != this)
+	{
+		fSingleHitComparisons = rhs.fSingleHitComparisons;
+	}
+	return *this;
+}
+
+void WCSimHitComparison::push_back(WCSimSingleHitComparison hitComparison)
+{
+	fSingleHitComparisons.push_back(hitComparison);
+}
+
+WCSimSingleHitComparison WCSimHitComparison::WCSimHitComparison::at(int i)
+{
+	return fSingleHitComparisons[i];
+}
+
+u_int WCSimHitComparison::size()
+{
+	return fSingleHitComparisons.size();
 }

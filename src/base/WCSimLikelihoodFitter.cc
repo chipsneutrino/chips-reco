@@ -51,7 +51,7 @@ ClassImp(WCSimLikelihoodFitter)
 #endif
 
 bool WCSimLikelihoodFitter::RingSort(const std::pair<WCSimRecoRing *, double> &a,
-										const std::pair<WCSimRecoRing *, double> &b)
+									 const std::pair<WCSimRecoRing *, double> &b)
 {
 	return (a.first)->GetHeight() > (b.first)->GetHeight();
 }

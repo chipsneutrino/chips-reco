@@ -28,6 +28,7 @@ public:
 	// All "slot" commands, ie those that are called by buttons
 	// need to be public.
 	// Open the file to display events from
+	void OpenFile();
 	void OpenFile(std::string name);
 	void OpenWCSimRecoFile(std::string name);
 

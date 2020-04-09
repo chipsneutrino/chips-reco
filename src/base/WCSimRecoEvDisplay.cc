@@ -40,7 +40,7 @@
 
 ClassImp(WCSimRecoEvDisplay)
 
-WCSimRecoEvDisplay::WCSimRecoEvDisplay()
+	WCSimRecoEvDisplay::WCSimRecoEvDisplay()
 {
 	// TODO Auto-generated constructor stub
 }
@@ -718,6 +718,11 @@ std::string WCSimRecoEvDisplay::GetTrackInfo(bool isReco, unsigned int trackNo)
 	return info.str();
 }
 
+void WCSimRecoEvDisplay::OpenFile()
+{
+	this->OpenFile("");
+}
+
 void WCSimRecoEvDisplay::OpenFile(std::string name)
 {
 	TGFileInfo fileInfo;
@@ -1041,7 +1046,7 @@ void WCSimRecoEvDisplay::FillPlotsFromRecoFile()
 	// Need to loop through the hits once to find the charge and time ranges
 	// Set up access to the chain
 	WCSimHitComparison *hc = new WCSimHitComparison();
-	fHitComparisonChain->SetBranchAddress("HitComparison", &hc);
+	fHitComparisonChain->SetBranchAddress("HitComparison_ElectronLike", &hc);
 	fHitComparisonChain->GetEntry(fCurrentEvent);
 
 	double recoQ = -999;
@@ -1873,7 +1878,7 @@ void WCSimRecoEvDisplay::FillPlotsFromLikelihood()
 
 	// Set up access to the chain
 	WCSimHitComparison *hc = new WCSimHitComparison();
-	fHitComparisonChain->SetBranchAddress("HitComparison", &hc);
+	fHitComparisonChain->SetBranchAddress("HitComparison_ElectronLike", &hc);
 	fHitComparisonChain->GetEntry(fCurrentEvent);
 
 	// Only load the LnL values that we need.
@@ -2037,7 +2042,7 @@ void WCSimRecoEvDisplay::FillPlotsFromCorrectLikelihood()
 	// Need to loop through the hits once to find the charge and time ranges
 	// Set up access to the chain
 	WCSimHitComparison *hc = new WCSimHitComparison();
-	fHitComparisonChain->SetBranchAddress("HitComparison", &hc);
+	fHitComparisonChain->SetBranchAddress("HitComparison_ElectronLike", &hc);
 	fHitComparisonChain->GetEntry(fCurrentEvent);
 
 	// Only load the LnL values that we need.
@@ -2185,7 +2190,7 @@ void WCSimRecoEvDisplay::FillPlotsFromPrediction()
 	// Need to loop through the hits once to find the charge and time ranges
 	// Set up access to the chain
 	WCSimHitComparison *hc = new WCSimHitComparison();
-	fHitComparisonChain->SetBranchAddress("HitComparison", &hc);
+	fHitComparisonChain->SetBranchAddress("HitComparison_ElectronLike", &hc);
 	fHitComparisonChain->GetEntry(fCurrentEvent);
 
 	double recoQ = -999;
@@ -2375,7 +2380,7 @@ void WCSimRecoEvDisplay::FillPlotsFromCorrectPrediction()
 	// Need to loop through the hits once to find the charge and time ranges
 	// Set up access to the chain
 	WCSimHitComparison *hc = new WCSimHitComparison();
-	fHitComparisonChain->SetBranchAddress("HitComparison", &hc);
+	fHitComparisonChain->SetBranchAddress("HitComparison_ElectronLike", &hc);
 	fHitComparisonChain->GetEntry(fCurrentEvent);
 
 	double recoQ = -999;
@@ -2568,7 +2573,7 @@ void WCSimRecoEvDisplay::FillPlotsFromRMT()
 	// Need to loop through the hits once to find the charge and time ranges
 	// Set up access to the chain
 	WCSimHitComparison *hc = new WCSimHitComparison();
-	fHitComparisonChain->SetBranchAddress("HitComparison", &hc);
+	fHitComparisonChain->SetBranchAddress("HitComparison_ElectronLike", &hc);
 	fHitComparisonChain->GetEntry(fCurrentEvent);
 
 	double recoQ = -999;

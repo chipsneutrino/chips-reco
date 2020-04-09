@@ -179,4 +179,21 @@ private:
 	ClassDef(WCSimSingleHitComparison, 1);
 };
 
-typedef std::vector<WCSimSingleHitComparison> WCSimHitComparison;
+class WCSimHitComparison
+{
+public:
+	WCSimHitComparison();
+	~WCSimHitComparison();
+
+	WCSimHitComparison(const WCSimHitComparison &other);
+	WCSimHitComparison &operator=(const WCSimHitComparison &rhs);
+
+	void push_back(WCSimSingleHitComparison hitComparison);
+	WCSimSingleHitComparison at(int i);
+	u_int size();
+
+private:
+	std::vector<WCSimSingleHitComparison> fSingleHitComparisons;
+
+	ClassDef(WCSimHitComparison, 1);
+};
