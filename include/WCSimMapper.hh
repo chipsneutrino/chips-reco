@@ -76,21 +76,21 @@ private:
 	float r_dirTheta_;				///< Lepton track costheta-direction
 	float r_dirPhi_;				///< Lepton track phi-direction
 
-	UChar_t r_raw_hit_map_origin_[64][64];		   ///< Raw hit map from origin
-	UChar_t r_raw_charge_map_origin_[64][64];	   ///< Raw charge map from origin
-	UChar_t r_raw_time_map_origin_[64][64];		   ///< Raw time map from origin
-	UChar_t r_filtered_hit_map_origin_[64][64];	   ///< Filtered hit number map from origin
-	UChar_t r_filtered_charge_map_origin_[64][64]; ///< Filtered charge map from origin
-	UChar_t r_filtered_time_map_origin_[64][64];   ///< Filtered time map from origin
+	UChar_t r_raw_hit_map_origin_[128][64];		   ///< Raw hit map from origin
+	UChar_t r_raw_charge_map_origin_[128][64];	   ///< Raw charge map from origin
+	UChar_t r_raw_time_map_origin_[128][64];		   ///< Raw time map from origin
+	UChar_t r_filtered_hit_map_origin_[128][64];	   ///< Filtered hit number map from origin
+	UChar_t r_filtered_charge_map_origin_[128][64]; ///< Filtered charge map from origin
+	UChar_t r_filtered_time_map_origin_[128][64];   ///< Filtered time map from origin
 
-	UChar_t r_raw_hit_map_vtx_[64][64];			///< Raw hit map from reco vertex
-	UChar_t r_raw_charge_map_vtx_[64][64];		///< Raw charge map from reco vertex
-	UChar_t r_raw_time_map_vtx_[64][64];		///< Raw time map from reco vertex
-	UChar_t r_filtered_hit_map_vtx_[64][64];	///< Filtered hit number map from reco vertex
-	UChar_t r_filtered_charge_map_vtx_[64][64]; ///< Filtered charge map from reco vertex
-	UChar_t r_filtered_time_map_vtx_[64][64];	///< Filtered time map from reco vertex
+	UChar_t r_raw_hit_map_vtx_[128][64];			///< Raw hit map from reco vertex
+	UChar_t r_raw_charge_map_vtx_[128][64];		///< Raw charge map from reco vertex
+	UChar_t r_raw_time_map_vtx_[128][64];		///< Raw time map from reco vertex
+	UChar_t r_filtered_hit_map_vtx_[128][64];	///< Filtered hit number map from reco vertex
+	UChar_t r_filtered_charge_map_vtx_[128][64]; ///< Filtered charge map from reco vertex
+	UChar_t r_filtered_time_map_vtx_[128][64];	///< Filtered time map from reco vertex
 
-	UChar_t r_filtered_hit_hough_map_vtx_[64][64]; ///< Filtered hit Hough map from reco vertex
+	UChar_t r_filtered_hit_hough_map_vtx_[128][64]; ///< Filtered hit Hough map from reco vertex
 
 	ClassDef(WCSimMapper, 0)
 };
