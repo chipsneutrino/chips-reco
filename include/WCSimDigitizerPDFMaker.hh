@@ -24,22 +24,16 @@ public:
 	WCSimDigitizerPDFMaker();
 	virtual ~WCSimDigitizerPDFMaker();
 
-	void SetBinning(int bins = 1000, double min = 0, double max = 10);
+	void SetBinning(int bins = 1000, int min = 0, int max = 10);
 	int GetBins() const;
-	double GetMin() const;
-	double GetMax() const;
-
-	void SetMu(double mu);
-	double GetMu() const;
+	int GetMin() const;
+	int GetMax() const;
 
 	void SetNumThrows(int num);
 	int GetNumThrows() const;
 
 	void SetType(int type);
 	int GetType() const;
-
-	void SetTotPoisson(bool set);
-	bool GetTotPoisson() const;
 
 	void Run();
 
@@ -48,8 +42,9 @@ private:
 	void LoopDigitize();
 	void Digitize();
 	void FillEmptyBins();
-	void NormHistogram();
-	void lnHist();
+	void NormHists();
+	void CreateDigiNormHists();
+	void CreateLnHists();
 	void SaveHistogram();
 
 	int ThrowPoisson();
@@ -60,15 +55,21 @@ private:
 	double fMu;
 	int fNumThrows;
 	int fType; // 0=sk1pe, 1=pmtSim, 2=tot
-
-	TH2D *fProbHisto;
-	double fChargeMin;
-	double fChargeMax;
+	int fChargeMin;
+	int fChargeMax;
 	int fNumChargeBins;
-	bool totPoisson;
 
-	TH1D *fDebug;
+	TH2D *fProbRawHisto;
+	TH2D *fProbPoissonHisto;
+	TH1D *fPoisson;
 
+	TH2D *fProbRawHisto_digiNorm;
+	TH2D *fProbPoissonHisto_digiNorm;
+	TH2D *fProbRawHisto_ln;
+	TH2D *fProbPoissonHisto_ln;
+	TH2D *fProbRawHisto_digiNorm_ln;
+	TH2D *fProbPoissonHisto_digiNorm_ln;
+	
 	WCSimSK1pePMT *fSK1pePMT;
 	WCSimCHIPSPMT *fCHIPSPMT;
 	WCSimTOTPMT *fTOTPMT;
