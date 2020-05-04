@@ -255,15 +255,15 @@ void WCSimDigitizerPDFMaker::SaveHistogram()
 	TString fileName;
 	if (fType == 0)
 	{
-		fileName = "sk1pe_digitizerLikelihood.root";
+		fileName = "digi_sk1pe.root";
 	}
 	else if (fType == 1)
 	{
-		fileName = "pmtSim_digitizerLikelihood.root";
+		fileName = "digi_pmtSim.root";
 	}
 	else if (fType == 2)
 	{
-		fileName = "tot_digitizerLikelihood.root";
+		fileName = "digi_tot.root";
 	}
 
 	TFile *f = new TFile(fileName.Data(), "RECREATE");
