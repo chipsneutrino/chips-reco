@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
 				}
 				else
 				{
-					std::cout << "== -f requires a file name!" << std::cout;
+					std::cout << "== -f requires a file name!" << std::endl;
 					return 0;
 				}
 			}

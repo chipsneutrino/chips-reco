@@ -179,9 +179,9 @@ add_library(WCSimAnalysisRoot SHARED
             WCSimAnalysisRootDict.cxx)
 target_link_libraries(WCSimAnalysisRoot ${ROOT_LIBRARIES} Spectrum)
 
-#---Add the geometryHelper executable and link to all the required libraries
-add_executable(recoDisplay ./src/apps/recoDisplay.cc ${sources} ${headers})
-target_link_libraries(recoDisplay ${ROOT_LIBRARIES} ${CHIPSSIM_LIBRARY} Gui EG Spectrum WCSimAnalysisRoot Tree)
+#---Add the recodisplay executable and link to all the required libraries
+add_executable(recodisplay ./src/apps/recodisplay.cc ${sources} ${headers})
+target_link_libraries(recodisplay ${ROOT_LIBRARIES} ${CHIPSSIM_LIBRARY} Gui EG Spectrum WCSimAnalysisRoot Tree)
 
 #---Download large data files to the config directory
 if(EXISTS $ENV{CHIPSRECO}/config/electronIntegralsSmall.root)
