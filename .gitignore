@@ -13,7 +13,7 @@
 lib/
 tmp/
 
-recoDisplay
+recodisplay
 *.sh.o*
 *.sh.e*
 *.so
