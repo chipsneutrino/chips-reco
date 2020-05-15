@@ -1,8 +1,11 @@
-R__LOAD_LIBRARY(libWCSimRoot.so)
-R__LOAD_LIBRARY(libWCSimAnalysisRoot.so)
 R__LOAD_LIBRARY(libGeom.so)
 R__LOAD_LIBRARY(libEve.so)
 R__LOAD_LIBRARY(libMinuit.so)
+R__LOAD_LIBRARY(libEG.so)
+R__LOAD_LIBRARY(libGui.so)
+R__LOAD_LIBRARY(libSpectrum.so)
+R__LOAD_LIBRARY(libWCSimRoot.so)
+R__LOAD_LIBRARY(libWCSimAnalysisRoot.so)
 
 void wc_trackfitter_mu(const char *infile = "", int start = 0, int fit = 1)
 {

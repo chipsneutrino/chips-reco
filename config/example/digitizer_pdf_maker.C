@@ -1,8 +1,11 @@
-R__LOAD_LIBRARY(libWCSimRoot.so)
-R__LOAD_LIBRARY(libWCSimAnalysisRoot.so)
 R__LOAD_LIBRARY(libGeom.so)
 R__LOAD_LIBRARY(libEve.so)
 R__LOAD_LIBRARY(libMinuit.so)
+R__LOAD_LIBRARY(libEG.so)
+R__LOAD_LIBRARY(libGui.so)
+R__LOAD_LIBRARY(libSpectrum.so)
+R__LOAD_LIBRARY(libWCSimRoot.so)
+R__LOAD_LIBRARY(libWCSimAnalysisRoot.so)
 
 // 0 = sk1pe, 1 = chipspmt, 2 = tot
 void digitizer_pdf_maker(int type = 0, int nThrows = 100000, int nBins = 1000, double min = 0.0, double max = 10.0)
