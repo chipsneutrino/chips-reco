@@ -31,12 +31,11 @@ void WCSimFitterTrackParMap::Set()
 {
 	fTrackAndTypeIndexMap.clear();
 	unsigned int nTracks = fFitterConfig->GetNumTracks();
-	std::cout << "Number of tracks in ::Set is " << nTracks << std::endl;
+	std::cout << "Number of tracks set is " << nTracks << std::endl;
 
 	unsigned int arrayCounter = 0; // How many unique track parameters there are
 	for (unsigned int iTrack = 0; iTrack < nTracks; ++iTrack)
 	{
-
 		std::vector<FitterParameterType::Type> allTypes = FitterParameterType::GetAllAllowedTypes(
 			fFitterConfig->GetTrackType(iTrack));
 		for (unsigned int iParam = 0; iParam < allTypes.size(); ++iParam)
@@ -45,6 +44,7 @@ void WCSimFitterTrackParMap::Set()
 			TrackAndType trackPar(iTrack, allTypes.at(iParam));
 			unsigned int isJoinedWith = fFitterConfig->GetTrackIsJoinedWith(iTrack,
 																			FitterParameterType::AsString(trackPar.second).c_str());
+			
 			if (isJoinedWith == iTrack) // Itself, i.e. not joined with any other track
 			{
 				// Then set it to the value from the first track
@@ -77,13 +77,14 @@ void WCSimFitterTrackParMap::SetArrays()
 		fTypes.at(jTrack) = (fFitterConfig->GetTrackType(jTrack));
 		std::vector<FitterParameterType::Type> paramTypes = FitterParameterType::GetAllAllowedTypes(
 			fTypes.at(jTrack));
-		std::vector<FitterParameterType::Type>::const_iterator typeItr = paramTypes.begin();
 
-		for (; typeItr != paramTypes.end(); ++typeItr)
+		for (int i=0; i<paramTypes.size(); i++)
 		{
-			const char *name = FitterParameterType::AsString(*typeItr).c_str();
+			FitterParameterType::Type param = paramTypes[i];
+			std::string string_name = FitterParameterType::AsString(param);
+			const char *name = string_name.c_str();
 
-			if (fFitterConfig->GetIsParameterJoined(jTrack, name))
+			if (fFitterConfig->GetIsParameterJoined(jTrack, param))
 			{
 				continue;
 			}
@@ -98,7 +99,7 @@ void WCSimFitterTrackParMap::SetArrays()
 				fCurrentlyFixed[iParam] = fAlwaysFixed[iParam];
 				TString parName = Form("%s_track%d", name, jTrack);
 				fNames[iParam] = std::string(parName.Data());
-				fIsEnergy[iParam] = ((*typeItr) == FitterParameterType::kEnergy);
+				fIsEnergy[iParam] = (param == FitterParameterType::kEnergy);
 				iParam++;
 			}
 		}

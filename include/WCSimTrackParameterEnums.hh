@@ -276,7 +276,6 @@ public:
 
 	static std::vector<FitterParameterType::Type> GetAllAllowedTypes(TrackType::Type trackType)
 	{
-
 		std::vector<FitterParameterType::Type> types;
 		types.push_back(FitterParameterType::kVtxX);
 		types.push_back(FitterParameterType::kVtxY);
