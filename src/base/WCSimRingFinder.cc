@@ -88,8 +88,8 @@ WCSimRingFinder::WCSimRingFinder()
 	fUseTSpectrum2 = 0;
 
 	// default hough transform parameters
-	fHoughX = 128;		// bins in phi
-	fHoughY = 128;		// bins in cos(theta)
+	fHoughX = 64;		// bins in phi
+	fHoughY = 64;		// bins in cos(theta)
 	fHoughPoints = 720; // hough points
 
 	fConeAngleBins = 1; // hough angle bins
@@ -159,9 +159,10 @@ std::vector<WCSimRecoRing *> *WCSimRingFinder::Run(WCSimRecoVertex *myVertex)
 
 std::vector<WCSimRecoRing *> *WCSimRingFinder::Run(WCSimRecoEvent *myEvent, WCSimRecoVertex *myVertex)
 {
-	// get filter digit list
+	// get digit list (should we use unfiltered or filtered for the hough?)
 	// =====================
-	std::vector<WCSimRecoDigit *> *myFilterDigitList = (std::vector<WCSimRecoDigit *> *)(myEvent->GetFilterDigitList());
+	std::vector<WCSimRecoDigit *> *myFilterDigitList = (std::vector<WCSimRecoDigit *> *)(myEvent->GetDigitList());
+	//std::vector<WCSimRecoDigit *> *myFilterDigitList = (std::vector<WCSimRecoDigit *> *)(myEvent->GetFilterDigitList());
 
 	// run vertex finder
 	// =================

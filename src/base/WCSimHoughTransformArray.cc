@@ -557,37 +557,36 @@ void WCSimHoughTransformArray::FitMultiPeaksSmooth(std::vector<Double_t> &houghD
 	peakFinder1D->Search(houghProjection1D, 2, "");
 
 	std::vector<std::pair<double, TVector2>> peakListToSort;
-	float *phiArray = (float *)peakFinder->GetPositionX();
-	float *thetaArray = (float *)peakFinder->GetPositionY();
 	for (int i = 0; i < peakFinder->GetNPeaks(); ++i)
 	{
-
-		TVector2 tempVec(phiArray[i] - houghRotationPhi, thetaArray[i]);
-		std::pair<double, TVector2> tempPair(houghSpace->Interpolate(phiArray[i], thetaArray[i]), tempVec);
+		TVector2 tempVec(peakFinder->GetPositionX()[i] - houghRotationPhi, peakFinder->GetPositionY()[i]);
+		std::pair<double, TVector2> tempPair(
+			houghSpace->Interpolate(peakFinder->GetPositionX()[i], peakFinder->GetPositionY()[i]),
+			tempVec
+		);
 		peakListToSort.push_back(tempPair);
 	}
 
-	float *thetaArray1D = (float *)peakFinder1D->GetPositionX();
 	for (int i = 0; i < peakFinder1D->GetNPeaks(); ++i)
 	{
 		double max = 0.0;
 		double maxPhi = 1;
-		double cosTheta = thetaArray1D[i];
+		double cosTheta = peakFinder1D->GetPositionX()[i];
 		if (fabs(cosTheta) < 0.95)
 		{
 			continue;
 		}
 		for (int xBin = 1; xBin < houghSpace->GetNbinsX(); ++xBin)
 		{
-			double tmp = houghSpace->GetBinContent(xBin, houghSpace->GetYaxis()->FindBin(thetaArray1D[i]));
+			double tmp = houghSpace->GetBinContent(xBin, houghSpace->GetYaxis()->FindBin(peakFinder1D->GetPositionX()[i]));
 			if (tmp > max)
 			{
 				max = tmp;
 				maxPhi = houghSpace->GetXaxis()->GetBinCenter(xBin);
 			}
 		}
-		TVector2 tempVec(maxPhi - houghRotationPhi, thetaArray1D[i]);
-		std::pair<double, TVector2> tempPair(houghSpace->Interpolate(maxPhi, thetaArray1D[i]), tempVec);
+		TVector2 tempVec(maxPhi - houghRotationPhi, peakFinder1D->GetPositionX()[i]);
+		std::pair<double, TVector2> tempPair(houghSpace->Interpolate(maxPhi, peakFinder1D->GetPositionX()[i]), tempVec);
 		peakListToSort.push_back(tempPair);
 	}
 	// Check to make sure we didn't miss a peak at theta = -1.
