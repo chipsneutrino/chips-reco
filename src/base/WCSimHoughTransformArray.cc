@@ -51,9 +51,8 @@ void WCSimHoughTransformArray::BuildArray(Int_t coneAngleBins, Double_t coneAngl
 
 	std::cout << "  building Hough Transform Array: Cone angle (bins,min,max)=(" << fConeAngleBins << ","
 			  << fConeAngleMin << "," << fConeAngleMax << ") " << std::endl
-			  << "  phi      (bins, min, max) =(" << fHoughX
-			  << ",-180,180)" << std::endl
-			  << "  costheta (bins, min, max) =(" << fHoughY << "-1,1)" << std::endl;
+			  << "  phi      (bins, min, max) =(" << fHoughX << ",-180,180)" << std::endl
+			  << "  costheta (bins, min, max) =(" << fHoughY << ",-1,1)" << std::endl;
 
 	// clear current array
 	this->DeleteArray();
