@@ -33,8 +33,7 @@ public:
 
 private:
 	void resetVariables();
-	void fillTrueTree();
-	void fillRecoTree();
+	void fillTrees();
 
 	float GetCosTheta(float x, float y, float z);
 	void GetXValues(float *x_plus, float *x_minus, float rho, float z, float phi);
@@ -66,10 +65,8 @@ private:
 	float t_p_dirPhi_[10];	 ///< Event primaries phi direction
 
 	// Reco TTree variables (Used as examples in the CVN)
-	int r_raw_num_hits_;			///< Raw number of hits in the event
-	float r_raw_total_digi_q_;		///< Raw charge in the event
-	int r_filtered_num_hits_;		///< Filtered number of hits in the event
-	float r_filtered_total_digi_q_; ///< Filtered charge in the event
+	int r_num_hits_;			///< Raw number of hits in the event
+	float r_total_digi_q_;		///< Raw charge in the event
 	int r_num_hough_rings_;			///< Number of seed rings in the event
 	float r_first_ring_height_;		///< First seed ring hough height
 	float r_last_ring_height_;		///< Lats seed ring hough height
@@ -80,28 +77,13 @@ private:
 	float r_dirTheta_;				///< Lepton track costheta-direction
 	float r_dirPhi_;				///< Lepton track phi-direction
 
-	UChar_t r_raw_hit_map_origin_[64][64];		   ///< Raw hit map from origin
-	UChar_t r_raw_charge_map_origin_[64][64];	   ///< Raw charge map from origin
-	UChar_t r_raw_time_map_origin_[64][64];		   ///< Raw time map from origin
-	UChar_t r_filtered_hit_map_origin_[64][64];	   ///< Filtered hit number map from origin
-	UChar_t r_filtered_charge_map_origin_[64][64]; ///< Filtered charge map from origin
-	UChar_t r_filtered_time_map_origin_[64][64];   ///< Filtered time map from origin
-
-	UChar_t r_raw_hit_map_vtx_[64][64];			///< Raw hit map from reco vertex
-	UChar_t r_raw_charge_map_vtx_[64][64];		///< Raw charge map from reco vertex
-	UChar_t r_raw_time_map_vtx_[64][64];		///< Raw time map from reco vertex
-	UChar_t r_filtered_hit_map_vtx_[64][64];	///< Filtered hit number map from reco vertex
-	UChar_t r_filtered_charge_map_vtx_[64][64]; ///< Filtered charge map from reco vertex
-	UChar_t r_filtered_time_map_vtx_[64][64];	///< Filtered time map from reco vertex
-
-	UChar_t r_raw_hit_map_iso_[64][64];			///< Raw hit map in iso space
-	UChar_t r_raw_charge_map_iso_[64][64];		///< Raw charge map in iso space
-	UChar_t r_raw_time_map_iso_[64][64];		///< Raw time map in iso space
-	UChar_t r_filtered_hit_map_iso_[64][64];	///< Filtered hit number map in iso space
-	UChar_t r_filtered_charge_map_iso_[64][64]; ///< Filtered charge map in iso space
-	UChar_t r_filtered_time_map_iso_[64][64];	///< Filtered time map in iso space
-
-	UChar_t r_raw_hit_hough_map_vtx_[64][64]; ///< Raw hit Hough map from reco vertex
+	UChar_t r_charge_map_origin_[64][64];	///< Raw charge map from origin
+	UChar_t r_time_map_origin_[64][64];		///< Raw time map from origin
+	UChar_t r_charge_map_iso_[64][64];		///< Raw charge map in iso space
+	UChar_t r_time_map_iso_[64][64];		///< Raw time map in iso space
+	UChar_t r_charge_map_vtx_[64][64];		///< Raw charge map from reco vertex
+	UChar_t r_time_map_vtx_[64][64];		///< Raw time map from reco vertex
+	UChar_t r_hough_map_vtx_[64][64]; 	///< Raw hit Hough map from reco vertex
 
 	ClassDef(WCSimMapper, 0)
 };
